@@ -1,0 +1,102 @@
+# All the general options of Argot live here
+options:
+  project-root: "../../" # This file is in Tools/src
+  reports-dir: "logs/argot"
+  coverage-filter: "amazon-ssm-agent" # in case coverage data is used, only generate coverage for the amazon-ssm-agent
+  log-level: 3 # Log level: DEBUG
+  report-paths: true # print paths on stdout
+  analysis-options:
+    unsafe-max-depth: 15
+    max-alarms: 30
+
+pointer-config:
+  # The following function's effect on aliasing is ignored; it creates too many false positives.
+  # Otherwise they may cause most error values to be aliased.
+  unsafe-no-effect-functions:
+    - fmt.Errorf
+    - log.Errorf
+
+targets:
+  - name: "amazon-ssm-agent-unix"
+    files: ["core/agent.go", "core/agent_unix.go", "core/agent_parser.go"]
+  - name: "amazon-ssm-agent-windows"
+    files: [ "core/agent.go", "core/agent_windows.go", "core/agent_parser.go" ]
+  - name: "agent-worker-unix"
+    files: ["agent/agent.go", "agent/agent_unix.go", "agent/agent_parser.go"]
+  - name: "agent-worker-windows"
+    files: [ "agent/agent.go", "agent/agent_windows.go", "agent/agent_parser.go" ]
+  - name: "updater-unix"
+    files: ["agent/update/updated/updater.go", "agent/update/updater/updater_unix.go"]
+  - name: "ssm-cli"
+    files: ["agent/cli-main/cli-main.go"]
+  - name: "ssm-document-worker"
+    files: ["agent/framework/processor/executer/outofproc/worker/main.go"]
+  - name: "ssm-session-logger" # Do not use, but keep here until looger is fully removed
+    files: ["agent/session/logging/main.go"]
+  - name: "ssm-session-worker"
+    files: ["agent/framework/processor/executer/outofproc/sessionworker/main.go"]
+  - name: "ssm-setup-cli"
+    files: ["agent/setupcli/setupcli.go"]
+
+
+dataflow-problems:
+  summarize-on-demand: true
+  field-sensitive-funcs: [".*"]
+  user-specs:
+    - "Tools/src/specifications/agent-specs.json"
+    - "Tools/src/specifications/sdk-specs.json"
+    - "Tools/src/specifications/std-specs.json"
+
+  # The taint tracking problems
+  taint-tracking:
+    - tag: "credential-logging"
+      description: "Checking that credentials don't get logged."
+      targets:
+        - agent-worker-unix
+        - ssm-document-worker
+        - ssm-session-worker
+        - ssm-setup-cli
+        - ssm-cli
+      severity: "HIGH" # Credentials should never get logged.
+      unsafe-skip-bound-labels: true
+      sources:
+        - package: ".*"
+          method: "RemoteRetrieve"
+      sinks:
+        - context: "amazon-ssm-agent"
+          method: "^(Log|Error|Warn|Debug|Info).*"
+      sanitizers:
+        # Signing using the credentials doesn't taint the signed data by definition!
+        - package: ".*signer/v4"
+          method: "Sign"
+        - package: ".*signer/v4"
+          method: "signWithBody"
+      filters:
+        - type: "^error"
+        - type: "^int"
+        - package: "log"
+          type: "T"
+
+syntactic-problems:
+  # Check that the tls config field MinVersion is always set to TLS 1.2
+  struct-inits:
+    - tag: "init-tls-v12"
+      description: "Check that the tls.Config is initialized with TLS 1.2"
+      targets: [ "agent-worker-unix" ]
+      struct:
+        type: "crypto/tls.Config"
+      fields-set:
+        - field: "MinVersion"
+          value:
+            package: "crypto/tls"
+            const: "VersionTLS12"
+      # filter dependency false-positives
+      filters:
+        - package: ".*github.com/aws/aws-sdk-go.*"
+          method: ".*"
+        - package: ".*github.com/go-git.*"
+          method: ".*"
+        - package: ".*github.com/go-git.*"
+          method: ".*"
+        - package: ".*github.com/gorilla.*"
+          method: ".*"
