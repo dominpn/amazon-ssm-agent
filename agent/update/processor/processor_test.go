@@ -914,6 +914,10 @@ func TestValidateUpdateParam_FailedAttemptDowngrade_AllowDowngradeFalse(t *testi
 	updateDetail.SourceVersion = "3.0.0.0"
 	updateDetail.TargetVersion = "2.0.0.0"
 
+	manifest := &updatemanifestmocks.T{}
+	manifest.On("IsVersionActive", mock.Anything, mock.Anything).Return(true, nil)
+	updateDetail.Manifest = manifest
+
 	finalizeCalled := false
 	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, code string) (err error) {
 		finalizeCalled = true
@@ -1242,6 +1246,109 @@ func TestValidateUpdateParam_Success(t *testing.T) {
 	assert.False(t, updateDetail.RequiresUninstall)
 
 	assert.Contains(t, updateDetail.StandardOut, "Updating  from 5.0.0.0 to 6.0.0.0")
+	assert.Equal(t, "", updateDetail.StandardError)
+}
+
+func TestValidateUpdateParam_Success_DowngradeWhenCurrentVersionInactive(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+
+	updateDetail := createUpdateDetail(Initialized)
+	updateDetail.SourceVersion = "6.0.0.0"
+	updateDetail.TargetVersion = "5.0.0.0"
+	updateDetail.PackageName = "amazon-ssm-agent"
+	updateDetail.TargetResolver = updateconstants.TargetVersionLatest
+	updateDetail.AllowDowngrade = false
+
+	manifest := &updatemanifestmocks.T{}
+	manifest.On("HasVersion", mock.Anything, updateDetail.SourceVersion).Return(true)
+	manifest.On("HasVersion", mock.Anything, updateDetail.TargetVersion).Return(true)
+	manifest.On("IsVersionActive", mock.Anything, updateDetail.TargetVersion).Return(true, nil)
+	manifest.On("IsVersionActive", mock.Anything, updateDetail.SourceVersion).Return(false, nil)
+	updateDetail.Manifest = manifest
+
+	precondition1 := &updatepreconditionmocks.T{}
+	precondition1.On("GetPreconditionName").Return("Precondition1")
+	precondition1.On("CheckPrecondition", updateDetail.TargetVersion).Return(nil)
+
+	precondition2 := &updatepreconditionmocks.T{}
+	precondition2.On("GetPreconditionName").Return("Precondition2")
+	precondition2.On("CheckPrecondition", updateDetail.TargetVersion).Return(nil)
+	updater.mgr.preconditions = []updateprecondition.T{precondition1, precondition2}
+
+	finalizeCalled := false
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, code string) (err error) {
+		finalizeCalled = true
+		return nil
+	}
+
+	called := false
+	updater.mgr.populateUrlHash = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		called = true
+		return nil
+	}
+
+	// action
+	err := validateUpdateParam(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.True(t, called)
+	assert.False(t, finalizeCalled)
+	assert.Equal(t, Initialized, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusInProgress, updateDetail.Result)
+	assert.True(t, updateDetail.RequiresUninstall)
+
+	assert.Contains(t, updateDetail.StandardOut, "Updating amazon-ssm-agent from 6.0.0.0 to 5.0.0.0")
+	assert.Equal(t, "", updateDetail.StandardError)
+}
+
+func TestValidateUpdateParam_Fail_DowngradeWhenCurrentVersionInactiveButManuallySpecified(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+
+	updateDetail := createUpdateDetail(Initialized)
+	updateDetail.SourceVersion = "6.0.0.0"
+	updateDetail.TargetVersion = "5.0.0.1"
+	updateDetail.PackageName = "amazon-ssm-agent"
+	updateDetail.TargetResolver = updateconstants.TargetVersionCustomerDefined
+	updateDetail.AllowDowngrade = false
+
+	manifest := &updatemanifestmocks.T{}
+	manifest.On("HasVersion", mock.Anything, updateDetail.SourceVersion).Return(true)
+	manifest.On("HasVersion", mock.Anything, updateDetail.TargetVersion).Return(true)
+	manifest.On("IsVersionActive", mock.Anything, updateDetail.TargetVersion).Return(true, nil)
+	manifest.On("IsVersionActive", mock.Anything, updateDetail.SourceVersion).Return(false, nil)
+	updateDetail.Manifest = manifest
+
+	precondition1 := &updatepreconditionmocks.T{}
+	precondition1.On("GetPreconditionName").Return("Precondition1")
+	precondition1.On("CheckPrecondition", updateDetail.TargetVersion).Return(nil)
+
+	precondition2 := &updatepreconditionmocks.T{}
+	precondition2.On("GetPreconditionName").Return("Precondition2")
+	precondition2.On("CheckPrecondition", updateDetail.TargetVersion).Return(nil)
+	updater.mgr.preconditions = []updateprecondition.T{precondition1, precondition2}
+
+	finalizeCalled := false
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, code string) (err error) {
+		finalizeCalled = true
+		return nil
+	}
+
+	// action
+	err := validateUpdateParam(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.True(t, finalizeCalled)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.True(t, updateDetail.RequiresUninstall)
+
+	assert.Contains(t, updateDetail.StandardOut, "please enable allow downgrade to proceed")
 	assert.Equal(t, "", updateDetail.StandardError)
 }
 

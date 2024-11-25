@@ -369,10 +369,7 @@ func validateUpdateParam(mgr *updateManager, logger log.T, updateDetail *UpdateD
 		updateDetail.RequiresUninstall = true
 		logger.Infof("Source version is higher than target version, will require a downgrade")
 
-		// TODO: if updateDetail.TargetResolver != updateconstants.TargetVersionCustomerDefined { override allowDowngrade
-		//        - If latest active version is < current version, current version has been deprecated and there is no newer version
-
-		if !updateDetail.AllowDowngrade {
+		if !updateDetail.AllowDowngrade && !allowDowngradeForVersionNotActive(mgr, logger, updateDetail) {
 			logger.Warnf("Downgrade is not enabled, please enable downgrade to perform this update")
 			return mgr.failed(updateDetail, logger, updateconstants.ErrorAttemptToDowngrade, fmt.Sprintf("Updating %v to an older version %v, please enable allow downgrade to proceed", updateDetail.SourceVersion, updateDetail.TargetVersion), true)
 		}
@@ -411,6 +408,22 @@ func validateUpdateParam(mgr *updateManager, logger log.T, updateDetail *UpdateD
 	}
 
 	return mgr.populateUrlHash(mgr, logger, updateDetail)
+}
+
+// Allow rollback if current version installed is not active
+// And that customer are not manually specifying a version.
+func allowDowngradeForVersionNotActive(mgr *updateManager, logger log.T, updateDetail *UpdateDetail) (allowed bool) {
+	isSourceVersionActive, err := updateDetail.Manifest.IsVersionActive(appconfig.DefaultAgentName, updateDetail.SourceVersion)
+	if err != nil {
+		// If we cannot read manifest, err on the safe side and do not change behavior
+		logger.Errorf("Unable to read manifest file to verify active version: ", err)
+		return
+	}
+	if updateDetail.TargetResolver != updateconstants.TargetVersionCustomerDefined && !isSourceVersionActive {
+		logger.Infof("Current version %s is not active, allow downgrade", updateDetail.SourceVersion)
+		allowed = true
+	}
+	return
 }
 
 // populateUrlHash continues initializing after self update has been handled
