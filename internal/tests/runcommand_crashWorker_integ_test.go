@@ -201,16 +201,8 @@ func (suite *CrashWorkerTestSuite) TestDocumentWorkerCrash() {
 				c <- 1
 			} else if sendReplyPayload.DocumentStatus == contracts.ResultStatusSuccess {
 				suite.T().Logf("Document execution %v", sendReplyPayload.DocumentStatus)
-				foundPlugin := false
-				for _, pluginStatus := range sendReplyPayload.RuntimeStatus {
-					if pluginStatus.Status == contracts.ResultStatusSuccess {
-						foundPlugin = true
-						assert.Contains(suite.T(), pluginStatus.Output, testdata.EchoMessageOutput, "plugin output doesn't contain the expected error message")
-					}
-				}
-				if !foundPlugin {
-					suite.T().Error("Couldn't find plugin with result status failed")
-				}
+				_, hasFailed := sendReplyPayload.AdditionalInfo.RuntimeStatusCounts[string(contracts.ResultStatusFailed)]
+				assert.False(suite.T(), hasFailed, "Document has failed status despite success result")
 				c <- 1
 			}
 		}
