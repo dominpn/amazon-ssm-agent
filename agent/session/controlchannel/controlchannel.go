@@ -215,14 +215,12 @@ func (controlChannel *ControlChannel) Open(context context.T, ableToOpenMGSConne
 	uuid.SwitchFormat(uuid.CleanHyphen)
 	uid := uuid.NewV4().String()
 
-	instancePlatformType, _ := platform.PlatformType(log)
-
 	openControlChannelInput := service.OpenControlChannelInput{
 		MessageSchemaVersion: aws.String(mgsConfig.MessageSchemaVersion),
 		RequestId:            aws.String(uid),
 		TokenValue:           aws.String(controlChannel.wsChannel.GetChannelToken()),
 		AgentVersion:         aws.String(version.Version),
-		PlatformType:         aws.String(instancePlatformType),
+		PlatformType:         aws.String(platform.PlatformType()),
 	}
 
 	jsonValue, err := json.Marshal(openControlChannelInput)

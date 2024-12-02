@@ -57,8 +57,8 @@ func getPlatformName(log log.T) (value string, err error) {
 	return
 }
 
-func getPlatformType(log log.T) (value string, err error) {
-	return "linux", nil
+func getPlatformType() string {
+	return "linux"
 }
 
 func getPlatformVersion(log log.T) (value string, err error) {
@@ -287,6 +287,6 @@ func fullyQualifiedDomainName(log log.T) string {
 	return strings.TrimSpace(hostName)
 }
 
-func isPlatformNanoServer(log log.T) (bool, error) {
+func isPlatformNanoServer(_ log.T) (bool, error) {
 	return false, nil
 }

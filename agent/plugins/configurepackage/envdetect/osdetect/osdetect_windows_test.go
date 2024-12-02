@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	logger "github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
-	"github.com/aws/amazon-ssm-agent/agent/platform"
 	c "github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/envdetect/constants"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,50 +29,71 @@ func TestDetectInitSystem(t *testing.T) {
 
 func TestDetectPlatform(t *testing.T) {
 	tests := []struct {
-		name            string
-		getOSInfo       func(platform.Win32_OperatingSystem) (platform.Win32_OperatingSystem, error)
-		expectedVersion string
+		name                 string
+		getPlatformVersion   func(log logger.T) (string, error)
+		isPlatformNanoServer func(log logger.T) (bool, error)
+		expectedVersion      string
 	}{
 		{
-			name: "WMI data is empty",
-			getOSInfo: func(platform.Win32_OperatingSystem) (platform.Win32_OperatingSystem, error) {
-				return platform.Win32_OperatingSystem{}, nil
+			name: "Platform version is empty",
+			getPlatformVersion: func(_ logger.T) (string, error) {
+				return "", nil
+			},
+			isPlatformNanoServer: func(_ logger.T) (bool, error) {
+				return false, nil
 			},
 			expectedVersion: "",
 		},
 		{
-			name: "WMI throws an error",
-			getOSInfo: func(platform.Win32_OperatingSystem) (platform.Win32_OperatingSystem, error) {
-				return platform.Win32_OperatingSystem{Version: "10"}, fmt.Errorf("Error while fetching WMI data")
+			name: "Fetching platform version throws an error",
+			getPlatformVersion: func(_ logger.T) (string, error) {
+				return "", fmt.Errorf("Error while fetching platform version")
 			},
 			expectedVersion: "",
 		},
 		{
-			name: "Windows Nano SKU",
-			getOSInfo: func(platform.Win32_OperatingSystem) (platform.Win32_OperatingSystem, error) {
-				return platform.Win32_OperatingSystem{Version: "10", OperatingSystemSKU: 144}, nil
+			name: "Platform Nano SKU",
+			getPlatformVersion: func(_ logger.T) (string, error) {
+				return "10", nil
+			},
+			isPlatformNanoServer: func(_ logger.T) (bool, error) {
+				return true, nil
 			},
 			expectedVersion: "10nano",
 		},
 		{
-			name: "Regular Windows SKU",
-			getOSInfo: func(platform.Win32_OperatingSystem) (platform.Win32_OperatingSystem, error) {
-				return platform.Win32_OperatingSystem{Version: "10", OperatingSystemSKU: 100}, nil
+			name: "Regular platform SKU",
+			getPlatformVersion: func(_ logger.T) (string, error) {
+				return "10", nil
+			},
+			isPlatformNanoServer: func(_ logger.T) (bool, error) {
+				return false, nil
 			},
 			expectedVersion: "10",
 		},
 		{
-			name: "No Windows SKU data",
-			getOSInfo: func(platform.Win32_OperatingSystem) (platform.Win32_OperatingSystem, error) {
-				return platform.Win32_OperatingSystem{Version: "10"}, nil
+			name: "Fetching platform SKU data throws an error",
+			getPlatformVersion: func(_ logger.T) (string, error) {
+				return "10", nil
+			},
+			isPlatformNanoServer: func(_ logger.T) (bool, error) {
+				return true, fmt.Errorf("Error while fetching platform SKU")
 			},
 			expectedVersion: "10",
 		},
 	}
 
+	tempGetPlatformVersion := getPlatformVersion
+	tempIsPlatformNanoServer := isPlatformNanoServer
+	defer func() {
+		getPlatformVersion = tempGetPlatformVersion
+		isPlatformNanoServer = tempIsPlatformNanoServer
+	}()
+
 	for _, d := range tests {
 		t.Run(d.name, func(t *testing.T) {
-			getOSInfo = d.getOSInfo
+			getPlatformVersion = d.getPlatformVersion
+			isPlatformNanoServer = d.isPlatformNanoServer
 			platform, version, platformFamily, err := DetectPlatform(log.NewMockLog())
 			assert.Equal(t, c.PlatformWindows, platform)
 			assert.Equal(t, c.PlatformFamilyWindows, platformFamily)

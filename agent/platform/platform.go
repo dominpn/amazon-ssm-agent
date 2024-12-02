@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"net"
 	"sort"
+	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -27,9 +29,20 @@ const (
 	gettingPlatformDetailsMessage = "getting platform details"
 	notAvailableMessage           = "NotAvailable"
 	commandOutputMessage          = "Command output %v"
+
+	//map keys for cached platform data
+	platformNameKey    = "platform_name"
+	platformTypeKey    = "platform_type"
+	platformVersionKey = "platform_version"
+	platformSkuKey     = "platform_sku"
 )
 
-var getPlatformNameFn = getPlatformName
+var (
+	getPlatformNameFn    = getPlatformName
+	getPlatformVersionFn = getPlatformVersion
+	getPlatformSkuFn     = getPlatformSku
+	cache                = InitCache(time.Hour.Milliseconds())
+)
 
 // IsPlatformWindowsServer2012OrEarlier represents whether it is Windows 2012 and earlier or not
 func IsPlatformWindowsServer2012OrEarlier(log log.T) (bool, error) {
@@ -48,10 +61,25 @@ func IsWindowsServer2025OrLater(platformVersion string, log log.T) (bool, error)
 
 // PlatformName gets the OS specific platform name.
 func PlatformName(log log.T) (name string, err error) {
+	// get cached value if exists
+	if platformName, found := cache.Get(platformNameKey); found {
+		return platformName, nil
+	}
+
+	// cache the platform name
+	if name, err = retrievePlatformName(log); err == nil {
+		cache.Put(platformNameKey, name)
+	}
+
+	return
+}
+
+func retrievePlatformName(log log.T) (name string, err error) {
 	name, err = getPlatformNameFn(log)
 	if err != nil {
 		return
 	}
+
 	platformName := ""
 	for i := range name {
 		runeVal, _ := utf8.DecodeRuneInString(name[i:])
@@ -61,27 +89,54 @@ func PlatformName(log log.T) (name string, err error) {
 		}
 		platformName = platformName + fmt.Sprintf("%c", runeVal)
 	}
+
 	return platformName, nil
 }
 
-// PlatformType gets the OS specific platform type, valid values are windows and linux.
-func PlatformType(log log.T) (name string, err error) {
-	return getPlatformType(log)
+// PlatformType gets the OS specific platform type.
+func PlatformType() string {
+	// get cached value if exists
+	if platformType, found := cache.Get(platformTypeKey); found {
+		return platformType
+	}
+
+	// cache the platform type
+	platformType := getPlatformType()
+	cache.Put(platformTypeKey, platformType)
+	return platformType
 }
 
 // PlatformVersion gets the OS specific platform version.
 func PlatformVersion(log log.T) (version string, err error) {
-	return getPlatformVersion(log)
+	// get cached value if exists
+	if platformVersion, found := cache.Get(platformVersionKey); found {
+		return platformVersion, nil
+	}
+
+	// cache the platform version
+	if version, err = getPlatformVersionFn(log); err == nil {
+		cache.Put(platformVersionKey, version)
+	}
+	return
 }
 
 // PlatformSku gets the OS specific platform SKU number
 func PlatformSku(log log.T) (sku string, err error) {
-	return getPlatformSku(log)
+	// get cached value if exists
+	if platformSku, found := cache.Get(platformSkuKey); found {
+		return platformSku, nil
+	}
+
+	// cache the platform sku
+	if sku, err = getPlatformSkuFn(log); err == nil {
+		cache.Put(platformSkuKey, sku)
+	}
+	return
 }
 
 // Hostname of the computer.
-func Hostname(log log.T) (name string, err error) {
-	return fullyQualifiedDomainName(log), nil
+func Hostname(log log.T) string {
+	return fullyQualifiedDomainName(log)
 }
 
 // IP of the network interface
@@ -107,6 +162,7 @@ func IP() (selected string, err error) {
 				}
 			}
 		}
+
 		selectedIp, err := selectIp(candidates)
 		if err == nil {
 			selected = selectedIp.String()
@@ -176,4 +232,57 @@ func (b byIndex) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 func IsPlatformNanoServer(log log.T) (bool, error) {
 	return isPlatformNanoServer(log)
+}
+
+func ClearCache() {
+	cache.Flush()
+}
+
+type PlatformCache struct {
+	//cached data
+	data map[string]*PlatformCacheItem
+	//time to live for cache data in milliseconds
+	ttl int64
+	//synced access to data
+	lock sync.Mutex
+}
+
+type PlatformCacheItem struct {
+	value string
+	//time in milliseconds when the data was saved to cache
+	cachedTime int64
+}
+
+func InitCache(ttl int64) *PlatformCache {
+	return &PlatformCache{
+		data: make(map[string]*PlatformCacheItem),
+		ttl:  ttl,
+	}
+}
+
+func (cache *PlatformCache) Put(k, v string) {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	cacheItem := &PlatformCacheItem{value: v, cachedTime: time.Now().UnixMilli()}
+	cache.data[k] = cacheItem
+}
+
+func (cache *PlatformCache) Get(k string) (v string, found bool) {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	if cacheItem, hit := cache.data[k]; hit {
+		if time.Now().UnixMilli()-cacheItem.cachedTime < cache.ttl {
+			v = cacheItem.value
+			found = true
+		} else {
+			delete(cache.data, k) //remove stale cache data
+		}
+	}
+	return
+}
+
+func (cache *PlatformCache) Flush() {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	cache.data = make(map[string]*PlatformCacheItem)
 }

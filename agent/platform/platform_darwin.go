@@ -24,7 +24,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -33,9 +32,6 @@ import (
 const (
 	platformDetailsCommand = "sw_vers"
 )
-
-var platformInfoMap = map[string]string{}
-var platformQueryMutex = sync.Mutex{}
 
 func getPlatformName(log log.T) (value string, err error) {
 	value, err = getPlatformDetail(log, "ProductName")
@@ -55,8 +51,8 @@ func isWindowsServer2025OrLater(_ string, _ log.T) (bool, error) {
 	return false, nil
 }
 
-func getPlatformType(_ log.T) (string, error) {
-	return "macos", nil
+func getPlatformType() string {
+	return "macos"
 }
 
 func getPlatformVersion(log log.T) (value string, err error) {
@@ -78,54 +74,25 @@ var execWithTimeout = func(cmd string, param ...string) ([]byte, error) {
 
 func getPlatformDetail(log log.T, param string) (value string, err error) {
 	var contentsBytes []byte
-	platformQueryMutex.Lock()
-	defer platformQueryMutex.Unlock()
 
-	if mapVal, ok := platformInfoMap[param]; ok {
-		return mapVal, nil
-	}
-
-	if contentsBytes, err = execWithTimeout(platformDetailsCommand); err != nil {
+	if contentsBytes, err = execWithTimeout(platformDetailsCommand, fmt.Sprintf("-%s", param)); err != nil {
 		log.Errorf("Failed to query for platform info: %v", err)
 		return notAvailableMessage, err
 	}
 
 	platformString := strings.TrimSpace(string(contentsBytes))
 	if len(platformString) == 0 {
-		return notAvailableMessage, fmt.Errorf("received empty string when querying for platform info")
+		return notAvailableMessage, fmt.Errorf("Received empty string when querying for platform info")
 	}
 
-	log.Debugf("queried for platform info: %s", platformString)
-	platformInfoMap = map[string]string{}
-	for _, platformLine := range strings.Split(platformString, "\n") {
-		if len(platformLine) == 0 {
-			continue
-		}
-
-		platformLineSplit := strings.Split(platformLine, ":")
-
-		if len(platformLineSplit) < 2 {
-			log.Warnf("Unexpected line when parsing darwin platform: %s", platformLine)
-			continue
-		}
-
-		platformInfoKey := strings.TrimSpace(platformLineSplit[0])
-		platformInfoVal := strings.TrimSpace(platformLineSplit[1])
-		platformInfoMap[platformInfoKey] = platformInfoVal
-	}
-
-	if mapVal, ok := platformInfoMap[param]; ok {
-		return mapVal, err
-	}
-
-	log.Warnf("Failed to parse platform info for %s in string\n%s", param, platformString)
-	return notAvailableMessage, fmt.Errorf("failed to find platform key")
+	log.Debugf("Queried platform info: %s", platformString)
+	return platformString, nil
 }
 
 var hostNameCommand = filepath.Join("/bin", "hostname")
 
 // fullyQualifiedDomainName returns the Fully Qualified Domain Name of the instance, otherwise the hostname
-func fullyQualifiedDomainName(log log.T) string {
+func fullyQualifiedDomainName(_ log.T) string {
 	var hostName, fqdn string
 	var err error
 
@@ -148,6 +115,6 @@ func fullyQualifiedDomainName(log log.T) string {
 	return strings.TrimSpace(hostName)
 }
 
-func isPlatformNanoServer(log log.T) (bool, error) {
+func isPlatformNanoServer(_ log.T) (bool, error) {
 	return false, nil
 }

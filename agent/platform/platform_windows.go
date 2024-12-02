@@ -41,9 +41,7 @@ const (
 	WindowsServer2025Version = "10.0.26100"
 )
 
-var (
-	getPlatformVersionRef = getPlatformVersion
-)
+var getPlatformDetailsFn = getPlatformDetails
 
 // isPlatformWindowsServer2012OrEarlier returns true if platform is Windows Server 2012 or earlier
 func isPlatformWindowsServer2012OrEarlier(log log.T) (bool, error) {
@@ -51,7 +49,7 @@ func isPlatformWindowsServer2012OrEarlier(log log.T) (bool, error) {
 	var platformVersionInt int
 	var err error
 
-	if platformVersion, err = getPlatformVersionRef(log); err != nil {
+	if platformVersion, err = PlatformVersion(log); err != nil {
 		return false, err
 	}
 	versionParts := strings.Split(platformVersion, ".")
@@ -67,7 +65,7 @@ func isPlatformWindowsServer2012OrEarlier(log log.T) (bool, error) {
 
 // isPlatformWindowsServer2025OrLater returns true if current platform is Windows Server 2025 or later
 func isPlatformWindowsServer2025OrLater(log log.T) (bool, error) {
-	if platformVersion, err := getPlatformVersionRef(log); err != nil {
+	if platformVersion, err := PlatformVersion(log); err != nil {
 		return false, err
 	} else {
 		return isWindowsServer2025OrLater(platformVersion, log)
@@ -87,7 +85,7 @@ func isWindowsServer2025OrLater(platformVersion string, log log.T) (bool, error)
 // IsPlatformNanoServer returns true if SKU is 143 or 144
 func isPlatformNanoServer(log log.T) (bool, error) {
 	// Get platform sku information
-	if sku, err := getPlatformSku(log); err != nil {
+	if sku, err := PlatformSku(log); err != nil {
 		log.Infof("Failed to fetch sku - %v", err)
 		return false, err
 	} else {
@@ -97,19 +95,19 @@ func isPlatformNanoServer(log log.T) (bool, error) {
 }
 
 func getPlatformName(log log.T) (value string, err error) {
-	if osData, err := getPlatformDetails(log); err != nil {
+	if osData, err := getPlatformDetailsFn(log); err != nil {
 		return notAvailableMessage, err
 	} else {
 		return osData.Caption, nil
 	}
 }
 
-func getPlatformType(_ log.T) (value string, err error) {
-	return "windows", nil
+func getPlatformType() string {
+	return "windows"
 }
 
 func getPlatformVersion(log log.T) (value string, err error) {
-	if osData, err := getPlatformDetails(log); err != nil {
+	if osData, err := getPlatformDetailsFn(log); err != nil {
 		return notAvailableMessage, err
 	} else {
 		return osData.Version, nil
@@ -117,7 +115,7 @@ func getPlatformVersion(log log.T) (value string, err error) {
 }
 
 func getPlatformSku(log log.T) (value string, err error) {
-	if osData, err := getPlatformDetails(log); err != nil {
+	if osData, err := getPlatformDetailsFn(log); err != nil {
 		return notAvailableMessage, err
 	} else {
 		return strconv.FormatUint(uint64(osData.OperatingSystemSKU), 10), nil

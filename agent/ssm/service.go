@@ -269,11 +269,8 @@ func (svc *sdkService) UpdateInstanceInformation(
 		log.Warn(err)
 	}
 
-	if h, err := platform.Hostname(log); err == nil {
-		params.ComputerName = aws.String(h)
-	} else {
-		log.Warn(err)
-	}
+	params.ComputerName = aws.String(platform.Hostname(log))
+
 	if instID, err := svc.context.Identity().InstanceID(); err == nil {
 		params.InstanceId = aws.String(instID)
 	} else {

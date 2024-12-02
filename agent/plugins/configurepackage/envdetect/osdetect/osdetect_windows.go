@@ -12,11 +12,10 @@ import (
 	c "github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/envdetect/constants"
 )
 
-// https://msdn.microsoft.com/en-us/library/aa394239%28v=vs.85%29.aspx
-
-var getOSInfo = func(osData platform.Win32_OperatingSystem) (platform.Win32_OperatingSystem, error) {
-	return platform.GetSingleWMIObject(osData)
-}
+var (
+	getPlatformVersion   = platform.PlatformVersion
+	isPlatformNanoServer = platform.IsPlatformNanoServer
+)
 
 func DetectPkgManager(platform string, version string, family string) (string, error) {
 	return c.PackageManagerWindows, nil
@@ -27,19 +26,16 @@ func DetectInitSystem() (string, error) {
 }
 
 func DetectPlatform(log log.T) (string, string, string, error) {
-	if wmiData, err := getOSInfo(platform.Win32_OperatingSystem{}); err != nil {
-		log.Errorf("Failed to fetch OS details from WMI, proceeding without 'Version': %v", err)
-		return c.PlatformWindows, "", c.PlatformFamilyWindows, nil
-	} else {
-		version := wmiData.Version
-		if isWindowsNano(wmiData.OperatingSystemSKU) {
-			version = fmt.Sprint(version, "nano")
+	if platformVersion, err := getPlatformVersion(log); err == nil {
+		if isNanoServer, err := isPlatformNanoServer(log); isNanoServer && err == nil {
+			platformVersion = fmt.Sprint(platformVersion, "nano")
+		} else if err != nil {
+			log.Errorf("Failed to detect if platform is Nano server: %v", err)
 		}
-		return c.PlatformWindows, version, c.PlatformFamilyWindows, nil
-	}
-}
 
-func isWindowsNano(operatingSystemSKU uint32) bool {
-	return operatingSystemSKU == c.SKUProductStandardNanoServer ||
-		operatingSystemSKU == c.SKUProductDatacenterNanoServer
+		return c.PlatformWindows, platformVersion, c.PlatformFamilyWindows, nil
+	} else {
+		log.Errorf("Failed to retrieve platform version, proceeding without it: %v", err)
+		return c.PlatformWindows, "", c.PlatformFamilyWindows, nil
+	}
 }

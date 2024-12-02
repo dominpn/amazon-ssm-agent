@@ -18,71 +18,91 @@
 package platform
 
 import (
+	"fmt"
 	"testing"
 
 	logger "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParsePlatformMap_EmptyString(t *testing.T) {
-	platformInfoMap = map[string]string{}
-
+func TestPlatformVersionEmptyString(t *testing.T) {
+	ClearCache()
 	tmpFunc := execWithTimeout
 	execWithTimeout = func(string, ...string) ([]byte, error) {
 		return []byte(" \t"), nil
 	}
 	defer func() { execWithTimeout = tmpFunc }()
 
-	logObj := logger.NewMockLog()
-	prodVer, err := getPlatformDetail(logObj, "ProductVersion")
-	assert.Equal(t, notAvailableMessage, prodVer)
+	platformVersion, err := PlatformVersion(logger.NewMockLog())
+	assert.Equal(t, notAvailableMessage, platformVersion)
 	assert.NotNil(t, err)
 }
 
-func TestParsePlatformMap_QueryTwice(t *testing.T) {
-	platformInfoMap = map[string]string{}
-	queryCount := 0
-
+func TestPlatformVersion(t *testing.T) {
+	ClearCache()
 	tmpFunc := execWithTimeout
 	execWithTimeout = func(string, ...string) ([]byte, error) {
-		queryCount += 1
-		return []byte("\nProductVersion:\t10.15.8\ntestingsomething\n"), nil
+		return []byte("15.1"), nil
 	}
 	defer func() { execWithTimeout = tmpFunc }()
 
 	logObj := logger.NewMockLog()
-	prodVer, err := getPlatformDetail(logObj, "ProductVersion")
-	assert.Equal(t, "10.15.8", prodVer)
+	platformVersion, err := PlatformVersion(logObj)
+	assert.Equal(t, "15.1", platformVersion)
 	assert.Nil(t, err)
-
-	prodVer, err = getPlatformDetail(logObj, "ProductName")
-	assert.Equal(t, notAvailableMessage, prodVer)
-	assert.NotNil(t, err)
 }
 
-func TestParsePlatformMap(t *testing.T) {
-	platformInfoMap = map[string]string{}
-
+func TestPlatformVersionWithError(t *testing.T) {
+	ClearCache()
 	tmpFunc := execWithTimeout
-	queryCounter := 0
 	execWithTimeout = func(string, ...string) ([]byte, error) {
-		queryCounter += 1
-		return []byte("ProductName:\tMac OS X\nProductVersion:\t10.15.7\nBuildVersion:\t19H524\n"), nil
+		return []byte(""), fmt.Errorf("platform version error")
 	}
 	defer func() { execWithTimeout = tmpFunc }()
 
 	logObj := logger.NewMockLog()
-	prodVer, err := getPlatformDetail(logObj, "ProductVersion")
-	assert.Equal(t, "10.15.7", prodVer)
-	assert.Nil(t, err)
+	platformVersion, err := PlatformVersion(logObj)
+	assert.Equal(t, notAvailableMessage, platformVersion)
+	assert.NotNil(t, err)
+}
 
-	assert.Equal(t, 3, len(platformInfoMap))
-	assert.Equal(t, "Mac OS X", platformInfoMap["ProductName"])
-	assert.Equal(t, "10.15.7", platformInfoMap["ProductVersion"])
-	assert.Equal(t, "19H524", platformInfoMap["BuildVersion"])
+func TestPlatformNameEmptyString(t *testing.T) {
+	ClearCache()
+	tmpFunc := execWithTimeout
+	execWithTimeout = func(string, ...string) ([]byte, error) {
+		return []byte(" \n"), nil
+	}
+	defer func() { execWithTimeout = tmpFunc }()
 
-	prodName, err := getPlatformDetail(logObj, "ProductName")
-	assert.Equal(t, 1, queryCounter)
-	assert.Equal(t, "Mac OS X", prodName)
+	platformName, err := PlatformName(logger.NewMockLog())
+	assert.Equal(t, notAvailableMessage, platformName)
+	assert.NotNil(t, err)
+}
+
+func TestPlatformName(t *testing.T) {
+	ClearCache()
+	tmpFunc := execWithTimeout
+	execWithTimeout = func(string, ...string) ([]byte, error) {
+		return []byte("macOS"), nil
+	}
+	defer func() { execWithTimeout = tmpFunc }()
+
+	logObj := logger.NewMockLog()
+	platformName, err := PlatformName(logObj)
+	assert.Equal(t, "macOS", platformName)
 	assert.Nil(t, err)
+}
+
+func TestPlatformNameWithError(t *testing.T) {
+	ClearCache()
+	tmpFunc := execWithTimeout
+	execWithTimeout = func(string, ...string) ([]byte, error) {
+		return []byte(""), fmt.Errorf("platform name error")
+	}
+	defer func() { execWithTimeout = tmpFunc }()
+
+	logObj := logger.NewMockLog()
+	platformName, err := PlatformName(logObj)
+	assert.Equal(t, notAvailableMessage, platformName)
+	assert.NotNil(t, err)
 }

@@ -18,6 +18,7 @@
 package platform
 
 import (
+	"fmt"
 	"testing"
 
 	logger "github.com/aws/amazon-ssm-agent/agent/mocks/log"
@@ -26,15 +27,16 @@ import (
 
 func TestVersion_PlatformWithBrackets(t *testing.T) {
 	logMock := logger.NewMockLog()
+	tmpFileExists := fileExists
 	fileExists = func(filePath string) bool {
-		if filePath == systemReleaseFile {
-			return true
-		}
-		return false
+		return filePath == systemReleaseFile
 	}
+	defer func() { fileExists = tmpFileExists }()
+	tmpReadAllText := readAllText
 	readAllText = func(filePath string) (text string, err error) {
 		return "Red Hat Enterprise Linux Server release 6.10 (Santiago)", nil
 	}
+	defer func() { readAllText = tmpReadAllText }()
 	name, version, err := getPlatformDetails(logMock)
 	assert.Equal(t, "Red Hat Enterprise Linux Server", name)
 	assert.Equal(t, "6.10", version)
@@ -43,17 +45,60 @@ func TestVersion_PlatformWithBrackets(t *testing.T) {
 
 func TestVersion_PlatformWithOutBrackets(t *testing.T) {
 	logMock := logger.NewMockLog()
+	tmpFileExists := fileExists
 	fileExists = func(filePath string) bool {
-		if filePath == systemReleaseFile {
-			return true
-		}
-		return false
+		return filePath == systemReleaseFile
 	}
-	readAllText = func(filePath string) (text string, err error) {
+	defer func() { fileExists = tmpFileExists }()
+	tmpReadAllText := readAllText
+	readAllText = func(_ string) (text string, err error) {
 		return "Red Hat Enterprise Linux Server release 7", nil
 	}
+	defer func() { readAllText = tmpReadAllText }()
 	name, version, err := getPlatformDetails(logMock)
 	assert.Equal(t, "Red Hat Enterprise Linux Server", name)
 	assert.Equal(t, "7", version)
 	assert.Nil(t, err)
+}
+
+func TestPlatformNameAndVersion(t *testing.T) {
+	ClearCache()
+	tmpFileExists := fileExists
+	fileExists = func(filePath string) bool {
+		return filePath == systemReleaseFile
+	}
+	defer func() { fileExists = tmpFileExists }()
+	tmpReadAllText := readAllText
+	readAllText = func(_ string) (text string, err error) {
+		return "Red Hat Enterprise Linux Server release 6.78", nil
+	}
+	defer func() { readAllText = tmpReadAllText }()
+	logObj := logger.NewMockLog()
+	platformName, err := PlatformName(logObj)
+	assert.Equal(t, "Red Hat Enterprise Linux Server", platformName)
+	assert.Nil(t, err)
+	platformVersion, err := PlatformVersion(logObj)
+	assert.Equal(t, "6.78", platformVersion)
+	assert.Nil(t, err)
+}
+
+func TestPlatformNameAndVersionWithError(t *testing.T) {
+	ClearCache()
+	tmpFileExists := fileExists
+	fileExists = func(filePath string) bool {
+		return filePath == systemReleaseFile
+	}
+	defer func() { fileExists = tmpFileExists }()
+	tmpReadAllText := readAllText
+	readAllText = func(_ string) (text string, err error) {
+		return "", fmt.Errorf("platform name and version error")
+	}
+	defer func() { readAllText = tmpReadAllText }()
+	logObj := logger.NewMockLog()
+	platformName, err := PlatformName(logObj)
+	assert.Equal(t, notAvailableMessage, platformName)
+	assert.NotNil(t, err)
+	platformVersion, err := PlatformVersion(logObj)
+	assert.Equal(t, notAvailableMessage, platformVersion)
+	assert.NotNil(t, err)
 }
