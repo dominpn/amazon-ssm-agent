@@ -22,11 +22,11 @@ import (
 // networkMock
 type networkMock struct {
 	downloadInput  artifact.DownloadInput
-	downloadOutput artifact.DownloadOutput
+	downloadOutput *artifact.DownloadOutput
 	downloadError  error
 }
 
-func (p *networkMock) Download(log log.T, input artifact.DownloadInput) (artifact.DownloadOutput, error) {
+func (p *networkMock) Download(log log.T, input artifact.DownloadInput) (*artifact.DownloadOutput, error) {
 	p.downloadInput = input
 	return p.downloadOutput, p.downloadError
 }

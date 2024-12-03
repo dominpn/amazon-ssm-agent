@@ -262,7 +262,7 @@ func downloadFile(ds *PackageService, tracer trace.Tracer, file *archive.File, p
 
 	log := tracer.CurrentTrace().Logger
 	downloadOutput, downloadErr := birdwatcher.Networkdep.Download(ds.Context, downloadInput)
-	if downloadErr != nil || downloadOutput.LocalFilePath == "" {
+	if downloadErr != nil || downloadOutput == nil || downloadOutput.LocalFilePath == "" {
 		errMessage := fmt.Sprintf("failed to download installation package reliably, %v", downloadInput.SourceURL)
 		if downloadErr != nil {
 			errMessage = fmt.Sprintf("%v, %v", errMessage, downloadErr.Error())

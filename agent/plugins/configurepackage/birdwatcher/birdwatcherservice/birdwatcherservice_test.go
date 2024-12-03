@@ -993,7 +993,7 @@ func TestDownloadFile(t *testing.T) {
 		{
 			"working file download",
 			networkMock{
-				downloadOutput: artifact.DownloadOutput{
+				downloadOutput: &artifact.DownloadOutput{
 					LocalFilePath: "agent.zip",
 				},
 			},
@@ -1011,7 +1011,7 @@ func TestDownloadFile(t *testing.T) {
 		{
 			"empty local file location",
 			networkMock{
-				downloadOutput: artifact.DownloadOutput{
+				downloadOutput: &artifact.DownloadOutput{
 					LocalFilePath: "",
 				},
 			},
@@ -1102,7 +1102,7 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 		{
 			"working file download",
 			networkMock{
-				downloadOutput: artifact.DownloadOutput{
+				downloadOutput: &artifact.DownloadOutput{
 					LocalFilePath: "agent.zip",
 				},
 			},
@@ -1123,7 +1123,7 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 		{
 			"empty local file location",
 			networkMock{
-				downloadOutput: artifact.DownloadOutput{
+				downloadOutput: &artifact.DownloadOutput{
 					LocalFilePath: "",
 				},
 			},
@@ -1227,7 +1227,7 @@ func TestDownloadArtifact(t *testing.T) {
 			"packageName",
 			"1234",
 			networkMock{
-				downloadOutput: artifact.DownloadOutput{
+				downloadOutput: &artifact.DownloadOutput{
 					LocalFilePath: "agent.zip",
 				},
 			},

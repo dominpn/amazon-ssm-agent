@@ -18,12 +18,13 @@ package artifact
 
 import (
 	"fmt"
-	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
-	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
+	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
+	"github.com/stretchr/testify/assert"
 )
 
 type DownloadTest struct {
@@ -283,6 +284,81 @@ func TestHttpHttpsDownloadArtifact(t *testing.T) {
 	assert.Equal(t, expectedOutput, output)
 }
 
+func TestDownloadUsingHttpInvalidUrl(t *testing.T) {
+	downloadInput := DownloadInput{
+		DestinationDirectory: ".",
+		SourceURL:            "xyz@amazon.com",
+		SourceChecksums: map[string]string{
+			"sha256": "0c0f36c238e6c4c00f39d94dc6381930df2851db0ea2e2543d931474ddce1f8f",
+		},
+	}
+	output, err := DownloadUsingHttp(mockContext, downloadInput)
+	assert.ErrorContains(t, err, "unsupported protocol scheme")
+	assert.Nil(t, output)
+}
+
+func TestDownloadUsingHttp(t *testing.T) {
+	testFilePath := "https://amazon-ssm-us-east-1.s3.amazonaws.com/3.3.40.0/VERSION"
+	downloadInput := DownloadInput{
+		DestinationDirectory: ".",
+		SourceURL:            testFilePath,
+		SourceChecksums: map[string]string{
+			"sha256": "0c0f36c238e6c4c00f39d94dc6381930df2851db0ea2e2543d931474ddce1f8f",
+		},
+	}
+	var expectedLocalPath = "b9f961391ec1ae061db3afcbed5571b2463139c8"
+	os.Remove(expectedLocalPath)
+	os.Remove(expectedLocalPath + ".etag")
+	expectedOutput := DownloadOutput{
+		expectedLocalPath,
+		true,
+		true}
+
+	output, err := DownloadUsingHttp(mockContext, downloadInput)
+	assert.NoError(t, err, "Failed to download %v", downloadInput)
+	mockLog.Infof("Download Result is %v and err:%v", output, err)
+
+	defer func() {
+		os.Remove(expectedLocalPath)
+		os.Remove(expectedLocalPath + ".etag")
+	}()
+	assert.Equal(t, expectedOutput, *output)
+
+	// now since we have downloaded the file, try to download again should result in cache hit!
+	expectedOutput = DownloadOutput{
+		expectedLocalPath,
+		false,
+		true}
+	output, err = DownloadUsingHttp(mockContext, downloadInput)
+	assert.NoError(t, err, "Failed to download %v", downloadInput)
+	mockLog.Infof("Download Result is %v and err:%v", output, err)
+	assert.Equal(t, expectedOutput, *output)
+}
+
+func TestDownloadUsingHttpMismatchingHash(t *testing.T) {
+	testFilePath := "https://amazon-ssm-us-east-1.s3.amazonaws.com/3.3.40.0/VERSION"
+	downloadInput := DownloadInput{
+		DestinationDirectory: ".",
+		SourceURL:            testFilePath,
+		SourceChecksums: map[string]string{
+			"sha256": "invalidhash",
+		},
+	}
+	var expectedLocalPath = "b9f961391ec1ae061db3afcbed5571b2463139c8"
+	os.Remove(expectedLocalPath)
+	os.Remove(expectedLocalPath + ".etag")
+
+	output, err := DownloadUsingHttp(mockContext, downloadInput)
+	assert.ErrorContains(t, err, "failed to verify hash of downloadinput")
+	mockLog.Infof("Download Result is %v and err:%v", output, err)
+
+	defer func() {
+		os.Remove(expectedLocalPath)
+		os.Remove(expectedLocalPath + ".etag")
+	}()
+	assert.Nil(t, output)
+}
+
 func ExampleMd5HashValue() {
 	path := filepath.Join("testdata", "CheckMyHash.txt")
 	mockLog := log.NewMockLog()
@@ -295,5 +371,4 @@ func ExampleSha256HashValue() {
 	mockLog := log.NewMockLog()
 	content, _ := Sha256HashValue(mockLog, path)
 	fmt.Println(content)
-
 }
