@@ -77,6 +77,28 @@ dataflow-problems:
         - package: "log"
           type: "T"
 
+    - tag: "ssm-parameter-logging"
+      description: "Checking that SSM parameters don't get logged."
+      targets:
+        - ssm-session-worker
+        - ssm-setup-cli
+        - ssm-cli
+      unsafe-skip-bound-labels: true
+      sources:
+        - package: "github.com/aws/amazon-ssm-agent/agent/ssm/ssmparameterresolver"
+          method: "getParametersFromSsmParameterStore" # where the parameters are retrieved
+      sinks:
+        - context: "amazon-ssm-agent"
+          method: "^(Log|Error|Warn|Debug|Info).*"
+      sanitizers: # These sanitizers will need to be implemented, once this is done we can add other targets
+        - package: "ssmparameterresolver"
+          method: "(GetName|GetType)"
+      filters:
+        - type: "^error"
+        - type: "^int"
+        - package: "log"
+          type: "T"
+
 syntactic-problems:
   # Check that the tls config field MinVersion is always set to TLS 1.2
   struct-inits:
