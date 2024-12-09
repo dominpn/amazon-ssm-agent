@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
  ### Fixed argot version - upgrade here carefully and check that analyses are still supported
- REQUIRED_ARGOT_VERSION="v0.3.2-alpha"
+ REQUIRED_ARGOT_VERSION="v0.3.3-alpha"
 
 
  log() {

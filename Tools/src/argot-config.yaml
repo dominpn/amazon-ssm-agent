@@ -80,6 +80,8 @@ dataflow-problems:
     - tag: "ssm-parameter-logging"
       description: "Checking that SSM parameters don't get logged."
       targets:
+        - amazon-ssm-agent-unix
+        - agent-worker-unix
         - ssm-session-worker
         - ssm-setup-cli
         - ssm-cli
@@ -89,14 +91,15 @@ dataflow-problems:
           method: "getParametersFromSsmParameterStore" # where the parameters are retrieved
       sinks:
         - context: "amazon-ssm-agent"
-          method: "^(Log|Error|Warn|Debug|Info).*"
-      sanitizers: # These sanitizers will need to be implemented, once this is done we can add other targets
+          method: "^(Log|Error|Warn|Debug|Info|Print).*"
+      sanitizers:
         - package: "ssmparameterresolver"
-          method: "(GetName|GetType)"
+          method: "(GetName|GetType)" # Allow logging the type and name of the parameter
+
       filters:
-        - type: "^error"
-        - type: "^int"
-        - package: "log"
+        - type: "^error" # Error shouldn't contain data from parameter since fmt.Errorf is a sink
+        - type: "^int" # Allow logging integers derived from data (counts. length,..)
+        - package: "log" # Don't track the log itself
           type: "T"
 
 syntactic-problems:

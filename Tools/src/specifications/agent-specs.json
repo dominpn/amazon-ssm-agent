@@ -42,5 +42,11 @@
     "Methods": {
       "Filter": { "Args": [ [ 0 ], [ 0 ] ], "Rets": [ [ 0 ], [ 0 ] ] }
     }
+  },
+  {
+    "ObjectPath": "(*github.com/aws/amazon-ssm-agent/agent/plugins/downloadcontent/httpresource/handler/auth/digest.Authorization)",
+    "Methods": {
+      "String": { "Args": [[0]], "Rets":  [[0]] }
+    }
   }
 ]

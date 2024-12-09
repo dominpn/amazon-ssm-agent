@@ -89,7 +89,8 @@ func (t TokenInfoImpl) GetOAuthClient(log log.T, tokenInfo string) (client *http
 
 	// Validating to check if the parameter obtained is a secure string
 	if tokenVal.Type != parameterstore.ParamTypeSecureString {
-		return nil, fmt.Errorf("token-parameter-name %v must be of secure string type, Current type - %v", tokenVal.Name, tokenVal.Type)
+		return nil, fmt.Errorf("token-parameter-name %v must be of secure string type, Current type - %v",
+			tokenVal.GetName(), tokenVal.GetType())
 	}
 	return t.gitoauthclient.GetGithubOauthClient(tokenVal.Value), nil
 }

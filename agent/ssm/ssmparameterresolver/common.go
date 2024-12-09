@@ -37,6 +37,16 @@ type SsmParameterInfo struct {
 	Value string
 }
 
+// GetName returns the name of the parameter, which is safe to log
+func (p SsmParameterInfo) GetName() string {
+	return p.Name
+}
+
+// GetType returns the type of the parameter, which is safe to log
+func (p SsmParameterInfo) GetType() string {
+	return p.Type
+}
+
 // ResolveOptions structure represents a set of options for the parameter resolution.
 // At this time it has only one flag IgnoreSecureParameters
 // if IgnoreSecureParameters == true the parameters prefixed with ssm-secure: will not be resolved.
