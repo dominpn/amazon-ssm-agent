@@ -91,9 +91,6 @@ const (
 	// PS command to look up Windows information
 	getWindowsInfoCmd = "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion'"
 
-	// PS command to get OS information
-	getOSInfoCmd = "Get-CimInstance Win32_OperatingSystem"
-
 	// PS command to get AWS PV package entry from registry HKLM:\SOFTWARE\Amazon\PVDriver
 	getPvPackageVersionCmd = "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Amazon\\PVDriver'"
 
@@ -208,7 +205,7 @@ func (p *Processor) ExecuteTasks() (err error) {
 
 	log.Info("Executing startup processor tasks")
 
-	windowsInfo, osInfo, windowsInfoError := getSystemInfo(log)
+	windowsInfo, windowsInfoError := getWindowsInfo(log)
 
 	port := defaultComPort
 	if windowsInfoError == nil {
@@ -252,8 +249,8 @@ func (p *Processor) ExecuteTasks() (err error) {
 
 	if windowsInfoError == nil {
 		sp.WritePort(fmt.Sprintf("OsProductName: %v", windowsInfo.ProductName))
-		sp.WritePort(fmt.Sprintf("OsInstallOption: %v", getInstallationOptionBySKU(osInfo.OperatingSystemSKU)))
-		sp.WritePort(fmt.Sprintf("OsVersion: %v", osInfo.Version))
+		sp.WritePort(fmt.Sprintf("OsInstallOption: %v", getInstallationOptionBySKU(log)))
+		sp.WritePort(fmt.Sprintf("OsVersion: %v", getOsVersion(log, windowsInfo.CurrentMajorVersionNumber, windowsInfo.CurrentMinorVersionNumber)))
 		sp.WritePort(fmt.Sprintf("OsBuildLabEx: %v", windowsInfo.BuildLabEx))
 	}
 
@@ -286,33 +283,31 @@ func (p *Processor) ExecuteTasks() (err error) {
 	return
 }
 
-// getSystemInfo queries Windows information from registry key and OS information from Win32_OperatingSystem.
-func getSystemInfo(log log.T) (windowsInfo model.WindowsInfo, osInfo model.OperatingSystemInfo, err error) {
-	// this queries Windows info.
+// getWindowsInfo queries Windows information from registry key
+func getWindowsInfo(log log.T) (windowsInfo model.WindowsInfo, err error) {
 	properties := []string{productNameProperty, buildLabExProperty, currentMajorVersionNumber, currentMinorVersionNumber}
 	if err = runPowershell(&windowsInfo, getWindowsInfoCmd, properties, false); err != nil {
 		log.Infof("Error occurred while querying Windows info: %v", err.Error())
 	}
+	return
+}
 
-	// this queries OS info.
-	properties = []string{osVersionProperty, operatingSystemSkuProperty}
-	if err = runPowershell(&osInfo, getOSInfoCmd, properties, false); err != nil {
-		log.Infof("Error occurred while querying OS info: %v", err.Error())
-	}
-
+func getOsVersion(log log.T, majorVersionNumber int, minorVersionNumber int) string {
 	// ec2 console output must show only major and minor versions.
-	if windowsInfo.CurrentMajorVersionNumber == 0 {
-		versionSplit := strings.Split(osInfo.Version, ".")
-		if len(versionSplit) > 1 {
-			osInfo.Version = fmt.Sprintf("%v.%v", versionSplit[0], versionSplit[1])
-		} else if len(versionSplit) == 1 {
-			osInfo.Version = fmt.Sprintf("%v.0", versionSplit[0])
+	if majorVersionNumber == 0 {
+		if platformVersion, err := platform.PlatformVersion(log); err == nil {
+			versionSplit := strings.Split(platformVersion, ".")
+			if len(versionSplit) > 1 {
+				return fmt.Sprintf("%v.%v", versionSplit[0], versionSplit[1])
+			} else if len(versionSplit) == 1 {
+				return fmt.Sprintf("%v.0", versionSplit[0])
+			}
 		}
 	} else {
-		osInfo.Version = fmt.Sprintf("%v.%v", windowsInfo.CurrentMajorVersionNumber, windowsInfo.CurrentMinorVersionNumber)
+		return fmt.Sprintf("%v.%v", majorVersionNumber, minorVersionNumber)
 	}
 
-	return
+	return ""
 }
 
 // getAWSPvPackage queries PvDriver information from registry key.
@@ -522,32 +517,36 @@ func runPowershell(jsonObj interface{}, command string, properties []string, exp
 }
 
 // getInstallationOptionBySKU returns installation option of current windows.
-func getInstallationOptionBySKU(sku int) string {
+func getInstallationOptionBySKU(log log.T) string {
 	// the server options only include nano, core or undefined
-	serverOptions := map[int]string{
-		0:   "Undefined",
-		12:  serverCore,
-		13:  serverCore,
-		14:  serverCore,
-		29:  serverCore,
-		39:  serverCore,
-		40:  serverCore,
-		41:  serverCore,
-		43:  serverCore,
-		44:  serverCore,
-		45:  serverCore,
-		46:  serverCore,
-		63:  serverCore,
-		143: nanoServer,
-		144: nanoServer,
-		147: serverCore,
-		148: serverCore,
+	serverOptions := map[string]string{
+		"0":   "Undefined",
+		"12":  serverCore,
+		"13":  serverCore,
+		"14":  serverCore,
+		"29":  serverCore,
+		"39":  serverCore,
+		"40":  serverCore,
+		"41":  serverCore,
+		"43":  serverCore,
+		"44":  serverCore,
+		"45":  serverCore,
+		"46":  serverCore,
+		"63":  serverCore,
+		"143": nanoServer,
+		"144": nanoServer,
+		"147": serverCore,
+		"148": serverCore,
 	}
 
-	if val, ok := serverOptions[sku]; ok {
-		return val
+	if sku, err := platform.PlatformSku(log); err == nil {
+		if val, ok := serverOptions[sku]; ok {
+			return val
+		} else {
+			// return full server if it's neither nano, core or undefined.
+			return fullServer
+		}
 	} else {
-		// return full server if it's neither nano, core or undefined.
-		return fullServer
+		return "Undefined"
 	}
 }

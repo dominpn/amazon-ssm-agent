@@ -11,18 +11,18 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build darwin
+// +build darwin
+
 package ec2detector
 
 import (
 	"testing"
 
-	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/helper"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAssertDetectorSize(t *testing.T) {
-	detectors := helper.GetAllDetectors()
 	assert.Equal(t, 1, len(detectors))
-
 	assert.Equal(t, "", detectors[0].GetName())
 }

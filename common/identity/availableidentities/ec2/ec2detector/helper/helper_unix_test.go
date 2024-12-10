@@ -29,7 +29,6 @@ type returnFromCommand struct {
 }
 
 func TestReadFile(t *testing.T) {
-	var obj detectorHelper
 	var returnThis returnFromCommand
 
 	readFile = func(string) ([]byte, error) {
@@ -37,11 +36,13 @@ func TestReadFile(t *testing.T) {
 	}
 
 	returnThis.str, returnThis.err = "", nil
-	assert.Equal(t, "", obj.GetSystemInfo(""))
+	assert.Equal(t, "", GetSystemInfo(""))
 
+	//testing cache hit
 	returnThis.str, returnThis.err = "something", fmt.Errorf("file not exist")
-	assert.Equal(t, "", obj.GetSystemInfo(""))
+	assert.Equal(t, "", GetSystemInfo(""))
 
+	cache.Flush()
 	returnThis.str, returnThis.err = "  something \n\n\t ", nil
-	assert.Equal(t, "something", obj.GetSystemInfo(""))
+	assert.Equal(t, "something", GetSystemInfo(""))
 }

@@ -11,74 +11,69 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build windows
+// +build windows
+
 package helper
 
 import (
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/platform"
 	"github.com/stretchr/testify/assert"
 )
 
-type returnFromCommand struct {
-	str string
-	err error
-}
-
-func getOutputString(uuid, vendor, version string) string {
-	return "SMBIOSBIOSVersion : " + version +
-		"\r\nManufacturer      : " + vendor +
-		"\r\nName              : Revision: 1.221" +
-		"\r\nSerialNumber      : " + uuid +
-		"\r\nVersion           : Xen - 0"
-}
+var cacheInitCount int
 
 func TestReadSystemProductInfo(t *testing.T) {
-	var obj detectorHelper
-	var returnThis returnFromCommand
+	cache.Flush()
+	cacheInitCount = 0
+	temp := initCacheAndGetData
+	initCacheAndGetData = initCacheAndGetDataMock
+	defer func() { initCacheAndGetData = temp }()
 
-	oldExecCommand := execCommand
-	defer func() { execCommand = oldExecCommand }()
-
-	var called int
-	execCommand = func(string, ...string) (string, error) {
-		called++
-		return returnThis.str, returnThis.err
-	}
-
-	returnThis.str, returnThis.err = getOutputString("uuid123", "vendor123", "version123"), nil
-
-	assert.Equal(t, "version123", obj.GetSystemInfo("SMBIOSBIOSVersion"))
-	assert.Equal(t, "uuid123", obj.GetSystemInfo("SerialNumber"))
-	assert.Equal(t, "vendor123", obj.GetSystemInfo("Manufacturer"))
-	assert.Equal(t, 1, called)
+	assert.Equal(t, "version123", GetSystemInfo(XenVersionSystemInfoParam))
+	assert.Equal(t, "uuid123", GetSystemInfo(NitroUuidSystemInfoParam))
+	assert.Equal(t, "vendor123", GetSystemInfo(NitroVendorSystemInfoParam))
+	assert.Equal(t, 1, cacheInitCount)
 }
 
 func TestReadSystemProductInfo_CacheMiss(t *testing.T) {
-	var obj detectorHelper
-	var returnThis returnFromCommand
+	cache.Flush()
+	cacheInitCount = 0
+	temp := initCacheAndGetData
+	initCacheAndGetData = initCacheAndGetDataMock
+	defer func() { initCacheAndGetData = temp }()
 
-	oldExecCommand := execCommand
-	defer func() { execCommand = oldExecCommand }()
+	assert.Equal(t, "version123", GetSystemInfo(XenVersionSystemInfoParam))
+	assert.Equal(t, "uuid123", GetSystemInfo(NitroUuidSystemInfoParam))
+	assert.Equal(t, "vendor123", GetSystemInfo(NitroVendorSystemInfoParam))
+	assert.Equal(t, 1, cacheInitCount)
 
-	var called int
-	execCommand = func(string, ...string) (string, error) {
-		called++
-		return returnThis.str, returnThis.err
+	GetSystemInfo("NonExistentAttribute")
+	assert.Equal(t, 2, cacheInitCount)
+
+	assert.Equal(t, "version123", GetSystemInfo(XenVersionSystemInfoParam))
+	assert.Equal(t, "uuid123", GetSystemInfo(NitroUuidSystemInfoParam))
+	assert.Equal(t, "vendor123", GetSystemInfo(NitroVendorSystemInfoParam))
+	assert.Equal(t, 2, cacheInitCount)
+
+}
+
+func initCacheAndGetDataMock(key string) (data string) {
+	cacheInitCount++
+	biosData := platform.Win32_BIOS{
+		Manufacturer:      "vendor123",
+		SerialNumber:      "uuid123",
+		SMBIOSBIOSVersion: "version123",
 	}
 
-	returnThis.str, returnThis.err = getOutputString("uuid123", "vendor123", "version123"), nil
+	cache.Flush()
+	cache.Put(NitroUuidSystemInfoParam, biosData.SerialNumber)
+	cache.Put(NitroVendorSystemInfoParam, biosData.Manufacturer)
+	cache.Put(XenVersionSystemInfoParam, biosData.SMBIOSBIOSVersion)
+	cache.Put(XenUuidSystemInfoParam, biosData.SerialNumber) //itentionally overwriting SerialNumber in case the XenUuidSystemInfoParam value get changed
 
-	assert.Equal(t, "version123", obj.GetSystemInfo("SMBIOSBIOSVersion"))
-	assert.Equal(t, "uuid123", obj.GetSystemInfo("SerialNumber"))
-	assert.Equal(t, "vendor123", obj.GetSystemInfo("Manufacturer"))
-	assert.Equal(t, 1, called)
-
-	obj.GetSystemInfo("NonExistentAttribute")
-	assert.Equal(t, 2, called)
-
-	assert.Equal(t, "version123", obj.GetSystemInfo("SMBIOSBIOSVersion"))
-	assert.Equal(t, "uuid123", obj.GetSystemInfo("SerialNumber"))
-	assert.Equal(t, "vendor123", obj.GetSystemInfo("Manufacturer"))
-	assert.Equal(t, 2, called)
-
+	data, _ = cache.Get(key)
+	return data
 }

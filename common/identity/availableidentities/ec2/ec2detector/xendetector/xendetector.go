@@ -28,42 +28,25 @@ const (
 	Name                  = "Xen"
 )
 
-type xenDetector struct {
-	helper  helper.DetectorHelper
-	version string
-	uuid    string
-}
+var (
+	getUuid    = func() string { return helper.GetSystemInfo(helper.XenUuidSystemInfoParam) }
+	getVersion = func() string { return helper.GetSystemInfo(helper.XenVersionSystemInfoParam) }
+)
 
-func (d *xenDetector) getUuid() string {
-	if d.uuid != "" {
-		return d.uuid
-	}
-
-	d.uuid = d.helper.GetSystemInfo(xenUuidSystemInfoParam)
-	return d.uuid
-}
-
-func (d *xenDetector) getVersion() string {
-	if d.version != "" {
-		return d.version
-	}
-
-	d.version = d.helper.GetSystemInfo(xenVersionSystemInfoParam)
-	return d.version
-}
+type xenDetector struct{}
 
 func (d *xenDetector) IsEc2() bool {
-	if !strings.HasSuffix(strings.ToLower(d.getVersion()), expectedVersionSuffix) {
+	if !strings.HasSuffix(strings.ToLower(getVersion()), expectedVersionSuffix) {
 		return false
 	}
 
-	return d.helper.MatchUuid(d.getUuid())
+	return helper.MatchUuid(getUuid())
 }
 
 func (d *xenDetector) GetName() string {
 	return Name
 }
 
-func New(helper helper.DetectorHelper) *xenDetector {
-	return &xenDetector{helper: helper}
+func New() *xenDetector {
+	return &xenDetector{}
 }

@@ -19,14 +19,12 @@ package ec2detector
 import (
 	"testing"
 
-	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/helper"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/nitrodetector"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/xendetector"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAssertDetectorSize(t *testing.T) {
-	detectors := helper.GetAllDetectors()
 	assert.Equal(t, 2, len(detectors))
 
 	// assert priority order

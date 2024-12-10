@@ -17,17 +17,24 @@
 package helper
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
-var readFile = ioutil.ReadFile
+const (
+	NitroVendorSystemInfoParam = "/sys/class/dmi/id/sys_vendor"
+	NitroUuidSystemInfoParam   = "/sys/class/dmi/id/product_uuid"
+	XenVersionSystemInfoParam  = "/sys/hypervisor/version/extra"
+	XenUuidSystemInfoParam     = "/sys/hypervisor/uuid"
+)
 
-func (*detectorHelper) GetSystemInfo(filePath string) string {
-	bytes, err := readFile(filePath)
-	if err != nil {
-		bytes = []byte("")
+var readFile = os.ReadFile
+
+var initCacheAndGetData = func(key string) (data string) {
+	if bytes, err := readFile(key); err == nil {
+		data = strings.TrimSpace(string(bytes))
+		cache.Put(key, data)
 	}
 
-	return strings.TrimSpace(string(bytes))
+	return data
 }

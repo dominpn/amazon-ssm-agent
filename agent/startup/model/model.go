@@ -55,12 +55,6 @@ type WindowsInfo struct {
 	CurrentMinorVersionNumber int    `json:"CurrentMinorVersionNumber"`
 }
 
-// OperatingSystemInfo contains Version and OperatingSystemSKU from Win32_OperatingSystem.
-type OperatingSystemInfo struct {
-	Version            string `json:"Version"`
-	OperatingSystemSKU int    `json:"OperatingSystemSKU"`
-}
-
 // PvEntity contains Version from HKLM:\SOFTWARE\Amazon\PVDriver.
 type PvPackageInfo struct {
 	Name    string `json:"PSChildName"`

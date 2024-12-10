@@ -11,16 +11,17 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build windows
+// +build windows
+
 package ec2detector
 
 import (
-	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/helper"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/nitrodetector"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/xendetector"
 )
 
 func init() {
-	detectorHelper := helper.GetDetectorHelper()
-	helper.RegisterDetector(nitrodetector.New(detectorHelper))
-	helper.RegisterDetector(xendetector.New(detectorHelper))
+	RegisterDetector(nitrodetector.New())
+	RegisterDetector(xendetector.New())
 }

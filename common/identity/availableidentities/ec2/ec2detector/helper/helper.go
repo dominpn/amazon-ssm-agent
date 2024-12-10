@@ -11,12 +11,17 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build !darwin
+// +build !darwin
+
 package helper
 
 import (
 	"regexp"
 	"strings"
-	"sync"
+	"time"
+
+	"github.com/aws/amazon-ssm-agent/agent/platform"
 )
 
 const (
@@ -24,43 +29,22 @@ const (
 	littleEndianEc2UuidRegex = "^[0-9a-f]{4}2[0-9a-f]ec(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"
 )
 
-var detectors []Detector
+var (
+	cache = platform.InitCache(time.Hour.Milliseconds())
 
-func RegisterDetector(detector Detector) {
-	detectors = append(detectors, detector)
-}
+	MatchUuid = func(uuid string) bool {
+		uuid = strings.ToLower(uuid)
+		isBigEndianEc2Uuid := regexp.MustCompile(bigEndianEc2UuidRegex).MatchString(uuid)
+		isLittleEndianEc2Uuid := regexp.MustCompile(littleEndianEc2UuidRegex).MatchString(uuid)
 
-func GetAllDetectors() []Detector {
-	return detectors
-}
+		return isBigEndianEc2Uuid || isLittleEndianEc2Uuid
+	}
 
-type Detector interface {
-	// IsEc2 returns true if detector detects attributes indicating it is a ec2 instance
-	IsEc2() bool
-	// GetName returns the name of the detector
-	GetName() string
-}
-
-type DetectorHelper interface {
-	// MatchUuid ensured string matches an uuid format and starts with ec2
-	MatchUuid(string) bool
-	// GetSystemInfo retrieves the system information based on platform, linux reads files while on Windows queries wmi
-	GetSystemInfo(string) string
-}
-
-type detectorHelper struct {
-	lock  sync.Mutex
-	cache map[string]string
-}
-
-func (*detectorHelper) MatchUuid(uuid string) bool {
-	uuid = strings.ToLower(uuid)
-	isBigEndianEc2Uuid := regexp.MustCompile(bigEndianEc2UuidRegex).MatchString(uuid)
-	isLittleEndianEc2Uuid := regexp.MustCompile(littleEndianEc2UuidRegex).MatchString(uuid)
-
-	return isBigEndianEc2Uuid || isLittleEndianEc2Uuid
-}
-
-func GetDetectorHelper() *detectorHelper {
-	return &detectorHelper{}
-}
+	GetSystemInfo = func(attribute string) string {
+		if data, found := cache.Get(attribute); found {
+			return data
+		} else {
+			return initCacheAndGetData(attribute)
+		}
+	}
+)

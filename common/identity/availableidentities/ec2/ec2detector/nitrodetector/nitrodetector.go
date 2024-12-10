@@ -28,40 +28,25 @@ const (
 	Name                = "Nitro"
 )
 
-type nitroDetector struct {
-	helper helper.DetectorHelper
-	vendor string
-	uuid   string
-}
+var (
+	getUuid   = func() string { return helper.GetSystemInfo(helper.NitroUuidSystemInfoParam) }
+	getVendor = func() string { return helper.GetSystemInfo(helper.NitroVendorSystemInfoParam) }
+)
 
-func (d *nitroDetector) getUuid() string {
-	if d.uuid == "" {
-		d.uuid = d.helper.GetSystemInfo(nitroUuidSystemInfoParam)
-	}
-
-	return d.uuid
-}
-
-func (d *nitroDetector) getVendor() string {
-	if d.vendor == "" {
-		d.vendor = d.helper.GetSystemInfo(nitroVendorSystemInfoParam)
-	}
-
-	return d.vendor
-}
+type nitroDetector struct{}
 
 func (d *nitroDetector) IsEc2() bool {
-	if strings.ToLower(d.getVendor()) != expectedNitroVendor {
+	if strings.ToLower(getVendor()) != expectedNitroVendor {
 		return false
 	}
 
-	return d.helper.MatchUuid(d.getUuid())
+	return helper.MatchUuid(getUuid())
 }
 
 func (d *nitroDetector) GetName() string {
 	return Name
 }
 
-func New(helper helper.DetectorHelper) *nitroDetector {
-	return &nitroDetector{helper: helper}
+func New() *nitroDetector {
+	return &nitroDetector{}
 }

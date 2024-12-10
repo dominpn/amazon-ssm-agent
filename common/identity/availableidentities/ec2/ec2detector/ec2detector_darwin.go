@@ -11,13 +11,13 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build darwin
+// +build darwin
+
 package ec2detector
 
-import (
-	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/darwinec2detector"
-	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/helper"
-)
+import "github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/darwinec2detector"
 
 func init() {
-	helper.RegisterDetector(darwinec2detector.New())
+	RegisterDetector(darwinec2detector.New())
 }

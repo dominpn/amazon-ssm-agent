@@ -11,6 +11,9 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build !darwin
+// +build !darwin
+
 package helper
 
 import (
@@ -21,10 +24,9 @@ import (
 )
 
 func testUpperLower(t *testing.T, eFpected bool, testCase string) {
-	var obj detectorHelper
-	assert.Equal(t, eFpected, obj.MatchUuid(testCase))
-	assert.Equal(t, eFpected, obj.MatchUuid(strings.ToLower(testCase)))
-	assert.Equal(t, eFpected, obj.MatchUuid(strings.ToUpper(testCase)))
+	assert.Equal(t, eFpected, MatchUuid(testCase))
+	assert.Equal(t, eFpected, MatchUuid(strings.ToLower(testCase)))
+	assert.Equal(t, eFpected, MatchUuid(strings.ToUpper(testCase)))
 }
 
 func TestUuidMatcher(t *testing.T) {

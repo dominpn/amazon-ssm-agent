@@ -39,7 +39,7 @@ function install_agent
   pmExit=$?
   echo "Yum Output: $pmOutput"
   if [ ${pmExit} -ne 0 ]; then
-    echo "Yum install failed. Attemting install amazon-ssm-agent using rpm"
+    echo "Yum install failed. Attempting install amazon-ssm-agent using rpm"
     pmOutput=$(rpm -U amazon-ssm-agent.rpm 2>&1)
     pmExit=$?
   fi
