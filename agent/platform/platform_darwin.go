@@ -33,12 +33,6 @@ const (
 	platformDetailsCommand = "sw_vers"
 )
 
-func getPlatformName(log log.T) (value string, err error) {
-	value, err = getPlatformDetail(log, "ProductName")
-	log.Debugf("platform name: %v", value)
-	return
-}
-
 func isPlatformWindowsServer2012OrEarlier(_ log.T) (bool, error) {
 	return false, nil
 }
@@ -51,18 +45,13 @@ func isWindowsServer2025OrLater(_ string, _ log.T) (bool, error) {
 	return false, nil
 }
 
-func getPlatformType() string {
-	return "macos"
-}
-
-func getPlatformVersion(log log.T) (value string, err error) {
-	value, err = getPlatformDetail(log, "ProductVersion")
-	log.Debugf("platform version: %v", value)
-	return
-}
-
-func getPlatformSku(_ log.T) (string, error) {
-	return "", nil
+func getPlatformData(log log.T) (PlatformData, error) {
+	platformName, platformVersion, err := getPlatformDetails(log)
+	return PlatformData{
+		Name:    platformName,
+		Version: platformVersion,
+		Type:    "macos",
+	}, err
 }
 
 var execWithTimeout = func(cmd string, param ...string) ([]byte, error) {
@@ -72,21 +61,44 @@ var execWithTimeout = func(cmd string, param ...string) ([]byte, error) {
 	return exec.CommandContext(ctx, cmd, param...).Output()
 }
 
-func getPlatformDetail(log log.T, param string) (value string, err error) {
+func getPlatformDetails(log log.T) (name string, version string, err error) {
 	var contentsBytes []byte
+	name, version = notAvailableMessage, notAvailableMessage
 
-	if contentsBytes, err = execWithTimeout(platformDetailsCommand, fmt.Sprintf("-%s", param)); err != nil {
+	if contentsBytes, err = execWithTimeout(platformDetailsCommand); err != nil {
 		log.Errorf("Failed to query for platform info: %v", err)
-		return notAvailableMessage, err
+		return name, version, err
 	}
 
 	platformString := strings.TrimSpace(string(contentsBytes))
 	if len(platformString) == 0 {
-		return notAvailableMessage, fmt.Errorf("Received empty string when querying for platform info")
+		return name, version, fmt.Errorf("received empty string when querying for platform info")
 	}
 
-	log.Debugf("Queried platform info: %s", platformString)
-	return platformString, nil
+	log.Debugf("queried for platform info: %s", platformString)
+	for _, platformLine := range strings.Split(platformString, "\n") {
+		if len(platformLine) == 0 {
+			continue
+		}
+
+		platformLineSplit := strings.Split(platformLine, ":")
+
+		if len(platformLineSplit) < 2 {
+			log.Warnf("Unexpected line when parsing darwin platform: %s", platformLine)
+			continue
+		}
+
+		platformInfoKey := strings.TrimSpace(platformLineSplit[0])
+		platformInfoVal := strings.TrimSpace(platformLineSplit[1])
+
+		if platformInfoKey == "ProductName" {
+			name = platformInfoVal
+		} else if platformInfoKey == "ProductVersion" {
+			version = platformInfoVal
+		}
+	}
+
+	return name, version, err
 }
 
 var hostNameCommand = filepath.Join("/bin", "hostname")

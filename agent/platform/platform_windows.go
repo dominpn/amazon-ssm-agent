@@ -41,7 +41,7 @@ const (
 	WindowsServer2025Version = "10.0.26100"
 )
 
-var getPlatformDetailsFn = getPlatformDetails
+var getPlatformDetails = GetSingleWMIObject[Win32_OperatingSystem]
 
 // isPlatformWindowsServer2012OrEarlier returns true if platform is Windows Server 2012 or earlier
 func isPlatformWindowsServer2012OrEarlier(log log.T) (bool, error) {
@@ -94,40 +94,23 @@ func isPlatformNanoServer(log log.T) (bool, error) {
 	}
 }
 
-func getPlatformName(log log.T) (value string, err error) {
-	if osData, err := getPlatformDetailsFn(log); err != nil {
-		return notAvailableMessage, err
+func getPlatformData(log log.T) (PlatformData, error) {
+	if osData, err := getPlatformDetails(Win32_OperatingSystem{}); err == nil {
+		return PlatformData{
+			Name:    osData.Caption,
+			Version: osData.Version,
+			Sku:     strconv.FormatUint(uint64(osData.OperatingSystemSKU), 10),
+			Type:    "windows",
+		}, nil
 	} else {
-		return osData.Caption, nil
-	}
-}
-
-func getPlatformType() string {
-	return "windows"
-}
-
-func getPlatformVersion(log log.T) (value string, err error) {
-	if osData, err := getPlatformDetailsFn(log); err != nil {
-		return notAvailableMessage, err
-	} else {
-		return osData.Version, nil
-	}
-}
-
-func getPlatformSku(log log.T) (value string, err error) {
-	if osData, err := getPlatformDetailsFn(log); err != nil {
-		return notAvailableMessage, err
-	} else {
-		return strconv.FormatUint(uint64(osData.OperatingSystemSKU), 10), nil
-	}
-}
-
-func getPlatformDetails(log log.T) (osData Win32_OperatingSystem, err error) {
-	if osData, err = GetSingleWMIObject(osData); err != nil {
 		log.Errorf("Failed to fetch OS details from WMI: %v", err)
+		return PlatformData{
+			Name:    notAvailableMessage,
+			Version: notAvailableMessage,
+			Sku:     notAvailableMessage,
+			Type:    "windows",
+		}, err
 	}
-
-	return osData, err
 }
 
 // fullyQualifiedDomainName returns the Fully Qualified Domain Name of the instance, otherwise the hostname

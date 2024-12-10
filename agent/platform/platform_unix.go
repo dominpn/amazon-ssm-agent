@@ -52,24 +52,6 @@ type osRelease struct {
 	VERSION_ID string
 }
 
-func getPlatformName(log log.T) (value string, err error) {
-	value, _, err = getPlatformDetails(log)
-	return
-}
-
-func getPlatformType() string {
-	return "linux"
-}
-
-func getPlatformVersion(log log.T) (value string, err error) {
-	_, value, err = getPlatformDetails(log)
-	return
-}
-
-func getPlatformSku(_ log.T) (value string, err error) {
-	return
-}
-
 func isPlatformWindowsServer2012OrEarlier(_ log.T) (bool, error) {
 	return false, nil
 }
@@ -80,6 +62,15 @@ func isPlatformWindowsServer2025OrLater(_ log.T) (bool, error) {
 
 func isWindowsServer2025OrLater(_ string, _ log.T) (bool, error) {
 	return false, nil
+}
+
+func getPlatformData(log log.T) (PlatformData, error) {
+	platformName, platformVersion, err := getPlatformDetails(log)
+	return PlatformData{
+		Name:    platformName,
+		Version: platformVersion,
+		Type:    "linux",
+	}, err
 }
 
 func getPlatformDetails(log log.T) (name string, version string, err error) {

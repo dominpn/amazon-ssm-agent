@@ -548,7 +548,7 @@ func evaluatePreconditions(
 				} else if strings.Compare(value[0].InitialArgumentValue, "platformType") == 0 || strings.Compare(value[1].InitialArgumentValue, "platformType") == 0 {
 					// keep original logic for platformType variable
 					// Platform type of OS on the instance
-					instancePlatformType := platform.PlatformType()
+					instancePlatformType := platform.PlatformType(log)
 					log.Debugf("OS platform type of this instance = %s", instancePlatformType)
 
 					// Variable and value can be in any order, i.e. both "StringEquals": ["platformType", "Windows"]

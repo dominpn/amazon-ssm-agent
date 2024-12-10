@@ -26,96 +26,96 @@ import (
 
 func TestInvalidPlatform(t *testing.T) {
 	ClearCache()
-	temp := getPlatformNameFn
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Microsoft \xa9 sample R2 Server", nil
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Microsoft \xa9 sample R2 Server"}, nil
 	}
-	defer func() { getPlatformNameFn = temp }()
-	name, err := PlatformName(log.NewMockLog())
-	assert.Equal(t, "Microsoft  sample R2 Server", name)
+	defer func() { getPlatformDataFn = temp }()
+	platformName, err := PlatformName(log.NewMockLog())
+	assert.Equal(t, "Microsoft  sample R2 Server", platformName)
 	assert.Nil(t, err)
 }
 
 func TestValidPlatform(t *testing.T) {
 	ClearCache()
-	temp := getPlatformNameFn
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Microsoft sample R2 \u00a9 Server", nil
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Microsoft sample R2 \u00a9 Server"}, nil
 	}
-	defer func() { getPlatformNameFn = temp }()
-	name, err := PlatformName(log.NewMockLog())
-	assert.Equal(t, "Microsoft sample R2 © Server", name)
+	defer func() { getPlatformDataFn = temp }()
+	platformName, err := PlatformName(log.NewMockLog())
+	assert.Equal(t, "Microsoft sample R2 © Server", platformName)
 	assert.Nil(t, err)
 }
 
 func TestSimpleValidUnixPlatform(t *testing.T) {
 	ClearCache()
-	temp := getPlatformNameFn
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Amazon Linux", nil
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Amazon Linux"}, nil
 	}
-	defer func() { getPlatformNameFn = temp }()
-	name, err := PlatformName(log.NewMockLog())
-	assert.Equal(t, "Amazon Linux", name)
+	defer func() { getPlatformDataFn = temp }()
+	platformName, err := PlatformName(log.NewMockLog())
+	assert.Equal(t, "Amazon Linux", platformName)
 	assert.Nil(t, err)
 }
 
 func TestCachedPlatformName(t *testing.T) {
 	ClearCache()
-	temp := getPlatformNameFn
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Amazon Linux", nil
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Amazon Linux"}, nil
 	}
-	defer func() { getPlatformNameFn = temp }()
+	defer func() { getPlatformDataFn = temp }()
 	logObj := log.NewMockLog()
 	_, _ = PlatformName(logObj)
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Amazon Windows", nil
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Amazon Windows"}, nil
 	}
-	name, err := PlatformName(logObj)
-	assert.Equal(t, "Amazon Linux", name)
+	platformName, err := PlatformName(logObj)
+	assert.Equal(t, "Amazon Linux", platformName)
 	assert.Nil(t, err)
 }
 
 func TestFlushedCache(t *testing.T) {
 	ClearCache()
-	temp := getPlatformNameFn
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Amazon Linux", nil
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Amazon Linux"}, nil
 	}
-	defer func() { getPlatformNameFn = temp }()
+	defer func() { getPlatformDataFn = temp }()
 	logObj := log.NewMockLog()
 	_, _ = PlatformName(logObj)
 	ClearCache()
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Amazon Windows", nil
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Amazon Windows"}, nil
 	}
-	name, err := PlatformName(logObj)
-	assert.Equal(t, "Amazon Windows", name)
+	platformName, err := PlatformName(logObj)
+	assert.Equal(t, "Amazon Windows", platformName)
 	assert.Nil(t, err)
 }
 
 func TestPlatformWithErr(t *testing.T) {
 	ClearCache()
-	temp := getPlatformNameFn
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
-		return "Microsoft \xa9 sample R2 Server", fmt.Errorf("test")
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		return PlatformData{Name: "Microsoft \xa9 sample R2 Server"}, fmt.Errorf("test")
 	}
-	defer func() { getPlatformNameFn = temp }()
-	name, err := PlatformName(log.NewMockLog())
-	assert.Equal(t, "Microsoft \xa9 sample R2 Server", name)
+	defer func() { getPlatformDataFn = temp }()
+	platformName, err := PlatformName(log.NewMockLog())
+	assert.Equal(t, "Microsoft \xa9 sample R2 Server", platformName)
 	assert.NotNil(t, err)
 }
 
 func TestPlatformNameQueryTwice(t *testing.T) {
 	ClearCache()
 	queryCount := 0
-	temp := getPlatformNameFn
-	getPlatformNameFn = func(_ logger.T) (value string, err error) {
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
 		queryCount += 1
-		return "Amazon Linux", nil
+		return PlatformData{Name: "Amazon Linux"}, nil
 	}
-	defer func() { getPlatformNameFn = temp }()
+	defer func() { getPlatformDataFn = temp }()
 	logObj := log.NewMockLog()
 	platformName, err := PlatformName(logObj)
 	assert.Equal(t, "Amazon Linux", platformName)
@@ -130,19 +130,19 @@ func TestPlatformNameQueryTwice(t *testing.T) {
 func TestPlatformVersionQueryTwice(t *testing.T) {
 	ClearCache()
 	queryCount := 0
-	temp := getPlatformVersionFn
-	getPlatformVersionFn = func(_ logger.T) (value string, err error) {
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
 		queryCount += 1
-		return "12.3", nil
+		return PlatformData{Version: "12.3"}, nil
 	}
-	defer func() { getPlatformVersionFn = temp }()
+	defer func() { getPlatformDataFn = temp }()
 	logObj := log.NewMockLog()
-	platformName, err := PlatformVersion(logObj)
-	assert.Equal(t, "12.3", platformName)
+	platformVersion, err := PlatformVersion(logObj)
+	assert.Equal(t, "12.3", platformVersion)
 	assert.Nil(t, err)
 
-	platformName, err = PlatformVersion(logObj)
-	assert.Equal(t, "12.3", platformName)
+	platformVersion, err = PlatformVersion(logObj)
+	assert.Equal(t, "12.3", platformVersion)
 	assert.Equal(t, queryCount, 1)
 	assert.Nil(t, err)
 }
@@ -150,19 +150,19 @@ func TestPlatformVersionQueryTwice(t *testing.T) {
 func TestPlatformSkuQueryTwice(t *testing.T) {
 	ClearCache()
 	queryCount := 0
-	temp := getPlatformSkuFn
-	getPlatformSkuFn = func(_ logger.T) (value string, err error) {
-		queryCount += 1
-		return "456", nil
+	temp := getPlatformDataFn
+	getPlatformDataFn = func(_ logger.T) (PlatformData, error) {
+		queryCount++
+		return PlatformData{Sku: "456"}, nil
 	}
-	defer func() { getPlatformSkuFn = temp }()
+	defer func() { getPlatformDataFn = temp }()
 	logObj := log.NewMockLog()
-	platformName, err := PlatformSku(logObj)
-	assert.Equal(t, "456", platformName)
+	platformSku, err := PlatformSku(logObj)
+	assert.Equal(t, "456", platformSku)
 	assert.Nil(t, err)
 
-	platformName, err = PlatformSku(logObj)
-	assert.Equal(t, "456", platformName)
+	platformSku, err = PlatformSku(logObj)
+	assert.Equal(t, "456", platformSku)
 	assert.Equal(t, queryCount, 1)
 	assert.Nil(t, err)
 }

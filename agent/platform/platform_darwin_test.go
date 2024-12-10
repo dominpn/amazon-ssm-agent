@@ -42,7 +42,7 @@ func TestPlatformVersion(t *testing.T) {
 	ClearCache()
 	tmpFunc := execWithTimeout
 	execWithTimeout = func(string, ...string) ([]byte, error) {
-		return []byte("15.1"), nil
+		return []byte("ProductVersion:\t15.1\ntestingsomething\n"), nil
 	}
 	defer func() { execWithTimeout = tmpFunc }()
 
@@ -66,24 +66,11 @@ func TestPlatformVersionWithError(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestPlatformNameEmptyString(t *testing.T) {
-	ClearCache()
-	tmpFunc := execWithTimeout
-	execWithTimeout = func(string, ...string) ([]byte, error) {
-		return []byte(" \n"), nil
-	}
-	defer func() { execWithTimeout = tmpFunc }()
-
-	platformName, err := PlatformName(logger.NewMockLog())
-	assert.Equal(t, notAvailableMessage, platformName)
-	assert.NotNil(t, err)
-}
-
 func TestPlatformName(t *testing.T) {
 	ClearCache()
 	tmpFunc := execWithTimeout
 	execWithTimeout = func(string, ...string) ([]byte, error) {
-		return []byte("macOS"), nil
+		return []byte("ProductName:\tmacOS\nProductVersion:\t10.15.7\nBuildVersion:\t19H524\n"), nil
 	}
 	defer func() { execWithTimeout = tmpFunc }()
 
@@ -91,18 +78,4 @@ func TestPlatformName(t *testing.T) {
 	platformName, err := PlatformName(logObj)
 	assert.Equal(t, "macOS", platformName)
 	assert.Nil(t, err)
-}
-
-func TestPlatformNameWithError(t *testing.T) {
-	ClearCache()
-	tmpFunc := execWithTimeout
-	execWithTimeout = func(string, ...string) ([]byte, error) {
-		return []byte(""), fmt.Errorf("platform name error")
-	}
-	defer func() { execWithTimeout = tmpFunc }()
-
-	logObj := logger.NewMockLog()
-	platformName, err := PlatformName(logObj)
-	assert.Equal(t, notAvailableMessage, platformName)
-	assert.NotNil(t, err)
 }

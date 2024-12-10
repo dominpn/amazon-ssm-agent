@@ -38,10 +38,8 @@ const (
 )
 
 var (
-	getPlatformNameFn    = getPlatformName
-	getPlatformVersionFn = getPlatformVersion
-	getPlatformSkuFn     = getPlatformSku
-	cache                = InitCache(time.Hour.Milliseconds())
+	getPlatformDataFn = getPlatformData
+	cache             = InitCache(time.Hour.Milliseconds())
 )
 
 // IsPlatformWindowsServer2012OrEarlier represents whether it is Windows 2012 and earlier or not
@@ -66,44 +64,26 @@ func PlatformName(log log.T) (name string, err error) {
 		return platformName, nil
 	}
 
-	// cache the platform name
-	if name, err = retrievePlatformName(log); err == nil {
-		cache.Put(platformNameKey, name)
-	}
-
-	return
+	return retrievePlatformName(log)
 }
 
-func retrievePlatformName(log log.T) (name string, err error) {
-	name, err = getPlatformNameFn(log)
-	if err != nil {
-		return
-	}
-
-	platformName := ""
-	for i := range name {
-		runeVal, _ := utf8.DecodeRuneInString(name[i:])
-		if runeVal == utf8.RuneError {
-			// runeVal = rune(value[i]) - using this will convert \xa9 to valid unicode code point
-			continue
+func retrievePlatformName(log log.T) (string, error) {
+	if platformData, err := initPlatformDataCache(log); err != nil {
+		return platformData.Name, err
+	} else {
+		name := platformData.Name
+		platformName := ""
+		for i := range name {
+			runeVal, _ := utf8.DecodeRuneInString(name[i:])
+			if runeVal == utf8.RuneError {
+				// runeVal = rune(value[i]) - using this will convert \xa9 to valid unicode code point
+				continue
+			}
+			platformName = platformName + fmt.Sprintf("%c", runeVal)
 		}
-		platformName = platformName + fmt.Sprintf("%c", runeVal)
+
+		return platformName, nil
 	}
-
-	return platformName, nil
-}
-
-// PlatformType gets the OS specific platform type.
-func PlatformType() string {
-	// get cached value if exists
-	if platformType, found := cache.Get(platformTypeKey); found {
-		return platformType
-	}
-
-	// cache the platform type
-	platformType := getPlatformType()
-	cache.Put(platformTypeKey, platformType)
-	return platformType
 }
 
 // PlatformVersion gets the OS specific platform version.
@@ -113,25 +93,44 @@ func PlatformVersion(log log.T) (version string, err error) {
 		return platformVersion, nil
 	}
 
-	// cache the platform version
-	if version, err = getPlatformVersionFn(log); err == nil {
-		cache.Put(platformVersionKey, version)
-	}
-	return
+	// cache platform data
+	platformData, err := initPlatformDataCache(log)
+	return platformData.Version, err
 }
 
 // PlatformSku gets the OS specific platform SKU number
-func PlatformSku(log log.T) (sku string, err error) {
+func PlatformSku(log log.T) (string, error) {
 	// get cached value if exists
 	if platformSku, found := cache.Get(platformSkuKey); found {
 		return platformSku, nil
 	}
 
-	// cache the platform sku
-	if sku, err = getPlatformSkuFn(log); err == nil {
-		cache.Put(platformSkuKey, sku)
+	// cache platform data
+	platformData, err := initPlatformDataCache(log)
+	return platformData.Sku, err
+}
+
+// PlatformType gets the OS specific platform type.
+func PlatformType(log log.T) string {
+	// get cached value if exists
+	if platformType, found := cache.Get(platformTypeKey); found {
+		return platformType
 	}
-	return
+
+	// cache platform data
+	platformData, _ := initPlatformDataCache(log)
+	return platformData.Type
+}
+
+func initPlatformDataCache(log log.T) (platformData PlatformData, err error) {
+	if platformData, err = getPlatformDataFn(log); err == nil {
+		cache.Put(platformNameKey, platformData.Name)
+		cache.Put(platformVersionKey, platformData.Version)
+		cache.Put(platformSkuKey, platformData.Sku)
+		cache.Put(platformTypeKey, platformData.Type)
+	}
+
+	return platformData, err
 }
 
 // Hostname of the computer.
@@ -236,6 +235,13 @@ func IsPlatformNanoServer(log log.T) (bool, error) {
 
 func ClearCache() {
 	cache.Flush()
+}
+
+type PlatformData struct {
+	Name    string
+	Version string
+	Sku     string
+	Type    string
 }
 
 type PlatformCache struct {

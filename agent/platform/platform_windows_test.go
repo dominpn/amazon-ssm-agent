@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/amazon-ssm-agent/agent/log"
 	logger "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,11 +28,11 @@ import (
 func TestVersion_Positive(t *testing.T) {
 	ClearCache()
 	logMock := logger.NewMockLog()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "6.2323.23"}, nil
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	isWin2012, err := isPlatformWindowsServer2012OrEarlier(logMock)
 	assert.True(t, isWin2012, "Should return true")
 	assert.Nil(t, err)
@@ -42,7 +41,7 @@ func TestVersion_Positive(t *testing.T) {
 	assert.Nil(t, err)
 
 	ClearCache()
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "20.2323.23"}, nil
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -56,11 +55,11 @@ func TestVersion_Positive(t *testing.T) {
 func TestVersion_Negative(t *testing.T) {
 	ClearCache()
 	logMock := logger.NewMockLog()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "0.022"}, nil
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	isWin2012, err := isPlatformWindowsServer2012OrEarlier(logMock)
 	assert.True(t, isWin2012, "Should return true")
 	assert.Nil(t, err)
@@ -69,7 +68,7 @@ func TestVersion_Negative(t *testing.T) {
 	assert.Nil(t, err)
 
 	ClearCache()
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "dsdsds23323"}, nil
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -80,7 +79,7 @@ func TestVersion_Negative(t *testing.T) {
 	assert.NotNil(t, err)
 
 	ClearCache()
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: ""}, nil
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -91,7 +90,7 @@ func TestVersion_Negative(t *testing.T) {
 	assert.NotNil(t, err)
 
 	ClearCache()
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: ""}, fmt.Errorf("test1")
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -106,11 +105,11 @@ func TestVersion_Negative(t *testing.T) {
 
 func TestPlatformName(t *testing.T) {
 	ClearCache()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Caption: "Windows 2025"}, nil
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	logObj := logger.NewMockLog()
 	platformName, err := PlatformName(logObj)
 	assert.Equal(t, "Windows 2025", platformName)
@@ -119,11 +118,11 @@ func TestPlatformName(t *testing.T) {
 
 func TestPlatformNameWithError(t *testing.T) {
 	ClearCache()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform name error")
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	logObj := logger.NewMockLog()
 	platformName, err := PlatformName(logObj)
 	assert.Equal(t, notAvailableMessage, platformName)
@@ -132,11 +131,11 @@ func TestPlatformNameWithError(t *testing.T) {
 
 func TestPlatformVersion(t *testing.T) {
 	ClearCache()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "20.2323.23"}, nil
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	logObj := logger.NewMockLog()
 	platformVersion, err := PlatformVersion(logObj)
 	assert.Equal(t, "20.2323.23", platformVersion)
@@ -145,11 +144,11 @@ func TestPlatformVersion(t *testing.T) {
 
 func TestPlatformVersionWithError(t *testing.T) {
 	ClearCache()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform version error")
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	logObj := logger.NewMockLog()
 	platformVersion, err := PlatformVersion(logObj)
 	assert.Equal(t, notAvailableMessage, platformVersion)
@@ -158,11 +157,11 @@ func TestPlatformVersionWithError(t *testing.T) {
 
 func TestPlatformSku(t *testing.T) {
 	ClearCache()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{OperatingSystemSKU: 123}, nil
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	logObj := logger.NewMockLog()
 	platformSku, err := PlatformSku(logObj)
 	assert.Equal(t, "123", platformSku)
@@ -171,11 +170,11 @@ func TestPlatformSku(t *testing.T) {
 
 func TestPlatformSkuWithError(t *testing.T) {
 	ClearCache()
-	temp := getPlatformDetailsFn
-	getPlatformDetailsFn = func(_ log.T) (Win32_OperatingSystem, error) {
+	temp := getPlatformDetails
+	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform sku error")
 	}
-	defer func() { getPlatformDetailsFn = temp }()
+	defer func() { getPlatformDetails = temp }()
 	logObj := logger.NewMockLog()
 	platformSku, err := PlatformSku(logObj)
 	assert.Equal(t, notAvailableMessage, platformSku)

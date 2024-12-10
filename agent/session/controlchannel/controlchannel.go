@@ -220,7 +220,7 @@ func (controlChannel *ControlChannel) Open(context context.T, ableToOpenMGSConne
 		RequestId:            aws.String(uid),
 		TokenValue:           aws.String(controlChannel.wsChannel.GetChannelToken()),
 		AgentVersion:         aws.String(version.Version),
-		PlatformType:         aws.String(platform.PlatformType()),
+		PlatformType:         aws.String(platform.PlatformType(log)),
 	}
 
 	jsonValue, err := json.Marshal(openControlChannelInput)
