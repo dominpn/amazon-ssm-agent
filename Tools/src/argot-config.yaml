@@ -26,7 +26,7 @@ targets:
   - name: "agent-worker-windows"
     files: [ "agent/agent.go", "agent/agent_windows.go", "agent/agent_parser.go" ]
   - name: "updater-unix"
-    files: ["agent/update/updated/updater.go", "agent/update/updater/updater_unix.go"]
+    files: ["agent/update/updater/updater.go", "agent/update/updater/updater_unix.go"]
   - name: "ssm-cli"
     files: ["agent/cli-main/cli-main.go"]
   - name: "ssm-document-worker"
@@ -101,6 +101,26 @@ dataflow-problems:
         - type: "^int" # Allow logging integers derived from data (counts. length,..)
         - package: "log" # Don't track the log itself
           type: "T"
+  # Slicing problems are backwards data flow problems: the tool tracks data backwards from a backtrace point,
+  # and the trace generated forms a "slice" of the program that explains how the data was generated.
+  slicing:
+    - tag: "must-compile-must-be-const"
+      description: "Checking that regexp.MustCompile arguments are statically defined to avoid panics."
+      override-analysis-options:
+        unsafe-max-depth: 5 # if we need more than 5 calls to get to the const, it's a red flag!
+      targets:
+        - amazon-ssm-agent-unix
+         # - agent-worker-unix TODO: there are some findings for the workers
+         # - ssm-document-worker
+        - updater-unix
+        - ssm-setup-cli
+        - ssm-session-worker
+        - ssm-cli
+      must-be-static: true
+      backtracepoints:
+        - package: "regexp"
+          method: "^MustCompile$"
+
 
 syntactic-problems:
   # Check that the tls config field MinVersion is always set to TLS 1.2
