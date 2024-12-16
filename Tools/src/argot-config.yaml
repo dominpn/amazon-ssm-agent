@@ -65,6 +65,8 @@ dataflow-problems:
       sinks:
         - context: "amazon-ssm-agent"
           method: "^(Log|Error|Warn|Debug|Info).*"
+        - package: "github.com/aws/amazon-ssm-agent/agent/session/controlchannel"
+          method: "SendMessage"
       sanitizers:
         # Signing using the credentials doesn't taint the signed data by definition!
         - package: ".*signer/v4"
