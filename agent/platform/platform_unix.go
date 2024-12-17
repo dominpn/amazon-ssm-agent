@@ -30,15 +30,19 @@ import (
 )
 
 const (
-	osReleaseFile           = "/etc/os-release"
-	systemReleaseFile       = "/etc/system-release"
-	centosReleaseFile       = "/etc/centos-release"
-	redhatReleaseFile       = "/etc/redhat-release"
-	bottlerocketReleaseFile = "/etc/bottlerocket-release"
-	unameCommand            = "/usr/bin/uname"
-	lsbReleaseCommand       = "lsb_release"
-	fetchingDetailsMessage  = "fetching platform details from %v"
-	errorOccurredMessage    = "There was an error running %v, err: %v"
+	osReleaseFile                 = "/etc/os-release"
+	systemReleaseFile             = "/etc/system-release"
+	centosReleaseFile             = "/etc/centos-release"
+	redhatReleaseFile             = "/etc/redhat-release"
+	bottlerocketReleaseFile       = "/etc/bottlerocket-release"
+	unameCommand                  = "/usr/bin/uname"
+	lsbReleaseCommand             = "lsb_release"
+	fetchingDetailsMessage        = "fetching platform details from %v"
+	errorOccurredMessage          = "There was an error running %v, err: %v"
+	NitroVendorSystemInfoParamKey = "/sys/class/dmi/id/sys_vendor"
+	NitroUuidSystemInfoParamKey   = "/sys/class/dmi/id/product_uuid"
+	XenVersionSystemInfoParamKey  = "/sys/hypervisor/version/extra"
+	XenUuidSystemInfoParamKey     = "/sys/hypervisor/uuid"
 )
 
 var (
@@ -248,6 +252,22 @@ func getPlatformDetails(log log.T) (name string, version string, err error) {
 		log.Debugf("platform version %v", version)
 	}
 	return
+}
+
+func initSystemInfoCache(log log.T, paramKey string) (string, error) {
+	if !fileExists(paramKey) {
+		log.Warnf("Could not find file %v. Will skip caching the data", paramKey)
+		return "", nil
+	}
+
+	if text, err := readAllText(paramKey); err == nil {
+		data := strings.TrimSpace(text)
+		cache.Put(paramKey, data)
+		return data, nil
+	} else {
+		log.Errorf("Could not read file %v, error %v. Will skip caching the data", paramKey, err)
+		return "", err
+	}
 }
 
 var hostNameCommand = filepath.Join("/bin", "hostname")

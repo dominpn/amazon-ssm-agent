@@ -39,9 +39,17 @@ const (
 	WindowsServer2016Version = 10
 
 	WindowsServer2025Version = "10.0.26100"
+
+	//BIOS param keys used for system info
+	BiosVersionParamKey      = "SMBIOSBIOSVersion"
+	BiosSerialNumberParamKey = "SerialNumber"
+	BiosManufacturerParamKey = "Manufacturer"
 )
 
-var getPlatformDetails = GetSingleWMIObject[Win32_OperatingSystem]
+var (
+	getPlatformDetails = GetSingleWMIObject[Win32_OperatingSystem]
+	getSystemDetails   = GetSingleWMIObject[Win32_BIOS]
+)
 
 // isPlatformWindowsServer2012OrEarlier returns true if platform is Windows Server 2012 or earlier
 func isPlatformWindowsServer2012OrEarlier(log log.T) (bool, error) {
@@ -110,6 +118,24 @@ func getPlatformData(log log.T) (PlatformData, error) {
 			Sku:     notAvailableMessage,
 			Type:    "windows",
 		}, err
+	}
+}
+
+func initSystemInfoCache(log log.T, paramKey string) (string, error) {
+	if biosData, err := getSystemDetails(Win32_BIOS{}); err == nil {
+		cache.Put(BiosVersionParamKey, biosData.SMBIOSBIOSVersion)
+		cache.Put(BiosSerialNumberParamKey, biosData.SerialNumber)
+		cache.Put(BiosManufacturerParamKey, biosData.Manufacturer)
+
+		var data string
+		var found bool
+		if data, found = cache.Get(paramKey); !found {
+			log.Warnf("Couldn't find mapping for the %v param key in the cache", paramKey)
+		}
+		return data, nil
+	} else {
+		log.Errorf("Failed to fetch BIOS details from WMI: %v", err)
+		return "", err
 	}
 }
 

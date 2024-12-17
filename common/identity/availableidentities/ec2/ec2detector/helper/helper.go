@@ -19,8 +19,8 @@ package helper
 import (
 	"regexp"
 	"strings"
-	"time"
 
+	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/platform"
 )
 
@@ -30,21 +30,16 @@ const (
 )
 
 var (
-	cache = platform.InitCache(time.Hour.Milliseconds())
-
-	MatchUuid = func(uuid string) bool {
-		uuid = strings.ToLower(uuid)
+	MatchUuid = func(log log.T, uuidParamKey string) bool {
+		uuid := strings.ToLower(GetSystemInfo(log, uuidParamKey))
 		isBigEndianEc2Uuid := regexp.MustCompile(bigEndianEc2UuidRegex).MatchString(uuid)
 		isLittleEndianEc2Uuid := regexp.MustCompile(littleEndianEc2UuidRegex).MatchString(uuid)
 
 		return isBigEndianEc2Uuid || isLittleEndianEc2Uuid
 	}
 
-	GetSystemInfo = func(attribute string) string {
-		if data, found := cache.Get(attribute); found {
-			return data
-		} else {
-			return initCacheAndGetData(attribute)
-		}
+	GetSystemInfo = func(log log.T, paramKey string) string {
+		paramValue, _ := platform.GetSystemInfo(log, paramKey)
+		return paramValue
 	}
 )

@@ -57,6 +57,10 @@ func IsWindowsServer2025OrLater(platformVersion string, log log.T) (bool, error)
 	return isWindowsServer2025OrLater(platformVersion, log)
 }
 
+func IsPlatformNanoServer(log log.T) (bool, error) {
+	return isPlatformNanoServer(log)
+}
+
 // PlatformName gets the OS specific platform name.
 func PlatformName(log log.T) (name string, err error) {
 	// get cached value if exists
@@ -128,9 +132,21 @@ func initPlatformDataCache(log log.T) (platformData PlatformData, err error) {
 		cache.Put(platformVersionKey, platformData.Version)
 		cache.Put(platformSkuKey, platformData.Sku)
 		cache.Put(platformTypeKey, platformData.Type)
+	} else {
+		log.Warnf("Failed to get platform data: %v", err)
 	}
 
 	return platformData, err
+}
+
+func GetSystemInfo(log log.T, paramKey string) (string, error) {
+	// get cached value if exists
+	if systemInfo, found := cache.Get(paramKey); found {
+		return systemInfo, nil
+	}
+
+	// cache system info
+	return initSystemInfoCache(log, paramKey)
 }
 
 // Hostname of the computer.
@@ -228,10 +244,6 @@ type byIndex []net.Interface
 func (b byIndex) Len() int           { return len(b) }
 func (b byIndex) Less(i, j int) bool { return b[i].Index < b[j].Index }
 func (b byIndex) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
-
-func IsPlatformNanoServer(log log.T) (bool, error) {
-	return isPlatformNanoServer(log)
-}
 
 func ClearCache() {
 	cache.Flush()

@@ -110,8 +110,8 @@ func TestPlatformName(t *testing.T) {
 		return Win32_OperatingSystem{Caption: "Windows 2025"}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
-	logObj := logger.NewMockLog()
-	platformName, err := PlatformName(logObj)
+	logMock := logger.NewMockLog()
+	platformName, err := PlatformName(logMock)
 	assert.Equal(t, "Windows 2025", platformName)
 	assert.Nil(t, err)
 }
@@ -123,8 +123,8 @@ func TestPlatformNameWithError(t *testing.T) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform name error")
 	}
 	defer func() { getPlatformDetails = temp }()
-	logObj := logger.NewMockLog()
-	platformName, err := PlatformName(logObj)
+	logMock := logger.NewMockLog()
+	platformName, err := PlatformName(logMock)
 	assert.Equal(t, notAvailableMessage, platformName)
 	assert.NotNil(t, err)
 }
@@ -136,8 +136,8 @@ func TestPlatformVersion(t *testing.T) {
 		return Win32_OperatingSystem{Version: "20.2323.23"}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
-	logObj := logger.NewMockLog()
-	platformVersion, err := PlatformVersion(logObj)
+	logMock := logger.NewMockLog()
+	platformVersion, err := PlatformVersion(logMock)
 	assert.Equal(t, "20.2323.23", platformVersion)
 	assert.Nil(t, err)
 }
@@ -149,8 +149,8 @@ func TestPlatformVersionWithError(t *testing.T) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform version error")
 	}
 	defer func() { getPlatformDetails = temp }()
-	logObj := logger.NewMockLog()
-	platformVersion, err := PlatformVersion(logObj)
+	logMock := logger.NewMockLog()
+	platformVersion, err := PlatformVersion(logMock)
 	assert.Equal(t, notAvailableMessage, platformVersion)
 	assert.NotNil(t, err)
 }
@@ -162,8 +162,8 @@ func TestPlatformSku(t *testing.T) {
 		return Win32_OperatingSystem{OperatingSystemSKU: 123}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
-	logObj := logger.NewMockLog()
-	platformSku, err := PlatformSku(logObj)
+	logMock := logger.NewMockLog()
+	platformSku, err := PlatformSku(logMock)
 	assert.Equal(t, "123", platformSku)
 	assert.Nil(t, err)
 }
@@ -175,8 +175,95 @@ func TestPlatformSkuWithError(t *testing.T) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform sku error")
 	}
 	defer func() { getPlatformDetails = temp }()
-	logObj := logger.NewMockLog()
-	platformSku, err := PlatformSku(logObj)
+	logMock := logger.NewMockLog()
+	platformSku, err := PlatformSku(logMock)
 	assert.Equal(t, notAvailableMessage, platformSku)
 	assert.NotNil(t, err)
+}
+
+func TestGetSystemInfo(t *testing.T) {
+	ClearCache()
+	temp := getSystemDetails
+	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+		return Win32_BIOS{
+			SMBIOSBIOSVersion: "version123",
+			SerialNumber:      "serialNumber123",
+			Manufacturer:      "manufacturer123",
+		}, nil
+	}
+	defer func() { getSystemDetails = temp }()
+	logMock := logger.NewMockLog()
+
+	version, err := GetSystemInfo(logMock, BiosVersionParamKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "version123", version)
+	serialNumber, err := GetSystemInfo(logMock, BiosSerialNumberParamKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "serialNumber123", serialNumber)
+	manufacturer, err := GetSystemInfo(logMock, BiosManufacturerParamKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "manufacturer123", manufacturer)
+}
+
+func TestGetSystemInfoCacheHit(t *testing.T) {
+	ClearCache()
+	cacheInitCount := 0
+	temp := getSystemDetails
+	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+		cacheInitCount++
+		return Win32_BIOS{
+			SMBIOSBIOSVersion: "version123",
+			SerialNumber:      "serialNumber123",
+			Manufacturer:      "manufacturer123",
+		}, nil
+	}
+	defer func() { getSystemDetails = temp }()
+	logMock := logger.NewMockLog()
+
+	GetSystemInfo(logMock, BiosVersionParamKey)
+	GetSystemInfo(logMock, BiosVersionParamKey)
+	assert.Equal(t, 1, cacheInitCount)
+}
+
+func TestGetSystemInfoCacheMiss(t *testing.T) {
+	ClearCache()
+	cacheInitCount := 0
+	temp := getSystemDetails
+	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+		cacheInitCount++
+		return Win32_BIOS{
+			SMBIOSBIOSVersion: "version123",
+			SerialNumber:      "serialNumber123",
+			Manufacturer:      "manufacturer123",
+		}, nil
+	}
+	defer func() { getSystemDetails = temp }()
+	logMock := logger.NewMockLog()
+
+	GetSystemInfo(logMock, BiosVersionParamKey)
+	GetSystemInfo(logMock, "NonExistingParamKey")
+	assert.Equal(t, 2, cacheInitCount)
+}
+
+func TestGetSystemInfoWithError(t *testing.T) {
+	ClearCache()
+	cacheInitCount := 0
+	temp := getSystemDetails
+	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+		cacheInitCount++
+		return Win32_BIOS{
+			SMBIOSBIOSVersion: "version123",
+			SerialNumber:      "serialNumber123",
+			Manufacturer:      "manufacturer123",
+		}, fmt.Errorf("system info error")
+	}
+	defer func() { getSystemDetails = temp }()
+	logMock := logger.NewMockLog()
+
+	version, err := GetSystemInfo(logMock, BiosVersionParamKey)
+	assert.NotNil(t, err)
+	assert.Equal(t, "", version)
+	//make sure we don't cache values with errors
+	GetSystemInfo(logMock, BiosSerialNumberParamKey)
+	assert.Equal(t, 2, cacheInitCount)
 }

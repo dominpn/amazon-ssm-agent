@@ -20,41 +20,37 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/log"
+	logger "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/helper"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestIsEc2(t *testing.T) {
-	detector := New()
-	tempGetVersion := getVersion
-	tempGetUuid := getUuid
+	detector := New("", "")
+	logMock := logger.NewMockLog()
 	tempMatchUuid := helper.MatchUuid
+	tempGetSystemInfo := helper.GetSystemInfo
 	defer func() {
-		getUuid = tempGetUuid
-		getVersion = tempGetVersion
 		helper.MatchUuid = tempMatchUuid
+		helper.GetSystemInfo = tempGetSystemInfo
 	}()
 
-	getUuid = func() string { return "" }
-	getVersion = func() string { return "someotherversion" }
-	assert.False(t, detector.IsEc2())
+	helper.GetSystemInfo = func(log.T, string) string { return "someotherversion" }
+	assert.False(t, detector.IsEc2(logMock))
 
-	getUuid = func() string { return "" }
-	getVersion = func() string { return fmt.Sprintf("%s%s", expectedVersionSuffix, "SomeRandomPostfix") }
-	assert.False(t, detector.IsEc2())
+	helper.GetSystemInfo = func(log.T, string) string { return fmt.Sprintf("%s%s", expectedVersionSuffix, "SomeRandomPostfix") }
+	assert.False(t, detector.IsEc2(logMock))
 
-	getUuid = func() string { return "someuuid" }
-	getVersion = func() string { return expectedVersionSuffix }
-	helper.MatchUuid = func(string) bool { return false }
-	assert.False(t, detector.IsEc2())
+	helper.GetSystemInfo = func(log.T, string) string { return expectedVersionSuffix }
+	helper.MatchUuid = func(log.T, string) bool { return false }
+	assert.False(t, detector.IsEc2(logMock))
 
-	getUuid = func() string { return "someuuid" }
-	getVersion = func() string { return expectedVersionSuffix }
-	helper.MatchUuid = func(string) bool { return true }
-	assert.True(t, detector.IsEc2())
+	helper.GetSystemInfo = func(log.T, string) string { return expectedVersionSuffix }
+	helper.MatchUuid = func(log.T, string) bool { return true }
+	assert.True(t, detector.IsEc2(logMock))
 
-	getUuid = func() string { return "someuuid" }
-	getVersion = func() string { return fmt.Sprintf("%s%s", "SomeRandomPrefix", expectedVersionSuffix) }
-	helper.MatchUuid = func(string) bool { return true }
-	assert.True(t, detector.IsEc2())
+	helper.GetSystemInfo = func(log.T, string) string { return fmt.Sprintf("%s%s", "SomeRandomPrefix", expectedVersionSuffix) }
+	helper.MatchUuid = func(log.T, string) bool { return true }
+	assert.True(t, detector.IsEc2(logMock))
 }

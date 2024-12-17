@@ -23,7 +23,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/amazon-ssm-agent/agent/appconfig"
+	"github.com/aws/amazon-ssm-agent/agent/log"
+	"github.com/aws/amazon-ssm-agent/agent/platform"
 	testCommon "github.com/aws/amazon-ssm-agent/agent/update/tester/common"
 )
 
@@ -32,11 +33,6 @@ const (
 
 	commandExecTimeout = 3 * time.Second
 	commandMaxRetry    = 3
-	biosInfoCmd        = "Get-CimInstance -ClassName Win32_BIOS"
-
-	uuidKey    = "SerialNumber"
-	vendorKey  = "Manufacturer"
-	versionKey = "SMBIOSBIOSVersion"
 )
 
 var execCommand = func(cmd string, params ...string) (string, error) {
@@ -55,29 +51,22 @@ var execCommand = func(cmd string, params ...string) (string, error) {
 	return "", err
 }
 
-func getSystemHostInfo() (HostInfo, error) {
-	var info HostInfo
-	args := append(strings.Split(appconfig.PowerShellCommandArgs, " "), biosInfoCmd)
-	output, err := execCommand(appconfig.PowerShellPluginCommandName, args...)
-	if err != nil {
+func getSystemHostInfo(log log.T) (HostInfo, error) {
+	info := HostInfo{}
+	if version, err := platform.GetSystemInfo(log, platform.BiosVersionParamKey); err == nil {
+		info.Version = cleanBiosString(version)
+	} else {
 		return info, fmt.Errorf("%s: %v", failedQuerySystemHostInfo, err)
 	}
-
-	for _, biosLine := range strings.Split(output, "\r\n") {
-		splitLine := strings.SplitN(biosLine, ":", 2)
-		if len(splitLine) != 2 {
-			continue
-		}
-
-		value := cleanBiosString(splitLine[1])
-		switch strings.TrimSpace(splitLine[0]) {
-		case uuidKey:
-			info.Uuid = value
-		case vendorKey:
-			info.Vendor = value
-		case versionKey:
-			info.Version = value
-		}
+	if uuid, err := platform.GetSystemInfo(log, platform.BiosSerialNumberParamKey); err == nil {
+		info.Uuid = cleanBiosString(uuid)
+	} else {
+		return info, fmt.Errorf("%s: %v", failedQuerySystemHostInfo, err)
+	}
+	if vendor, err := platform.GetSystemInfo(log, platform.BiosManufacturerParamKey); err == nil {
+		info.Vendor = cleanBiosString(vendor)
+	} else {
+		return info, fmt.Errorf("%s: %v", failedQuerySystemHostInfo, err)
 	}
 
 	if info.Version == "" && info.Vendor == "" {
@@ -93,7 +82,7 @@ func getSystemHostInfo() (HostInfo, error) {
 
 func (l *Ec2DetectorTestCase) queryHostInfo() {
 	l.smbiosHostInfo, l.smbiosErr = getSmbiosHostInfo(l.context.Log())
-	l.systemHostInfo, l.systemErr = getSystemHostInfo()
+	l.systemHostInfo, l.systemErr = getSystemHostInfo(l.context.Log())
 }
 
 func (l *Ec2DetectorTestCase) generatePlatformTestResult() (testCommon.TestResult, string) {

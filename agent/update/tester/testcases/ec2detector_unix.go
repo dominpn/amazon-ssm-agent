@@ -17,52 +17,42 @@
 package testcases
 
 import (
-	"fmt"
-	"io/ioutil"
+	"errors"
 
+	"github.com/aws/amazon-ssm-agent/agent/log"
+	"github.com/aws/amazon-ssm-agent/agent/platform"
 	testCommon "github.com/aws/amazon-ssm-agent/agent/update/tester/common"
 )
 
 const (
 	ec2DetectorTestCaseName = "UnixEc2Detector"
-
-	nitroVendorSystemInfoParam = "/sys/class/dmi/id/sys_vendor"
-	nitroUuidSystemInfoParam   = "/sys/class/dmi/id/product_uuid"
-
-	xenVersionSystemInfoParam = "/sys/hypervisor/version/extra"
-	xenUuidSystemInfoParam    = "/sys/hypervisor/uuid"
 )
 
-var readFile = func(filePath string) string {
-	bytes, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return ""
-	}
-
-	return cleanBiosString(string(bytes))
-}
-
-func getSystemHostInfo() (HostInfo, error) {
+func getSystemHostInfo(log log.T) (HostInfo, error) {
 	var hostInfo HostInfo
 
-	hostInfo.Vendor = readFile(nitroVendorSystemInfoParam)
-	hostInfo.Version = readFile(xenVersionSystemInfoParam)
+	vendor, _ := platform.GetSystemInfo(log, platform.NitroVendorSystemInfoParamKey)
+	hostInfo.Vendor = cleanBiosString(vendor)
+	version, _ := platform.GetSystemInfo(log, platform.XenVersionSystemInfoParamKey)
+	hostInfo.Version = cleanBiosString(version)
 
 	if hostInfo.Version == "" && hostInfo.Vendor == "" {
-		return hostInfo, fmt.Errorf(failedToGetVendorAndVersion)
+		return hostInfo, errors.New(failedToGetVendorAndVersion)
 	}
 
-	if hostInfo.Uuid = readFile(xenUuidSystemInfoParam); hostInfo.Uuid == "" {
-		if hostInfo.Uuid = readFile(nitroUuidSystemInfoParam); hostInfo.Uuid == "" {
-			return hostInfo, fmt.Errorf(failedToGetUuid)
+	var uuid string
+	if uuid, _ = platform.GetSystemInfo(log, platform.XenUuidSystemInfoParamKey); uuid == "" {
+		if uuid, _ = platform.GetSystemInfo(log, platform.NitroUuidSystemInfoParamKey); uuid == "" {
+			return hostInfo, errors.New(failedToGetUuid)
 		}
 	}
+	hostInfo.Uuid = cleanBiosString(uuid)
 
 	return hostInfo, nil
 }
 
 func (l *Ec2DetectorTestCase) queryHostInfo() {
-	l.systemHostInfo, l.systemErr = getSystemHostInfo()
+	l.systemHostInfo, l.systemErr = getSystemHostInfo(l.context.Log())
 	l.smbiosHostInfo, l.smbiosErr = getSmbiosHostInfo(l.context.Log())
 }
 

@@ -17,11 +17,12 @@
 package ec2detector
 
 import (
+	"github.com/aws/amazon-ssm-agent/agent/platform"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/nitrodetector"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/xendetector"
 )
 
 func init() {
-	RegisterDetector(nitrodetector.New())
-	RegisterDetector(xendetector.New())
+	RegisterDetector(nitrodetector.New(platform.NitroUuidSystemInfoParamKey, platform.NitroVendorSystemInfoParamKey))
+	RegisterDetector(xendetector.New(platform.XenUuidSystemInfoParamKey, platform.XenVersionSystemInfoParamKey))
 }

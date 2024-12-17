@@ -20,6 +20,7 @@ package nitrodetector
 import (
 	"strings"
 
+	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/helper"
 )
 
@@ -28,25 +29,26 @@ const (
 	Name                = "Nitro"
 )
 
-var (
-	getUuid   = func() string { return helper.GetSystemInfo(helper.NitroUuidSystemInfoParam) }
-	getVendor = func() string { return helper.GetSystemInfo(helper.NitroVendorSystemInfoParam) }
-)
+type nitroDetector struct {
+	uuidParamKey   string
+	vendorParamKey string
+}
 
-type nitroDetector struct{}
-
-func (d *nitroDetector) IsEc2() bool {
-	if strings.ToLower(getVendor()) != expectedNitroVendor {
+func (d *nitroDetector) IsEc2(log log.T) bool {
+	if strings.ToLower(helper.GetSystemInfo(log, d.vendorParamKey)) != expectedNitroVendor {
 		return false
 	}
 
-	return helper.MatchUuid(getUuid())
+	return helper.MatchUuid(log, d.uuidParamKey)
 }
 
 func (d *nitroDetector) GetName() string {
 	return Name
 }
 
-func New() *nitroDetector {
-	return &nitroDetector{}
+func New(uuidParamKey, vendorParamKey string) *nitroDetector {
+	return &nitroDetector{
+		uuidParamKey:   uuidParamKey,
+		vendorParamKey: vendorParamKey,
+	}
 }

@@ -101,6 +101,8 @@ func getPlatformDetails(log log.T) (name string, version string, err error) {
 	return name, version, err
 }
 
+func initSystemInfoCache(_ log.T, _ string) (string, error) { return "", nil }
+
 var hostNameCommand = filepath.Join("/bin", "hostname")
 
 // fullyQualifiedDomainName returns the Fully Qualified Domain Name of the instance, otherwise the hostname
