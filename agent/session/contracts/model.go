@@ -24,37 +24,44 @@ import (
 	logger "github.com/aws/amazon-ssm-agent/agent/log"
 )
 
+// Channel type agnostic messages
 const (
-	// InteractiveShellMessage message type for interactive shell.
-	InteractiveShellMessage string = "interactive_shell"
-	// TaskReplyMessage represents message type for task reply
-	TaskReplyMessage string = "agent_task_reply"
-	// TaskCompleteMessage represents message type for task complete
-	TaskCompleteMessage string = "agent_task_complete"
-	// TaskAcknowledgeMessage represents message type for acknowledge of tasks sent over control channel
-	TaskAcknowledgeMessage string = "agent_task_acknowledge"
-	// AcknowledgeMessage represents message type for acknowledge
-	AcknowledgeMessage string = "acknowledge"
-	// AgentSessionState represents status of session
-	AgentSessionState string = "agent_session_state"
-	// ChannelClosedMessage represents message type for ChannelClosed
+	// ChannelClosedMessage is sent from MGS to both control and data channel to notify the SSM Agent that the channel is about to be closed
 	ChannelClosedMessage string = "channel_closed"
-	// OutputStreamDataMessage represents message type for outgoing stream data
+)
+
+// Data channel messages
+const (
+	// AcknowledgeMessage is sent both from MGS to SSM Session worker and from session worker to MGS through DataChannel to notify that a message was received
+	AcknowledgeMessage string = "acknowledge"
+	// AgentSessionState is sent from SSM Session worker to MGS through DataChannel to notify MGS that the agent is connected to the data channel when its first connect and sends Terminating before closing the channel
+	AgentSessionState string = "agent_session_state"
+	// OutputStreamDataMessage is sent from SSM Session worker to MGS through DataChannel and contains the raw data to be sent to the customer
 	OutputStreamDataMessage string = "output_stream_data"
-	// InputStreamDataMessage represents message type for incoming stream data
+	// InputStreamDataMessage is sent from MGS to SSM Session worker through DataChannel and contains the raw input from the customer on the other side of the data channel
 	InputStreamDataMessage string = "input_stream_data"
-	// PausePublicationMessage message type for pause sending data packages.
+	// PausePublicationMessage is sent from MGS to SSM Session worker through DataChannel to tell the session worker to stop sending messages. Messages are resumed when StartPublication message is received or when we receive AcknowledgeMessage event from MGS on the channel
 	PausePublicationMessage string = "pause_publication"
-	// StartPublicationMessage message type for start sending data packages.
+	// StartPublicationMessage is sent from SSM Session worker to MGS through DataChannel to tell the session worker to resume sending messages.
 	StartPublicationMessage string = "start_publication"
-	// AgentJobMessage represents message type for agent job
+)
+
+// Control channel messages
+const (
+	// InteractiveShellMessage is sent from MGS to SSM Agent through ControlChannel and has the contents of a StartSession or TerminateSession document. The agent will startup a session worker which will execute the document
+	InteractiveShellMessage string = "interactive_shell"
+	// TaskCompleteMessage is sent from SSM Agent to MGS through ControlChannel at the end of a session document execution.
+	TaskCompleteMessage string = "agent_task_complete"
+	// TaskAcknowledgeMessage is sent from MSG to SSM Agent through ControlChannel to acknowledge it has received the TaskCompleteMessage
+	TaskAcknowledgeMessage string = "agent_task_acknowledge"
+	// AgentJobMessage is sent from MGS to SSM Agent through ControlChannel and has the contents of a StartCommand, CancelCommand or Association document. The agent will startup a document worker which will execute the document
 	AgentJobMessage string = "agent_job"
-	// AgentJobAcknowledgeMessage represents message for agent job acknowledge
+	// AgentJobAcknowledgeMessage is sent from MSG to SSM Agent through ControlChannel to acknowledge it has received the AgentJobMessage
 	AgentJobAcknowledgeMessage string = "agent_job_ack"
-	// AgentJobReplyAck represents message for agent job reply acknowledge
-	AgentJobReplyAck string = "agent_job_reply_ack"
-	// AgentJobReply represents message type for agent job reply
+	// AgentJobReply is sent from SSM Agent to MGS through ControlChannel to update the execution status and output of a StartCommand, CancelCommand or Association document.
 	AgentJobReply string = "agent_job_reply"
+	// AgentJobReplyAck is sent from MGS to SSM Agent through ControlChannel to acknowledge it has received the AgentJobReply
+	AgentJobReplyAck string = "agent_job_reply_ack"
 )
 
 type ShellProperties struct {
