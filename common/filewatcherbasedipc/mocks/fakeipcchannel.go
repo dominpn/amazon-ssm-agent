@@ -136,6 +136,10 @@ func (f *FakeChannel) CleanupOwnModeFiles() {
 	}
 }
 
+func (f *FakeChannel) GetMode() filewatcherbasedipc.Mode {
+	return f.mode
+}
+
 func (f *FakeChannel) GetPath() string {
 	return f.name
 }
