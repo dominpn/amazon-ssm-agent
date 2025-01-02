@@ -14,7 +14,6 @@
 package telemetry
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"sync"
@@ -24,6 +23,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/context"
+	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
 
@@ -106,13 +106,34 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 		Payload:   string(entryJson),
 	}
 
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	err = enc.Encode(ipcMessage)
+	ipcMessageJson, err := json.Marshal(ipcMessage)
+	if err != nil {
+		return err
+	}
+	return t.fileChannel.Send(string(ipcMessageJson))
+}
 
+func (t *telemetry) emitIntegerMetric(namespace string, name string, unit string, time time.Time, value int64) (err error) {
+	entry := &metric.Metric[int64]{
+		Name:       name,
+		Unit:       unit,
+		DataPoints: []metric.DataPoint[int64]{{StartTime: time, EndTime: time, Value: value}},
+	}
+
+	entryJson, err := json.Marshal(entry)
 	if err != nil {
 		return err
 	}
 
-	return t.fileChannel.Send(buf.String())
+	ipcMessage := &Message{
+		Namespace: namespace,
+		Type:      METRIC,
+		Payload:   string(entryJson),
+	}
+
+	ipcMessageJson, err := json.Marshal(ipcMessage)
+	if err != nil {
+		return err
+	}
+	return t.fileChannel.Send(string(ipcMessageJson))
 }

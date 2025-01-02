@@ -16,6 +16,7 @@ package telemetry
 
 import (
 	"encoding/json"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	channelmock "github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc/mocks"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
+	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -138,6 +140,7 @@ func (suite *TelemetryTestSuite) Test_emitLog() {
 
 	// create other side of the IPC channel
 	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeSurveyor, "telemetry")
+	defer receiveIpc.Close()
 
 	msg := <-receiveIpc.GetMessage()
 
@@ -157,6 +160,7 @@ func (suite *TelemetryTestSuite) TestEmitLog() {
 
 	// create other side of the IPC channel
 	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeSurveyor, "telemetry")
+	defer receiveIpc.Close()
 
 	msg := <-receiveIpc.GetMessage()
 
@@ -183,6 +187,7 @@ func (suite *TelemetryTestSuite) TestEmitLogf() {
 	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeSurveyor, "telemetry")
 
 	msg := <-receiveIpc.GetMessage()
+	defer receiveIpc.Close()
 
 	var actualMessage *Message
 	err := json.Unmarshal([]byte(msg), &actualMessage)
@@ -195,4 +200,93 @@ func (suite *TelemetryTestSuite) TestEmitLogf() {
 	assert.Equal(suite.T(), "testNamespace", actualMessage.Namespace)
 	assert.Equal(suite.T(), "This is a test message 1, hi", actualLogEntry.Body)
 	assert.Equal(suite.T(), telemetrylog.ERROR, actualLogEntry.Severity)
+}
+
+func (suite *TelemetryTestSuite) Test_emitIntegerMetric() {
+	Initialize(suite.mockContext)
+
+	telemetryInstance, _ := getTelemetry()
+
+	now := time.Now()
+
+	err := telemetryInstance.emitIntegerMetric("testNamespace", "testMetric", "event", now, 100)
+	assert.Nil(suite.T(), err)
+
+	expectedMetric := &metric.Metric[int64]{
+		Name:       "testMetric",
+		Unit:       "event",
+		DataPoints: []metric.DataPoint[int64]{{StartTime: now, EndTime: now, Value: 100}},
+	}
+
+	metricJson, err := json.Marshal(expectedMetric)
+	assert.Nil(suite.T(), err)
+
+	expectedMessage := &Message{
+		Namespace: "testNamespace",
+		Type:      METRIC,
+		Payload:   string(metricJson),
+	}
+
+	// create other side of the IPC channel
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeSurveyor, "telemetry")
+	defer receiveIpc.Close()
+
+	msg := <-receiveIpc.GetMessage()
+
+	var actualMessage *Message
+	err = json.Unmarshal([]byte(msg), &actualMessage)
+	assert.Nil(suite.T(), err)
+
+	// Check that correct message was received on the other side
+	assert.Equal(suite.T(), expectedMessage, actualMessage)
+}
+
+func (suite *TelemetryTestSuite) TestInt64Counter() {
+	Initialize(suite.mockContext)
+
+	meter := GetMeter("testNamespace")
+	counter := meter.Int64Counter("testCounter", "event")
+
+	// create other side of the IPC channel
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeSurveyor, "telemetry")
+	defer receiveIpc.Close()
+
+	metrics := make([]metric.Metric[int64], 0)
+	now := time.Now()
+
+	for range [10]int{} {
+		val := rand.Int63()
+
+		counter.Add(val)
+
+		// timestamps cannot be compared since we use time.Now() in actual code which cannot be mocked
+		expectedMetric := metric.Metric[int64]{
+			Name:       "testMetric",
+			Unit:       "event",
+			DataPoints: []metric.DataPoint[int64]{{StartTime: now, EndTime: now, Value: val}},
+		}
+
+		metrics = append(metrics, expectedMetric)
+	}
+
+	for _, expectedMetric := range metrics {
+		msg := <-receiveIpc.GetMessage()
+		suite.T().Logf("TestInt64Counter: received message: %v", msg)
+
+		var actualMessage *Message
+		err := json.Unmarshal([]byte(msg), &actualMessage)
+		assert.Nil(suite.T(), err)
+
+		assert.Equal(suite.T(), "testNamespace", actualMessage.Namespace)
+		assert.Equal(suite.T(), METRIC, actualMessage.Type)
+
+		var actualMetric *metric.Metric[int64]
+		err = json.Unmarshal([]byte(actualMessage.Payload), &actualMetric)
+		assert.Nil(suite.T(), err)
+
+		assert.Equal(suite.T(), "testCounter", actualMetric.Name)
+		assert.Len(suite.T(), actualMetric.DataPoints, 1)
+		dataPoint := actualMetric.DataPoints[0]
+		assert.Equal(suite.T(), expectedMetric.DataPoints[0].Value, dataPoint.Value)
+	}
 }
