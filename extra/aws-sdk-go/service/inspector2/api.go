@@ -2042,6 +2042,10 @@ func (c *Inspector2) GetCisScanReportRequest(input *GetCisScanReportInput) (req 
 //   - ThrottlingException
 //     The limit on the number of requests per second was exceeded.
 //
+//   - ResourceNotFoundException
+//     The operation tried to access an invalid resource. Make sure the resource
+//     is specified correctly.
+//
 //   - InternalServerException
 //     The request has failed due to an internal failure of the Amazon Inspector
 //     service.
@@ -10951,6 +10955,10 @@ type CoverageFilterCriteria struct {
 	// AWS_ECR_REPOSITORY or AWS_ACCOUNT.
 	ResourceType []*CoverageStringFilter `locationName:"resourceType" min:"1" type:"list"`
 
+	// The filter to search for Amazon EC2 instance coverage by scan mode. Valid
+	// values are EC2_SSM_AGENT_BASED and EC2_HYBRID.
+	ScanMode []*CoverageStringFilter `locationName:"scanMode" min:"1" type:"list"`
+
 	// The scan status code to filter on. Valid values are: ValidationException,
 	// InternalServerException, ResourceNotFoundException, BadRequestException,
 	// and ThrottlingException.
@@ -11016,6 +11024,9 @@ func (s *CoverageFilterCriteria) Validate() error {
 	}
 	if s.ResourceType != nil && len(s.ResourceType) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ResourceType", 1))
+	}
+	if s.ScanMode != nil && len(s.ScanMode) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ScanMode", 1))
 	}
 	if s.ScanStatusCode != nil && len(s.ScanStatusCode) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ScanStatusCode", 1))
@@ -11113,6 +11124,16 @@ func (s *CoverageFilterCriteria) Validate() error {
 			}
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ResourceType", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.ScanMode != nil {
+		for i, v := range s.ScanMode {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ScanMode", i), err.(request.ErrInvalidParams))
 			}
 		}
 	}
@@ -11216,6 +11237,12 @@ func (s *CoverageFilterCriteria) SetResourceId(v []*CoverageStringFilter) *Cover
 // SetResourceType sets the ResourceType field's value.
 func (s *CoverageFilterCriteria) SetResourceType(v []*CoverageStringFilter) *CoverageFilterCriteria {
 	s.ResourceType = v
+	return s
+}
+
+// SetScanMode sets the ScanMode field's value.
+func (s *CoverageFilterCriteria) SetScanMode(v []*CoverageStringFilter) *CoverageFilterCriteria {
+	s.ScanMode = v
 	return s
 }
 
@@ -11402,6 +11429,9 @@ type CoveredResource struct {
 	// ResourceType is a required field
 	ResourceType *string `locationName:"resourceType" type:"string" required:"true" enum:"CoverageResourceType"`
 
+	// The scan method that is applied to the instance.
+	ScanMode *string `locationName:"scanMode" type:"string" enum:"ScanMode"`
+
 	// The status of the scan covering the resource.
 	ScanStatus *ScanStatus `locationName:"scanStatus" type:"structure"`
 
@@ -11456,6 +11486,12 @@ func (s *CoveredResource) SetResourceMetadata(v *ResourceScanMetadata) *CoveredR
 // SetResourceType sets the ResourceType field's value.
 func (s *CoveredResource) SetResourceType(v string) *CoveredResource {
 	s.ResourceType = &v
+	return s
+}
+
+// SetScanMode sets the ScanMode field's value.
+func (s *CoveredResource) SetScanMode(v string) *CoveredResource {
+	s.ScanMode = &v
 	return s
 }
 
@@ -13053,6 +13089,86 @@ func (s *DisassociateMemberOutput) SetAccountId(v string) *DisassociateMemberOut
 	return s
 }
 
+// Enables agent-based scanning, which scans instances that are not managed
+// by SSM.
+type Ec2Configuration struct {
+	_ struct{} `type:"structure"`
+
+	// The scan method that is applied to the instance.
+	//
+	// ScanMode is a required field
+	ScanMode *string `locationName:"scanMode" type:"string" required:"true" enum:"Ec2ScanMode"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ec2Configuration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ec2Configuration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Ec2Configuration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Ec2Configuration"}
+	if s.ScanMode == nil {
+		invalidParams.Add(request.NewErrParamRequired("ScanMode"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetScanMode sets the ScanMode field's value.
+func (s *Ec2Configuration) SetScanMode(v string) *Ec2Configuration {
+	s.ScanMode = &v
+	return s
+}
+
+// Details about the state of the EC2 scan configuration for your environment.
+type Ec2ConfigurationState struct {
+	_ struct{} `type:"structure"`
+
+	// An object that contains details about the state of the Amazon EC2 scan mode.
+	ScanModeState *Ec2ScanModeState `locationName:"scanModeState" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ec2ConfigurationState) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ec2ConfigurationState) GoString() string {
+	return s.String()
+}
+
+// SetScanModeState sets the ScanModeState field's value.
+func (s *Ec2ConfigurationState) SetScanModeState(v *Ec2ScanModeState) *Ec2ConfigurationState {
+	s.ScanModeState = v
+	return s
+}
+
 // The details that define an aggregation based on Amazon EC2 instances.
 type Ec2InstanceAggregation struct {
 	_ struct{} `type:"structure"`
@@ -13330,6 +13446,47 @@ func (s *Ec2Metadata) SetPlatform(v string) *Ec2Metadata {
 // SetTags sets the Tags field's value.
 func (s *Ec2Metadata) SetTags(v map[string]*string) *Ec2Metadata {
 	s.Tags = v
+	return s
+}
+
+// The state of your Amazon EC2 scan mode configuration.
+type Ec2ScanModeState struct {
+	_ struct{} `type:"structure"`
+
+	// The scan method that is applied to the instance.
+	ScanMode *string `locationName:"scanMode" type:"string" enum:"Ec2ScanMode"`
+
+	// The status of the Amazon EC2 scan mode setting.
+	ScanModeStatus *string `locationName:"scanModeStatus" type:"string" enum:"Ec2ScanModeStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ec2ScanModeState) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ec2ScanModeState) GoString() string {
+	return s.String()
+}
+
+// SetScanMode sets the ScanMode field's value.
+func (s *Ec2ScanModeState) SetScanMode(v string) *Ec2ScanModeState {
+	s.ScanMode = &v
+	return s
+}
+
+// SetScanModeStatus sets the ScanModeStatus field's value.
+func (s *Ec2ScanModeState) SetScanModeStatus(v string) *Ec2ScanModeState {
+	s.ScanModeStatus = &v
 	return s
 }
 
@@ -15163,7 +15320,8 @@ type Finding struct {
 	// An object that contains details of the Amazon Inspector score.
 	InspectorScoreDetails *InspectorScoreDetails `locationName:"inspectorScoreDetails" type:"structure"`
 
-	// The date and time that the finding was last observed.
+	// The date and time the finding was last observed. This timestamp for this
+	// field remains unchanged until a finding is updated.
 	//
 	// LastObservedAt is a required field
 	LastObservedAt *time.Time `locationName:"lastObservedAt" type:"timestamp" required:"true"`
@@ -15804,6 +15962,10 @@ func (s *FreeTrialInfoError) SetMessage(v string) *FreeTrialInfoError {
 type GetCisScanReportInput struct {
 	_ struct{} `type:"structure"`
 
+	// The format of the report. Valid values are PDF and CSV. If no value is specified,
+	// the report format defaults to PDF.
+	ReportFormat *string `locationName:"reportFormat" type:"string" enum:"CisReportFormat"`
+
 	// The scan ARN.
 	//
 	// ScanArn is a required field
@@ -15844,6 +16006,12 @@ func (s *GetCisScanReportInput) Validate() error {
 	return nil
 }
 
+// SetReportFormat sets the ReportFormat field's value.
+func (s *GetCisScanReportInput) SetReportFormat(v string) *GetCisScanReportInput {
+	s.ReportFormat = &v
+	return s
+}
+
 // SetScanArn sets the ScanArn field's value.
 func (s *GetCisScanReportInput) SetScanArn(v string) *GetCisScanReportInput {
 	s.ScanArn = &v
@@ -15862,7 +16030,7 @@ type GetCisScanReportOutput struct {
 	// The status.
 	Status *string `locationName:"status" type:"string" enum:"CisReportStatus"`
 
-	// The URL where the CIS scan report PDF can be downloaded.
+	// The URL where a PDF or CSV of the CIS scan report can be downloaded.
 	Url *string `locationName:"url" type:"string"`
 }
 
@@ -16097,6 +16265,10 @@ func (s GetConfigurationInput) GoString() string {
 type GetConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 
+	// Specifies how the Amazon EC2 automated scan mode is currently configured
+	// for your environment.
+	Ec2Configuration *Ec2ConfigurationState `locationName:"ec2Configuration" type:"structure"`
+
 	// Specifies how the ECR automated re-scan duration is currently configured
 	// for your environment.
 	EcrConfiguration *EcrConfigurationState `locationName:"ecrConfiguration" type:"structure"`
@@ -16118,6 +16290,12 @@ func (s GetConfigurationOutput) String() string {
 // value will be replaced with "sensitive".
 func (s GetConfigurationOutput) GoString() string {
 	return s.String()
+}
+
+// SetEc2Configuration sets the Ec2Configuration field's value.
+func (s *GetConfigurationOutput) SetEc2Configuration(v *Ec2ConfigurationState) *GetConfigurationOutput {
+	s.Ec2Configuration = v
+	return s
 }
 
 // SetEcrConfiguration sets the EcrConfiguration field's value.
@@ -23765,10 +23943,11 @@ func (s *UpdateCisTargets) SetTargetResourceTags(v map[string][]*string) *Update
 type UpdateConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
+	// Specifies how the Amazon EC2 automated scan will be updated for your environment.
+	Ec2Configuration *Ec2Configuration `locationName:"ec2Configuration" type:"structure"`
+
 	// Specifies how the ECR automated re-scan will be updated for your environment.
-	//
-	// EcrConfiguration is a required field
-	EcrConfiguration *EcrConfiguration `locationName:"ecrConfiguration" type:"structure" required:"true"`
+	EcrConfiguration *EcrConfiguration `locationName:"ecrConfiguration" type:"structure"`
 }
 
 // String returns the string representation.
@@ -23792,8 +23971,10 @@ func (s UpdateConfigurationInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *UpdateConfigurationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateConfigurationInput"}
-	if s.EcrConfiguration == nil {
-		invalidParams.Add(request.NewErrParamRequired("EcrConfiguration"))
+	if s.Ec2Configuration != nil {
+		if err := s.Ec2Configuration.Validate(); err != nil {
+			invalidParams.AddNested("Ec2Configuration", err.(request.ErrInvalidParams))
+		}
 	}
 	if s.EcrConfiguration != nil {
 		if err := s.EcrConfiguration.Validate(); err != nil {
@@ -23805,6 +23986,12 @@ func (s *UpdateConfigurationInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetEc2Configuration sets the Ec2Configuration field's value.
+func (s *UpdateConfigurationInput) SetEc2Configuration(v *Ec2Configuration) *UpdateConfigurationInput {
+	s.Ec2Configuration = v
+	return s
 }
 
 // SetEcrConfiguration sets the EcrConfiguration field's value.
@@ -25135,6 +25322,22 @@ func CisFindingStatusComparison_Values() []string {
 }
 
 const (
+	// CisReportFormatPdf is a CisReportFormat enum value
+	CisReportFormatPdf = "PDF"
+
+	// CisReportFormatCsv is a CisReportFormat enum value
+	CisReportFormatCsv = "CSV"
+)
+
+// CisReportFormat_Values returns all elements of the CisReportFormat enum
+func CisReportFormat_Values() []string {
+	return []string{
+		CisReportFormatPdf,
+		CisReportFormatCsv,
+	}
+}
+
+const (
 	// CisReportStatusSucceeded is a CisReportStatus enum value
 	CisReportStatusSucceeded = "SUCCEEDED"
 
@@ -25675,6 +25878,38 @@ func Ec2Platform_Values() []string {
 		Ec2PlatformLinux,
 		Ec2PlatformUnknown,
 		Ec2PlatformMacos,
+	}
+}
+
+const (
+	// Ec2ScanModeEc2SsmAgentBased is a Ec2ScanMode enum value
+	Ec2ScanModeEc2SsmAgentBased = "EC2_SSM_AGENT_BASED"
+
+	// Ec2ScanModeEc2Hybrid is a Ec2ScanMode enum value
+	Ec2ScanModeEc2Hybrid = "EC2_HYBRID"
+)
+
+// Ec2ScanMode_Values returns all elements of the Ec2ScanMode enum
+func Ec2ScanMode_Values() []string {
+	return []string{
+		Ec2ScanModeEc2SsmAgentBased,
+		Ec2ScanModeEc2Hybrid,
+	}
+}
+
+const (
+	// Ec2ScanModeStatusSuccess is a Ec2ScanModeStatus enum value
+	Ec2ScanModeStatusSuccess = "SUCCESS"
+
+	// Ec2ScanModeStatusPending is a Ec2ScanModeStatus enum value
+	Ec2ScanModeStatusPending = "PENDING"
+)
+
+// Ec2ScanModeStatus_Values returns all elements of the Ec2ScanModeStatus enum
+func Ec2ScanModeStatus_Values() []string {
+	return []string{
+		Ec2ScanModeStatusSuccess,
+		Ec2ScanModeStatusPending,
 	}
 }
 
@@ -26635,6 +26870,22 @@ func SbomReportFormat_Values() []string {
 	return []string{
 		SbomReportFormatCyclonedx14,
 		SbomReportFormatSpdx23,
+	}
+}
+
+const (
+	// ScanModeEc2SsmAgentBased is a ScanMode enum value
+	ScanModeEc2SsmAgentBased = "EC2_SSM_AGENT_BASED"
+
+	// ScanModeEc2Agentless is a ScanMode enum value
+	ScanModeEc2Agentless = "EC2_AGENTLESS"
+)
+
+// ScanMode_Values returns all elements of the ScanMode enum
+func ScanMode_Values() []string {
+	return []string{
+		ScanModeEc2SsmAgentBased,
+		ScanModeEc2Agentless,
 	}
 }
 

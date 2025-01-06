@@ -26,7 +26,7 @@ import (
 //	// myFunc uses an SDK service client to make a request to
 //	// Amazon Simple Systems Management Service.
 //	func myFunc(svc ssmiface.SSMAPI) bool {
-//	    // Make svc.AddTagsToResource request
+//	    // Make svc.AddAccessGrant request
 //	}
 //
 //	func main() {
@@ -42,7 +42,7 @@ import (
 //	type mockSSMClient struct {
 //	    ssmiface.SSMAPI
 //	}
-//	func (m *mockSSMClient) AddTagsToResource(input *ssm.AddTagsToResourceInput) (*ssm.AddTagsToResourceOutput, error) {
+//	func (m *mockSSMClient) AddAccessGrant(input *ssm.AddAccessGrantInput) (*ssm.AddAccessGrantOutput, error) {
 //	    // mock response/functionality
 //	}
 //
@@ -60,9 +60,21 @@ import (
 // and waiters. Its suggested to use the pattern above for testing, or using
 // tooling to generate mocks to satisfy the interfaces.
 type SSMAPI interface {
+	AddAccessGrant(*ssm.AddAccessGrantInput) (*ssm.AddAccessGrantOutput, error)
+	AddAccessGrantWithContext(aws.Context, *ssm.AddAccessGrantInput, ...request.Option) (*ssm.AddAccessGrantOutput, error)
+	AddAccessGrantRequest(*ssm.AddAccessGrantInput) (*request.Request, *ssm.AddAccessGrantOutput)
+
+	AddEventsForExploreSsmActions(*ssm.AddEventsForExploreSsmActionsInput) (*ssm.AddEventsForExploreSsmActionsOutput, error)
+	AddEventsForExploreSsmActionsWithContext(aws.Context, *ssm.AddEventsForExploreSsmActionsInput, ...request.Option) (*ssm.AddEventsForExploreSsmActionsOutput, error)
+	AddEventsForExploreSsmActionsRequest(*ssm.AddEventsForExploreSsmActionsInput) (*request.Request, *ssm.AddEventsForExploreSsmActionsOutput)
+
 	AddTagsToResource(*ssm.AddTagsToResourceInput) (*ssm.AddTagsToResourceOutput, error)
 	AddTagsToResourceWithContext(aws.Context, *ssm.AddTagsToResourceInput, ...request.Option) (*ssm.AddTagsToResourceOutput, error)
 	AddTagsToResourceRequest(*ssm.AddTagsToResourceInput) (*request.Request, *ssm.AddTagsToResourceOutput)
+
+	AssignResource(*ssm.AssignResourceInput) (*ssm.AssignResourceOutput, error)
+	AssignResourceWithContext(aws.Context, *ssm.AssignResourceInput, ...request.Option) (*ssm.AssignResourceOutput, error)
+	AssignResourceRequest(*ssm.AssignResourceInput) (*request.Request, *ssm.AssignResourceOutput)
 
 	AssociateOpsItemRelatedItem(*ssm.AssociateOpsItemRelatedItemInput) (*ssm.AssociateOpsItemRelatedItemOutput, error)
 	AssociateOpsItemRelatedItemWithContext(aws.Context, *ssm.AssociateOpsItemRelatedItemInput, ...request.Option) (*ssm.AssociateOpsItemRelatedItemOutput, error)
@@ -99,6 +111,10 @@ type SSMAPI interface {
 	CreateOpsItem(*ssm.CreateOpsItemInput) (*ssm.CreateOpsItemOutput, error)
 	CreateOpsItemWithContext(aws.Context, *ssm.CreateOpsItemInput, ...request.Option) (*ssm.CreateOpsItemOutput, error)
 	CreateOpsItemRequest(*ssm.CreateOpsItemInput) (*request.Request, *ssm.CreateOpsItemOutput)
+
+	CreateOpsItemGroup(*ssm.CreateOpsItemGroupInput) (*ssm.CreateOpsItemGroupOutput, error)
+	CreateOpsItemGroupWithContext(aws.Context, *ssm.CreateOpsItemGroupInput, ...request.Option) (*ssm.CreateOpsItemGroupOutput, error)
+	CreateOpsItemGroupRequest(*ssm.CreateOpsItemGroupInput) (*request.Request, *ssm.CreateOpsItemGroupOutput)
 
 	CreateOpsMetadata(*ssm.CreateOpsMetadataInput) (*ssm.CreateOpsMetadataOutput, error)
 	CreateOpsMetadataWithContext(aws.Context, *ssm.CreateOpsMetadataInput, ...request.Option) (*ssm.CreateOpsMetadataOutput, error)
@@ -315,6 +331,9 @@ type SSMAPI interface {
 	DescribeInstancePropertiesWithContext(aws.Context, *ssm.DescribeInstancePropertiesInput, ...request.Option) (*ssm.DescribeInstancePropertiesOutput, error)
 	DescribeInstancePropertiesRequest(*ssm.DescribeInstancePropertiesInput) (*request.Request, *ssm.DescribeInstancePropertiesOutput)
 
+	DescribeInstancePropertiesPages(*ssm.DescribeInstancePropertiesInput, func(*ssm.DescribeInstancePropertiesOutput, bool) bool) error
+	DescribeInstancePropertiesPagesWithContext(aws.Context, *ssm.DescribeInstancePropertiesInput, func(*ssm.DescribeInstancePropertiesOutput, bool) bool, ...request.Option) error
+
 	DescribeInventoryDeletions(*ssm.DescribeInventoryDeletionsInput) (*ssm.DescribeInventoryDeletionsOutput, error)
 	DescribeInventoryDeletionsWithContext(aws.Context, *ssm.DescribeInventoryDeletionsInput, ...request.Option) (*ssm.DescribeInventoryDeletionsOutput, error)
 	DescribeInventoryDeletionsRequest(*ssm.DescribeInventoryDeletionsInput) (*request.Request, *ssm.DescribeInventoryDeletionsOutput)
@@ -432,6 +451,10 @@ type SSMAPI interface {
 	ExecuteApiWithContext(aws.Context, *ssm.ExecuteApiInput, ...request.Option) (*ssm.ExecuteApiOutput, error)
 	ExecuteApiRequest(*ssm.ExecuteApiInput) (*request.Request, *ssm.ExecuteApiOutput)
 
+	ExploreSsmActions(*ssm.ExploreSsmActionsInput) (*ssm.ExploreSsmActionsOutput, error)
+	ExploreSsmActionsWithContext(aws.Context, *ssm.ExploreSsmActionsInput, ...request.Option) (*ssm.ExploreSsmActionsOutput, error)
+	ExploreSsmActionsRequest(*ssm.ExploreSsmActionsInput) (*request.Request, *ssm.ExploreSsmActionsOutput)
+
 	GetAccessToken(*ssm.GetAccessTokenInput) (*ssm.GetAccessTokenOutput, error)
 	GetAccessTokenWithContext(aws.Context, *ssm.GetAccessTokenInput, ...request.Option) (*ssm.GetAccessTokenOutput, error)
 	GetAccessTokenRequest(*ssm.GetAccessTokenInput) (*request.Request, *ssm.GetAccessTokenOutput)
@@ -480,6 +503,10 @@ type SSMAPI interface {
 	GetDocumentInternalWithContext(aws.Context, *ssm.GetDocumentInternalInput, ...request.Option) (*ssm.GetDocumentInternalOutput, error)
 	GetDocumentInternalRequest(*ssm.GetDocumentInternalInput) (*request.Request, *ssm.GetDocumentInternalOutput)
 
+	GetExecutionPreview(*ssm.GetExecutionPreviewInput) (*ssm.GetExecutionPreviewOutput, error)
+	GetExecutionPreviewWithContext(aws.Context, *ssm.GetExecutionPreviewInput, ...request.Option) (*ssm.GetExecutionPreviewOutput, error)
+	GetExecutionPreviewRequest(*ssm.GetExecutionPreviewInput) (*request.Request, *ssm.GetExecutionPreviewOutput)
+
 	GetInventory(*ssm.GetInventoryInput) (*ssm.GetInventoryOutput, error)
 	GetInventoryWithContext(aws.Context, *ssm.GetInventoryInput, ...request.Option) (*ssm.GetInventoryOutput, error)
 	GetInventoryRequest(*ssm.GetInventoryInput) (*request.Request, *ssm.GetInventoryOutput)
@@ -522,6 +549,10 @@ type SSMAPI interface {
 	GetOpsItemWithContext(aws.Context, *ssm.GetOpsItemInput, ...request.Option) (*ssm.GetOpsItemOutput, error)
 	GetOpsItemRequest(*ssm.GetOpsItemInput) (*request.Request, *ssm.GetOpsItemOutput)
 
+	GetOpsItemGroup(*ssm.GetOpsItemGroupInput) (*ssm.GetOpsItemGroupOutput, error)
+	GetOpsItemGroupWithContext(aws.Context, *ssm.GetOpsItemGroupInput, ...request.Option) (*ssm.GetOpsItemGroupOutput, error)
+	GetOpsItemGroupRequest(*ssm.GetOpsItemGroupInput) (*request.Request, *ssm.GetOpsItemGroupOutput)
+
 	GetOpsMetadata(*ssm.GetOpsMetadataInput) (*ssm.GetOpsMetadataOutput, error)
 	GetOpsMetadataWithContext(aws.Context, *ssm.GetOpsMetadataInput, ...request.Option) (*ssm.GetOpsMetadataOutput, error)
 	GetOpsMetadataRequest(*ssm.GetOpsMetadataInput) (*request.Request, *ssm.GetOpsMetadataOutput)
@@ -543,6 +574,10 @@ type SSMAPI interface {
 
 	GetParameterHistoryPages(*ssm.GetParameterHistoryInput, func(*ssm.GetParameterHistoryOutput, bool) bool) error
 	GetParameterHistoryPagesWithContext(aws.Context, *ssm.GetParameterHistoryInput, func(*ssm.GetParameterHistoryOutput, bool) bool, ...request.Option) error
+
+	GetParameterMetadataInternal(*ssm.GetParameterMetadataInternalInput) (*ssm.GetParameterMetadataInternalOutput, error)
+	GetParameterMetadataInternalWithContext(aws.Context, *ssm.GetParameterMetadataInternalInput, ...request.Option) (*ssm.GetParameterMetadataInternalOutput, error)
+	GetParameterMetadataInternalRequest(*ssm.GetParameterMetadataInternalInput) (*request.Request, *ssm.GetParameterMetadataInternalOutput)
 
 	GetParameters(*ssm.GetParametersInput) (*ssm.GetParametersOutput, error)
 	GetParametersWithContext(aws.Context, *ssm.GetParametersInput, ...request.Option) (*ssm.GetParametersOutput, error)
@@ -662,6 +697,20 @@ type SSMAPI interface {
 	ListInventoryEntriesWithContext(aws.Context, *ssm.ListInventoryEntriesInput, ...request.Option) (*ssm.ListInventoryEntriesOutput, error)
 	ListInventoryEntriesRequest(*ssm.ListInventoryEntriesInput) (*request.Request, *ssm.ListInventoryEntriesOutput)
 
+	ListNodes(*ssm.ListNodesInput) (*ssm.ListNodesOutput, error)
+	ListNodesWithContext(aws.Context, *ssm.ListNodesInput, ...request.Option) (*ssm.ListNodesOutput, error)
+	ListNodesRequest(*ssm.ListNodesInput) (*request.Request, *ssm.ListNodesOutput)
+
+	ListNodesPages(*ssm.ListNodesInput, func(*ssm.ListNodesOutput, bool) bool) error
+	ListNodesPagesWithContext(aws.Context, *ssm.ListNodesInput, func(*ssm.ListNodesOutput, bool) bool, ...request.Option) error
+
+	ListNodesSummary(*ssm.ListNodesSummaryInput) (*ssm.ListNodesSummaryOutput, error)
+	ListNodesSummaryWithContext(aws.Context, *ssm.ListNodesSummaryInput, ...request.Option) (*ssm.ListNodesSummaryOutput, error)
+	ListNodesSummaryRequest(*ssm.ListNodesSummaryInput) (*request.Request, *ssm.ListNodesSummaryOutput)
+
+	ListNodesSummaryPages(*ssm.ListNodesSummaryInput, func(*ssm.ListNodesSummaryOutput, bool) bool) error
+	ListNodesSummaryPagesWithContext(aws.Context, *ssm.ListNodesSummaryInput, func(*ssm.ListNodesSummaryOutput, bool) bool, ...request.Option) error
+
 	ListOpsItemEvents(*ssm.ListOpsItemEventsInput) (*ssm.ListOpsItemEventsOutput, error)
 	ListOpsItemEventsWithContext(aws.Context, *ssm.ListOpsItemEventsInput, ...request.Option) (*ssm.ListOpsItemEventsOutput, error)
 	ListOpsItemEventsRequest(*ssm.ListOpsItemEventsInput) (*request.Request, *ssm.ListOpsItemEventsOutput)
@@ -769,10 +818,6 @@ type SSMAPI interface {
 	RemoveTagsFromResourceWithContext(aws.Context, *ssm.RemoveTagsFromResourceInput, ...request.Option) (*ssm.RemoveTagsFromResourceOutput, error)
 	RemoveTagsFromResourceRequest(*ssm.RemoveTagsFromResourceInput) (*request.Request, *ssm.RemoveTagsFromResourceOutput)
 
-	RequestAccess(*ssm.RequestAccessInput) (*ssm.RequestAccessOutput, error)
-	RequestAccessWithContext(aws.Context, *ssm.RequestAccessInput, ...request.Option) (*ssm.RequestAccessOutput, error)
-	RequestAccessRequest(*ssm.RequestAccessInput) (*request.Request, *ssm.RequestAccessOutput)
-
 	RequestManagedInstanceRoleToken(*ssm.RequestManagedInstanceRoleTokenInput) (*ssm.RequestManagedInstanceRoleTokenOutput, error)
 	RequestManagedInstanceRoleTokenWithContext(aws.Context, *ssm.RequestManagedInstanceRoleTokenInput, ...request.Option) (*ssm.RequestManagedInstanceRoleTokenOutput, error)
 	RequestManagedInstanceRoleTokenRequest(*ssm.RequestManagedInstanceRoleTokenInput) (*request.Request, *ssm.RequestManagedInstanceRoleTokenOutput)
@@ -793,6 +838,10 @@ type SSMAPI interface {
 	SendCommandWithContext(aws.Context, *ssm.SendCommandInput, ...request.Option) (*ssm.SendCommandOutput, error)
 	SendCommandRequest(*ssm.SendCommandInput) (*request.Request, *ssm.SendCommandOutput)
 
+	StartAccessRequest(*ssm.StartAccessRequestInput) (*ssm.StartAccessRequestOutput, error)
+	StartAccessRequestWithContext(aws.Context, *ssm.StartAccessRequestInput, ...request.Option) (*ssm.StartAccessRequestOutput, error)
+	StartAccessRequestRequest(*ssm.StartAccessRequestInput) (*request.Request, *ssm.StartAccessRequestOutput)
+
 	StartAssociationsOnce(*ssm.StartAssociationsOnceInput) (*ssm.StartAssociationsOnceOutput, error)
 	StartAssociationsOnceWithContext(aws.Context, *ssm.StartAssociationsOnceInput, ...request.Option) (*ssm.StartAssociationsOnceOutput, error)
 	StartAssociationsOnceRequest(*ssm.StartAssociationsOnceInput) (*request.Request, *ssm.StartAssociationsOnceOutput)
@@ -804,6 +853,10 @@ type SSMAPI interface {
 	StartChangeRequestExecution(*ssm.StartChangeRequestExecutionInput) (*ssm.StartChangeRequestExecutionOutput, error)
 	StartChangeRequestExecutionWithContext(aws.Context, *ssm.StartChangeRequestExecutionInput, ...request.Option) (*ssm.StartChangeRequestExecutionOutput, error)
 	StartChangeRequestExecutionRequest(*ssm.StartChangeRequestExecutionInput) (*request.Request, *ssm.StartChangeRequestExecutionOutput)
+
+	StartExecutionPreview(*ssm.StartExecutionPreviewInput) (*ssm.StartExecutionPreviewOutput, error)
+	StartExecutionPreviewWithContext(aws.Context, *ssm.StartExecutionPreviewInput, ...request.Option) (*ssm.StartExecutionPreviewOutput, error)
+	StartExecutionPreviewRequest(*ssm.StartExecutionPreviewInput) (*request.Request, *ssm.StartExecutionPreviewOutput)
 
 	StartSession(*ssm.StartSessionInput) (*ssm.StartSessionOutput, error)
 	StartSessionWithContext(aws.Context, *ssm.StartSessionInput, ...request.Option) (*ssm.StartSessionOutput, error)

@@ -11147,6 +11147,17 @@ type AvailConfiguration struct {
 	// Signal Placement Opportunity and Break messages create segment breaks. With
 	// ESAM mode, signals are forwarded to an ESAM server for possible update.
 	AvailSettings *AvailSettings `locationName:"availSettings" type:"structure"`
+
+	// Configures whether SCTE 35 passthrough triggers segment breaks in all output
+	// groups that use segmented outputs. Insertion of a SCTE 35 message typically
+	// results in a segment break, in addition to the regular cadence of breaks.
+	// The segment breaks appear in video outputs, audio outputs, and captions outputs
+	// (if any).ALL_OUTPUT_GROUPS: Default. Insert the segment break in in all output
+	// groups that have segmented outputs. This is the legacy behavior.SCTE35_ENABLED_OUTPUT_GROUPS:
+	// Insert the segment break only in output groups that have SCTE 35 passthrough
+	// enabled. This is the recommended value, because it reduces unnecessary segment
+	// breaks.
+	Scte35SegmentationScope *string `locationName:"scte35SegmentationScope" type:"string" enum:"Scte35SegmentationScope"`
 }
 
 // String returns the string representation.
@@ -11185,6 +11196,12 @@ func (s *AvailConfiguration) Validate() error {
 // SetAvailSettings sets the AvailSettings field's value.
 func (s *AvailConfiguration) SetAvailSettings(v *AvailSettings) *AvailConfiguration {
 	s.AvailSettings = v
+	return s
+}
+
+// SetScte35SegmentationScope sets the Scte35SegmentationScope field's value.
+func (s *AvailConfiguration) SetScte35SegmentationScope(v string) *AvailConfiguration {
+	s.Scte35SegmentationScope = &v
 	return s
 }
 
@@ -15359,6 +15376,11 @@ type CreateInputInput struct {
 
 	Sources []*InputSourceRequest `locationName:"sources" type:"list"`
 
+	// Configures the sources for this SRT input. For a single-pipeline input, include
+	// one srtCallerSource in the array. For a standard-pipeline input, include
+	// two srtCallerSource.
+	SrtSettings *SrtSettingsRequest `locationName:"srtSettings" type:"structure"`
+
 	Tags map[string]*string `locationName:"tags" type:"map"`
 
 	// The different types of inputs that AWS Elemental MediaLive supports.
@@ -15449,6 +15471,12 @@ func (s *CreateInputInput) SetRoleArn(v string) *CreateInputInput {
 // SetSources sets the Sources field's value.
 func (s *CreateInputInput) SetSources(v []*InputSourceRequest) *CreateInputInput {
 	s.Sources = v
+	return s
+}
+
+// SetSrtSettings sets the SrtSettings field's value.
+func (s *CreateInputInput) SetSrtSettings(v *SrtSettingsRequest) *CreateInputInput {
+	s.SrtSettings = v
 	return s
 }
 
@@ -18284,6 +18312,9 @@ type DescribeInputOutput struct {
 
 	Sources []*InputSource `locationName:"sources" type:"list"`
 
+	// The configured sources for this SRT input.
+	SrtSettings *SrtSettings `locationName:"srtSettings" type:"structure"`
+
 	State *string `locationName:"state" type:"string" enum:"InputState"`
 
 	Tags map[string]*string `locationName:"tags" type:"map"`
@@ -18385,6 +18416,12 @@ func (s *DescribeInputOutput) SetSecurityGroups(v []*string) *DescribeInputOutpu
 // SetSources sets the Sources field's value.
 func (s *DescribeInputOutput) SetSources(v []*InputSource) *DescribeInputOutput {
 	s.Sources = v
+	return s
+}
+
+// SetSrtSettings sets the SrtSettings field's value.
+func (s *DescribeInputOutput) SetSrtSettings(v *SrtSettings) *DescribeInputOutput {
+	s.SrtSettings = v
 	return s
 }
 
@@ -19928,8 +19965,7 @@ func (s *DvbTdtSettings) SetRepInterval(v int64) *DvbTdtSettings {
 type Eac3AtmosSettings struct {
 	_ struct{} `type:"structure"`
 
-	// Average bitrate in bits/second. Valid bitrates depend on the coding mode.//
-	// * @affectsRightSizing true
+	// Average bitrate in bits/second. Valid bitrates depend on the coding mode.
 	Bitrate *float64 `locationName:"bitrate" type:"double"`
 
 	// Dolby Digital Plus with Dolby Atmos coding mode. Determines number of channels.
@@ -23015,7 +23051,15 @@ type H264Settings struct {
 	// Entropy encoding mode. Use cabac (must be in Main or High profile) or cavlc.
 	EntropyEncoding *string `locationName:"entropyEncoding" type:"string" enum:"H264EntropyEncoding"`
 
-	// Optional filters that you can apply to an encode.
+	// Optional. Both filters reduce bandwidth by removing imperceptible details.
+	// You can enable one of the filters. Werecommend that you try both filters
+	// and observe the results to decide which one to use.The Temporal Filter reduces
+	// bandwidth by removing imperceptible details in the content. It combines perceptualfiltering
+	// and motion compensated temporal filtering (MCTF). It operates independently
+	// of the compression level.The Bandwidth Reduction filter is a perceptual filter
+	// located within the encoding loop. It adapts to the currentcompression level
+	// to filter imperceptible signals. This filter works only when the resolution
+	// is 1080p or lower.
 	FilterSettings *H264FilterSettings `locationName:"filterSettings" type:"structure"`
 
 	// Four bit AFD value to write on all frames of video in the output stream.
@@ -23655,7 +23699,15 @@ type H265Settings struct {
 	// Color Space settings
 	ColorSpaceSettings *H265ColorSpaceSettings `locationName:"colorSpaceSettings" type:"structure"`
 
-	// Optional filters that you can apply to an encode.
+	// Optional. Both filters reduce bandwidth by removing imperceptible details.
+	// You can enable one of the filters. Werecommend that you try both filters
+	// and observe the results to decide which one to use.The Temporal Filter reduces
+	// bandwidth by removing imperceptible details in the content. It combines perceptualfiltering
+	// and motion compensated temporal filtering (MCTF). It operates independently
+	// of the compression level.The Bandwidth Reduction filter is a perceptual filter
+	// located within the encoding loop. It adapts to the currentcompression level
+	// to filter imperceptible signals. This filter works only when the resolution
+	// is 1080p or lower.
 	FilterSettings *H265FilterSettings `locationName:"filterSettings" type:"structure"`
 
 	// Four bit AFD value to write on all frames of video in the output stream.
@@ -25511,6 +25563,9 @@ type Input struct {
 	// A list of the sources of the input (PULL-type).
 	Sources []*InputSource `locationName:"sources" type:"list"`
 
+	// The settings associated with an SRT input.
+	SrtSettings *SrtSettings `locationName:"srtSettings" type:"structure"`
+
 	State *string `locationName:"state" type:"string" enum:"InputState"`
 
 	// A collection of key-value pairs.
@@ -25613,6 +25668,12 @@ func (s *Input) SetSecurityGroups(v []*string) *Input {
 // SetSources sets the Sources field's value.
 func (s *Input) SetSources(v []*InputSource) *Input {
 	s.Sources = v
+	return s
+}
+
+// SetSrtSettings sets the SrtSettings field's value.
+func (s *Input) SetSrtSettings(v *SrtSettings) *Input {
+	s.SrtSettings = v
 	return s
 }
 
@@ -26912,8 +26973,7 @@ type InputLossBehavior struct {
 
 	// On input loss, the number of milliseconds to substitute black into the output
 	// before switching to the frame specified by inputLossImageType. A value x,
-	// where 0 <= x <= 1,000,000 and a value of 1,000,000 will be interpreted as
-	// infinite.
+	// where 0
 	BlackFrameMsec *int64 `locationName:"blackFrameMsec" type:"integer"`
 
 	// When input loss image type is "color" this field specifies the color to use.
@@ -26929,8 +26989,7 @@ type InputLossBehavior struct {
 	InputLossImageType *string `locationName:"inputLossImageType" type:"string" enum:"InputLossImageType"`
 
 	// On input loss, the number of milliseconds to repeat the previous picture
-	// before substituting black into the output. A value x, where 0 <= x <= 1,000,000
-	// and a value of 1,000,000 will be interpreted as infinite.
+	// before substituting black into the output. A value x, where 0
 	RepeatFrameMsec *int64 `locationName:"repeatFrameMsec" type:"integer"`
 }
 
@@ -36587,6 +36646,311 @@ func (s SmpteTtDestinationSettings) GoString() string {
 	return s.String()
 }
 
+// The decryption settings for the SRT caller source. Present only if the source
+// has decryption enabled.
+type SrtCallerDecryption struct {
+	_ struct{} `type:"structure"`
+
+	// The algorithm used to encrypt content.
+	Algorithm *string `locationName:"algorithm" type:"string" enum:"Algorithm"`
+
+	// The ARN for the secret in Secrets Manager. Someone in your organization must
+	// create a secret and provide you with its ARN. The secret holds the passphrase
+	// that MediaLive uses to decrypt the source content.
+	PassphraseSecretArn *string `locationName:"passphraseSecretArn" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerDecryption) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerDecryption) GoString() string {
+	return s.String()
+}
+
+// SetAlgorithm sets the Algorithm field's value.
+func (s *SrtCallerDecryption) SetAlgorithm(v string) *SrtCallerDecryption {
+	s.Algorithm = &v
+	return s
+}
+
+// SetPassphraseSecretArn sets the PassphraseSecretArn field's value.
+func (s *SrtCallerDecryption) SetPassphraseSecretArn(v string) *SrtCallerDecryption {
+	s.PassphraseSecretArn = &v
+	return s
+}
+
+// Complete these parameters only if the content is encrypted.
+type SrtCallerDecryptionRequest struct {
+	_ struct{} `type:"structure"`
+
+	// The algorithm used to encrypt content.
+	Algorithm *string `locationName:"algorithm" type:"string" enum:"Algorithm"`
+
+	// The ARN for the secret in Secrets Manager. Someone in your organization must
+	// create a secret and provide you with its ARN. This secret holds the passphrase
+	// that MediaLive will use to decrypt the source content.
+	PassphraseSecretArn *string `locationName:"passphraseSecretArn" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerDecryptionRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerDecryptionRequest) GoString() string {
+	return s.String()
+}
+
+// SetAlgorithm sets the Algorithm field's value.
+func (s *SrtCallerDecryptionRequest) SetAlgorithm(v string) *SrtCallerDecryptionRequest {
+	s.Algorithm = &v
+	return s
+}
+
+// SetPassphraseSecretArn sets the PassphraseSecretArn field's value.
+func (s *SrtCallerDecryptionRequest) SetPassphraseSecretArn(v string) *SrtCallerDecryptionRequest {
+	s.PassphraseSecretArn = &v
+	return s
+}
+
+// The configuration for a source that uses SRT as the connection protocol.
+// In terms of establishing the connection, MediaLive is always caller and the
+// upstream system is always the listener. In terms of transmission of the source
+// content, MediaLive is always the receiver and the upstream system is always
+// the sender.
+type SrtCallerSource struct {
+	_ struct{} `type:"structure"`
+
+	// The decryption settings for the SRT caller source. Present only if the source
+	// has decryption enabled.
+	Decryption *SrtCallerDecryption `locationName:"decryption" type:"structure"`
+
+	// The preferred latency (in milliseconds) for implementing packet loss and
+	// recovery. Packet recovery is a key feature of SRT.
+	MinimumLatency *int64 `locationName:"minimumLatency" type:"integer"`
+
+	// The IP address at the upstream system (the listener) that MediaLive (the
+	// caller) connects to.
+	SrtListenerAddress *string `locationName:"srtListenerAddress" type:"string"`
+
+	// The port at the upstream system (the listener) that MediaLive (the caller)
+	// connects to.
+	SrtListenerPort *string `locationName:"srtListenerPort" type:"string"`
+
+	// The stream ID, if the upstream system uses this identifier.
+	StreamId *string `locationName:"streamId" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerSource) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerSource) GoString() string {
+	return s.String()
+}
+
+// SetDecryption sets the Decryption field's value.
+func (s *SrtCallerSource) SetDecryption(v *SrtCallerDecryption) *SrtCallerSource {
+	s.Decryption = v
+	return s
+}
+
+// SetMinimumLatency sets the MinimumLatency field's value.
+func (s *SrtCallerSource) SetMinimumLatency(v int64) *SrtCallerSource {
+	s.MinimumLatency = &v
+	return s
+}
+
+// SetSrtListenerAddress sets the SrtListenerAddress field's value.
+func (s *SrtCallerSource) SetSrtListenerAddress(v string) *SrtCallerSource {
+	s.SrtListenerAddress = &v
+	return s
+}
+
+// SetSrtListenerPort sets the SrtListenerPort field's value.
+func (s *SrtCallerSource) SetSrtListenerPort(v string) *SrtCallerSource {
+	s.SrtListenerPort = &v
+	return s
+}
+
+// SetStreamId sets the StreamId field's value.
+func (s *SrtCallerSource) SetStreamId(v string) *SrtCallerSource {
+	s.StreamId = &v
+	return s
+}
+
+// Configures the connection for a source that uses SRT as the connection protocol.
+// In terms of establishing the connection, MediaLive is always the caller and
+// the upstream system is always the listener. In terms of transmission of the
+// source content, MediaLive is always the receiver and the upstream system
+// is always the sender.
+type SrtCallerSourceRequest struct {
+	_ struct{} `type:"structure"`
+
+	// Complete these parameters only if the content is encrypted.
+	Decryption *SrtCallerDecryptionRequest `locationName:"decryption" type:"structure"`
+
+	// The preferred latency (in milliseconds) for implementing packet loss and
+	// recovery. Packet recovery is a key feature of SRT. Obtain this value from
+	// the operator at the upstream system.
+	MinimumLatency *int64 `locationName:"minimumLatency" type:"integer"`
+
+	// The IP address at the upstream system (the listener) that MediaLive (the
+	// caller) will connect to.
+	SrtListenerAddress *string `locationName:"srtListenerAddress" type:"string"`
+
+	// The port at the upstream system (the listener) that MediaLive (the caller)
+	// will connect to.
+	SrtListenerPort *string `locationName:"srtListenerPort" type:"string"`
+
+	// This value is required if the upstream system uses this identifier because
+	// without it, the SRT handshake between MediaLive (the caller) and the upstream
+	// system (the listener) might fail.
+	StreamId *string `locationName:"streamId" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerSourceRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtCallerSourceRequest) GoString() string {
+	return s.String()
+}
+
+// SetDecryption sets the Decryption field's value.
+func (s *SrtCallerSourceRequest) SetDecryption(v *SrtCallerDecryptionRequest) *SrtCallerSourceRequest {
+	s.Decryption = v
+	return s
+}
+
+// SetMinimumLatency sets the MinimumLatency field's value.
+func (s *SrtCallerSourceRequest) SetMinimumLatency(v int64) *SrtCallerSourceRequest {
+	s.MinimumLatency = &v
+	return s
+}
+
+// SetSrtListenerAddress sets the SrtListenerAddress field's value.
+func (s *SrtCallerSourceRequest) SetSrtListenerAddress(v string) *SrtCallerSourceRequest {
+	s.SrtListenerAddress = &v
+	return s
+}
+
+// SetSrtListenerPort sets the SrtListenerPort field's value.
+func (s *SrtCallerSourceRequest) SetSrtListenerPort(v string) *SrtCallerSourceRequest {
+	s.SrtListenerPort = &v
+	return s
+}
+
+// SetStreamId sets the StreamId field's value.
+func (s *SrtCallerSourceRequest) SetStreamId(v string) *SrtCallerSourceRequest {
+	s.StreamId = &v
+	return s
+}
+
+// The configured sources for this SRT input.
+type SrtSettings struct {
+	_ struct{} `type:"structure"`
+
+	SrtCallerSources []*SrtCallerSource `locationName:"srtCallerSources" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtSettings) GoString() string {
+	return s.String()
+}
+
+// SetSrtCallerSources sets the SrtCallerSources field's value.
+func (s *SrtSettings) SetSrtCallerSources(v []*SrtCallerSource) *SrtSettings {
+	s.SrtCallerSources = v
+	return s
+}
+
+// Configures the sources for this SRT input. For a single-pipeline input, include
+// one srtCallerSource in the array. For a standard-pipeline input, include
+// two srtCallerSource.
+type SrtSettingsRequest struct {
+	_ struct{} `type:"structure"`
+
+	SrtCallerSources []*SrtCallerSourceRequest `locationName:"srtCallerSources" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtSettingsRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SrtSettingsRequest) GoString() string {
+	return s.String()
+}
+
+// SetSrtCallerSources sets the SrtCallerSources field's value.
+func (s *SrtSettingsRequest) SetSrtCallerSources(v []*SrtCallerSourceRequest) *SrtSettingsRequest {
+	s.SrtCallerSources = v
+	return s
+}
+
 // Standard Hls Settings
 type StandardHlsSettings struct {
 	_ struct{} `type:"structure"`
@@ -41271,6 +41635,11 @@ type UpdateInputInput struct {
 	RoleArn *string `locationName:"roleArn" type:"string"`
 
 	Sources []*InputSourceRequest `locationName:"sources" type:"list"`
+
+	// Configures the sources for this SRT input. For a single-pipeline input, include
+	// one srtCallerSource in the array. For a standard-pipeline input, include
+	// two srtCallerSource.
+	SrtSettings *SrtSettingsRequest `locationName:"srtSettings" type:"structure"`
 }
 
 // String returns the string representation.
@@ -41352,6 +41721,12 @@ func (s *UpdateInputInput) SetRoleArn(v string) *UpdateInputInput {
 // SetSources sets the Sources field's value.
 func (s *UpdateInputInput) SetSources(v []*InputSourceRequest) *UpdateInputInput {
 	s.Sources = v
+	return s
+}
+
+// SetSrtSettings sets the SrtSettings field's value.
+func (s *UpdateInputInput) SetSrtSettings(v *SrtSettingsRequest) *UpdateInputInput {
+	s.SrtSettings = v
 	return s
 }
 
@@ -42818,6 +43193,26 @@ func AfdSignaling_Values() []string {
 		AfdSignalingAuto,
 		AfdSignalingFixed,
 		AfdSignalingNone,
+	}
+}
+
+const (
+	// AlgorithmAes128 is a Algorithm enum value
+	AlgorithmAes128 = "AES128"
+
+	// AlgorithmAes192 is a Algorithm enum value
+	AlgorithmAes192 = "AES192"
+
+	// AlgorithmAes256 is a Algorithm enum value
+	AlgorithmAes256 = "AES256"
+)
+
+// Algorithm_Values returns all elements of the Algorithm enum
+func Algorithm_Values() []string {
+	return []string{
+		AlgorithmAes128,
+		AlgorithmAes192,
+		AlgorithmAes256,
 	}
 }
 
@@ -46679,6 +47074,9 @@ const (
 
 	// InputTypeTsFile is a InputType enum value
 	InputTypeTsFile = "TS_FILE"
+
+	// InputTypeSrtCaller is a InputType enum value
+	InputTypeSrtCaller = "SRT_CALLER"
 )
 
 // InputType_Values returns all elements of the InputType enum
@@ -46694,6 +47092,7 @@ func InputType_Values() []string {
 		InputTypeInputDevice,
 		InputTypeAwsCdi,
 		InputTypeTsFile,
+		InputTypeSrtCaller,
 	}
 }
 
@@ -48140,6 +48539,23 @@ func Scte35SegmentationCancelIndicator_Values() []string {
 	return []string{
 		Scte35SegmentationCancelIndicatorSegmentationEventNotCanceled,
 		Scte35SegmentationCancelIndicatorSegmentationEventCanceled,
+	}
+}
+
+// Scte35 Segmentation Scope
+const (
+	// Scte35SegmentationScopeAllOutputGroups is a Scte35SegmentationScope enum value
+	Scte35SegmentationScopeAllOutputGroups = "ALL_OUTPUT_GROUPS"
+
+	// Scte35SegmentationScopeScte35EnabledOutputGroups is a Scte35SegmentationScope enum value
+	Scte35SegmentationScopeScte35EnabledOutputGroups = "SCTE35_ENABLED_OUTPUT_GROUPS"
+)
+
+// Scte35SegmentationScope_Values returns all elements of the Scte35SegmentationScope enum
+func Scte35SegmentationScope_Values() []string {
+	return []string{
+		Scte35SegmentationScopeAllOutputGroups,
+		Scte35SegmentationScopeScte35EnabledOutputGroups,
 	}
 }
 

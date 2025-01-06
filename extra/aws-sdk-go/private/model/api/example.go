@@ -207,13 +207,11 @@ func (a *API) AttachExamples(filename string) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode %s, err: %v", filename, err)
 	}
-
-	if a.Metadata.ServiceID == "" {
-        fmt.Println(strings.Split(filename, "/")[3])
-        servID := strings.Split(filename, "/")[3]
-        a.Metadata.ServiceID = servID
-    }
-
+        if a.Metadata.ServiceID == "" {
+                fmt.Println(strings.Split(filename, "/")[3])
+                servID := strings.Split(filename, "/")[3]
+                a.Metadata.ServiceID = servID
+        }
 	return p.setup()
 }
 

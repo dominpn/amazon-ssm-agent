@@ -35,7 +35,7 @@ github.com/ProtonMail/go-crypto/openpgp/s2k
 ## explicit; go 1.15
 github.com/Workiva/go-datastructures/cache
 github.com/Workiva/go-datastructures/queue
-# github.com/aws/aws-sdk-go v1.51.20 => ./extra/aws-sdk-go
+# github.com/aws/aws-sdk-go v1.55.5 => ./extra/aws-sdk-go
 ## explicit; go 1.19
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn

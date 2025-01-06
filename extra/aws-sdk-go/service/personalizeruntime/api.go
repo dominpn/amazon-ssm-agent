@@ -308,7 +308,7 @@ type GetActionRecommendationsInput struct {
 	// use that portion of the expression to filter recommendations.
 	//
 	// For more information, see Filtering recommendations and user segments (https://docs.aws.amazon.com/personalize/latest/dg/filter.html).
-	FilterValues map[string]*string `locationName:"filterValues" type:"map"`
+	FilterValues map[string]*string `locationName:"filterValues" type:"map" sensitive:"true"`
 
 	// The number of results to return. The default is 5. The maximum is 100.
 	NumResults *int64 `locationName:"numResults" type:"integer"`
@@ -419,7 +419,7 @@ type GetPersonalizedRankingInput struct {
 	// The contextual metadata to use when getting recommendations. Contextual metadata
 	// includes any interaction information that might be relevant when getting
 	// a user's recommendations, such as the user's current location or device type.
-	Context map[string]*string `locationName:"context" type:"map"`
+	Context map[string]*string `locationName:"context" type:"map" sensitive:"true"`
 
 	// The Amazon Resource Name (ARN) of a filter you created to include items or
 	// exclude items from recommendations for a given user. For more information,
@@ -438,7 +438,7 @@ type GetPersonalizedRankingInput struct {
 	// that portion of the expression to filter recommendations.
 	//
 	// For more information, see Filtering Recommendations (https://docs.aws.amazon.com/personalize/latest/dg/filter.html).
-	FilterValues map[string]*string `locationName:"filterValues" type:"map"`
+	FilterValues map[string]*string `locationName:"filterValues" type:"map" sensitive:"true"`
 
 	// A list of items (by itemId) to rank. If an item was not included in the training
 	// dataset, the item is appended to the end of the reranked list. If you are
@@ -593,7 +593,7 @@ type GetRecommendationsInput struct {
 	// The contextual metadata to use when getting recommendations. Contextual metadata
 	// includes any interaction information that might be relevant when getting
 	// a user's recommendations, such as the user's current location or device type.
-	Context map[string]*string `locationName:"context" type:"map"`
+	Context map[string]*string `locationName:"context" type:"map" sensitive:"true"`
 
 	// The ARN of the filter to apply to the returned recommendations. For more
 	// information, see Filtering Recommendations (https://docs.aws.amazon.com/personalize/latest/dg/filter.html).
@@ -613,7 +613,7 @@ type GetRecommendationsInput struct {
 	// that portion of the expression to filter recommendations.
 	//
 	// For more information, see Filtering recommendations and user segments (https://docs.aws.amazon.com/personalize/latest/dg/filter.html).
-	FilterValues map[string]*string `locationName:"filterValues" type:"map"`
+	FilterValues map[string]*string `locationName:"filterValues" type:"map" sensitive:"true"`
 
 	// The item ID to provide recommendations for.
 	//
@@ -910,10 +910,33 @@ type PredictedItem struct {
 	ItemId *string `locationName:"itemId" type:"string"`
 
 	// Metadata about the item from your Items dataset.
-	Metadata map[string]*string `locationName:"metadata" type:"map"`
+	//
+	// Metadata is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by PredictedItem's
+	// String and GoString methods.
+	Metadata map[string]*string `locationName:"metadata" type:"map" sensitive:"true"`
 
 	// The name of the promotion that included the predicted item.
 	PromotionName *string `locationName:"promotionName" min:"1" type:"string"`
+
+	// If you use User-Personalization-v2, a list of reasons for why the item was
+	// included in recommendations. Possible reasons include the following:
+	//
+	//    * Promoted item - Indicates the item was included as part of a promotion
+	//    that you applied in your recommendation request.
+	//
+	//    * Exploration - Indicates the item was included with exploration. With
+	//    exploration, recommendations include items with less interactions data
+	//    or relevance for the user. For more information about exploration, see
+	//    Exploration (https://docs.aws.amazon.com/personalize/latest/dg/use-case-recipe-features.html#about-exploration).
+	//
+	//    * Popular item - Indicates the item was included as a placeholder popular
+	//    item. If you use a filter, depending on how many recommendations the filter
+	//    removes, Amazon Personalize might add placeholder items to meet the numResults
+	//    for your recommendation request. These items are popular items, based
+	//    on interactions data, that satisfy your filter criteria. They don't have
+	//    a relevance score for the user.
+	Reason []*string `locationName:"reason" type:"list"`
 
 	// A numeric representation of the model's certainty that the item will be the
 	// next user selection. For more information on scoring logic, see how-scores-work.
@@ -956,6 +979,12 @@ func (s *PredictedItem) SetPromotionName(v string) *PredictedItem {
 	return s
 }
 
+// SetReason sets the Reason field's value.
+func (s *PredictedItem) SetReason(v []*string) *PredictedItem {
+	s.Reason = v
+	return s
+}
+
 // SetScore sets the Score field's value.
 func (s *PredictedItem) SetScore(v float64) *PredictedItem {
 	s.Score = &v
@@ -985,7 +1014,7 @@ type Promotion struct {
 	//
 	// For more information on creating filters, see Filtering recommendations and
 	// user segments (https://docs.aws.amazon.com/personalize/latest/dg/filter.html).
-	FilterValues map[string]*string `locationName:"filterValues" type:"map"`
+	FilterValues map[string]*string `locationName:"filterValues" type:"map" sensitive:"true"`
 
 	// The name of the promotion.
 	Name *string `locationName:"name" min:"1" type:"string"`

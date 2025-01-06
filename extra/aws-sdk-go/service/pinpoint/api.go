@@ -14562,6 +14562,26 @@ func (s *ApplicationsResponse) SetNextToken(v string) *ApplicationsResponse {
 type AttributeDimension struct {
 	_ struct{} `type:"structure"`
 
+	//    * INCLUSIVE - endpoints that have attributes matching the values are included
+	//    in the segment.
+	//
+	//    * EXCLUSIVE - endpoints that have attributes matching the values are excluded
+	//    in the segment.
+	//
+	//    * CONTAINS - endpoints that have attributes' substrings match the values
+	//    are included in the segment.
+	//
+	//    * BEFORE - endpoints with attributes read as ISO_INSTANT datetimes before
+	//    the value are included in the segment.
+	//
+	//    * AFTER - endpoints with attributes read as ISO_INSTANT datetimes after
+	//    the value are included in the segment.
+	//
+	//    * ON - endpoints with attributes read as ISO_INSTANT dates on the value
+	//    are included in the segment. Time is ignored in this comparison.
+	//
+	//    * BETWEEN - endpoints with attributes read as ISO_INSTANT datetimes between
+	//    the values are included in the segment.
 	AttributeType *string `type:"string" enum:"AttributeType"`
 
 	// The criteria values to use for the segment dimension. Depending on the value
@@ -15310,6 +15330,10 @@ type CampaignEmailMessage struct {
 	// the FromAddress specified for the email channel for the application.
 	FromAddress *string `type:"string"`
 
+	// The list of MessageHeaders (https://docs.aws.amazon.com/pinpoint/latest/apireference/apps-application-id-campaigns-campaign-id.html#apps-application-id-campaigns-campaign-id-model-messageheader)
+	// for the email. You can have up to 15 MessageHeaders for each email.
+	Headers []*MessageHeader `type:"list"`
+
 	// The body of the email, in HTML format, for recipients whose email clients
 	// render HTML content.
 	HtmlBody *string `type:"string"`
@@ -15348,6 +15372,12 @@ func (s *CampaignEmailMessage) SetFromAddress(v string) *CampaignEmailMessage {
 	return s
 }
 
+// SetHeaders sets the Headers field's value.
+func (s *CampaignEmailMessage) SetHeaders(v []*MessageHeader) *CampaignEmailMessage {
+	s.Headers = v
+	return s
+}
+
 // SetHtmlBody sets the HtmlBody field's value.
 func (s *CampaignEmailMessage) SetHtmlBody(v string) *CampaignEmailMessage {
 	s.HtmlBody = &v
@@ -15371,7 +15401,7 @@ type CampaignEventFilter struct {
 
 	// The type of event that causes the campaign to be sent. Valid values are:
 	// SYSTEM, sends the campaign when a system event occurs; and, ENDPOINT, sends
-	// the campaign when an endpoint event (Events resource) occurs.
+	// the campaign when an endpoint event (Events
 	//
 	// FilterType is a required field
 	FilterType *string `type:"string" required:"true" enum:"FilterType"`
@@ -18165,12 +18195,7 @@ type CustomMessageActivity struct {
 	// The unique identifier for the version of the message template to use for
 	// the message. If specified, this value must match the identifier for an existing
 	// template version. To retrieve a list of versions and version identifiers
-	// for a template, use the Template Versions resource.
-	//
-	// If you don't specify a value for this property, Amazon Pinpoint uses the
-	// active version of the template. The active version is typically the version
-	// of a template that's been most recently reviewed and approved for use, depending
-	// on your workflow. It isn't necessarily the latest version of a template.
+	// for a template, use the Template Versions
 	TemplateVersion *string `type:"string"`
 }
 
@@ -21045,12 +21070,7 @@ type EmailMessageActivity struct {
 	// The unique identifier for the version of the email template to use for the
 	// message. If specified, this value must match the identifier for an existing
 	// template version. To retrieve a list of versions and version identifiers
-	// for a template, use the Template Versions resource.
-	//
-	// If you don't specify a value for this property, Amazon Pinpoint uses the
-	// active version of the template. The active version is typically the version
-	// of a template that's been most recently reviewed and approved for use, depending
-	// on your workflow. It isn't necessarily the latest version of a template.
+	// for a template, use the Template Versions
 	TemplateVersion *string `type:"string"`
 }
 
@@ -21108,6 +21128,10 @@ type EmailTemplateRequest struct {
 	// on the template, you can override these defaults with message-specific and
 	// address-specific variables and values.
 	DefaultSubstitutions *string `type:"string"`
+
+	// The list of MessageHeaders (https://docs.aws.amazon.com/pinpoint/latest/apireference/templates-template-name-email.html#templates-template-name-email-model-messageheader)
+	// for the email. You can have up to 15 Headers.
+	Headers []*MessageHeader `type:"list"`
 
 	// The message body, in HTML format, to use in email messages that are based
 	// on the message template. We recommend using HTML format for email clients
@@ -21172,6 +21196,12 @@ func (s *EmailTemplateRequest) SetDefaultSubstitutions(v string) *EmailTemplateR
 	return s
 }
 
+// SetHeaders sets the Headers field's value.
+func (s *EmailTemplateRequest) SetHeaders(v []*MessageHeader) *EmailTemplateRequest {
+	s.Headers = v
+	return s
+}
+
 // SetHtmlPart sets the HtmlPart field's value.
 func (s *EmailTemplateRequest) SetHtmlPart(v string) *EmailTemplateRequest {
 	s.HtmlPart = &v
@@ -21226,6 +21256,8 @@ type EmailTemplateResponse struct {
 	// Each key defines a message variable in the template. The corresponding value
 	// defines the default value for that variable.
 	DefaultSubstitutions *string `type:"string"`
+
+	Headers []*MessageHeader `type:"list"`
 
 	// The message body, in HTML format, that's used in email messages that are
 	// based on the message template.
@@ -21306,6 +21338,12 @@ func (s *EmailTemplateResponse) SetCreationDate(v string) *EmailTemplateResponse
 // SetDefaultSubstitutions sets the DefaultSubstitutions field's value.
 func (s *EmailTemplateResponse) SetDefaultSubstitutions(v string) *EmailTemplateResponse {
 	s.DefaultSubstitutions = &v
+	return s
+}
+
+// SetHeaders sets the Headers field's value.
+func (s *EmailTemplateResponse) SetHeaders(v []*MessageHeader) *EmailTemplateResponse {
+	s.Headers = v
 	return s
 }
 
@@ -22717,7 +22755,7 @@ type EventFilter struct {
 	// The type of event that causes the campaign to be sent or the journey activity
 	// to be performed. Valid values are: SYSTEM, sends the campaign or performs
 	// the activity when a system event occurs; and, ENDPOINT, sends the campaign
-	// or performs the activity when an endpoint event (Events resource) occurs.
+	// or performs the activity when an endpoint event (Events resource
 	//
 	// FilterType is a required field
 	FilterType *string `type:"string" required:"true" enum:"FilterType"`
@@ -32549,6 +32587,52 @@ func (s *MessageConfiguration) SetSMSMessage(v *CampaignSmsMessage) *MessageConf
 	return s
 }
 
+// Contains the name and value pair of an email header to add to your email.
+// You can have up to 15 MessageHeaders. A header can contain information such
+// as the sender, receiver, route, or timestamp.
+type MessageHeader struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the message header. The header name can contain up to 126 characters.
+	Name *string `type:"string"`
+
+	// The value of the message header. The header value can contain up to 870 characters,
+	// including the length of any rendered attributes. For example if you add the
+	// {CreationDate} attribute, it renders as YYYY-MM-DDTHH:MM:SS.SSSZ and is 24
+	// characters in length.
+	Value *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s MessageHeader) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s MessageHeader) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *MessageHeader) SetName(v string) *MessageHeader {
+	s.Name = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *MessageHeader) SetValue(v string) *MessageHeader {
+	s.Value = &v
+	return s
+}
+
 // Specifies the configuration and other settings for a message.
 type MessageRequest struct {
 	_ struct{} `type:"structure"`
@@ -33826,12 +33910,7 @@ type PushMessageActivity struct {
 	// The unique identifier for the version of the push notification template to
 	// use for the message. If specified, this value must match the identifier for
 	// an existing template version. To retrieve a list of versions and version
-	// identifiers for a template, use the Template Versions resource.
-	//
-	// If you don't specify a value for this property, Amazon Pinpoint uses the
-	// active version of the template. The active version is typically the version
-	// of a template that's been most recently reviewed and approved for use, depending
-	// on your workflow. It isn't necessarily the latest version of a template.
+	// identifiers for a template, use the Template Versions
 	TemplateVersion *string `type:"string"`
 }
 
@@ -35369,12 +35448,7 @@ type SMSMessageActivity struct {
 	// The unique identifier for the version of the SMS template to use for the
 	// message. If specified, this value must match the identifier for an existing
 	// template version. To retrieve a list of versions and version identifiers
-	// for a template, use the Template Versions resource.
-	//
-	// If you don't specify a value for this property, Amazon Pinpoint uses the
-	// active version of the template. The active version is typically the version
-	// of a template that's been most recently reviewed and approved for use, depending
-	// on your workflow. It isn't necessarily the latest version of a template.
+	// for a template, use the Template Versions
 	TemplateVersion *string `type:"string"`
 }
 
@@ -37538,6 +37612,9 @@ func (s *SimpleCondition) SetSegmentDimensions(v *SegmentDimensions) *SimpleCond
 type SimpleEmail struct {
 	_ struct{} `type:"structure"`
 
+	// List of Headers for the email.
+	Headers []*MessageHeader `type:"list"`
+
 	// The body of the email message, in HTML format. We recommend using HTML format
 	// for email clients that render HTML content. You can include links, formatted
 	// text, and more in an HTML message.
@@ -37568,6 +37645,12 @@ func (s SimpleEmail) String() string {
 // value will be replaced with "sensitive".
 func (s SimpleEmail) GoString() string {
 	return s.String()
+}
+
+// SetHeaders sets the Headers field's value.
+func (s *SimpleEmail) SetHeaders(v []*MessageHeader) *SimpleEmail {
+	s.Headers = v
+	return s
 }
 
 // SetHtmlPart sets the HtmlPart field's value.
@@ -37856,12 +37939,7 @@ type Template struct {
 	// The unique identifier for the version of the message template to use for
 	// the message. If specified, this value must match the identifier for an existing
 	// template version. To retrieve a list of versions and version identifiers
-	// for a template, use the Template Versions resource.
-	//
-	// If you don't specify a value for this property, Amazon Pinpoint uses the
-	// active version of the template. The active version is typically the version
-	// of a template that's been most recently reviewed and approved for use, depending
-	// on your workflow. It isn't necessarily the latest version of a template.
+	// for a template, use the Template Versions
 	Version *string `type:"string"`
 }
 
@@ -37905,7 +37983,7 @@ type TemplateActiveVersionRequest struct {
 	// the unique identifier for any existing version of the template. If you specify
 	// an identifier, the value must match the identifier for an existing template
 	// version. To retrieve a list of versions and version identifiers for a template,
-	// use the Template Versions resource.
+	// use the Template Versions
 	Version *string `type:"string"`
 }
 
@@ -42172,7 +42250,7 @@ type WriteApplicationSettingsRequest struct {
 	// that are used by campaigns in the application.
 	//
 	// To override these settings and define custom settings for a specific campaign,
-	// use the CampaignHook object of the Campaign resource.
+	// use the CampaignHook object of the Campaign
 	CampaignHook *CampaignHook `type:"structure"`
 
 	// Specifies whether to enable application-related alarms in Amazon CloudWatch.
@@ -42185,7 +42263,7 @@ type WriteApplicationSettingsRequest struct {
 
 	// The default sending limits for campaigns in the application. To override
 	// these limits and define custom limits for a specific campaign or journey,
-	// use the Campaign resource or the Journey resource, respectively.
+	// use the Campaign
 	Limits *CampaignLimits `type:"structure"`
 
 	// The default quiet time for campaigns in the application. Quiet time is a
@@ -42207,8 +42285,7 @@ type WriteApplicationSettingsRequest struct {
 	// from a campaign or journey, even if quiet time is enabled.
 	//
 	// To override the default quiet time settings for a specific campaign or journey,
-	// use the Campaign resource or the Journey resource to define a custom quiet
-	// time for the campaign or journey.
+	// use the Campaign
 	QuietTime *QuietTime `type:"structure"`
 }
 
@@ -42657,7 +42734,7 @@ type WriteJourneyRequest struct {
 	//
 	// PAUSED, CANCELLED, COMPLETED, and CLOSED states are not supported in requests
 	// to create or update a journey. To cancel, pause, or resume a journey, use
-	// the Journey State resource.
+	// the Journey State
 	State *string `type:"string" enum:"State"`
 
 	// An array of time zone estimation methods, if any, to use for determining

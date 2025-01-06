@@ -5869,6 +5869,47 @@ func (s *BatchDisassociateScramSecretOutput) SetUnprocessedScramSecrets(v []*Unp
 	return s
 }
 
+// Describes brokers being changed during a broker count update.
+type BrokerCountUpdateInfo struct {
+	_ struct{} `type:"structure"`
+
+	// List of Broker Ids when creating new Brokers in a cluster.
+	CreatedBrokerIds []*float64 `locationName:"createdBrokerIds" type:"list"`
+
+	// List of Broker Ids when deleting existing Brokers in a cluster.
+	DeletedBrokerIds []*float64 `locationName:"deletedBrokerIds" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BrokerCountUpdateInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BrokerCountUpdateInfo) GoString() string {
+	return s.String()
+}
+
+// SetCreatedBrokerIds sets the CreatedBrokerIds field's value.
+func (s *BrokerCountUpdateInfo) SetCreatedBrokerIds(v []*float64) *BrokerCountUpdateInfo {
+	s.CreatedBrokerIds = v
+	return s
+}
+
+// SetDeletedBrokerIds sets the DeletedBrokerIds field's value.
+func (s *BrokerCountUpdateInfo) SetDeletedBrokerIds(v []*float64) *BrokerCountUpdateInfo {
+	s.DeletedBrokerIds = v
+	return s
+}
+
 // Specifies the EBS volume upgrade information. The broker identifier must
 // be set to the keyword ALL. This means the changes apply to all the brokers
 // in the cluster.
@@ -7769,6 +7810,38 @@ func (s *ConsumerGroupReplicationUpdate) SetDetectAndCopyNewConsumerGroups(v boo
 // SetSynchroniseConsumerGroupOffsets sets the SynchroniseConsumerGroupOffsets field's value.
 func (s *ConsumerGroupReplicationUpdate) SetSynchroniseConsumerGroupOffsets(v bool) *ConsumerGroupReplicationUpdate {
 	s.SynchroniseConsumerGroupOffsets = &v
+	return s
+}
+
+// Controller node information.
+type ControllerNodeInfo struct {
+	_ struct{} `type:"structure"`
+
+	// Endpoints for accessing the Controller.
+	Endpoints []*string `locationName:"endpoints" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ControllerNodeInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ControllerNodeInfo) GoString() string {
+	return s.String()
+}
+
+// SetEndpoints sets the Endpoints field's value.
+func (s *ControllerNodeInfo) SetEndpoints(v []*string) *ControllerNodeInfo {
+	s.Endpoints = v
 	return s
 }
 
@@ -12595,6 +12668,9 @@ func (s *LoggingInfo) SetBrokerLogs(v *BrokerLogs) *LoggingInfo {
 type MutableClusterInfo struct {
 	_ struct{} `type:"structure"`
 
+	// Describes brokers being changed during a broker count update.
+	BrokerCountUpdateInfo *BrokerCountUpdateInfo `locationName:"brokerCountUpdateInfo" type:"structure"`
+
 	// Specifies the size of the EBS volume and the ID of the associated broker.
 	BrokerEBSVolumeInfo []*BrokerEBSVolumeInfo `locationName:"brokerEBSVolumeInfo" type:"list"`
 
@@ -12648,6 +12724,12 @@ func (s MutableClusterInfo) String() string {
 // value will be replaced with "sensitive".
 func (s MutableClusterInfo) GoString() string {
 	return s.String()
+}
+
+// SetBrokerCountUpdateInfo sets the BrokerCountUpdateInfo field's value.
+func (s *MutableClusterInfo) SetBrokerCountUpdateInfo(v *BrokerCountUpdateInfo) *MutableClusterInfo {
+	s.BrokerCountUpdateInfo = v
+	return s
 }
 
 // SetBrokerEBSVolumeInfo sets the BrokerEBSVolumeInfo field's value.
@@ -12813,6 +12895,9 @@ type NodeInfo struct {
 	// The broker node info.
 	BrokerNodeInfo *BrokerNodeInfo `locationName:"brokerNodeInfo" type:"structure"`
 
+	// The ControllerNodeInfo.
+	ControllerNodeInfo *ControllerNodeInfo `locationName:"controllerNodeInfo" type:"structure"`
+
 	// The instance type.
 	InstanceType *string `locationName:"instanceType" type:"string"`
 
@@ -12853,6 +12938,12 @@ func (s *NodeInfo) SetAddedToClusterTime(v string) *NodeInfo {
 // SetBrokerNodeInfo sets the BrokerNodeInfo field's value.
 func (s *NodeInfo) SetBrokerNodeInfo(v *BrokerNodeInfo) *NodeInfo {
 	s.BrokerNodeInfo = v
+	return s
+}
+
+// SetControllerNodeInfo sets the ControllerNodeInfo field's value.
+func (s *NodeInfo) SetControllerNodeInfo(v *ControllerNodeInfo) *NodeInfo {
+	s.ControllerNodeInfo = v
 	return s
 }
 
@@ -17193,7 +17284,7 @@ func (s *VpcConnectivityTls) SetEnabled(v bool) *VpcConnectivityTls {
 type ZookeeperNodeInfo struct {
 	_ struct{} `type:"structure"`
 
-	// The attached elastic network interface of the broker.
+	// The attached elastic network interface of the zookeeper.
 	AttachedENIId *string `locationName:"attachedENIId" type:"string"`
 
 	// The virtual private cloud (VPC) IP address of the client.

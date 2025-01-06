@@ -959,8 +959,10 @@ func (c *MediaConvert) DescribeEndpointsRequest(input *DescribeEndpointsInput) (
 
 // DescribeEndpoints API operation for AWS Elemental MediaConvert.
 //
-// Send an request with an empty body to the regional API endpoint to get your
-// account API endpoint.
+// Send a request with an empty body to the regional API endpoint to get your
+// account API endpoint. Note that DescribeEndpoints is no longer required.
+// We recommend that you send your requests directly to the regional endpoint
+// instead.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2358,6 +2360,154 @@ func (c *MediaConvert) PutPolicyWithContext(ctx aws.Context, input *PutPolicyInp
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opSearchJobs = "SearchJobs"
+
+// SearchJobsRequest generates a "aws/request.Request" representing the
+// client's request for the SearchJobs operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See SearchJobs for more information on using the SearchJobs
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the SearchJobsRequest method.
+//	req, resp := client.SearchJobsRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/SearchJobs
+func (c *MediaConvert) SearchJobsRequest(input *SearchJobsInput) (req *request.Request, output *SearchJobsOutput) {
+	op := &request.Operation{
+		Name:       opSearchJobs,
+		HTTPMethod: "GET",
+		HTTPPath:   "/2017-08-29/search",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &SearchJobsInput{}
+	}
+
+	output = &SearchJobsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// SearchJobs API operation for AWS Elemental MediaConvert.
+//
+// Retrieve a JSON array that includes job details for up to twenty of your
+// most recent jobs. Optionally filter results further according to input file,
+// queue, or status. To retrieve the twenty next most recent jobs, use the nextToken
+// string returned with the array.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elemental MediaConvert's
+// API operation SearchJobs for usage and error information.
+//
+// Returned Error Types:
+//
+//   - BadRequestException
+//
+//   - InternalServerErrorException
+//
+//   - ForbiddenException
+//
+//   - NotFoundException
+//
+//   - TooManyRequestsException
+//
+//   - ConflictException
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/SearchJobs
+func (c *MediaConvert) SearchJobs(input *SearchJobsInput) (*SearchJobsOutput, error) {
+	req, out := c.SearchJobsRequest(input)
+	return out, req.Send()
+}
+
+// SearchJobsWithContext is the same as SearchJobs with the addition of
+// the ability to pass a context and additional request options.
+//
+// See SearchJobs for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) SearchJobsWithContext(ctx aws.Context, input *SearchJobsInput, opts ...request.Option) (*SearchJobsOutput, error) {
+	req, out := c.SearchJobsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// SearchJobsPages iterates over the pages of a SearchJobs operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See SearchJobs method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//	// Example iterating over at most 3 pages of a SearchJobs operation.
+//	pageNum := 0
+//	err := client.SearchJobsPages(params,
+//	    func(page *mediaconvert.SearchJobsOutput, lastPage bool) bool {
+//	        pageNum++
+//	        fmt.Println(page)
+//	        return pageNum <= 3
+//	    })
+func (c *MediaConvert) SearchJobsPages(input *SearchJobsInput, fn func(*SearchJobsOutput, bool) bool) error {
+	return c.SearchJobsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// SearchJobsPagesWithContext same as SearchJobsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) SearchJobsPagesWithContext(ctx aws.Context, input *SearchJobsInput, fn func(*SearchJobsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *SearchJobsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.SearchJobsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*SearchJobsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opTagResource = "TagResource"
@@ -6756,6 +6906,17 @@ type CmafGroupSettings struct {
 	// generation.
 	CodecSpecification *string `locationName:"codecSpecification" type:"string" enum:"CmafCodecSpecification"`
 
+	// Specify whether MediaConvert generates I-frame only video segments for DASH
+	// trick play, also known as trick mode. When specified, the I-frame only video
+	// segments are included within an additional AdaptationSet in your DASH output
+	// manifest. To generate I-frame only video segments: Enter a name as a text
+	// string, up to 256 character long. This name is appended to the end of this
+	// output group's base filename, that you specify as part of your destination
+	// URI, and used for the I-frame only video segment files. You may also include
+	// format identifiers. For more information, see: https://docs.aws.amazon.com/mediaconvert/latest/ug/using-variables-in-your-job-settings.html#using-settings-variables-with-streaming-outputs
+	// To not generate I-frame only video segments: Leave blank.
+	DashIFrameTrickPlayNameModifier *string `locationName:"dashIFrameTrickPlayNameModifier" min:"1" type:"string"`
+
 	// Specify how MediaConvert writes SegmentTimeline in your output DASH manifest.
 	// To write a SegmentTimeline in each video Representation: Keep the default
 	// value, Basic. To write a common SegmentTimeline in the video AdaptationSet:
@@ -6876,10 +7037,7 @@ type CmafGroupSettings struct {
 	// nearest integer value above its current value in seconds. When set to SPEC\\_COMPLIANT,
 	// the segment target duration is rounded up to the nearest integer value if
 	// fraction seconds are greater than or equal to 0.5 (>= 0.5) and rounded down
-	// if less than 0.5 (< 0.5). You may need to use LEGACY if your client needs
-	// to ensure that the target duration is always longer than the actual duration
-	// of the segment. Some older players may experience interrupted playback when
-	// the actual duration of a track in a segment is longer than the target duration.
+	// if less than 0.5 (
 	TargetDurationCompatibilityMode *string `locationName:"targetDurationCompatibilityMode" type:"string" enum:"CmafTargetDurationCompatibilityMode"`
 
 	// Specify the video sample composition time offset mode in the output fMP4
@@ -6927,6 +7085,9 @@ func (s CmafGroupSettings) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CmafGroupSettings) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CmafGroupSettings"}
+	if s.DashIFrameTrickPlayNameModifier != nil && len(*s.DashIFrameTrickPlayNameModifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DashIFrameTrickPlayNameModifier", 1))
+	}
 	if s.FragmentLength != nil && *s.FragmentLength < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("FragmentLength", 1))
 	}
@@ -6981,6 +7142,12 @@ func (s *CmafGroupSettings) SetClientCache(v string) *CmafGroupSettings {
 // SetCodecSpecification sets the CodecSpecification field's value.
 func (s *CmafGroupSettings) SetCodecSpecification(v string) *CmafGroupSettings {
 	s.CodecSpecification = &v
+	return s
+}
+
+// SetDashIFrameTrickPlayNameModifier sets the DashIFrameTrickPlayNameModifier field's value.
+func (s *CmafGroupSettings) SetDashIFrameTrickPlayNameModifier(v string) *CmafGroupSettings {
+	s.DashIFrameTrickPlayNameModifier = &v
 	return s
 }
 
@@ -8838,6 +9005,17 @@ type DashIsoGroupSettings struct {
 	// URL than the manifest file.
 	BaseUrl *string `locationName:"baseUrl" type:"string"`
 
+	// Specify whether MediaConvert generates I-frame only video segments for DASH
+	// trick play, also known as trick mode. When specified, the I-frame only video
+	// segments are included within an additional AdaptationSet in your DASH output
+	// manifest. To generate I-frame only video segments: Enter a name as a text
+	// string, up to 256 character long. This name is appended to the end of this
+	// output group's base filename, that you specify as part of your destination
+	// URI, and used for the I-frame only video segment files. You may also include
+	// format identifiers. For more information, see: https://docs.aws.amazon.com/mediaconvert/latest/ug/using-variables-in-your-job-settings.html#using-settings-variables-with-streaming-outputs
+	// To not generate I-frame only video segments: Leave blank.
+	DashIFrameTrickPlayNameModifier *string `locationName:"dashIFrameTrickPlayNameModifier" min:"1" type:"string"`
+
 	// Specify how MediaConvert writes SegmentTimeline in your output DASH manifest.
 	// To write a SegmentTimeline in each video Representation: Keep the default
 	// value, Basic. To write a common SegmentTimeline in the video AdaptationSet:
@@ -8987,6 +9165,9 @@ func (s DashIsoGroupSettings) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *DashIsoGroupSettings) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DashIsoGroupSettings"}
+	if s.DashIFrameTrickPlayNameModifier != nil && len(*s.DashIFrameTrickPlayNameModifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DashIFrameTrickPlayNameModifier", 1))
+	}
 	if s.FragmentLength != nil && *s.FragmentLength < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("FragmentLength", 1))
 	}
@@ -9030,6 +9211,12 @@ func (s *DashIsoGroupSettings) SetAudioChannelConfigSchemeIdUri(v string) *DashI
 // SetBaseUrl sets the BaseUrl field's value.
 func (s *DashIsoGroupSettings) SetBaseUrl(v string) *DashIsoGroupSettings {
 	s.BaseUrl = &v
+	return s
+}
+
+// SetDashIFrameTrickPlayNameModifier sets the DashIFrameTrickPlayNameModifier field's value.
+func (s *DashIsoGroupSettings) SetDashIFrameTrickPlayNameModifier(v string) *DashIsoGroupSettings {
+	s.DashIFrameTrickPlayNameModifier = &v
 	return s
 }
 
@@ -9587,8 +9774,10 @@ func (s DeleteQueueOutput) GoString() string {
 	return s.String()
 }
 
-// Send an request with an empty body to the regional API endpoint to get your
-// account API endpoint.
+// Send a request with an empty body to the regional API endpoint to get your
+// account API endpoint. Note that DescribeEndpoints is no longer required.
+// We recommend that you send your requests directly to the regional endpoint
+// instead.
 //
 // Deprecated: DescribeEndpoints and account specific endpoints are no longer required. We recommend that you send your requests directly to the regional endpoint instead.
 type DescribeEndpointsInput struct {
@@ -14542,10 +14731,7 @@ type HlsGroupSettings struct {
 	// nearest integer value above its current value in seconds. When set to SPEC\\_COMPLIANT,
 	// the segment target duration is rounded up to the nearest integer value if
 	// fraction seconds are greater than or equal to 0.5 (>= 0.5) and rounded down
-	// if less than 0.5 (< 0.5). You may need to use LEGACY if your client needs
-	// to ensure that the target duration is always longer than the actual duration
-	// of the segment. Some older players may experience interrupted playback when
-	// the actual duration of a track in a segment is longer than the target duration.
+	// if less than 0.5 (
 	TargetDurationCompatibilityMode *string `locationName:"targetDurationCompatibilityMode" type:"string" enum:"HlsTargetDurationCompatibilityMode"`
 
 	// Specify the type of the ID3 frame to use for ID3 timestamps in your output.
@@ -16286,10 +16472,30 @@ func (s *InputTemplate) SetVideoSelector(v *VideoSelector) *InputTemplate {
 type InputVideoGenerator struct {
 	_ struct{} `type:"structure"`
 
-	// Specify an integer value for Black video duration from 50 to 86400000 to
-	// generate a black video input for that many milliseconds. Required when you
-	// include Video generator.
+	// Specify the number of audio channels to include in your video generator input.
+	// MediaConvert creates these audio channels as silent audio within a single
+	// audio track. Enter an integer from 1 to 32.
+	Channels *int64 `locationName:"channels" min:"1" type:"integer"`
+
+	// Specify the duration, in milliseconds, for your video generator input.Enter
+	// an integer from 50 to 86400000.
 	Duration *int64 `locationName:"duration" min:"50" type:"integer"`
+
+	// Specify the denominator of the fraction that represents the frame rate for
+	// your video generator input. When you do, you must also specify a value for
+	// Frame rate numerator. MediaConvert uses a default frame rate of 29.97 when
+	// you leave Frame rate numerator and Frame rate denominator blank.
+	FramerateDenominator *int64 `locationName:"framerateDenominator" min:"1" type:"integer"`
+
+	// Specify the numerator of the fraction that represents the frame rate for
+	// your video generator input. When you do, you must also specify a value for
+	// Frame rate denominator. MediaConvert uses a default frame rate of 29.97 when
+	// you leave Frame rate numerator and Frame rate denominator blank.
+	FramerateNumerator *int64 `locationName:"framerateNumerator" min:"1" type:"integer"`
+
+	// Specify the audio sample rate, in Hz, for the silent audio in your video
+	// generator input.Enter an integer from 32000 to 48000.
+	SampleRate *int64 `locationName:"sampleRate" min:"32000" type:"integer"`
 }
 
 // String returns the string representation.
@@ -16313,8 +16519,20 @@ func (s InputVideoGenerator) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *InputVideoGenerator) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "InputVideoGenerator"}
+	if s.Channels != nil && *s.Channels < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Channels", 1))
+	}
 	if s.Duration != nil && *s.Duration < 50 {
 		invalidParams.Add(request.NewErrParamMinValue("Duration", 50))
+	}
+	if s.FramerateDenominator != nil && *s.FramerateDenominator < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("FramerateDenominator", 1))
+	}
+	if s.FramerateNumerator != nil && *s.FramerateNumerator < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("FramerateNumerator", 1))
+	}
+	if s.SampleRate != nil && *s.SampleRate < 32000 {
+		invalidParams.Add(request.NewErrParamMinValue("SampleRate", 32000))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -16323,9 +16541,33 @@ func (s *InputVideoGenerator) Validate() error {
 	return nil
 }
 
+// SetChannels sets the Channels field's value.
+func (s *InputVideoGenerator) SetChannels(v int64) *InputVideoGenerator {
+	s.Channels = &v
+	return s
+}
+
 // SetDuration sets the Duration field's value.
 func (s *InputVideoGenerator) SetDuration(v int64) *InputVideoGenerator {
 	s.Duration = &v
+	return s
+}
+
+// SetFramerateDenominator sets the FramerateDenominator field's value.
+func (s *InputVideoGenerator) SetFramerateDenominator(v int64) *InputVideoGenerator {
+	s.FramerateDenominator = &v
+	return s
+}
+
+// SetFramerateNumerator sets the FramerateNumerator field's value.
+func (s *InputVideoGenerator) SetFramerateNumerator(v int64) *InputVideoGenerator {
+	s.FramerateNumerator = &v
+	return s
+}
+
+// SetSampleRate sets the SampleRate field's value.
+func (s *InputVideoGenerator) SetSampleRate(v int64) *InputVideoGenerator {
+	s.SampleRate = &v
 	return s
 }
 
@@ -23669,6 +23911,147 @@ func (s *SccDestinationSettings) SetFramerate(v string) *SccDestinationSettings 
 	return s
 }
 
+// Retrieve a JSON array that includes job details for up to twenty of your
+// most recent jobs. Optionally filter results further according to input file,
+// queue, or status. To retrieve the twenty next most recent jobs, use the nextToken
+// string returned with the array.
+type SearchJobsInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// Optional. Provide your input file URL or your partial input file name. The
+	// maximum length for an input file is 300 characters.
+	InputFile *string `location:"querystring" locationName:"inputFile" type:"string"`
+
+	// Optional. Number of jobs, up to twenty, that will be returned at one time.
+	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
+
+	// Optional. Use this string, provided with the response to a previous request,
+	// to request the next batch of jobs.
+	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
+
+	// Optional. When you request lists of resources, you can specify whether they
+	// are sorted in ASCENDING or DESCENDING order. Default varies by resource.
+	Order *string `location:"querystring" locationName:"order" type:"string" enum:"Order"`
+
+	// Optional. Provide a queue name, or a queue ARN, to return only jobs from
+	// that queue.
+	Queue *string `location:"querystring" locationName:"queue" type:"string"`
+
+	// Optional. A job's status can be SUBMITTED, PROGRESSING, COMPLETE, CANCELED,
+	// or ERROR.
+	Status *string `location:"querystring" locationName:"status" type:"string" enum:"JobStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SearchJobsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SearchJobsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *SearchJobsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "SearchJobsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetInputFile sets the InputFile field's value.
+func (s *SearchJobsInput) SetInputFile(v string) *SearchJobsInput {
+	s.InputFile = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *SearchJobsInput) SetMaxResults(v int64) *SearchJobsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *SearchJobsInput) SetNextToken(v string) *SearchJobsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetOrder sets the Order field's value.
+func (s *SearchJobsInput) SetOrder(v string) *SearchJobsInput {
+	s.Order = &v
+	return s
+}
+
+// SetQueue sets the Queue field's value.
+func (s *SearchJobsInput) SetQueue(v string) *SearchJobsInput {
+	s.Queue = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *SearchJobsInput) SetStatus(v string) *SearchJobsInput {
+	s.Status = &v
+	return s
+}
+
+// Successful search jobs requests return a JSON array of jobs. If you don't
+// specify how they are ordered, you will receive the most recently created
+// first.
+type SearchJobsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// List of jobs.
+	Jobs []*Job `locationName:"jobs" type:"list"`
+
+	// Use this string to request the next batch of jobs.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SearchJobsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SearchJobsOutput) GoString() string {
+	return s.String()
+}
+
+// SetJobs sets the Jobs field's value.
+func (s *SearchJobsOutput) SetJobs(v []*Job) *SearchJobsOutput {
+	s.Jobs = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *SearchJobsOutput) SetNextToken(v string) *SearchJobsOutput {
+	s.NextToken = &v
+	return s
+}
+
 // If your output group type is HLS, DASH, or Microsoft Smooth, use these settings
 // when doing DRM encryption with a SPEKE-compliant key provider. If your output
 // group type is CMAF, use the SpekeKeyProviderCmaf settings instead.
@@ -30064,10 +30447,7 @@ func CmafStreamInfResolution_Values() []string {
 // nearest integer value above its current value in seconds. When set to SPEC\\_COMPLIANT,
 // the segment target duration is rounded up to the nearest integer value if
 // fraction seconds are greater than or equal to 0.5 (>= 0.5) and rounded down
-// if less than 0.5 (< 0.5). You may need to use LEGACY if your client needs
-// to ensure that the target duration is always longer than the actual duration
-// of the segment. Some older players may experience interrupted playback when
-// the actual duration of a track in a segment is longer than the target duration.
+// if less than 0.5 (
 const (
 	// CmafTargetDurationCompatibilityModeLegacy is a CmafTargetDurationCompatibilityMode enum value
 	CmafTargetDurationCompatibilityModeLegacy = "LEGACY"
@@ -34177,10 +34557,7 @@ func HlsStreamInfResolution_Values() []string {
 // nearest integer value above its current value in seconds. When set to SPEC\\_COMPLIANT,
 // the segment target duration is rounded up to the nearest integer value if
 // fraction seconds are greater than or equal to 0.5 (>= 0.5) and rounded down
-// if less than 0.5 (< 0.5). You may need to use LEGACY if your client needs
-// to ensure that the target duration is always longer than the actual duration
-// of the segment. Some older players may experience interrupted playback when
-// the actual duration of a track in a segment is longer than the target duration.
+// if less than 0.5 (
 const (
 	// HlsTargetDurationCompatibilityModeLegacy is a HlsTargetDurationCompatibilityMode enum value
 	HlsTargetDurationCompatibilityModeLegacy = "LEGACY"

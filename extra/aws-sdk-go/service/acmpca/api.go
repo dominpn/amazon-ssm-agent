@@ -76,7 +76,7 @@ func (c *ACMPCA) CreateCertificateAuthorityRequest(input *CreateCertificateAutho
 //
 // Amazon Web Services Private CA assets that are stored in Amazon S3 can be
 // protected with encryption. For more information, see Encrypting Your CRLs
-// (https://docs.aws.amazon.com/privateca/latest/userguide/PcaCreateCa.html#crl-encryption).
+// (https://docs.aws.amazon.com/privateca/latest/userguide/crl-planning.html#crl-encryption).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -87,21 +87,21 @@ func (c *ACMPCA) CreateCertificateAuthorityRequest(input *CreateCertificateAutho
 //
 // Returned Error Types:
 //
+//   - LimitExceededException
+//     An Amazon Web Services Private CA quota has been exceeded. See the exception
+//     message returned to determine the quota that was exceeded.
+//
 //   - InvalidArgsException
 //     One or more of the specified arguments was not valid.
-//
-//   - InvalidPolicyException
-//     The resource policy is invalid or is missing a required statement. For general
-//     information about IAM policy and statement structure, see Overview of JSON
-//     Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#access_policies-json).
 //
 //   - InvalidTagException
 //     The tag associated with the CA is not valid. The invalid argument is contained
 //     in the message field.
 //
-//   - LimitExceededException
-//     An Amazon Web Services Private CA quota has been exceeded. See the exception
-//     message returned to determine the quota that was exceeded.
+//   - InvalidPolicyException
+//     The resource policy is invalid or is missing a required statement. For general
+//     information about IAM policy and statement structure, see Overview of JSON
+//     Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#access_policies-json).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/CreateCertificateAuthority
 func (c *ACMPCA) CreateCertificateAuthority(input *CreateCertificateAuthorityInput) (*CreateCertificateAuthorityOutput, error) {
@@ -194,12 +194,6 @@ func (c *ACMPCA) CreateCertificateAuthorityAuditReportRequest(input *CreateCerti
 //
 // Returned Error Types:
 //
-//   - RequestInProgressException
-//     Your request is already in progress.
-//
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
-//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
@@ -210,8 +204,14 @@ func (c *ACMPCA) CreateCertificateAuthorityAuditReportRequest(input *CreateCerti
 //   - InvalidArgsException
 //     One or more of the specified arguments was not valid.
 //
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
+//
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
+//
+//   - RequestInProgressException
+//     Your request is already in progress.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/CreateCertificateAuthorityAuditReport
 func (c *ACMPCA) CreateCertificateAuthorityAuditReport(input *CreateCertificateAuthorityAuditReportInput) (*CreateCertificateAuthorityAuditReportOutput, error) {
@@ -312,6 +312,13 @@ func (c *ACMPCA) CreatePermissionRequest(input *CreatePermissionInput) (req *req
 //
 // Returned Error Types:
 //
+//   - LimitExceededException
+//     An Amazon Web Services Private CA quota has been exceeded. See the exception
+//     message returned to determine the quota that was exceeded.
+//
+//   - PermissionAlreadyExistsException
+//     The designated permission has already been given to the user.
+//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
@@ -319,18 +326,11 @@ func (c *ACMPCA) CreatePermissionRequest(input *CreatePermissionInput) (req *req
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   - PermissionAlreadyExistsException
-//     The designated permission has already been given to the user.
-//
-//   - LimitExceededException
-//     An Amazon Web Services Private CA quota has been exceeded. See the exception
-//     message returned to determine the quota that was exceeded.
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
 //
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
-//
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/CreatePermission
 func (c *ACMPCA) CreatePermission(input *CreatePermissionInput) (*CreatePermissionOutput, error) {
@@ -435,9 +435,6 @@ func (c *ACMPCA) DeleteCertificateAuthorityRequest(input *DeleteCertificateAutho
 //
 // Returned Error Types:
 //
-//   - ConcurrentModificationException
-//     A previous update to your private CA is still ongoing.
-//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
@@ -447,6 +444,9 @@ func (c *ACMPCA) DeleteCertificateAuthorityRequest(input *DeleteCertificateAutho
 //
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
+//
+//   - ConcurrentModificationException
+//     A previous update to your private CA is still ongoing.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/DeleteCertificateAuthority
 func (c *ACMPCA) DeleteCertificateAuthority(input *DeleteCertificateAuthorityInput) (*DeleteCertificateAuthorityOutput, error) {
@@ -556,11 +556,11 @@ func (c *ACMPCA) DeletePermissionRequest(input *DeletePermissionInput) (req *req
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
-//
 //   - RequestFailedException
 //     The request has failed for an unspecified reason.
+//
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/DeletePermission
 func (c *ACMPCA) DeletePermission(input *DeletePermissionInput) (*DeletePermissionOutput, error) {
@@ -672,26 +672,26 @@ func (c *ACMPCA) DeletePolicyRequest(input *DeletePolicyInput) (req *request.Req
 //
 // Returned Error Types:
 //
-//   - ConcurrentModificationException
-//     A previous update to your private CA is still ongoing.
-//
-//   - InvalidArnException
-//     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
-//
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
-//
 //   - LockoutPreventedException
 //     The current action was prevented because it would lock the caller out from
 //     performing subsequent actions. Verify that the specified parameters would
 //     not result in the caller being denied access to the resource.
 //
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
-//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
+//
+//   - InvalidArnException
+//     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
+//
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
+//
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
+//
+//   - ConcurrentModificationException
+//     A previous update to your private CA is still ongoing.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/DeletePolicy
 func (c *ACMPCA) DeletePolicy(input *DeletePolicyInput) (*DeletePolicyOutput, error) {
@@ -978,12 +978,6 @@ func (c *ACMPCA) GetCertificateRequest(input *GetCertificateInput) (req *request
 //
 // Returned Error Types:
 //
-//   - RequestInProgressException
-//     Your request is already in progress.
-//
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
-//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
@@ -991,8 +985,14 @@ func (c *ACMPCA) GetCertificateRequest(input *GetCertificateInput) (req *request
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
+//
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
+//
+//   - RequestInProgressException
+//     Your request is already in progress.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/GetCertificate
 func (c *ACMPCA) GetCertificate(input *GetCertificateInput) (*GetCertificateOutput, error) {
@@ -1077,11 +1077,11 @@ func (c *ACMPCA) GetCertificateAuthorityCertificateRequest(input *GetCertificate
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
 //
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
-//
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
+//
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/GetCertificateAuthorityCertificate
 func (c *ACMPCA) GetCertificateAuthorityCertificate(input *GetCertificateAuthorityCertificateInput) (*GetCertificateAuthorityCertificateOutput, error) {
@@ -1166,12 +1166,6 @@ func (c *ACMPCA) GetCertificateAuthorityCsrRequest(input *GetCertificateAuthorit
 //
 // Returned Error Types:
 //
-//   - RequestInProgressException
-//     Your request is already in progress.
-//
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
-//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
@@ -1179,8 +1173,14 @@ func (c *ACMPCA) GetCertificateAuthorityCsrRequest(input *GetCertificateAuthorit
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
+//
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
+//
+//   - RequestInProgressException
+//     Your request is already in progress.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/GetCertificateAuthorityCsr
 func (c *ACMPCA) GetCertificateAuthorityCsr(input *GetCertificateAuthorityCsrInput) (*GetCertificateAuthorityCsrOutput, error) {
@@ -1284,18 +1284,18 @@ func (c *ACMPCA) GetPolicyRequest(input *GetPolicyInput) (req *request.Request, 
 //
 // Returned Error Types:
 //
+//   - ResourceNotFoundException
+//     A resource such as a private CA, S3 bucket, certificate, audit report, or
+//     policy cannot be found.
+//
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
-//
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
 //
 //   - RequestFailedException
 //     The request has failed for an unspecified reason.
 //
-//   - ResourceNotFoundException
-//     A resource such as a private CA, S3 bucket, certificate, audit report, or
-//     policy cannot be found.
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/GetPolicy
 func (c *ACMPCA) GetPolicy(input *GetPolicyInput) (*GetPolicyOutput, error) {
@@ -1465,14 +1465,12 @@ func (c *ACMPCA) ImportCertificateAuthorityCertificateRequest(input *ImportCerti
 //
 // Returned Error Types:
 //
-//   - ConcurrentModificationException
-//     A previous update to your private CA is still ongoing.
+//   - CertificateMismatchException
+//     The certificate authority certificate you are importing does not comply with
+//     conditions specified in the certificate that signed it.
 //
-//   - RequestInProgressException
-//     Your request is already in progress.
-//
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
+//   - MalformedCertificateException
+//     One or more fields in the certificate are invalid.
 //
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
@@ -1484,15 +1482,17 @@ func (c *ACMPCA) ImportCertificateAuthorityCertificateRequest(input *ImportCerti
 //   - InvalidRequestException
 //     The request action cannot be performed or is prohibited.
 //
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
+//
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
 //
-//   - MalformedCertificateException
-//     One or more fields in the certificate are invalid.
+//   - ConcurrentModificationException
+//     A previous update to your private CA is still ongoing.
 //
-//   - CertificateMismatchException
-//     The certificate authority certificate you are importing does not comply with
-//     conditions specified in the certificate that signed it.
+//   - RequestInProgressException
+//     Your request is already in progress.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/ImportCertificateAuthorityCertificate
 func (c *ACMPCA) ImportCertificateAuthorityCertificate(input *ImportCertificateAuthorityCertificateInput) (*ImportCertificateAuthorityCertificateOutput, error) {
@@ -1586,14 +1586,14 @@ func (c *ACMPCA) IssueCertificateRequest(input *IssueCertificateInput) (req *req
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
 //
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
-//
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 //   - InvalidArgsException
 //     One or more of the specified arguments was not valid.
+//
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
 //
 //   - MalformedCSRException
 //     The certificate signing request is invalid.
@@ -1848,15 +1848,15 @@ func (c *ACMPCA) ListPermissionsRequest(input *ListPermissionsInput) (req *reque
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   - InvalidNextTokenException
-//     The token specified in the NextToken argument is not valid. Use the token
-//     returned from your previous call to ListCertificateAuthorities (https://docs.aws.amazon.com/privateca/latest/APIReference/API_ListCertificateAuthorities.html).
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
 //
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
 //
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
+//   - InvalidNextTokenException
+//     The token specified in the NextToken argument is not valid. Use the token
+//     returned from your previous call to ListCertificateAuthorities (https://docs.aws.amazon.com/privateca/latest/APIReference/API_ListCertificateAuthorities.html).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/ListPermissions
 func (c *ACMPCA) ListPermissions(input *ListPermissionsInput) (*ListPermissionsOutput, error) {
@@ -2163,31 +2163,31 @@ func (c *ACMPCA) PutPolicyRequest(input *PutPolicyInput) (req *request.Request, 
 //
 // Returned Error Types:
 //
-//   - ConcurrentModificationException
-//     A previous update to your private CA is still ongoing.
-//
-//   - InvalidArnException
-//     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
-//
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
-//
-//   - InvalidPolicyException
-//     The resource policy is invalid or is missing a required statement. For general
-//     information about IAM policy and statement structure, see Overview of JSON
-//     Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#access_policies-json).
-//
 //   - LockoutPreventedException
 //     The current action was prevented because it would lock the caller out from
 //     performing subsequent actions. Verify that the specified parameters would
 //     not result in the caller being denied access to the resource.
 //
-//   - RequestFailedException
-//     The request has failed for an unspecified reason.
-//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
+//
+//   - InvalidArnException
+//     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
+//
+//   - RequestFailedException
+//     The request has failed for an unspecified reason.
+//
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
+//
+//   - ConcurrentModificationException
+//     A previous update to your private CA is still ongoing.
+//
+//   - InvalidPolicyException
+//     The resource policy is invalid or is missing a required statement. For general
+//     information about IAM policy and statement structure, see Overview of JSON
+//     Policies (https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#access_policies-json).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/PutPolicy
 func (c *ACMPCA) PutPolicy(input *PutPolicyInput) (*PutPolicyOutput, error) {
@@ -2285,11 +2285,11 @@ func (c *ACMPCA) RestoreCertificateAuthorityRequest(input *RestoreCertificateAut
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
 //
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
-//
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
+//
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/RestoreCertificateAuthority
 func (c *ACMPCA) RestoreCertificateAuthority(input *RestoreCertificateAuthorityInput) (*RestoreCertificateAuthorityOutput, error) {
@@ -2388,17 +2388,8 @@ func (c *ACMPCA) RevokeCertificateRequest(input *RevokeCertificateInput) (req *r
 //
 // Returned Error Types:
 //
-//   - ConcurrentModificationException
-//     A previous update to your private CA is still ongoing.
-//
-//   - InvalidArnException
-//     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
-//
-//   - InvalidRequestException
-//     The request action cannot be performed or is prohibited.
-//
-//   - InvalidStateException
-//     The state of the private CA does not allow this action to occur.
+//   - RequestAlreadyProcessedException
+//     Your request has already been completed.
 //
 //   - LimitExceededException
 //     An Amazon Web Services Private CA quota has been exceeded. See the exception
@@ -2408,14 +2399,23 @@ func (c *ACMPCA) RevokeCertificateRequest(input *RevokeCertificateInput) (req *r
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
 //
-//   - RequestAlreadyProcessedException
-//     Your request has already been completed.
+//   - InvalidArnException
+//     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   - RequestInProgressException
-//     Your request is already in progress.
+//   - InvalidRequestException
+//     The request action cannot be performed or is prohibited.
 //
 //   - RequestFailedException
 //     The request has failed for an unspecified reason.
+//
+//   - InvalidStateException
+//     The state of the private CA does not allow this action to occur.
+//
+//   - ConcurrentModificationException
+//     A previous update to your private CA is still ongoing.
+//
+//   - RequestInProgressException
+//     Your request is already in progress.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/RevokeCertificate
 func (c *ACMPCA) RevokeCertificate(input *RevokeCertificateInput) (*RevokeCertificateOutput, error) {
@@ -2708,21 +2708,21 @@ func (c *ACMPCA) UpdateCertificateAuthorityRequest(input *UpdateCertificateAutho
 //
 // Returned Error Types:
 //
-//   - ConcurrentModificationException
-//     A previous update to your private CA is still ongoing.
-//
 //   - ResourceNotFoundException
 //     A resource such as a private CA, S3 bucket, certificate, audit report, or
 //     policy cannot be found.
 //
-//   - InvalidArgsException
-//     One or more of the specified arguments was not valid.
-//
 //   - InvalidArnException
 //     The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
+//   - InvalidArgsException
+//     One or more of the specified arguments was not valid.
+//
 //   - InvalidStateException
 //     The state of the private CA does not allow this action to occur.
+//
+//   - ConcurrentModificationException
+//     A previous update to your private CA is still ongoing.
 //
 //   - InvalidPolicyException
 //     The resource policy is invalid or is missing a required statement. For general
@@ -2771,6 +2771,7 @@ type ASN1Subject struct {
 	// located.
 	Country *string `min:"2" type:"string"`
 
+	//
 	// Contains a sequence of one or more X.500 relative distinguished names (RDNs),
 	// each of which consists of an object identifier (OID) and a value. For more
 	// information, see NIST’s definition of Object Identifier (OID) (https://csrc.nist.gov/glossary/term/Object_Identifier).
@@ -4038,7 +4039,7 @@ func (s CreatePermissionOutput) GoString() string {
 //
 // Amazon Web Services Private CA assets that are stored in Amazon S3 can be
 // protected with encryption. For more information, see Encrypting Your CRLs
-// (https://docs.aws.amazon.com/privateca/latest/userguide/PcaCreateCa.html#crl-encryption).
+// (https://docs.aws.amazon.com/privateca/latest/userguide/crl-planning.html#crl-encryption).
 //
 // Your private CA uses the value in the ExpirationInDays parameter to calculate
 // the nextUpdate field in the CRL. The CRL is refreshed prior to a certificate's
@@ -4360,6 +4361,7 @@ type CustomAttribute struct {
 	// ObjectIdentifier is a required field
 	ObjectIdentifier *string `type:"string" required:"true"`
 
+	//
 	// Specifies the attribute value of relative distinguished name (RDN).
 	//
 	// Value is a required field
@@ -4422,15 +4424,18 @@ func (s *CustomAttribute) SetValue(v string) *CustomAttribute {
 type CustomExtension struct {
 	_ struct{} `type:"structure"`
 
+	//
 	// Specifies the critical flag of the X.509 extension.
 	Critical *bool `type:"boolean"`
 
+	//
 	// Specifies the object identifier (OID) of the X.509 extension. For more information,
 	// see the Global OID reference database. (https://oidref.com/2.5.29)
 	//
 	// ObjectIdentifier is a required field
 	ObjectIdentifier *string `type:"string" required:"true"`
 
+	//
 	// Specifies the base64-encoded value of the X.509 extension.
 	//
 	// Value is a required field
@@ -5083,6 +5088,7 @@ type Extensions struct {
 	// paths that include this certificate.
 	CertificatePolicies []*PolicyInformation `min:"1" type:"list"`
 
+	//
 	// Contains a sequence of one or more X.509 extensions, each of which consists
 	// of an object identifier (OID), a base64-encoded value, and the critical flag.
 	// For more information, see the Global OID reference database. (https://oidref.com/2.5.29)
@@ -5626,10 +5632,6 @@ func (s *GetCertificateOutput) SetCertificateChain(v string) *GetCertificateOutp
 type GetPolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Number (ARN) of the private CA that will have its policy
-	// retrieved. You can find the CA's ARN by calling the ListCertificateAuthorities
-	// action.
-	//
 	// ResourceArn is a required field
 	ResourceArn *string `min:"5" type:"string" required:"true"`
 }
@@ -9127,6 +9129,9 @@ const (
 
 	// KeyAlgorithmEcSecp384r1 is a KeyAlgorithm enum value
 	KeyAlgorithmEcSecp384r1 = "EC_secp384r1"
+
+	// KeyAlgorithmSm2 is a KeyAlgorithm enum value
+	KeyAlgorithmSm2 = "SM2"
 )
 
 // KeyAlgorithm_Values returns all elements of the KeyAlgorithm enum
@@ -9136,6 +9141,7 @@ func KeyAlgorithm_Values() []string {
 		KeyAlgorithmRsa4096,
 		KeyAlgorithmEcPrime256v1,
 		KeyAlgorithmEcSecp384r1,
+		KeyAlgorithmSm2,
 	}
 }
 
@@ -9145,6 +9151,9 @@ const (
 
 	// KeyStorageSecurityStandardFips1402Level3OrHigher is a KeyStorageSecurityStandard enum value
 	KeyStorageSecurityStandardFips1402Level3OrHigher = "FIPS_140_2_LEVEL_3_OR_HIGHER"
+
+	// KeyStorageSecurityStandardCcpcLevel1OrHigher is a KeyStorageSecurityStandard enum value
+	KeyStorageSecurityStandardCcpcLevel1OrHigher = "CCPC_LEVEL_1_OR_HIGHER"
 )
 
 // KeyStorageSecurityStandard_Values returns all elements of the KeyStorageSecurityStandard enum
@@ -9152,6 +9161,7 @@ func KeyStorageSecurityStandard_Values() []string {
 	return []string{
 		KeyStorageSecurityStandardFips1402Level2OrHigher,
 		KeyStorageSecurityStandardFips1402Level3OrHigher,
+		KeyStorageSecurityStandardCcpcLevel1OrHigher,
 	}
 }
 
@@ -9257,6 +9267,9 @@ const (
 
 	// SigningAlgorithmSha512withrsa is a SigningAlgorithm enum value
 	SigningAlgorithmSha512withrsa = "SHA512WITHRSA"
+
+	// SigningAlgorithmSm3withsm2 is a SigningAlgorithm enum value
+	SigningAlgorithmSm3withsm2 = "SM3WITHSM2"
 )
 
 // SigningAlgorithm_Values returns all elements of the SigningAlgorithm enum
@@ -9268,6 +9281,7 @@ func SigningAlgorithm_Values() []string {
 		SigningAlgorithmSha256withrsa,
 		SigningAlgorithmSha384withrsa,
 		SigningAlgorithmSha512withrsa,
+		SigningAlgorithmSm3withsm2,
 	}
 }
 

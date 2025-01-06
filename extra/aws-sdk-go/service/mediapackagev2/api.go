@@ -2692,6 +2692,19 @@ type ChannelListConfiguration struct {
 	// identification purposes.
 	Description *string `type:"string"`
 
+	// The input type will be an immutable field which will be used to define whether
+	// the channel will allow CMAF ingest or HLS ingest. If unprovided, it will
+	// default to HLS to preserve current behavior.
+	//
+	// The allowed values are:
+	//
+	//    * HLS - The HLS streaming specification (which defines M3U8 manifests
+	//    and TS segments).
+	//
+	//    * CMAF - The DASH-IF CMAF Ingest specification (which defines CMAF segments
+	//    with optional DASH manifests).
+	InputType *string `type:"string" enum:"InputType"`
+
 	// The date and time the channel was modified.
 	//
 	// ModifiedAt is a required field
@@ -2743,6 +2756,12 @@ func (s *ChannelListConfiguration) SetCreatedAt(v time.Time) *ChannelListConfigu
 // SetDescription sets the Description field's value.
 func (s *ChannelListConfiguration) SetDescription(v string) *ChannelListConfiguration {
 	s.Description = &v
+	return s
+}
+
+// SetInputType sets the InputType field's value.
+func (s *ChannelListConfiguration) SetInputType(v string) *ChannelListConfiguration {
+	s.InputType = &v
 	return s
 }
 
@@ -3036,6 +3055,19 @@ type CreateChannelInput struct {
 	// Enter any descriptive text that helps you to identify the channel.
 	Description *string `type:"string"`
 
+	// The input type will be an immutable field which will be used to define whether
+	// the channel will allow CMAF ingest or HLS ingest. If unprovided, it will
+	// default to HLS to preserve current behavior.
+	//
+	// The allowed values are:
+	//
+	//    * HLS - The HLS streaming specification (which defines M3U8 manifests
+	//    and TS segments).
+	//
+	//    * CMAF - The DASH-IF CMAF Ingest specification (which defines CMAF segments
+	//    with optional DASH manifests).
+	InputType *string `type:"string" enum:"InputType"`
+
 	// A comma-separated list of tag key:value pairs that you define. For example:
 	//
 	// "Key1": "Value1",
@@ -3111,6 +3143,12 @@ func (s *CreateChannelInput) SetDescription(v string) *CreateChannelInput {
 	return s
 }
 
+// SetInputType sets the InputType field's value.
+func (s *CreateChannelInput) SetInputType(v string) *CreateChannelInput {
+	s.InputType = &v
+	return s
+}
+
 // SetTags sets the Tags field's value.
 func (s *CreateChannelInput) SetTags(v map[string]*string) *CreateChannelInput {
 	s.Tags = v
@@ -3152,6 +3190,19 @@ type CreateChannelOutput struct {
 
 	// The list of ingest endpoints.
 	IngestEndpoints []*IngestEndpoint `type:"list"`
+
+	// The input type will be an immutable field which will be used to define whether
+	// the channel will allow CMAF ingest or HLS ingest. If unprovided, it will
+	// default to HLS to preserve current behavior.
+	//
+	// The allowed values are:
+	//
+	//    * HLS - The HLS streaming specification (which defines M3U8 manifests
+	//    and TS segments).
+	//
+	//    * CMAF - The DASH-IF CMAF Ingest specification (which defines CMAF segments
+	//    with optional DASH manifests).
+	InputType *string `type:"string" enum:"InputType"`
 
 	// The date and time the channel was modified.
 	//
@@ -3222,6 +3273,12 @@ func (s *CreateChannelOutput) SetIngestEndpoints(v []*IngestEndpoint) *CreateCha
 	return s
 }
 
+// SetInputType sets the InputType field's value.
+func (s *CreateChannelOutput) SetInputType(v string) *CreateChannelOutput {
+	s.InputType = &v
+	return s
+}
+
 // SetModifiedAt sets the ModifiedAt field's value.
 func (s *CreateChannelOutput) SetModifiedAt(v time.Time) *CreateChannelOutput {
 	s.ModifiedAt = &v
@@ -3231,6 +3288,183 @@ func (s *CreateChannelOutput) SetModifiedAt(v time.Time) *CreateChannelOutput {
 // SetTags sets the Tags field's value.
 func (s *CreateChannelOutput) SetTags(v map[string]*string) *CreateChannelOutput {
 	s.Tags = v
+	return s
+}
+
+// Create a DASH manifest configuration.
+type CreateDashManifestConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Determines how the DASH manifest signals the DRM content.
+	DrmSignaling *string `type:"string" enum:"DashDrmSignaling"`
+
+	// Filter configuration includes settings for manifest filtering, start and
+	// end times, and time delay that apply to all of your egress requests for this
+	// manifest.
+	FilterConfiguration *FilterConfiguration `type:"structure"`
+
+	// A short string that's appended to the endpoint URL. The child manifest name
+	// creates a unique path to this endpoint.
+	//
+	// ManifestName is a required field
+	ManifestName *string `min:"1" type:"string" required:"true"`
+
+	// The total duration (in seconds) of the manifest's content.
+	ManifestWindowSeconds *int64 `min:"30" type:"integer"`
+
+	// Minimum amount of content (in seconds) that a player must keep available
+	// in the buffer.
+	MinBufferTimeSeconds *int64 `type:"integer"`
+
+	// Minimum amount of time (in seconds) that the player should wait before requesting
+	// updates to the manifest.
+	MinUpdatePeriodSeconds *int64 `min:"1" type:"integer"`
+
+	// A list of triggers that controls when AWS Elemental MediaPackage separates
+	// the MPEG-DASH manifest into multiple periods. Type ADS to indicate that AWS
+	// Elemental MediaPackage must create periods in the output manifest that correspond
+	// to SCTE-35 ad markers in the input source. Leave this value empty to indicate
+	// that the manifest is contained all in one period. For more information about
+	// periods in the DASH manifest, see Multi-period DASH in AWS Elemental MediaPackage
+	// (https://docs.aws.amazon.com/mediapackage/latest/userguide/multi-period.html).
+	PeriodTriggers []*string `type:"list" enum:"DashPeriodTrigger"`
+
+	// The SCTE configuration.
+	ScteDash *ScteDash `type:"structure"`
+
+	// Determines the type of variable used in the media URL of the SegmentTemplate
+	// tag in the manifest. Also specifies if segment timeline information is included
+	// in SegmentTimeline or SegmentTemplate.
+	//
+	// Value description:
+	//
+	//    * NUMBER_WITH_TIMELINE - The $Number$ variable is used in the media URL.
+	//    The value of this variable is the sequential number of the segment. A
+	//    full SegmentTimeline object is presented in each SegmentTemplate.
+	SegmentTemplateFormat *string `type:"string" enum:"DashSegmentTemplateFormat"`
+
+	// The amount of time (in seconds) that the player should be from the end of
+	// the manifest.
+	SuggestedPresentationDelaySeconds *int64 `type:"integer"`
+
+	// Determines the type of UTC timing included in the DASH Media Presentation
+	// Description (MPD).
+	UtcTiming *DashUtcTiming `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateDashManifestConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateDashManifestConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateDashManifestConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateDashManifestConfiguration"}
+	if s.ManifestName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ManifestName"))
+	}
+	if s.ManifestName != nil && len(*s.ManifestName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ManifestName", 1))
+	}
+	if s.ManifestWindowSeconds != nil && *s.ManifestWindowSeconds < 30 {
+		invalidParams.Add(request.NewErrParamMinValue("ManifestWindowSeconds", 30))
+	}
+	if s.MinUpdatePeriodSeconds != nil && *s.MinUpdatePeriodSeconds < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MinUpdatePeriodSeconds", 1))
+	}
+	if s.FilterConfiguration != nil {
+		if err := s.FilterConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("FilterConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.UtcTiming != nil {
+		if err := s.UtcTiming.Validate(); err != nil {
+			invalidParams.AddNested("UtcTiming", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDrmSignaling sets the DrmSignaling field's value.
+func (s *CreateDashManifestConfiguration) SetDrmSignaling(v string) *CreateDashManifestConfiguration {
+	s.DrmSignaling = &v
+	return s
+}
+
+// SetFilterConfiguration sets the FilterConfiguration field's value.
+func (s *CreateDashManifestConfiguration) SetFilterConfiguration(v *FilterConfiguration) *CreateDashManifestConfiguration {
+	s.FilterConfiguration = v
+	return s
+}
+
+// SetManifestName sets the ManifestName field's value.
+func (s *CreateDashManifestConfiguration) SetManifestName(v string) *CreateDashManifestConfiguration {
+	s.ManifestName = &v
+	return s
+}
+
+// SetManifestWindowSeconds sets the ManifestWindowSeconds field's value.
+func (s *CreateDashManifestConfiguration) SetManifestWindowSeconds(v int64) *CreateDashManifestConfiguration {
+	s.ManifestWindowSeconds = &v
+	return s
+}
+
+// SetMinBufferTimeSeconds sets the MinBufferTimeSeconds field's value.
+func (s *CreateDashManifestConfiguration) SetMinBufferTimeSeconds(v int64) *CreateDashManifestConfiguration {
+	s.MinBufferTimeSeconds = &v
+	return s
+}
+
+// SetMinUpdatePeriodSeconds sets the MinUpdatePeriodSeconds field's value.
+func (s *CreateDashManifestConfiguration) SetMinUpdatePeriodSeconds(v int64) *CreateDashManifestConfiguration {
+	s.MinUpdatePeriodSeconds = &v
+	return s
+}
+
+// SetPeriodTriggers sets the PeriodTriggers field's value.
+func (s *CreateDashManifestConfiguration) SetPeriodTriggers(v []*string) *CreateDashManifestConfiguration {
+	s.PeriodTriggers = v
+	return s
+}
+
+// SetScteDash sets the ScteDash field's value.
+func (s *CreateDashManifestConfiguration) SetScteDash(v *ScteDash) *CreateDashManifestConfiguration {
+	s.ScteDash = v
+	return s
+}
+
+// SetSegmentTemplateFormat sets the SegmentTemplateFormat field's value.
+func (s *CreateDashManifestConfiguration) SetSegmentTemplateFormat(v string) *CreateDashManifestConfiguration {
+	s.SegmentTemplateFormat = &v
+	return s
+}
+
+// SetSuggestedPresentationDelaySeconds sets the SuggestedPresentationDelaySeconds field's value.
+func (s *CreateDashManifestConfiguration) SetSuggestedPresentationDelaySeconds(v int64) *CreateDashManifestConfiguration {
+	s.SuggestedPresentationDelaySeconds = &v
+	return s
+}
+
+// SetUtcTiming sets the UtcTiming field's value.
+func (s *CreateDashManifestConfiguration) SetUtcTiming(v *DashUtcTiming) *CreateDashManifestConfiguration {
+	s.UtcTiming = v
 	return s
 }
 
@@ -3520,8 +3754,14 @@ type CreateOriginEndpointInput struct {
 	// ContainerType is a required field
 	ContainerType *string `type:"string" required:"true" enum:"ContainerType"`
 
+	// A DASH manifest configuration.
+	DashManifests []*CreateDashManifestConfiguration `type:"list"`
+
 	// Enter any descriptive text that helps you to identify the origin endpoint.
 	Description *string `type:"string"`
+
+	// The failover settings for the endpoint.
+	ForceEndpointErrorConfiguration *ForceEndpointErrorConfiguration `type:"structure"`
 
 	// An HTTP live streaming (HLS) manifest configuration.
 	HlsManifests []*CreateHlsManifestConfiguration `type:"list"`
@@ -3603,6 +3843,16 @@ func (s *CreateOriginEndpointInput) Validate() error {
 	if s.StartoverWindowSeconds != nil && *s.StartoverWindowSeconds < 60 {
 		invalidParams.Add(request.NewErrParamMinValue("StartoverWindowSeconds", 60))
 	}
+	if s.DashManifests != nil {
+		for i, v := range s.DashManifests {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "DashManifests", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.HlsManifests != nil {
 		for i, v := range s.HlsManifests {
 			if v == nil {
@@ -3659,9 +3909,21 @@ func (s *CreateOriginEndpointInput) SetContainerType(v string) *CreateOriginEndp
 	return s
 }
 
+// SetDashManifests sets the DashManifests field's value.
+func (s *CreateOriginEndpointInput) SetDashManifests(v []*CreateDashManifestConfiguration) *CreateOriginEndpointInput {
+	s.DashManifests = v
+	return s
+}
+
 // SetDescription sets the Description field's value.
 func (s *CreateOriginEndpointInput) SetDescription(v string) *CreateOriginEndpointInput {
 	s.Description = &v
+	return s
+}
+
+// SetForceEndpointErrorConfiguration sets the ForceEndpointErrorConfiguration field's value.
+func (s *CreateOriginEndpointInput) SetForceEndpointErrorConfiguration(v *ForceEndpointErrorConfiguration) *CreateOriginEndpointInput {
+	s.ForceEndpointErrorConfiguration = v
 	return s
 }
 
@@ -3732,12 +3994,18 @@ type CreateOriginEndpointOutput struct {
 	// CreatedAt is a required field
 	CreatedAt *time.Time `type:"timestamp" required:"true"`
 
+	// A DASH manifest configuration.
+	DashManifests []*GetDashManifestConfiguration `type:"list"`
+
 	// The description for your origin endpoint.
 	Description *string `type:"string"`
 
 	// The current Entity Tag (ETag) associated with this resource. The entity tag
 	// can be used to safely make concurrent updates to the resource.
 	ETag *string `min:"1" type:"string"`
+
+	// The failover settings for the endpoint.
+	ForceEndpointErrorConfiguration *ForceEndpointErrorConfiguration `type:"structure"`
 
 	// An HTTP live streaming (HLS) manifest configuration.
 	HlsManifests []*GetHlsManifestConfiguration `type:"list"`
@@ -3820,6 +4088,12 @@ func (s *CreateOriginEndpointOutput) SetCreatedAt(v time.Time) *CreateOriginEndp
 	return s
 }
 
+// SetDashManifests sets the DashManifests field's value.
+func (s *CreateOriginEndpointOutput) SetDashManifests(v []*GetDashManifestConfiguration) *CreateOriginEndpointOutput {
+	s.DashManifests = v
+	return s
+}
+
 // SetDescription sets the Description field's value.
 func (s *CreateOriginEndpointOutput) SetDescription(v string) *CreateOriginEndpointOutput {
 	s.Description = &v
@@ -3829,6 +4103,12 @@ func (s *CreateOriginEndpointOutput) SetDescription(v string) *CreateOriginEndpo
 // SetETag sets the ETag field's value.
 func (s *CreateOriginEndpointOutput) SetETag(v string) *CreateOriginEndpointOutput {
 	s.ETag = &v
+	return s
+}
+
+// SetForceEndpointErrorConfiguration sets the ForceEndpointErrorConfiguration field's value.
+func (s *CreateOriginEndpointOutput) SetForceEndpointErrorConfiguration(v *ForceEndpointErrorConfiguration) *CreateOriginEndpointOutput {
+	s.ForceEndpointErrorConfiguration = v
 	return s
 }
 
@@ -3871,6 +4151,62 @@ func (s *CreateOriginEndpointOutput) SetStartoverWindowSeconds(v int64) *CreateO
 // SetTags sets the Tags field's value.
 func (s *CreateOriginEndpointOutput) SetTags(v map[string]*string) *CreateOriginEndpointOutput {
 	s.Tags = v
+	return s
+}
+
+// Determines the type of UTC timing included in the DASH Media Presentation
+// Description (MPD).
+type DashUtcTiming struct {
+	_ struct{} `type:"structure"`
+
+	// The UTC timing mode.
+	TimingMode *string `type:"string" enum:"DashUtcTimingMode"`
+
+	// The the method that the player uses to synchronize to coordinated universal
+	// time (UTC) wall clock time.
+	TimingSource *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DashUtcTiming) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DashUtcTiming) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DashUtcTiming) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DashUtcTiming"}
+	if s.TimingSource != nil && len(*s.TimingSource) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TimingSource", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTimingMode sets the TimingMode field's value.
+func (s *DashUtcTiming) SetTimingMode(v string) *DashUtcTiming {
+	s.TimingMode = &v
+	return s
+}
+
+// SetTimingSource sets the TimingSource field's value.
+func (s *DashUtcTiming) SetTimingSource(v string) *DashUtcTiming {
+	s.TimingSource = &v
 	return s
 }
 
@@ -4694,6 +5030,49 @@ func (s *FilterConfiguration) SetTimeDelaySeconds(v int64) *FilterConfiguration 
 	return s
 }
 
+// The failover settings for the endpoint.
+type ForceEndpointErrorConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The failover conditions for the endpoint. The options are:
+	//
+	//    * STALE_MANIFEST - The manifest stalled and there are no new segments
+	//    or parts.
+	//
+	//    * INCOMPLETE_MANIFEST - There is a gap in the manifest.
+	//
+	//    * MISSING_DRM_KEY - Key rotation is enabled but we're unable to fetch
+	//    the key for the current key period.
+	//
+	//    * SLATE_INPUT - The segments which contain slate content are considered
+	//    to be missing content.
+	EndpointErrorConditions []*string `type:"list" enum:"EndpointErrorCondition"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ForceEndpointErrorConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ForceEndpointErrorConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetEndpointErrorConditions sets the EndpointErrorConditions field's value.
+func (s *ForceEndpointErrorConfiguration) SetEndpointErrorConditions(v []*string) *ForceEndpointErrorConfiguration {
+	s.EndpointErrorConditions = v
+	return s
+}
+
 type GetChannelGroupInput struct {
 	_ struct{} `type:"structure" nopayload:"true"`
 
@@ -4956,6 +5335,19 @@ type GetChannelOutput struct {
 	// The list of ingest endpoints.
 	IngestEndpoints []*IngestEndpoint `type:"list"`
 
+	// The input type will be an immutable field which will be used to define whether
+	// the channel will allow CMAF ingest or HLS ingest. If unprovided, it will
+	// default to HLS to preserve current behavior.
+	//
+	// The allowed values are:
+	//
+	//    * HLS - The HLS streaming specification (which defines M3U8 manifests
+	//    and TS segments).
+	//
+	//    * CMAF - The DASH-IF CMAF Ingest specification (which defines CMAF segments
+	//    with optional DASH manifests).
+	InputType *string `type:"string" enum:"InputType"`
+
 	// The date and time the channel was modified.
 	//
 	// ModifiedAt is a required field
@@ -5022,6 +5414,12 @@ func (s *GetChannelOutput) SetETag(v string) *GetChannelOutput {
 // SetIngestEndpoints sets the IngestEndpoints field's value.
 func (s *GetChannelOutput) SetIngestEndpoints(v []*IngestEndpoint) *GetChannelOutput {
 	s.IngestEndpoints = v
+	return s
+}
+
+// SetInputType sets the InputType field's value.
+func (s *GetChannelOutput) SetInputType(v string) *GetChannelOutput {
+	s.InputType = &v
 	return s
 }
 
@@ -5161,6 +5559,161 @@ func (s *GetChannelPolicyOutput) SetChannelName(v string) *GetChannelPolicyOutpu
 // SetPolicy sets the Policy field's value.
 func (s *GetChannelPolicyOutput) SetPolicy(v string) *GetChannelPolicyOutput {
 	s.Policy = &v
+	return s
+}
+
+// Retrieve the DASH manifest configuration.
+type GetDashManifestConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Determines how the DASH manifest signals the DRM content.
+	DrmSignaling *string `type:"string" enum:"DashDrmSignaling"`
+
+	// Filter configuration includes settings for manifest filtering, start and
+	// end times, and time delay that apply to all of your egress requests for this
+	// manifest.
+	FilterConfiguration *FilterConfiguration `type:"structure"`
+
+	// A short string that's appended to the endpoint URL. The manifest name creates
+	// a unique path to this endpoint. If you don't enter a value, MediaPackage
+	// uses the default manifest name, index.
+	//
+	// ManifestName is a required field
+	ManifestName *string `min:"1" type:"string" required:"true"`
+
+	// The total duration (in seconds) of the manifest's content.
+	ManifestWindowSeconds *int64 `type:"integer"`
+
+	// Minimum amount of content (in seconds) that a player must keep available
+	// in the buffer.
+	MinBufferTimeSeconds *int64 `type:"integer"`
+
+	// Minimum amount of time (in seconds) that the player should wait before requesting
+	// updates to the manifest.
+	MinUpdatePeriodSeconds *int64 `type:"integer"`
+
+	// A list of triggers that controls when AWS Elemental MediaPackage separates
+	// the MPEG-DASH manifest into multiple periods. Leave this value empty to indicate
+	// that the manifest is contained all in one period. For more information about
+	// periods in the DASH manifest, see Multi-period DASH in AWS Elemental MediaPackage
+	// (https://docs.aws.amazon.com/mediapackage/latest/userguide/multi-period.html).
+	PeriodTriggers []*string `type:"list" enum:"DashPeriodTrigger"`
+
+	// The SCTE configuration.
+	ScteDash *ScteDash `type:"structure"`
+
+	// Determines the type of variable used in the media URL of the SegmentTemplate
+	// tag in the manifest. Also specifies if segment timeline information is included
+	// in SegmentTimeline or SegmentTemplate.
+	//
+	// Value description:
+	//
+	//    * NUMBER_WITH_TIMELINE - The $Number$ variable is used in the media URL.
+	//    The value of this variable is the sequential number of the segment. A
+	//    full SegmentTimeline object is presented in each SegmentTemplate.
+	SegmentTemplateFormat *string `type:"string" enum:"DashSegmentTemplateFormat"`
+
+	// The amount of time (in seconds) that the player should be from the end of
+	// the manifest.
+	SuggestedPresentationDelaySeconds *int64 `type:"integer"`
+
+	// The egress domain URL for stream delivery from MediaPackage.
+	//
+	// Url is a required field
+	Url *string `type:"string" required:"true"`
+
+	// Determines the type of UTC timing included in the DASH Media Presentation
+	// Description (MPD).
+	UtcTiming *DashUtcTiming `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetDashManifestConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetDashManifestConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetDrmSignaling sets the DrmSignaling field's value.
+func (s *GetDashManifestConfiguration) SetDrmSignaling(v string) *GetDashManifestConfiguration {
+	s.DrmSignaling = &v
+	return s
+}
+
+// SetFilterConfiguration sets the FilterConfiguration field's value.
+func (s *GetDashManifestConfiguration) SetFilterConfiguration(v *FilterConfiguration) *GetDashManifestConfiguration {
+	s.FilterConfiguration = v
+	return s
+}
+
+// SetManifestName sets the ManifestName field's value.
+func (s *GetDashManifestConfiguration) SetManifestName(v string) *GetDashManifestConfiguration {
+	s.ManifestName = &v
+	return s
+}
+
+// SetManifestWindowSeconds sets the ManifestWindowSeconds field's value.
+func (s *GetDashManifestConfiguration) SetManifestWindowSeconds(v int64) *GetDashManifestConfiguration {
+	s.ManifestWindowSeconds = &v
+	return s
+}
+
+// SetMinBufferTimeSeconds sets the MinBufferTimeSeconds field's value.
+func (s *GetDashManifestConfiguration) SetMinBufferTimeSeconds(v int64) *GetDashManifestConfiguration {
+	s.MinBufferTimeSeconds = &v
+	return s
+}
+
+// SetMinUpdatePeriodSeconds sets the MinUpdatePeriodSeconds field's value.
+func (s *GetDashManifestConfiguration) SetMinUpdatePeriodSeconds(v int64) *GetDashManifestConfiguration {
+	s.MinUpdatePeriodSeconds = &v
+	return s
+}
+
+// SetPeriodTriggers sets the PeriodTriggers field's value.
+func (s *GetDashManifestConfiguration) SetPeriodTriggers(v []*string) *GetDashManifestConfiguration {
+	s.PeriodTriggers = v
+	return s
+}
+
+// SetScteDash sets the ScteDash field's value.
+func (s *GetDashManifestConfiguration) SetScteDash(v *ScteDash) *GetDashManifestConfiguration {
+	s.ScteDash = v
+	return s
+}
+
+// SetSegmentTemplateFormat sets the SegmentTemplateFormat field's value.
+func (s *GetDashManifestConfiguration) SetSegmentTemplateFormat(v string) *GetDashManifestConfiguration {
+	s.SegmentTemplateFormat = &v
+	return s
+}
+
+// SetSuggestedPresentationDelaySeconds sets the SuggestedPresentationDelaySeconds field's value.
+func (s *GetDashManifestConfiguration) SetSuggestedPresentationDelaySeconds(v int64) *GetDashManifestConfiguration {
+	s.SuggestedPresentationDelaySeconds = &v
+	return s
+}
+
+// SetUrl sets the Url field's value.
+func (s *GetDashManifestConfiguration) SetUrl(v string) *GetDashManifestConfiguration {
+	s.Url = &v
+	return s
+}
+
+// SetUtcTiming sets the UtcTiming field's value.
+func (s *GetDashManifestConfiguration) SetUtcTiming(v *DashUtcTiming) *GetDashManifestConfiguration {
+	s.UtcTiming = v
 	return s
 }
 
@@ -5501,12 +6054,18 @@ type GetOriginEndpointOutput struct {
 	// CreatedAt is a required field
 	CreatedAt *time.Time `type:"timestamp" required:"true"`
 
+	// A DASH manifest configuration.
+	DashManifests []*GetDashManifestConfiguration `type:"list"`
+
 	// The description for your origin endpoint.
 	Description *string `type:"string"`
 
 	// The current Entity Tag (ETag) associated with this resource. The entity tag
 	// can be used to safely make concurrent updates to the resource.
 	ETag *string `min:"1" type:"string"`
+
+	// The failover settings for the endpoint.
+	ForceEndpointErrorConfiguration *ForceEndpointErrorConfiguration `type:"structure"`
 
 	// An HTTP live streaming (HLS) manifest configuration.
 	HlsManifests []*GetHlsManifestConfiguration `type:"list"`
@@ -5589,6 +6148,12 @@ func (s *GetOriginEndpointOutput) SetCreatedAt(v time.Time) *GetOriginEndpointOu
 	return s
 }
 
+// SetDashManifests sets the DashManifests field's value.
+func (s *GetOriginEndpointOutput) SetDashManifests(v []*GetDashManifestConfiguration) *GetOriginEndpointOutput {
+	s.DashManifests = v
+	return s
+}
+
 // SetDescription sets the Description field's value.
 func (s *GetOriginEndpointOutput) SetDescription(v string) *GetOriginEndpointOutput {
 	s.Description = &v
@@ -5598,6 +6163,12 @@ func (s *GetOriginEndpointOutput) SetDescription(v string) *GetOriginEndpointOut
 // SetETag sets the ETag field's value.
 func (s *GetOriginEndpointOutput) SetETag(v string) *GetOriginEndpointOutput {
 	s.ETag = &v
+	return s
+}
+
+// SetForceEndpointErrorConfiguration sets the ForceEndpointErrorConfiguration field's value.
+func (s *GetOriginEndpointOutput) SetForceEndpointErrorConfiguration(v *ForceEndpointErrorConfiguration) *GetOriginEndpointOutput {
+	s.ForceEndpointErrorConfiguration = v
 	return s
 }
 
@@ -6115,6 +6686,51 @@ func (s *ListChannelsOutput) SetNextToken(v string) *ListChannelsOutput {
 	return s
 }
 
+// List the DASH manifest configuration.
+type ListDashManifestConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// A short string that's appended to the endpoint URL. The manifest name creates
+	// a unique path to this endpoint. If you don't enter a value, MediaPackage
+	// uses the default manifest name, index.
+	//
+	// ManifestName is a required field
+	ManifestName *string `min:"1" type:"string" required:"true"`
+
+	// The egress domain URL for stream delivery from MediaPackage.
+	Url *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListDashManifestConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListDashManifestConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetManifestName sets the ManifestName field's value.
+func (s *ListDashManifestConfiguration) SetManifestName(v string) *ListDashManifestConfiguration {
+	s.ManifestName = &v
+	return s
+}
+
+// SetUrl sets the Url field's value.
+func (s *ListDashManifestConfiguration) SetUrl(v string) *ListDashManifestConfiguration {
+	s.Url = &v
+	return s
+}
+
 // List the HTTP live streaming (HLS) manifest configuration.
 type ListHlsManifestConfiguration struct {
 	_ struct{} `type:"structure"`
@@ -6482,9 +7098,15 @@ type OriginEndpointListConfiguration struct {
 	// The date and time the origin endpoint was created.
 	CreatedAt *time.Time `type:"timestamp"`
 
+	// A DASH manifest configuration.
+	DashManifests []*ListDashManifestConfiguration `type:"list"`
+
 	// Any descriptive information that you want to add to the origin endpoint for
 	// future identification purposes.
 	Description *string `type:"string"`
+
+	// The failover settings for the endpoint.
+	ForceEndpointErrorConfiguration *ForceEndpointErrorConfiguration `type:"structure"`
 
 	// An HTTP live streaming (HLS) manifest configuration.
 	HlsManifests []*ListHlsManifestConfiguration `type:"list"`
@@ -6551,9 +7173,21 @@ func (s *OriginEndpointListConfiguration) SetCreatedAt(v time.Time) *OriginEndpo
 	return s
 }
 
+// SetDashManifests sets the DashManifests field's value.
+func (s *OriginEndpointListConfiguration) SetDashManifests(v []*ListDashManifestConfiguration) *OriginEndpointListConfiguration {
+	s.DashManifests = v
+	return s
+}
+
 // SetDescription sets the Description field's value.
 func (s *OriginEndpointListConfiguration) SetDescription(v string) *OriginEndpointListConfiguration {
 	s.Description = &v
+	return s
+}
+
+// SetForceEndpointErrorConfiguration sets the ForceEndpointErrorConfiguration field's value.
+func (s *OriginEndpointListConfiguration) SetForceEndpointErrorConfiguration(v *ForceEndpointErrorConfiguration) *OriginEndpointListConfiguration {
+	s.ForceEndpointErrorConfiguration = v
 	return s
 }
 
@@ -6907,6 +7541,47 @@ func (s Scte) GoString() string {
 // SetScteFilter sets the ScteFilter field's value.
 func (s *Scte) SetScteFilter(v []*string) *Scte {
 	s.ScteFilter = v
+	return s
+}
+
+// The SCTE configuration.
+type ScteDash struct {
+	_ struct{} `type:"structure"`
+
+	// Choose how ad markers are included in the packaged content. If you include
+	// ad markers in the content stream in your upstream encoders, then you need
+	// to inform MediaPackage what to do with the ad markers in the output.
+	//
+	// Value description:
+	//
+	//    * Binary - The SCTE-35 marker is expressed as a hex-string (Base64 string)
+	//    rather than full XML.
+	//
+	//    * XML - The SCTE marker is expressed fully in XML.
+	AdMarkerDash *string `type:"string" enum:"AdMarkerDash"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ScteDash) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ScteDash) GoString() string {
+	return s.String()
+}
+
+// SetAdMarkerDash sets the AdMarkerDash field's value.
+func (s *ScteDash) SetAdMarkerDash(v string) *ScteDash {
+	s.AdMarkerDash = &v
 	return s
 }
 
@@ -7824,6 +8499,19 @@ type UpdateChannelOutput struct {
 	// The list of ingest endpoints.
 	IngestEndpoints []*IngestEndpoint `type:"list"`
 
+	// The input type will be an immutable field which will be used to define whether
+	// the channel will allow CMAF ingest or HLS ingest. If unprovided, it will
+	// default to HLS to preserve current behavior.
+	//
+	// The allowed values are:
+	//
+	//    * HLS - The HLS streaming specification (which defines M3U8 manifests
+	//    and TS segments).
+	//
+	//    * CMAF - The DASH-IF CMAF Ingest specification (which defines CMAF segments
+	//    with optional DASH manifests).
+	InputType *string `type:"string" enum:"InputType"`
+
 	// The date and time the channel was modified.
 	//
 	// ModifiedAt is a required field
@@ -7893,6 +8581,12 @@ func (s *UpdateChannelOutput) SetIngestEndpoints(v []*IngestEndpoint) *UpdateCha
 	return s
 }
 
+// SetInputType sets the InputType field's value.
+func (s *UpdateChannelOutput) SetInputType(v string) *UpdateChannelOutput {
+	s.InputType = &v
+	return s
+}
+
 // SetModifiedAt sets the ModifiedAt field's value.
 func (s *UpdateChannelOutput) SetModifiedAt(v time.Time) *UpdateChannelOutput {
 	s.ModifiedAt = &v
@@ -7928,6 +8622,9 @@ type UpdateOriginEndpointInput struct {
 	// ContainerType is a required field
 	ContainerType *string `type:"string" required:"true" enum:"ContainerType"`
 
+	// A DASH manifest configuration.
+	DashManifests []*CreateDashManifestConfiguration `type:"list"`
+
 	// Any descriptive information that you want to add to the origin endpoint for
 	// future identification purposes.
 	Description *string `type:"string"`
@@ -7936,6 +8633,9 @@ type UpdateOriginEndpointInput struct {
 	// ETag does not match the resource's current entity tag, the update request
 	// will be rejected.
 	ETag *string `location:"header" locationName:"x-amzn-update-if-match" min:"1" type:"string"`
+
+	// The failover settings for the endpoint.
+	ForceEndpointErrorConfiguration *ForceEndpointErrorConfiguration `type:"structure"`
 
 	// An HTTP live streaming (HLS) manifest configuration.
 	HlsManifests []*CreateHlsManifestConfiguration `type:"list"`
@@ -8009,6 +8709,16 @@ func (s *UpdateOriginEndpointInput) Validate() error {
 	if s.StartoverWindowSeconds != nil && *s.StartoverWindowSeconds < 60 {
 		invalidParams.Add(request.NewErrParamMinValue("StartoverWindowSeconds", 60))
 	}
+	if s.DashManifests != nil {
+		for i, v := range s.DashManifests {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "DashManifests", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.HlsManifests != nil {
 		for i, v := range s.HlsManifests {
 			if v == nil {
@@ -8059,6 +8769,12 @@ func (s *UpdateOriginEndpointInput) SetContainerType(v string) *UpdateOriginEndp
 	return s
 }
 
+// SetDashManifests sets the DashManifests field's value.
+func (s *UpdateOriginEndpointInput) SetDashManifests(v []*CreateDashManifestConfiguration) *UpdateOriginEndpointInput {
+	s.DashManifests = v
+	return s
+}
+
 // SetDescription sets the Description field's value.
 func (s *UpdateOriginEndpointInput) SetDescription(v string) *UpdateOriginEndpointInput {
 	s.Description = &v
@@ -8068,6 +8784,12 @@ func (s *UpdateOriginEndpointInput) SetDescription(v string) *UpdateOriginEndpoi
 // SetETag sets the ETag field's value.
 func (s *UpdateOriginEndpointInput) SetETag(v string) *UpdateOriginEndpointInput {
 	s.ETag = &v
+	return s
+}
+
+// SetForceEndpointErrorConfiguration sets the ForceEndpointErrorConfiguration field's value.
+func (s *UpdateOriginEndpointInput) SetForceEndpointErrorConfiguration(v *ForceEndpointErrorConfiguration) *UpdateOriginEndpointInput {
+	s.ForceEndpointErrorConfiguration = v
 	return s
 }
 
@@ -8132,12 +8854,18 @@ type UpdateOriginEndpointOutput struct {
 	// CreatedAt is a required field
 	CreatedAt *time.Time `type:"timestamp" required:"true"`
 
+	// A DASH manifest configuration.
+	DashManifests []*GetDashManifestConfiguration `type:"list"`
+
 	// The description of the origin endpoint.
 	Description *string `type:"string"`
 
 	// The current Entity Tag (ETag) associated with this resource. The entity tag
 	// can be used to safely make concurrent updates to the resource.
 	ETag *string `min:"1" type:"string"`
+
+	// The failover settings for the endpoint.
+	ForceEndpointErrorConfiguration *ForceEndpointErrorConfiguration `type:"structure"`
 
 	// An HTTP live streaming (HLS) manifest configuration.
 	HlsManifests []*GetHlsManifestConfiguration `type:"list"`
@@ -8220,6 +8948,12 @@ func (s *UpdateOriginEndpointOutput) SetCreatedAt(v time.Time) *UpdateOriginEndp
 	return s
 }
 
+// SetDashManifests sets the DashManifests field's value.
+func (s *UpdateOriginEndpointOutput) SetDashManifests(v []*GetDashManifestConfiguration) *UpdateOriginEndpointOutput {
+	s.DashManifests = v
+	return s
+}
+
 // SetDescription sets the Description field's value.
 func (s *UpdateOriginEndpointOutput) SetDescription(v string) *UpdateOriginEndpointOutput {
 	s.Description = &v
@@ -8229,6 +8963,12 @@ func (s *UpdateOriginEndpointOutput) SetDescription(v string) *UpdateOriginEndpo
 // SetETag sets the ETag field's value.
 func (s *UpdateOriginEndpointOutput) SetETag(v string) *UpdateOriginEndpointOutput {
 	s.ETag = &v
+	return s
+}
+
+// SetForceEndpointErrorConfiguration sets the ForceEndpointErrorConfiguration field's value.
+func (s *UpdateOriginEndpointOutput) SetForceEndpointErrorConfiguration(v *ForceEndpointErrorConfiguration) *UpdateOriginEndpointOutput {
+	s.ForceEndpointErrorConfiguration = v
 	return s
 }
 
@@ -8342,6 +9082,22 @@ func (s *ValidationException) RequestID() string {
 }
 
 const (
+	// AdMarkerDashBinary is a AdMarkerDash enum value
+	AdMarkerDashBinary = "BINARY"
+
+	// AdMarkerDashXml is a AdMarkerDash enum value
+	AdMarkerDashXml = "XML"
+)
+
+// AdMarkerDash_Values returns all elements of the AdMarkerDash enum
+func AdMarkerDash_Values() []string {
+	return []string{
+		AdMarkerDashBinary,
+		AdMarkerDashXml,
+	}
+}
+
+const (
 	// AdMarkerHlsDaterange is a AdMarkerHls enum value
 	AdMarkerHlsDaterange = "DATERANGE"
 )
@@ -8410,6 +9166,86 @@ func ContainerType_Values() []string {
 }
 
 const (
+	// DashDrmSignalingIndividual is a DashDrmSignaling enum value
+	DashDrmSignalingIndividual = "INDIVIDUAL"
+
+	// DashDrmSignalingReferenced is a DashDrmSignaling enum value
+	DashDrmSignalingReferenced = "REFERENCED"
+)
+
+// DashDrmSignaling_Values returns all elements of the DashDrmSignaling enum
+func DashDrmSignaling_Values() []string {
+	return []string{
+		DashDrmSignalingIndividual,
+		DashDrmSignalingReferenced,
+	}
+}
+
+const (
+	// DashPeriodTriggerAvails is a DashPeriodTrigger enum value
+	DashPeriodTriggerAvails = "AVAILS"
+
+	// DashPeriodTriggerDrmKeyRotation is a DashPeriodTrigger enum value
+	DashPeriodTriggerDrmKeyRotation = "DRM_KEY_ROTATION"
+
+	// DashPeriodTriggerSourceChanges is a DashPeriodTrigger enum value
+	DashPeriodTriggerSourceChanges = "SOURCE_CHANGES"
+
+	// DashPeriodTriggerSourceDisruptions is a DashPeriodTrigger enum value
+	DashPeriodTriggerSourceDisruptions = "SOURCE_DISRUPTIONS"
+
+	// DashPeriodTriggerNone is a DashPeriodTrigger enum value
+	DashPeriodTriggerNone = "NONE"
+)
+
+// DashPeriodTrigger_Values returns all elements of the DashPeriodTrigger enum
+func DashPeriodTrigger_Values() []string {
+	return []string{
+		DashPeriodTriggerAvails,
+		DashPeriodTriggerDrmKeyRotation,
+		DashPeriodTriggerSourceChanges,
+		DashPeriodTriggerSourceDisruptions,
+		DashPeriodTriggerNone,
+	}
+}
+
+const (
+	// DashSegmentTemplateFormatNumberWithTimeline is a DashSegmentTemplateFormat enum value
+	DashSegmentTemplateFormatNumberWithTimeline = "NUMBER_WITH_TIMELINE"
+)
+
+// DashSegmentTemplateFormat_Values returns all elements of the DashSegmentTemplateFormat enum
+func DashSegmentTemplateFormat_Values() []string {
+	return []string{
+		DashSegmentTemplateFormatNumberWithTimeline,
+	}
+}
+
+const (
+	// DashUtcTimingModeHttpHead is a DashUtcTimingMode enum value
+	DashUtcTimingModeHttpHead = "HTTP_HEAD"
+
+	// DashUtcTimingModeHttpIso is a DashUtcTimingMode enum value
+	DashUtcTimingModeHttpIso = "HTTP_ISO"
+
+	// DashUtcTimingModeHttpXsdate is a DashUtcTimingMode enum value
+	DashUtcTimingModeHttpXsdate = "HTTP_XSDATE"
+
+	// DashUtcTimingModeUtcDirect is a DashUtcTimingMode enum value
+	DashUtcTimingModeUtcDirect = "UTC_DIRECT"
+)
+
+// DashUtcTimingMode_Values returns all elements of the DashUtcTimingMode enum
+func DashUtcTimingMode_Values() []string {
+	return []string{
+		DashUtcTimingModeHttpHead,
+		DashUtcTimingModeHttpIso,
+		DashUtcTimingModeHttpXsdate,
+		DashUtcTimingModeUtcDirect,
+	}
+}
+
+const (
 	// DrmSystemClearKeyAes128 is a DrmSystem enum value
 	DrmSystemClearKeyAes128 = "CLEAR_KEY_AES_128"
 
@@ -8421,6 +9257,9 @@ const (
 
 	// DrmSystemWidevine is a DrmSystem enum value
 	DrmSystemWidevine = "WIDEVINE"
+
+	// DrmSystemIrdeto is a DrmSystem enum value
+	DrmSystemIrdeto = "IRDETO"
 )
 
 // DrmSystem_Values returns all elements of the DrmSystem enum
@@ -8430,6 +9269,47 @@ func DrmSystem_Values() []string {
 		DrmSystemFairplay,
 		DrmSystemPlayready,
 		DrmSystemWidevine,
+		DrmSystemIrdeto,
+	}
+}
+
+const (
+	// EndpointErrorConditionStaleManifest is a EndpointErrorCondition enum value
+	EndpointErrorConditionStaleManifest = "STALE_MANIFEST"
+
+	// EndpointErrorConditionIncompleteManifest is a EndpointErrorCondition enum value
+	EndpointErrorConditionIncompleteManifest = "INCOMPLETE_MANIFEST"
+
+	// EndpointErrorConditionMissingDrmKey is a EndpointErrorCondition enum value
+	EndpointErrorConditionMissingDrmKey = "MISSING_DRM_KEY"
+
+	// EndpointErrorConditionSlateInput is a EndpointErrorCondition enum value
+	EndpointErrorConditionSlateInput = "SLATE_INPUT"
+)
+
+// EndpointErrorCondition_Values returns all elements of the EndpointErrorCondition enum
+func EndpointErrorCondition_Values() []string {
+	return []string{
+		EndpointErrorConditionStaleManifest,
+		EndpointErrorConditionIncompleteManifest,
+		EndpointErrorConditionMissingDrmKey,
+		EndpointErrorConditionSlateInput,
+	}
+}
+
+const (
+	// InputTypeHls is a InputType enum value
+	InputTypeHls = "HLS"
+
+	// InputTypeCmaf is a InputType enum value
+	InputTypeCmaf = "CMAF"
+)
+
+// InputType_Values returns all elements of the InputType enum
+func InputType_Values() []string {
+	return []string{
+		InputTypeHls,
+		InputTypeCmaf,
 	}
 }
 
@@ -8629,6 +9509,9 @@ const (
 	// ValidationExceptionTypeNumManifestsHigh is a ValidationExceptionType enum value
 	ValidationExceptionTypeNumManifestsHigh = "NUM_MANIFESTS_HIGH"
 
+	// ValidationExceptionTypeManifestDrmSystemsIncompatible is a ValidationExceptionType enum value
+	ValidationExceptionTypeManifestDrmSystemsIncompatible = "MANIFEST_DRM_SYSTEMS_INCOMPATIBLE"
+
 	// ValidationExceptionTypeDrmSystemsEncryptionMethodIncompatible is a ValidationExceptionType enum value
 	ValidationExceptionTypeDrmSystemsEncryptionMethodIncompatible = "DRM_SYSTEMS_ENCRYPTION_METHOD_INCOMPATIBLE"
 
@@ -8700,6 +9583,33 @@ const (
 
 	// ValidationExceptionTypeEndTimeEarlierThanStartTime is a ValidationExceptionType enum value
 	ValidationExceptionTypeEndTimeEarlierThanStartTime = "END_TIME_EARLIER_THAN_START_TIME"
+
+	// ValidationExceptionTypeTsContainerTypeWithDashManifest is a ValidationExceptionType enum value
+	ValidationExceptionTypeTsContainerTypeWithDashManifest = "TS_CONTAINER_TYPE_WITH_DASH_MANIFEST"
+
+	// ValidationExceptionTypeDirectModeWithTimingSource is a ValidationExceptionType enum value
+	ValidationExceptionTypeDirectModeWithTimingSource = "DIRECT_MODE_WITH_TIMING_SOURCE"
+
+	// ValidationExceptionTypeNoneModeWithTimingSource is a ValidationExceptionType enum value
+	ValidationExceptionTypeNoneModeWithTimingSource = "NONE_MODE_WITH_TIMING_SOURCE"
+
+	// ValidationExceptionTypeTimingSourceMissing is a ValidationExceptionType enum value
+	ValidationExceptionTypeTimingSourceMissing = "TIMING_SOURCE_MISSING"
+
+	// ValidationExceptionTypeUpdatePeriodSmallerThanSegmentDuration is a ValidationExceptionType enum value
+	ValidationExceptionTypeUpdatePeriodSmallerThanSegmentDuration = "UPDATE_PERIOD_SMALLER_THAN_SEGMENT_DURATION"
+
+	// ValidationExceptionTypePeriodTriggersNoneSpecifiedWithAdditionalValues is a ValidationExceptionType enum value
+	ValidationExceptionTypePeriodTriggersNoneSpecifiedWithAdditionalValues = "PERIOD_TRIGGERS_NONE_SPECIFIED_WITH_ADDITIONAL_VALUES"
+
+	// ValidationExceptionTypeDrmSignalingMismatchSegmentEncryptionStatus is a ValidationExceptionType enum value
+	ValidationExceptionTypeDrmSignalingMismatchSegmentEncryptionStatus = "DRM_SIGNALING_MISMATCH_SEGMENT_ENCRYPTION_STATUS"
+
+	// ValidationExceptionTypeOnlyCmafInputTypeAllowForceEndpointErrorConfiguration is a ValidationExceptionType enum value
+	ValidationExceptionTypeOnlyCmafInputTypeAllowForceEndpointErrorConfiguration = "ONLY_CMAF_INPUT_TYPE_ALLOW_FORCE_ENDPOINT_ERROR_CONFIGURATION"
+
+	// ValidationExceptionTypeSourceDisruptionsEnabledIncorrectly is a ValidationExceptionType enum value
+	ValidationExceptionTypeSourceDisruptionsEnabledIncorrectly = "SOURCE_DISRUPTIONS_ENABLED_INCORRECTLY"
 )
 
 // ValidationExceptionType_Values returns all elements of the ValidationExceptionType enum
@@ -8718,6 +9628,7 @@ func ValidationExceptionType_Values() []string {
 		ValidationExceptionTypeEncryptionContractShared,
 		ValidationExceptionTypeNumManifestsLow,
 		ValidationExceptionTypeNumManifestsHigh,
+		ValidationExceptionTypeManifestDrmSystemsIncompatible,
 		ValidationExceptionTypeDrmSystemsEncryptionMethodIncompatible,
 		ValidationExceptionTypeRoleArnNotAssumable,
 		ValidationExceptionTypeRoleArnLengthOutOfRange,
@@ -8742,5 +9653,14 @@ func ValidationExceptionType_Values() []string {
 		ValidationExceptionTypeInvalidManifestFilter,
 		ValidationExceptionTypeInvalidTimeDelaySeconds,
 		ValidationExceptionTypeEndTimeEarlierThanStartTime,
+		ValidationExceptionTypeTsContainerTypeWithDashManifest,
+		ValidationExceptionTypeDirectModeWithTimingSource,
+		ValidationExceptionTypeNoneModeWithTimingSource,
+		ValidationExceptionTypeTimingSourceMissing,
+		ValidationExceptionTypeUpdatePeriodSmallerThanSegmentDuration,
+		ValidationExceptionTypePeriodTriggersNoneSpecifiedWithAdditionalValues,
+		ValidationExceptionTypeDrmSignalingMismatchSegmentEncryptionStatus,
+		ValidationExceptionTypeOnlyCmafInputTypeAllowForceEndpointErrorConfiguration,
+		ValidationExceptionTypeSourceDisruptionsEnabledIncorrectly,
 	}
 }

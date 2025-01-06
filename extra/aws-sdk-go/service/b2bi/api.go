@@ -1398,6 +1398,24 @@ func (c *B2bi) ListCapabilitiesRequest(input *ListCapabilitiesInput) (req *reque
 //
 // See the AWS API reference guide for AWS B2B Data Interchange's
 // API operation ListCapabilities for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ValidationException
+//     Occurs when a B2BI object cannot be validated against a request from another
+//     object.
+//
+//   - ThrottlingException
+//     The request was denied due to throttling: the data speed and rendering may
+//     be limited depending on various parameters and conditions.
+//
+//   - InternalServerException
+//     This exception is thrown when an error occurs in the Amazon Web Services
+//     B2B Data Interchange service.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/b2bi-2022-06-23/ListCapabilities
 func (c *B2bi) ListCapabilities(input *ListCapabilitiesInput) (*ListCapabilitiesOutput, error) {
 	req, out := c.ListCapabilitiesRequest(input)
@@ -1686,6 +1704,24 @@ func (c *B2bi) ListProfilesRequest(input *ListProfilesInput) (req *request.Reque
 //
 // See the AWS API reference guide for AWS B2B Data Interchange's
 // API operation ListProfiles for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ValidationException
+//     Occurs when a B2BI object cannot be validated against a request from another
+//     object.
+//
+//   - ThrottlingException
+//     The request was denied due to throttling: the data speed and rendering may
+//     be limited depending on various parameters and conditions.
+//
+//   - InternalServerException
+//     This exception is thrown when an error occurs in the Amazon Web Services
+//     B2B Data Interchange service.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/b2bi-2022-06-23/ListProfiles
 func (c *B2bi) ListProfiles(input *ListProfilesInput) (*ListProfilesOutput, error) {
 	req, out := c.ListProfilesRequest(input)
@@ -1908,6 +1944,24 @@ func (c *B2bi) ListTransformersRequest(input *ListTransformersInput) (req *reque
 //
 // See the AWS API reference guide for AWS B2B Data Interchange's
 // API operation ListTransformers for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ValidationException
+//     Occurs when a B2BI object cannot be validated against a request from another
+//     object.
+//
+//   - ThrottlingException
+//     The request was denied due to throttling: the data speed and rendering may
+//     be limited depending on various parameters and conditions.
+//
+//   - InternalServerException
+//     This exception is thrown when an error occurs in the Amazon Web Services
+//     B2B Data Interchange service.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/b2bi-2022-06-23/ListTransformers
 func (c *B2bi) ListTransformers(input *ListTransformersInput) (*ListTransformersOutput, error) {
 	req, out := c.ListTransformersRequest(input)
@@ -2040,6 +2094,10 @@ func (c *B2bi) StartTransformerJobRequest(input *StartTransformerJobInput) (req 
 // API operation StartTransformerJob for usage and error information.
 //
 // Returned Error Types:
+//
+//   - ConflictException
+//     A conflict exception is thrown when you attempt to delete a resource (such
+//     as a profile or a capability) that is being used by other resources.
 //
 //   - AccessDeniedException
 //     You do not have sufficient access to perform this action.
@@ -3389,7 +3447,9 @@ type CreatePartnershipInput struct {
 	_ struct{} `type:"structure"`
 
 	// Specifies a list of the capabilities associated with this partnership.
-	Capabilities []*string `locationName:"capabilities" type:"list"`
+	//
+	// Capabilities is a required field
+	Capabilities []*string `locationName:"capabilities" type:"list" required:"true"`
 
 	// Reserved for future use.
 	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
@@ -3448,6 +3508,9 @@ func (s CreatePartnershipInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreatePartnershipInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreatePartnershipInput"}
+	if s.Capabilities == nil {
+		invalidParams.Add(request.NewErrParamRequired("Capabilities"))
+	}
 	if s.Email == nil {
 		invalidParams.Add(request.NewErrParamRequired("Email"))
 	}
@@ -3938,8 +4001,8 @@ type CreateTransformerInput struct {
 	// FileFormat is a required field
 	FileFormat *string `locationName:"fileFormat" type:"string" required:"true" enum:"FileFormat"`
 
-	// Specifies the name of the mapping template for the transformer. This template
-	// is used to convert the input document into the correct set of objects.
+	// Specifies the mapping template for the transformer. This template is used
+	// to map the parsed EDI file using JSONata or XSLT.
 	//
 	// MappingTemplate is a required field
 	MappingTemplate *string `locationName:"mappingTemplate" type:"string" required:"true"`
@@ -4075,8 +4138,8 @@ type CreateTransformerOutput struct {
 	// FileFormat is a required field
 	FileFormat *string `locationName:"fileFormat" type:"string" required:"true" enum:"FileFormat"`
 
-	// Returns the name of the mapping template for the transformer. This template
-	// is used to convert the input document into the correct set of objects.
+	// Returns the mapping template for the transformer. This template is used to
+	// map the parsed EDI file using JSONata or XSLT.
 	//
 	// MappingTemplate is a required field
 	MappingTemplate *string `locationName:"mappingTemplate" type:"string" required:"true"`
@@ -5316,8 +5379,8 @@ type GetTransformerOutput struct {
 	// FileFormat is a required field
 	FileFormat *string `locationName:"fileFormat" type:"string" required:"true" enum:"FileFormat"`
 
-	// Returns the name of the mapping template for the transformer. This template
-	// is used to convert the input document into the correct set of objects.
+	// Returns the mapping template for the transformer. This template is used to
+	// map the parsed EDI file using JSONata or XSLT.
 	//
 	// MappingTemplate is a required field
 	MappingTemplate *string `locationName:"mappingTemplate" type:"string" required:"true"`
@@ -6721,8 +6784,8 @@ type TestMappingInput struct {
 	// InputFileContent is a required field
 	InputFileContent *string `locationName:"inputFileContent" type:"string" required:"true"`
 
-	// Specifies the name of the mapping template for the transformer. This template
-	// is used to convert the input document into the correct set of objects.
+	// Specifies the mapping template for the transformer. This template is used
+	// to map the parsed EDI file using JSONata or XSLT.
 	//
 	// MappingTemplate is a required field
 	MappingTemplate *string `locationName:"mappingTemplate" type:"string" required:"true"`
@@ -7027,8 +7090,8 @@ type TransformerSummary struct {
 	// FileFormat is a required field
 	FileFormat *string `locationName:"fileFormat" type:"string" required:"true" enum:"FileFormat"`
 
-	// Returns the name of the mapping template for the transformer. This template
-	// is used to convert the input document into the correct set of objects.
+	// Returns the mapping template for the transformer. This template is used to
+	// map the parsed EDI file using JSONata or XSLT.
 	//
 	// MappingTemplate is a required field
 	MappingTemplate *string `locationName:"mappingTemplate" type:"string" required:"true"`
@@ -7875,8 +7938,8 @@ type UpdateTransformerInput struct {
 	// are JSON and XML.
 	FileFormat *string `locationName:"fileFormat" type:"string" enum:"FileFormat"`
 
-	// Specifies the name of the mapping template for the transformer. This template
-	// is used to convert the input document into the correct set of objects.
+	// Specifies the mapping template for the transformer. This template is used
+	// to map the parsed EDI file using JSONata or XSLT.
 	MappingTemplate *string `locationName:"mappingTemplate" type:"string"`
 
 	// Specify a new name for the transformer, if you want to update it.
@@ -7996,8 +8059,8 @@ type UpdateTransformerOutput struct {
 	// FileFormat is a required field
 	FileFormat *string `locationName:"fileFormat" type:"string" required:"true" enum:"FileFormat"`
 
-	// Returns the name of the mapping template for the transformer. This template
-	// is used to convert the input document into the correct set of objects.
+	// Returns the mapping template for the transformer. This template is used to
+	// map the parsed EDI file using JSONata or XSLT.
 	//
 	// MappingTemplate is a required field
 	MappingTemplate *string `locationName:"mappingTemplate" type:"string" required:"true"`

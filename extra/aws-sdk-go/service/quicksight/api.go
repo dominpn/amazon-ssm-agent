@@ -12,6 +12,199 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol"
 )
 
+const opBatchCreateTopicReviewedAnswer = "BatchCreateTopicReviewedAnswer"
+
+// BatchCreateTopicReviewedAnswerRequest generates a "aws/request.Request" representing the
+// client's request for the BatchCreateTopicReviewedAnswer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See BatchCreateTopicReviewedAnswer for more information on using the BatchCreateTopicReviewedAnswer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the BatchCreateTopicReviewedAnswerRequest method.
+//	req, resp := client.BatchCreateTopicReviewedAnswerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/BatchCreateTopicReviewedAnswer
+func (c *QuickSight) BatchCreateTopicReviewedAnswerRequest(input *BatchCreateTopicReviewedAnswerInput) (req *request.Request, output *BatchCreateTopicReviewedAnswerOutput) {
+	op := &request.Operation{
+		Name:       opBatchCreateTopicReviewedAnswer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/accounts/{AwsAccountId}/topics/{TopicId}/batch-create-reviewed-answers",
+	}
+
+	if input == nil {
+		input = &BatchCreateTopicReviewedAnswerInput{}
+	}
+
+	output = &BatchCreateTopicReviewedAnswerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// BatchCreateTopicReviewedAnswer API operation for Amazon QuickSight.
+//
+// Creates new reviewed answers for a Q Topic.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QuickSight's
+// API operation BatchCreateTopicReviewedAnswer for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You don't have access to this item. The provided credentials couldn't be
+//     validated. You might not be authorized to carry out the request. Make sure
+//     that your account is authorized to use the Amazon QuickSight service, that
+//     your policies have the correct permissions, and that you are using the correct
+//     credentials.
+//
+//   - InvalidParameterValueException
+//     One or more parameters has a value that isn't valid.
+//
+//   - ThrottlingException
+//     Access is throttled.
+//
+//   - ResourceNotFoundException
+//     One or more resources can't be found.
+//
+//   - InternalFailureException
+//     An internal failure occurred.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/BatchCreateTopicReviewedAnswer
+func (c *QuickSight) BatchCreateTopicReviewedAnswer(input *BatchCreateTopicReviewedAnswerInput) (*BatchCreateTopicReviewedAnswerOutput, error) {
+	req, out := c.BatchCreateTopicReviewedAnswerRequest(input)
+	return out, req.Send()
+}
+
+// BatchCreateTopicReviewedAnswerWithContext is the same as BatchCreateTopicReviewedAnswer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See BatchCreateTopicReviewedAnswer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QuickSight) BatchCreateTopicReviewedAnswerWithContext(ctx aws.Context, input *BatchCreateTopicReviewedAnswerInput, opts ...request.Option) (*BatchCreateTopicReviewedAnswerOutput, error) {
+	req, out := c.BatchCreateTopicReviewedAnswerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opBatchDeleteTopicReviewedAnswer = "BatchDeleteTopicReviewedAnswer"
+
+// BatchDeleteTopicReviewedAnswerRequest generates a "aws/request.Request" representing the
+// client's request for the BatchDeleteTopicReviewedAnswer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See BatchDeleteTopicReviewedAnswer for more information on using the BatchDeleteTopicReviewedAnswer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the BatchDeleteTopicReviewedAnswerRequest method.
+//	req, resp := client.BatchDeleteTopicReviewedAnswerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/BatchDeleteTopicReviewedAnswer
+func (c *QuickSight) BatchDeleteTopicReviewedAnswerRequest(input *BatchDeleteTopicReviewedAnswerInput) (req *request.Request, output *BatchDeleteTopicReviewedAnswerOutput) {
+	op := &request.Operation{
+		Name:       opBatchDeleteTopicReviewedAnswer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/accounts/{AwsAccountId}/topics/{TopicId}/batch-delete-reviewed-answers",
+	}
+
+	if input == nil {
+		input = &BatchDeleteTopicReviewedAnswerInput{}
+	}
+
+	output = &BatchDeleteTopicReviewedAnswerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// BatchDeleteTopicReviewedAnswer API operation for Amazon QuickSight.
+//
+// Deletes reviewed answers for Q Topic.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QuickSight's
+// API operation BatchDeleteTopicReviewedAnswer for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You don't have access to this item. The provided credentials couldn't be
+//     validated. You might not be authorized to carry out the request. Make sure
+//     that your account is authorized to use the Amazon QuickSight service, that
+//     your policies have the correct permissions, and that you are using the correct
+//     credentials.
+//
+//   - InvalidParameterValueException
+//     One or more parameters has a value that isn't valid.
+//
+//   - ThrottlingException
+//     Access is throttled.
+//
+//   - ResourceNotFoundException
+//     One or more resources can't be found.
+//
+//   - ConflictException
+//     Updating or deleting a resource can cause an inconsistent state.
+//
+//   - InternalFailureException
+//     An internal failure occurred.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/BatchDeleteTopicReviewedAnswer
+func (c *QuickSight) BatchDeleteTopicReviewedAnswer(input *BatchDeleteTopicReviewedAnswerInput) (*BatchDeleteTopicReviewedAnswerOutput, error) {
+	req, out := c.BatchDeleteTopicReviewedAnswerRequest(input)
+	return out, req.Send()
+}
+
+// BatchDeleteTopicReviewedAnswerWithContext is the same as BatchDeleteTopicReviewedAnswer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See BatchDeleteTopicReviewedAnswer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QuickSight) BatchDeleteTopicReviewedAnswerWithContext(ctx aws.Context, input *BatchDeleteTopicReviewedAnswerInput, opts ...request.Option) (*BatchDeleteTopicReviewedAnswerOutput, error) {
+	req, out := c.BatchDeleteTopicReviewedAnswerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCancelIngestion = "CancelIngestion"
 
 // CancelIngestionRequest generates a "aws/request.Request" representing the
@@ -7925,6 +8118,98 @@ func (c *QuickSight) DescribeIpRestrictionWithContext(ctx aws.Context, input *De
 	return out, req.Send()
 }
 
+const opDescribeKeyRegistration = "DescribeKeyRegistration"
+
+// DescribeKeyRegistrationRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeKeyRegistration operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeKeyRegistration for more information on using the DescribeKeyRegistration
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DescribeKeyRegistrationRequest method.
+//	req, resp := client.DescribeKeyRegistrationRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/DescribeKeyRegistration
+func (c *QuickSight) DescribeKeyRegistrationRequest(input *DescribeKeyRegistrationInput) (req *request.Request, output *DescribeKeyRegistrationOutput) {
+	op := &request.Operation{
+		Name:       opDescribeKeyRegistration,
+		HTTPMethod: "GET",
+		HTTPPath:   "/accounts/{AwsAccountId}/key-registration",
+	}
+
+	if input == nil {
+		input = &DescribeKeyRegistrationInput{}
+	}
+
+	output = &DescribeKeyRegistrationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeKeyRegistration API operation for Amazon QuickSight.
+//
+// Describes all customer managed key registrations in a Amazon QuickSight account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QuickSight's
+// API operation DescribeKeyRegistration for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You don't have access to this item. The provided credentials couldn't be
+//     validated. You might not be authorized to carry out the request. Make sure
+//     that your account is authorized to use the Amazon QuickSight service, that
+//     your policies have the correct permissions, and that you are using the correct
+//     credentials.
+//
+//   - InvalidParameterValueException
+//     One or more parameters has a value that isn't valid.
+//
+//   - ThrottlingException
+//     Access is throttled.
+//
+//   - InternalFailureException
+//     An internal failure occurred.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/DescribeKeyRegistration
+func (c *QuickSight) DescribeKeyRegistration(input *DescribeKeyRegistrationInput) (*DescribeKeyRegistrationOutput, error) {
+	req, out := c.DescribeKeyRegistrationRequest(input)
+	return out, req.Send()
+}
+
+// DescribeKeyRegistrationWithContext is the same as DescribeKeyRegistration with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeKeyRegistration for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QuickSight) DescribeKeyRegistrationWithContext(ctx aws.Context, input *DescribeKeyRegistrationInput, opts ...request.Option) (*DescribeKeyRegistrationOutput, error) {
+	req, out := c.DescribeKeyRegistrationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeNamespace = "DescribeNamespace"
 
 // DescribeNamespaceRequest generates a "aws/request.Request" representing the
@@ -13887,6 +14172,101 @@ func (c *QuickSight) ListTopicRefreshSchedulesWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
+const opListTopicReviewedAnswers = "ListTopicReviewedAnswers"
+
+// ListTopicReviewedAnswersRequest generates a "aws/request.Request" representing the
+// client's request for the ListTopicReviewedAnswers operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTopicReviewedAnswers for more information on using the ListTopicReviewedAnswers
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the ListTopicReviewedAnswersRequest method.
+//	req, resp := client.ListTopicReviewedAnswersRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/ListTopicReviewedAnswers
+func (c *QuickSight) ListTopicReviewedAnswersRequest(input *ListTopicReviewedAnswersInput) (req *request.Request, output *ListTopicReviewedAnswersOutput) {
+	op := &request.Operation{
+		Name:       opListTopicReviewedAnswers,
+		HTTPMethod: "GET",
+		HTTPPath:   "/accounts/{AwsAccountId}/topics/{TopicId}/reviewed-answers",
+	}
+
+	if input == nil {
+		input = &ListTopicReviewedAnswersInput{}
+	}
+
+	output = &ListTopicReviewedAnswersOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTopicReviewedAnswers API operation for Amazon QuickSight.
+//
+// Lists all reviewed answers for a Q Topic.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QuickSight's
+// API operation ListTopicReviewedAnswers for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You don't have access to this item. The provided credentials couldn't be
+//     validated. You might not be authorized to carry out the request. Make sure
+//     that your account is authorized to use the Amazon QuickSight service, that
+//     your policies have the correct permissions, and that you are using the correct
+//     credentials.
+//
+//   - InvalidParameterValueException
+//     One or more parameters has a value that isn't valid.
+//
+//   - ThrottlingException
+//     Access is throttled.
+//
+//   - ResourceNotFoundException
+//     One or more resources can't be found.
+//
+//   - InternalFailureException
+//     An internal failure occurred.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/ListTopicReviewedAnswers
+func (c *QuickSight) ListTopicReviewedAnswers(input *ListTopicReviewedAnswersInput) (*ListTopicReviewedAnswersOutput, error) {
+	req, out := c.ListTopicReviewedAnswersRequest(input)
+	return out, req.Send()
+}
+
+// ListTopicReviewedAnswersWithContext is the same as ListTopicReviewedAnswers with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTopicReviewedAnswers for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QuickSight) ListTopicReviewedAnswersWithContext(ctx aws.Context, input *ListTopicReviewedAnswersInput, opts ...request.Option) (*ListTopicReviewedAnswersOutput, error) {
+	req, out := c.ListTopicReviewedAnswersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListTopics = "ListTopics"
 
 // ListTopicsRequest generates a "aws/request.Request" representing the
@@ -16061,18 +16441,81 @@ func (c *QuickSight) StartDashboardSnapshotJobRequest(input *StartDashboardSnaps
 
 // StartDashboardSnapshotJob API operation for Amazon QuickSight.
 //
-// Starts an asynchronous job that generates a dashboard snapshot. You can request
-// one of the following format configurations per API call.
+// Starts an asynchronous job that generates a snapshot of a dashboard's output.
+// You can request one or several of the following format configurations in
+// each API call.
 //
-//   - 1 paginated PDF
+//   - 1 Paginated PDF
 //
-//   - 1 Excel workbook
+//   - 1 Excel workbook that includes up to 5 table or pivot table visuals
 //
-//   - 5 CSVs
+//   - 5 CSVs from table or pivot table visuals
 //
-// Poll job descriptions with a DescribeDashboardSnapshotJob API call. Once
-// the job succeeds, use the DescribeDashboardSnapshotJobResult API to obtain
-// the download URIs that the job generates.
+// The status of a submitted job can be polled with the DescribeDashboardSnapshotJob
+// API. When you call the DescribeDashboardSnapshotJob API, check the JobStatus
+// field in the response. Once the job reaches a COMPLETED or FAILED status,
+// use the DescribeDashboardSnapshotJobResult API to obtain the URLs for the
+// generated files. If the job fails, the DescribeDashboardSnapshotJobResult
+// API returns detailed information about the error that occurred.
+//
+// # StartDashboardSnapshotJob API throttling
+//
+// Amazon QuickSight utilizes API throttling to create a more consistent user
+// experience within a time span for customers when they call the StartDashboardSnapshotJob.
+// By default, 12 jobs can run simlutaneously in one Amazon Web Services account
+// and users can submit up 10 API requests per second before an account is throttled.
+// If an overwhelming number of API requests are made by the same user in a
+// short period of time, Amazon QuickSight throttles the API calls to maintin
+// an optimal experience and reliability for all Amazon QuickSight users.
+//
+// # Common throttling scenarios
+//
+// The following list provides information about the most commin throttling
+// scenarios that can occur.
+//
+//   - A large number of SnapshotExport API jobs are running simultaneously
+//     on an Amazon Web Services account. When a new StartDashboardSnapshotJob
+//     is created and there are already 12 jobs with the RUNNING status, the
+//     new job request fails and returns a LimitExceededException error. Wait
+//     for a current job to comlpete before you resubmit the new job.
+//
+//   - A large number of API requests are submitted on an Amazon Web Services
+//     account. When a user makes more than 10 API calls to the Amazon QuickSight
+//     API in one second, a ThrottlingException is returned.
+//
+// If your use case requires a higher throttling limit, contact your account
+// admin or Amazon Web ServicesSupport (http://aws.amazon.com/contact-us/) to
+// explore options to tailor a more optimal expereince for your account.
+//
+// # Best practices to handle throttling
+//
+// If your use case projects high levels of API traffic, try to reduce the degree
+// of frequency and parallelism of API calls as much as you can to avoid throttling.
+// You can also perform a timing test to calculate an estimate for the total
+// processing time of your projected load that stays within the throttling limits
+// of the Amazon QuickSight APIs. For example, if your projected traffic is
+// 100 snapshot jobs before 12:00 PM per day, start 12 jobs in parallel and
+// measure the amount of time it takes to proccess all 12 jobs. Once you obtain
+// the result, multiply the duration by 9, for example (12 minutes * 9 = 108
+// minutes). Use the new result to determine the latest time at which the jobs
+// need to be started to meet your target deadline.
+//
+// The time that it takes to process a job can be impacted by the following
+// factors:
+//
+//   - The dataset type (Direct Query or SPICE).
+//
+//   - The size of the dataset.
+//
+//   - The complexity of the calculated fields that are used in the dashboard.
+//
+//   - The number of visuals that are on a sheet.
+//
+//   - The types of visuals that are on the sheet.
+//
+//   - The number of formats and snapshots that are requested in the job configuration.
+//
+//   - The size of the generated snapshots.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -18196,6 +18639,98 @@ func (c *QuickSight) UpdateIpRestrictionWithContext(ctx aws.Context, input *Upda
 	return out, req.Send()
 }
 
+const opUpdateKeyRegistration = "UpdateKeyRegistration"
+
+// UpdateKeyRegistrationRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateKeyRegistration operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateKeyRegistration for more information on using the UpdateKeyRegistration
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the UpdateKeyRegistrationRequest method.
+//	req, resp := client.UpdateKeyRegistrationRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/UpdateKeyRegistration
+func (c *QuickSight) UpdateKeyRegistrationRequest(input *UpdateKeyRegistrationInput) (req *request.Request, output *UpdateKeyRegistrationOutput) {
+	op := &request.Operation{
+		Name:       opUpdateKeyRegistration,
+		HTTPMethod: "POST",
+		HTTPPath:   "/accounts/{AwsAccountId}/key-registration",
+	}
+
+	if input == nil {
+		input = &UpdateKeyRegistrationInput{}
+	}
+
+	output = &UpdateKeyRegistrationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateKeyRegistration API operation for Amazon QuickSight.
+//
+// Updates a customer managed key in a Amazon QuickSight account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QuickSight's
+// API operation UpdateKeyRegistration for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You don't have access to this item. The provided credentials couldn't be
+//     validated. You might not be authorized to carry out the request. Make sure
+//     that your account is authorized to use the Amazon QuickSight service, that
+//     your policies have the correct permissions, and that you are using the correct
+//     credentials.
+//
+//   - InvalidParameterValueException
+//     One or more parameters has a value that isn't valid.
+//
+//   - ThrottlingException
+//     Access is throttled.
+//
+//   - InternalFailureException
+//     An internal failure occurred.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/UpdateKeyRegistration
+func (c *QuickSight) UpdateKeyRegistration(input *UpdateKeyRegistrationInput) (*UpdateKeyRegistrationOutput, error) {
+	req, out := c.UpdateKeyRegistrationRequest(input)
+	return out, req.Send()
+}
+
+// UpdateKeyRegistrationWithContext is the same as UpdateKeyRegistration with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateKeyRegistration for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QuickSight) UpdateKeyRegistrationWithContext(ctx aws.Context, input *UpdateKeyRegistrationInput, opts ...request.Option) (*UpdateKeyRegistrationOutput, error) {
+	req, out := c.UpdateKeyRegistrationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdatePublicSharingSettings = "UpdatePublicSharingSettings"
 
 // UpdatePublicSharingSettingsRequest generates a "aws/request.Request" representing the
@@ -18508,6 +19043,101 @@ func (c *QuickSight) UpdateRoleCustomPermission(input *UpdateRoleCustomPermissio
 // for more information on using Contexts.
 func (c *QuickSight) UpdateRoleCustomPermissionWithContext(ctx aws.Context, input *UpdateRoleCustomPermissionInput, opts ...request.Option) (*UpdateRoleCustomPermissionOutput, error) {
 	req, out := c.UpdateRoleCustomPermissionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateSPICECapacityConfiguration = "UpdateSPICECapacityConfiguration"
+
+// UpdateSPICECapacityConfigurationRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateSPICECapacityConfiguration operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateSPICECapacityConfiguration for more information on using the UpdateSPICECapacityConfiguration
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the UpdateSPICECapacityConfigurationRequest method.
+//	req, resp := client.UpdateSPICECapacityConfigurationRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/UpdateSPICECapacityConfiguration
+func (c *QuickSight) UpdateSPICECapacityConfigurationRequest(input *UpdateSPICECapacityConfigurationInput) (req *request.Request, output *UpdateSPICECapacityConfigurationOutput) {
+	op := &request.Operation{
+		Name:       opUpdateSPICECapacityConfiguration,
+		HTTPMethod: "POST",
+		HTTPPath:   "/accounts/{AwsAccountId}/spice-capacity-configuration",
+	}
+
+	if input == nil {
+		input = &UpdateSPICECapacityConfigurationInput{}
+	}
+
+	output = &UpdateSPICECapacityConfigurationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateSPICECapacityConfiguration API operation for Amazon QuickSight.
+//
+// Updates the SPICE capacity configuration for a Amazon QuickSight account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QuickSight's
+// API operation UpdateSPICECapacityConfiguration for usage and error information.
+//
+// Returned Error Types:
+//
+//   - AccessDeniedException
+//     You don't have access to this item. The provided credentials couldn't be
+//     validated. You might not be authorized to carry out the request. Make sure
+//     that your account is authorized to use the Amazon QuickSight service, that
+//     your policies have the correct permissions, and that you are using the correct
+//     credentials.
+//
+//   - InvalidParameterValueException
+//     One or more parameters has a value that isn't valid.
+//
+//   - ResourceNotFoundException
+//     One or more resources can't be found.
+//
+//   - ThrottlingException
+//     Access is throttled.
+//
+//   - InternalFailureException
+//     An internal failure occurred.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/quicksight-2018-04-01/UpdateSPICECapacityConfiguration
+func (c *QuickSight) UpdateSPICECapacityConfiguration(input *UpdateSPICECapacityConfigurationInput) (*UpdateSPICECapacityConfigurationOutput, error) {
+	req, out := c.UpdateSPICECapacityConfigurationRequest(input)
+	return out, req.Send()
+}
+
+// UpdateSPICECapacityConfigurationWithContext is the same as UpdateSPICECapacityConfiguration with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateSPICECapacityConfiguration for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QuickSight) UpdateSPICECapacityConfigurationWithContext(ctx aws.Context, input *UpdateSPICECapacityConfigurationInput, opts ...request.Option) (*UpdateSPICECapacityConfigurationOutput, error) {
+	req, out := c.UpdateSPICECapacityConfigurationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -20026,6 +20656,65 @@ func (s *AdHocFilteringOption) SetAvailabilityStatus(v string) *AdHocFilteringOp
 	return s
 }
 
+// The definition of an Agg function.
+type AggFunction struct {
+	_ struct{} `type:"structure"`
+
+	// The aggregation of an Agg function.
+	Aggregation *string `type:"string" enum:"AggType"`
+
+	// The aggregation parameters for an Agg function.
+	AggregationFunctionParameters map[string]*string `type:"map"`
+
+	// The period of an Agg function.
+	Period *string `type:"string" enum:"TopicTimeGranularity"`
+
+	// The period field for an Agg function.
+	PeriodField *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AggFunction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AggFunction) GoString() string {
+	return s.String()
+}
+
+// SetAggregation sets the Aggregation field's value.
+func (s *AggFunction) SetAggregation(v string) *AggFunction {
+	s.Aggregation = &v
+	return s
+}
+
+// SetAggregationFunctionParameters sets the AggregationFunctionParameters field's value.
+func (s *AggFunction) SetAggregationFunctionParameters(v map[string]*string) *AggFunction {
+	s.AggregationFunctionParameters = v
+	return s
+}
+
+// SetPeriod sets the Period field's value.
+func (s *AggFunction) SetPeriod(v string) *AggFunction {
+	s.Period = &v
+	return s
+}
+
+// SetPeriodField sets the PeriodField field's value.
+func (s *AggFunction) SetPeriodField(v string) *AggFunction {
+	s.PeriodField = &v
+	return s
+}
+
 // An aggregation function aggregates values from a dimension or measure.
 //
 // This is a union type structure. For this structure to be valid, only one
@@ -20097,6 +20786,47 @@ func (s *AggregationFunction) SetDateAggregationFunction(v string) *AggregationF
 // SetNumericalAggregationFunction sets the NumericalAggregationFunction field's value.
 func (s *AggregationFunction) SetNumericalAggregationFunction(v *NumericalAggregationFunction) *AggregationFunction {
 	s.NumericalAggregationFunction = v
+	return s
+}
+
+// The definition of an AggregationPartitionBy.
+type AggregationPartitionBy struct {
+	_ struct{} `type:"structure"`
+
+	// The field Name for an AggregationPartitionBy.
+	FieldName *string `type:"string"`
+
+	// The TimeGranularity for an AggregationPartitionBy.
+	TimeGranularity *string `type:"string" enum:"TimeGranularity"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AggregationPartitionBy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AggregationPartitionBy) GoString() string {
+	return s.String()
+}
+
+// SetFieldName sets the FieldName field's value.
+func (s *AggregationPartitionBy) SetFieldName(v string) *AggregationPartitionBy {
+	s.FieldName = &v
+	return s
+}
+
+// SetTimeGranularity sets the TimeGranularity field's value.
+func (s *AggregationPartitionBy) SetTimeGranularity(v string) *AggregationPartitionBy {
+	s.TimeGranularity = &v
 	return s
 }
 
@@ -21001,6 +21731,56 @@ func (s *AnalysisSummary) SetStatus(v string) *AnalysisSummary {
 	return s
 }
 
+// The definition of the Anchor.
+type Anchor struct {
+	_ struct{} `type:"structure"`
+
+	// The AnchorType for the Anchor.
+	AnchorType *string `type:"string" enum:"AnchorType"`
+
+	// The offset of the Anchor.
+	Offset *int64 `type:"integer"`
+
+	// The TimeGranularity of the Anchor.
+	TimeGranularity *string `type:"string" enum:"TimeGranularity"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Anchor) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Anchor) GoString() string {
+	return s.String()
+}
+
+// SetAnchorType sets the AnchorType field's value.
+func (s *Anchor) SetAnchorType(v string) *Anchor {
+	s.AnchorType = &v
+	return s
+}
+
+// SetOffset sets the Offset field's value.
+func (s *Anchor) SetOffset(v int64) *Anchor {
+	s.Offset = &v
+	return s
+}
+
+// SetTimeGranularity sets the TimeGranularity field's value.
+func (s *Anchor) SetTimeGranularity(v string) *Anchor {
+	s.TimeGranularity = &v
+	return s
+}
+
 // The date configuration of the filter.
 type AnchorDateConfiguration struct {
 	_ struct{} `type:"structure"`
@@ -21182,6 +21962,9 @@ type AnonymousUserEmbeddingExperienceConfiguration struct {
 	// The type of embedding experience. In this case, Amazon QuickSight visuals.
 	DashboardVisual *AnonymousUserDashboardVisualEmbeddingConfiguration `type:"structure"`
 
+	// The Generative Q&A experience that you want to use for anonymous user embedding.
+	GenerativeQnA *AnonymousUserGenerativeQnAEmbeddingConfiguration `type:"structure"`
+
 	// The Q search bar that you want to use for anonymous user embedding.
 	QSearchBar *AnonymousUserQSearchBarEmbeddingConfiguration `type:"structure"`
 }
@@ -21217,6 +22000,11 @@ func (s *AnonymousUserEmbeddingExperienceConfiguration) Validate() error {
 			invalidParams.AddNested("DashboardVisual", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.GenerativeQnA != nil {
+		if err := s.GenerativeQnA.Validate(); err != nil {
+			invalidParams.AddNested("GenerativeQnA", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.QSearchBar != nil {
 		if err := s.QSearchBar.Validate(); err != nil {
 			invalidParams.AddNested("QSearchBar", err.(request.ErrInvalidParams))
@@ -21241,9 +22029,72 @@ func (s *AnonymousUserEmbeddingExperienceConfiguration) SetDashboardVisual(v *An
 	return s
 }
 
+// SetGenerativeQnA sets the GenerativeQnA field's value.
+func (s *AnonymousUserEmbeddingExperienceConfiguration) SetGenerativeQnA(v *AnonymousUserGenerativeQnAEmbeddingConfiguration) *AnonymousUserEmbeddingExperienceConfiguration {
+	s.GenerativeQnA = v
+	return s
+}
+
 // SetQSearchBar sets the QSearchBar field's value.
 func (s *AnonymousUserEmbeddingExperienceConfiguration) SetQSearchBar(v *AnonymousUserQSearchBarEmbeddingConfiguration) *AnonymousUserEmbeddingExperienceConfiguration {
 	s.QSearchBar = v
+	return s
+}
+
+// The settings that you want to use for the Generative Q&A experience.
+type AnonymousUserGenerativeQnAEmbeddingConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon QuickSight Q topic ID of the new reader experience topic that
+	// you want the anonymous user to see first. This ID is included in the output
+	// URL. When the URL in response is accessed, Amazon QuickSight renders the
+	// Generative Q&A experience with this new reader experience topic pre selected.
+	//
+	// The Amazon Resource Name (ARN) of this Q new reader experience topic must
+	// be included in the AuthorizedResourceArns parameter. Otherwise, the request
+	// fails with an InvalidParameterValueException error.
+	//
+	// InitialTopicId is a required field
+	InitialTopicId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AnonymousUserGenerativeQnAEmbeddingConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AnonymousUserGenerativeQnAEmbeddingConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AnonymousUserGenerativeQnAEmbeddingConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AnonymousUserGenerativeQnAEmbeddingConfiguration"}
+	if s.InitialTopicId == nil {
+		invalidParams.Add(request.NewErrParamRequired("InitialTopicId"))
+	}
+	if s.InitialTopicId != nil && len(*s.InitialTopicId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InitialTopicId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetInitialTopicId sets the InitialTopicId field's value.
+func (s *AnonymousUserGenerativeQnAEmbeddingConfiguration) SetInitialTopicId(v string) *AnonymousUserGenerativeQnAEmbeddingConfiguration {
+	s.InitialTopicId = &v
 	return s
 }
 
@@ -21251,12 +22102,14 @@ func (s *AnonymousUserEmbeddingExperienceConfiguration) SetQSearchBar(v *Anonymo
 type AnonymousUserQSearchBarEmbeddingConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// The QuickSight Q topic ID of the topic that you want the anonymous user to
-	// see first. This ID is included in the output URL. When the URL in response
-	// is accessed, Amazon QuickSight renders the Q search bar with this topic pre-selected.
+	// The Amazon QuickSight Q topic ID of the legacy topic that you want the anonymous
+	// user to see first. This ID is included in the output URL. When the URL in
+	// response is accessed, Amazon QuickSight renders the Q search bar with this
+	// legacy topic pre-selected.
 	//
-	// The Amazon Resource Name (ARN) of this Q topic must be included in the AuthorizedResourceArns
-	// parameter. Otherwise, the request will fail with InvalidParameterValueException.
+	// The Amazon Resource Name (ARN) of this Q legacy topic must be included in
+	// the AuthorizedResourceArns parameter. Otherwise, the request fails with an
+	// InvalidParameterValueException error.
 	//
 	// InitialTopicId is a required field
 	InitialTopicId *string `min:"1" type:"string" required:"true"`
@@ -22353,8 +23206,8 @@ func (s *AssetBundleExportJobVPCConnectionOverrideProperties) SetProperties(v []
 }
 
 // The option to relax the validation that is required to export each asset.
-// When StrictModeForAllResource is set to true, validation is skipped for specific
-// UI errors.
+// When StrictModeForAllResource is set to false, validation is skipped for
+// specific UI errors.
 type AssetBundleExportJobValidationStrategy struct {
 	_ struct{} `type:"structure"`
 
@@ -24653,6 +25506,48 @@ func (s *AssetBundleImportJobVPCConnectionOverrideTags) SetVPCConnectionIds(v []
 	return s
 }
 
+// Describes a warning that occurred during an Asset Bundle import job.
+type AssetBundleImportJobWarning struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the resource that the warning occurred for.
+	Arn *string `type:"string"`
+
+	// A description of the warning that occurred during an Asset Bundle import
+	// job.
+	Message *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssetBundleImportJobWarning) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssetBundleImportJobWarning) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *AssetBundleImportJobWarning) SetArn(v string) *AssetBundleImportJobWarning {
+	s.Arn = &v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *AssetBundleImportJobWarning) SetMessage(v string) *AssetBundleImportJobWarning {
+	s.Message = &v
+	return s
+}
+
 // The source of the asset bundle zip file that contains the data that you want
 // to import. The file must be in QUICKSIGHT_JSON format.
 type AssetBundleImportSource struct {
@@ -26507,6 +27402,329 @@ func (s *BarChartVisual) SetVisualId(v string) *BarChartVisual {
 	return s
 }
 
+type BatchCreateTopicReviewedAnswerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The definition of the Answers to be created.
+	//
+	// Answers is a required field
+	Answers []*CreateTopicReviewedAnswer `type:"list" required:"true"`
+
+	// The ID of the Amazon Web Services account that you want to create a reviewed
+	// answer in.
+	//
+	// AwsAccountId is a required field
+	AwsAccountId *string `location:"uri" locationName:"AwsAccountId" min:"12" type:"string" required:"true"`
+
+	// The ID for the topic reviewed answer that you want to create. This ID is
+	// unique per Amazon Web Services Region for each Amazon Web Services account.
+	//
+	// TopicId is a required field
+	TopicId *string `location:"uri" locationName:"TopicId" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchCreateTopicReviewedAnswerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchCreateTopicReviewedAnswerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BatchCreateTopicReviewedAnswerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BatchCreateTopicReviewedAnswerInput"}
+	if s.Answers == nil {
+		invalidParams.Add(request.NewErrParamRequired("Answers"))
+	}
+	if s.AwsAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AwsAccountId"))
+	}
+	if s.AwsAccountId != nil && len(*s.AwsAccountId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("AwsAccountId", 12))
+	}
+	if s.TopicId == nil {
+		invalidParams.Add(request.NewErrParamRequired("TopicId"))
+	}
+	if s.TopicId != nil && len(*s.TopicId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TopicId", 1))
+	}
+	if s.Answers != nil {
+		for i, v := range s.Answers {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Answers", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAnswers sets the Answers field's value.
+func (s *BatchCreateTopicReviewedAnswerInput) SetAnswers(v []*CreateTopicReviewedAnswer) *BatchCreateTopicReviewedAnswerInput {
+	s.Answers = v
+	return s
+}
+
+// SetAwsAccountId sets the AwsAccountId field's value.
+func (s *BatchCreateTopicReviewedAnswerInput) SetAwsAccountId(v string) *BatchCreateTopicReviewedAnswerInput {
+	s.AwsAccountId = &v
+	return s
+}
+
+// SetTopicId sets the TopicId field's value.
+func (s *BatchCreateTopicReviewedAnswerInput) SetTopicId(v string) *BatchCreateTopicReviewedAnswerInput {
+	s.TopicId = &v
+	return s
+}
+
+type BatchCreateTopicReviewedAnswerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The definition of Answers that are invalid and not created.
+	InvalidAnswers []*InvalidTopicReviewedAnswer `type:"list"`
+
+	// The Amazon Web Services request ID for this operation.
+	RequestId *string `type:"string"`
+
+	// The HTTP status of the request.
+	Status *int64 `location:"statusCode" type:"integer"`
+
+	// The definition of Answers that are successfully created.
+	SucceededAnswers []*SucceededTopicReviewedAnswer `type:"list"`
+
+	// The Amazon Resource Name (ARN) of the topic.
+	TopicArn *string `type:"string"`
+
+	// The ID for the topic reviewed answer that you want to create. This ID is
+	// unique per Amazon Web Services Region for each Amazon Web Services account.
+	TopicId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchCreateTopicReviewedAnswerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchCreateTopicReviewedAnswerOutput) GoString() string {
+	return s.String()
+}
+
+// SetInvalidAnswers sets the InvalidAnswers field's value.
+func (s *BatchCreateTopicReviewedAnswerOutput) SetInvalidAnswers(v []*InvalidTopicReviewedAnswer) *BatchCreateTopicReviewedAnswerOutput {
+	s.InvalidAnswers = v
+	return s
+}
+
+// SetRequestId sets the RequestId field's value.
+func (s *BatchCreateTopicReviewedAnswerOutput) SetRequestId(v string) *BatchCreateTopicReviewedAnswerOutput {
+	s.RequestId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *BatchCreateTopicReviewedAnswerOutput) SetStatus(v int64) *BatchCreateTopicReviewedAnswerOutput {
+	s.Status = &v
+	return s
+}
+
+// SetSucceededAnswers sets the SucceededAnswers field's value.
+func (s *BatchCreateTopicReviewedAnswerOutput) SetSucceededAnswers(v []*SucceededTopicReviewedAnswer) *BatchCreateTopicReviewedAnswerOutput {
+	s.SucceededAnswers = v
+	return s
+}
+
+// SetTopicArn sets the TopicArn field's value.
+func (s *BatchCreateTopicReviewedAnswerOutput) SetTopicArn(v string) *BatchCreateTopicReviewedAnswerOutput {
+	s.TopicArn = &v
+	return s
+}
+
+// SetTopicId sets the TopicId field's value.
+func (s *BatchCreateTopicReviewedAnswerOutput) SetTopicId(v string) *BatchCreateTopicReviewedAnswerOutput {
+	s.TopicId = &v
+	return s
+}
+
+type BatchDeleteTopicReviewedAnswerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Answer IDs of the Answers to be deleted.
+	AnswerIds []*string `type:"list"`
+
+	// The ID of the Amazon Web Services account that you want to delete a reviewed
+	// answers in.
+	//
+	// AwsAccountId is a required field
+	AwsAccountId *string `location:"uri" locationName:"AwsAccountId" min:"12" type:"string" required:"true"`
+
+	// The ID for the topic reviewed answer that you want to delete. This ID is
+	// unique per Amazon Web Services Region for each Amazon Web Services account.
+	//
+	// TopicId is a required field
+	TopicId *string `location:"uri" locationName:"TopicId" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchDeleteTopicReviewedAnswerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchDeleteTopicReviewedAnswerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BatchDeleteTopicReviewedAnswerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BatchDeleteTopicReviewedAnswerInput"}
+	if s.AwsAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AwsAccountId"))
+	}
+	if s.AwsAccountId != nil && len(*s.AwsAccountId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("AwsAccountId", 12))
+	}
+	if s.TopicId == nil {
+		invalidParams.Add(request.NewErrParamRequired("TopicId"))
+	}
+	if s.TopicId != nil && len(*s.TopicId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TopicId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAnswerIds sets the AnswerIds field's value.
+func (s *BatchDeleteTopicReviewedAnswerInput) SetAnswerIds(v []*string) *BatchDeleteTopicReviewedAnswerInput {
+	s.AnswerIds = v
+	return s
+}
+
+// SetAwsAccountId sets the AwsAccountId field's value.
+func (s *BatchDeleteTopicReviewedAnswerInput) SetAwsAccountId(v string) *BatchDeleteTopicReviewedAnswerInput {
+	s.AwsAccountId = &v
+	return s
+}
+
+// SetTopicId sets the TopicId field's value.
+func (s *BatchDeleteTopicReviewedAnswerInput) SetTopicId(v string) *BatchDeleteTopicReviewedAnswerInput {
+	s.TopicId = &v
+	return s
+}
+
+type BatchDeleteTopicReviewedAnswerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The definition of Answers that are invalid and not deleted.
+	InvalidAnswers []*InvalidTopicReviewedAnswer `type:"list"`
+
+	// The Amazon Web Services request ID for this operation.
+	RequestId *string `type:"string"`
+
+	// The HTTP status of the request.
+	Status *int64 `location:"statusCode" type:"integer"`
+
+	// The definition of Answers that are successfully deleted.
+	SucceededAnswers []*SucceededTopicReviewedAnswer `type:"list"`
+
+	// The Amazon Resource Name (ARN) of the topic.
+	TopicArn *string `type:"string"`
+
+	// The ID of the topic reviewed answer that you want to delete. This ID is unique
+	// per Amazon Web Services Region for each Amazon Web Services account.
+	TopicId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchDeleteTopicReviewedAnswerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BatchDeleteTopicReviewedAnswerOutput) GoString() string {
+	return s.String()
+}
+
+// SetInvalidAnswers sets the InvalidAnswers field's value.
+func (s *BatchDeleteTopicReviewedAnswerOutput) SetInvalidAnswers(v []*InvalidTopicReviewedAnswer) *BatchDeleteTopicReviewedAnswerOutput {
+	s.InvalidAnswers = v
+	return s
+}
+
+// SetRequestId sets the RequestId field's value.
+func (s *BatchDeleteTopicReviewedAnswerOutput) SetRequestId(v string) *BatchDeleteTopicReviewedAnswerOutput {
+	s.RequestId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *BatchDeleteTopicReviewedAnswerOutput) SetStatus(v int64) *BatchDeleteTopicReviewedAnswerOutput {
+	s.Status = &v
+	return s
+}
+
+// SetSucceededAnswers sets the SucceededAnswers field's value.
+func (s *BatchDeleteTopicReviewedAnswerOutput) SetSucceededAnswers(v []*SucceededTopicReviewedAnswer) *BatchDeleteTopicReviewedAnswerOutput {
+	s.SucceededAnswers = v
+	return s
+}
+
+// SetTopicArn sets the TopicArn field's value.
+func (s *BatchDeleteTopicReviewedAnswerOutput) SetTopicArn(v string) *BatchDeleteTopicReviewedAnswerOutput {
+	s.TopicArn = &v
+	return s
+}
+
+// SetTopicId sets the TopicId field's value.
+func (s *BatchDeleteTopicReviewedAnswerOutput) SetTopicId(v string) *BatchDeleteTopicReviewedAnswerOutput {
+	s.TopicId = &v
+	return s
+}
+
 // The parameters that are required to connect to a Google BigQuery data source.
 type BigQueryParameters struct {
 	_ struct{} `type:"structure"`
@@ -26654,6 +27872,9 @@ type BodySectionConfiguration struct {
 	// The configuration of a page break for a section.
 	PageBreakConfiguration *SectionPageBreakConfiguration `type:"structure"`
 
+	// Describes the configurations that are required to declare a section as repeating.
+	RepeatConfiguration *BodySectionRepeatConfiguration `type:"structure"`
+
 	// The unique identifier of a body section.
 	//
 	// SectionId is a required field
@@ -26698,6 +27919,11 @@ func (s *BodySectionConfiguration) Validate() error {
 			invalidParams.AddNested("Content", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.RepeatConfiguration != nil {
+		if err := s.RepeatConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("RepeatConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -26714,6 +27940,12 @@ func (s *BodySectionConfiguration) SetContent(v *BodySectionContent) *BodySectio
 // SetPageBreakConfiguration sets the PageBreakConfiguration field's value.
 func (s *BodySectionConfiguration) SetPageBreakConfiguration(v *SectionPageBreakConfiguration) *BodySectionConfiguration {
 	s.PageBreakConfiguration = v
+	return s
+}
+
+// SetRepeatConfiguration sets the RepeatConfiguration field's value.
+func (s *BodySectionConfiguration) SetRepeatConfiguration(v *BodySectionRepeatConfiguration) *BodySectionConfiguration {
+	s.RepeatConfiguration = v
 	return s
 }
 
@@ -26773,6 +28005,345 @@ func (s *BodySectionContent) Validate() error {
 // SetLayout sets the Layout field's value.
 func (s *BodySectionContent) SetLayout(v *SectionLayoutConfiguration) *BodySectionContent {
 	s.Layout = v
+	return s
+}
+
+// Describes the Category dataset column and constraints for the dynamic values
+// used to repeat the contents of a section.
+type BodySectionDynamicCategoryDimensionConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// A column of a data set.
+	//
+	// Column is a required field
+	Column *ColumnIdentifier `type:"structure" required:"true"`
+
+	// Number of values to use from the column for repetition.
+	Limit *int64 `min:"1" type:"integer"`
+
+	// Sort criteria on the column values that you use for repetition.
+	SortByMetrics []*ColumnSort `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionDynamicCategoryDimensionConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionDynamicCategoryDimensionConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BodySectionDynamicCategoryDimensionConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BodySectionDynamicCategoryDimensionConfiguration"}
+	if s.Column == nil {
+		invalidParams.Add(request.NewErrParamRequired("Column"))
+	}
+	if s.Limit != nil && *s.Limit < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Limit", 1))
+	}
+	if s.Column != nil {
+		if err := s.Column.Validate(); err != nil {
+			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SortByMetrics != nil {
+		for i, v := range s.SortByMetrics {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SortByMetrics", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumn sets the Column field's value.
+func (s *BodySectionDynamicCategoryDimensionConfiguration) SetColumn(v *ColumnIdentifier) *BodySectionDynamicCategoryDimensionConfiguration {
+	s.Column = v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *BodySectionDynamicCategoryDimensionConfiguration) SetLimit(v int64) *BodySectionDynamicCategoryDimensionConfiguration {
+	s.Limit = &v
+	return s
+}
+
+// SetSortByMetrics sets the SortByMetrics field's value.
+func (s *BodySectionDynamicCategoryDimensionConfiguration) SetSortByMetrics(v []*ColumnSort) *BodySectionDynamicCategoryDimensionConfiguration {
+	s.SortByMetrics = v
+	return s
+}
+
+// Describes the Numeric dataset column and constraints for the dynamic values
+// used to repeat the contents of a section.
+type BodySectionDynamicNumericDimensionConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// A column of a data set.
+	//
+	// Column is a required field
+	Column *ColumnIdentifier `type:"structure" required:"true"`
+
+	// Number of values to use from the column for repetition.
+	Limit *int64 `min:"1" type:"integer"`
+
+	// Sort criteria on the column values that you use for repetition.
+	SortByMetrics []*ColumnSort `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionDynamicNumericDimensionConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionDynamicNumericDimensionConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BodySectionDynamicNumericDimensionConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BodySectionDynamicNumericDimensionConfiguration"}
+	if s.Column == nil {
+		invalidParams.Add(request.NewErrParamRequired("Column"))
+	}
+	if s.Limit != nil && *s.Limit < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Limit", 1))
+	}
+	if s.Column != nil {
+		if err := s.Column.Validate(); err != nil {
+			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SortByMetrics != nil {
+		for i, v := range s.SortByMetrics {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SortByMetrics", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumn sets the Column field's value.
+func (s *BodySectionDynamicNumericDimensionConfiguration) SetColumn(v *ColumnIdentifier) *BodySectionDynamicNumericDimensionConfiguration {
+	s.Column = v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *BodySectionDynamicNumericDimensionConfiguration) SetLimit(v int64) *BodySectionDynamicNumericDimensionConfiguration {
+	s.Limit = &v
+	return s
+}
+
+// SetSortByMetrics sets the SortByMetrics field's value.
+func (s *BodySectionDynamicNumericDimensionConfiguration) SetSortByMetrics(v []*ColumnSort) *BodySectionDynamicNumericDimensionConfiguration {
+	s.SortByMetrics = v
+	return s
+}
+
+// Describes the configurations that are required to declare a section as repeating.
+type BodySectionRepeatConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// List of BodySectionRepeatDimensionConfiguration values that describe the
+	// dataset column and constraints for the column used to repeat the contents
+	// of a section.
+	DimensionConfigurations []*BodySectionRepeatDimensionConfiguration `type:"list"`
+
+	// List of visuals to exclude from repetition in repeating sections. The visuals
+	// will render identically, and ignore the repeating configurations in all repeating
+	// instances.
+	NonRepeatingVisuals []*string `type:"list"`
+
+	// Page break configuration to apply for each repeating instance.
+	PageBreakConfiguration *BodySectionRepeatPageBreakConfiguration `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionRepeatConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionRepeatConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BodySectionRepeatConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BodySectionRepeatConfiguration"}
+	if s.DimensionConfigurations != nil {
+		for i, v := range s.DimensionConfigurations {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "DimensionConfigurations", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDimensionConfigurations sets the DimensionConfigurations field's value.
+func (s *BodySectionRepeatConfiguration) SetDimensionConfigurations(v []*BodySectionRepeatDimensionConfiguration) *BodySectionRepeatConfiguration {
+	s.DimensionConfigurations = v
+	return s
+}
+
+// SetNonRepeatingVisuals sets the NonRepeatingVisuals field's value.
+func (s *BodySectionRepeatConfiguration) SetNonRepeatingVisuals(v []*string) *BodySectionRepeatConfiguration {
+	s.NonRepeatingVisuals = v
+	return s
+}
+
+// SetPageBreakConfiguration sets the PageBreakConfiguration field's value.
+func (s *BodySectionRepeatConfiguration) SetPageBreakConfiguration(v *BodySectionRepeatPageBreakConfiguration) *BodySectionRepeatConfiguration {
+	s.PageBreakConfiguration = v
+	return s
+}
+
+// Describes the dataset column and constraints for the dynamic values used
+// to repeat the contents of a section. The dataset column is either Category
+// or Numeric column configuration
+type BodySectionRepeatDimensionConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Describes the Category dataset column and constraints around the dynamic
+	// values that will be used in repeating the section contents.
+	DynamicCategoryDimensionConfiguration *BodySectionDynamicCategoryDimensionConfiguration `type:"structure"`
+
+	// Describes the Numeric dataset column and constraints around the dynamic values
+	// used to repeat the contents of a section.
+	DynamicNumericDimensionConfiguration *BodySectionDynamicNumericDimensionConfiguration `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionRepeatDimensionConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionRepeatDimensionConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BodySectionRepeatDimensionConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BodySectionRepeatDimensionConfiguration"}
+	if s.DynamicCategoryDimensionConfiguration != nil {
+		if err := s.DynamicCategoryDimensionConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DynamicCategoryDimensionConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DynamicNumericDimensionConfiguration != nil {
+		if err := s.DynamicNumericDimensionConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DynamicNumericDimensionConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDynamicCategoryDimensionConfiguration sets the DynamicCategoryDimensionConfiguration field's value.
+func (s *BodySectionRepeatDimensionConfiguration) SetDynamicCategoryDimensionConfiguration(v *BodySectionDynamicCategoryDimensionConfiguration) *BodySectionRepeatDimensionConfiguration {
+	s.DynamicCategoryDimensionConfiguration = v
+	return s
+}
+
+// SetDynamicNumericDimensionConfiguration sets the DynamicNumericDimensionConfiguration field's value.
+func (s *BodySectionRepeatDimensionConfiguration) SetDynamicNumericDimensionConfiguration(v *BodySectionDynamicNumericDimensionConfiguration) *BodySectionRepeatDimensionConfiguration {
+	s.DynamicNumericDimensionConfiguration = v
+	return s
+}
+
+// The page break configuration to apply for each repeating instance.
+type BodySectionRepeatPageBreakConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The configuration of a page break after a section.
+	After *SectionAfterPageBreak `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionRepeatPageBreakConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s BodySectionRepeatPageBreakConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetAfter sets the After field's value.
+func (s *BodySectionRepeatPageBreakConfiguration) SetAfter(v *SectionAfterPageBreak) *BodySectionRepeatPageBreakConfiguration {
+	s.After = v
 	return s
 }
 
@@ -28218,7 +29789,7 @@ func (s *CategoricalMeasureField) SetFormatConfiguration(v *StringFormatConfigur
 	return s
 }
 
-// The numeric equality type drill down filter.
+// The category drill down filter.
 type CategoryDrillDownFilter struct {
 	_ struct{} `type:"structure"`
 
@@ -28302,6 +29873,10 @@ type CategoryFilter struct {
 	// Configuration is a required field
 	Configuration *CategoryFilterConfiguration `type:"structure" required:"true"`
 
+	// The default configurations for the associated controls. This applies only
+	// for filters that are scoped to multiple sheets.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
+
 	// An identifier that uniquely identifies a filter within a dashboard, analysis,
 	// or template.
 	//
@@ -28352,6 +29927,11 @@ func (s *CategoryFilter) Validate() error {
 			invalidParams.AddNested("Configuration", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -28368,6 +29948,12 @@ func (s *CategoryFilter) SetColumn(v *ColumnIdentifier) *CategoryFilter {
 // SetConfiguration sets the Configuration field's value.
 func (s *CategoryFilter) SetConfiguration(v *CategoryFilterConfiguration) *CategoryFilter {
 	s.Configuration = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *CategoryFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *CategoryFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -28455,6 +30041,94 @@ func (s *CategoryFilterConfiguration) SetCustomFilterListConfiguration(v *Custom
 // SetFilterListConfiguration sets the FilterListConfiguration field's value.
 func (s *CategoryFilterConfiguration) SetFilterListConfiguration(v *FilterListConfiguration) *CategoryFilterConfiguration {
 	s.FilterListConfiguration = v
+	return s
+}
+
+// A CategoryInnerFilter filters text values for the NestedFilter.
+type CategoryInnerFilter struct {
+	_ struct{} `type:"structure"`
+
+	// A column of a data set.
+	//
+	// Column is a required field
+	Column *ColumnIdentifier `type:"structure" required:"true"`
+
+	// The configuration for a CategoryFilter.
+	//
+	// This is a union type structure. For this structure to be valid, only one
+	// of the attributes can be defined.
+	//
+	// Configuration is a required field
+	Configuration *CategoryFilterConfiguration `type:"structure" required:"true"`
+
+	// The default configuration for all dependent controls of the filter.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CategoryInnerFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CategoryInnerFilter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CategoryInnerFilter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CategoryInnerFilter"}
+	if s.Column == nil {
+		invalidParams.Add(request.NewErrParamRequired("Column"))
+	}
+	if s.Configuration == nil {
+		invalidParams.Add(request.NewErrParamRequired("Configuration"))
+	}
+	if s.Column != nil {
+		if err := s.Column.Validate(); err != nil {
+			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Configuration != nil {
+		if err := s.Configuration.Validate(); err != nil {
+			invalidParams.AddNested("Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumn sets the Column field's value.
+func (s *CategoryInnerFilter) SetColumn(v *ColumnIdentifier) *CategoryInnerFilter {
+	s.Column = v
+	return s
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *CategoryInnerFilter) SetConfiguration(v *CategoryFilterConfiguration) *CategoryInnerFilter {
+	s.Configuration = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *CategoryInnerFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *CategoryInnerFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -28666,6 +30340,47 @@ func (s CollectiveConstant) GoString() string {
 // SetValueList sets the ValueList field's value.
 func (s *CollectiveConstant) SetValueList(v []*string) *CollectiveConstant {
 	s.ValueList = v
+	return s
+}
+
+// The definition for a CollectiveConstantEntry.
+type CollectiveConstantEntry struct {
+	_ struct{} `type:"structure"`
+
+	// The ConstantType of a CollectiveConstantEntry.
+	ConstantType *string `type:"string" enum:"ConstantType"`
+
+	// The value of a CollectiveConstantEntry.
+	Value *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CollectiveConstantEntry) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CollectiveConstantEntry) GoString() string {
+	return s.String()
+}
+
+// SetConstantType sets the ConstantType field's value.
+func (s *CollectiveConstantEntry) SetConstantType(v string) *CollectiveConstantEntry {
+	s.ConstantType = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *CollectiveConstantEntry) SetValue(v string) *CollectiveConstantEntry {
+	s.Value = &v
 	return s
 }
 
@@ -31246,6 +32961,99 @@ func (s *ContributionAnalysisDefault) SetMeasureFieldId(v string) *ContributionA
 	return s
 }
 
+// The definition for the ContributionAnalysisFactor.
+type ContributionAnalysisFactor struct {
+	_ struct{} `type:"structure"`
+
+	// The field name of the ContributionAnalysisFactor.
+	FieldName *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ContributionAnalysisFactor) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ContributionAnalysisFactor) GoString() string {
+	return s.String()
+}
+
+// SetFieldName sets the FieldName field's value.
+func (s *ContributionAnalysisFactor) SetFieldName(v string) *ContributionAnalysisFactor {
+	s.FieldName = &v
+	return s
+}
+
+// The definition for the ContributionAnalysisTimeRanges.
+type ContributionAnalysisTimeRanges struct {
+	_ struct{} `type:"structure"`
+
+	// The end range for the ContributionAnalysisTimeRanges.
+	EndRange *TopicIRFilterOption `type:"structure"`
+
+	// The start range for the ContributionAnalysisTimeRanges.
+	StartRange *TopicIRFilterOption `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ContributionAnalysisTimeRanges) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ContributionAnalysisTimeRanges) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ContributionAnalysisTimeRanges) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ContributionAnalysisTimeRanges"}
+	if s.EndRange != nil {
+		if err := s.EndRange.Validate(); err != nil {
+			invalidParams.AddNested("EndRange", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.StartRange != nil {
+		if err := s.StartRange.Validate(); err != nil {
+			invalidParams.AddNested("StartRange", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEndRange sets the EndRange field's value.
+func (s *ContributionAnalysisTimeRanges) SetEndRange(v *TopicIRFilterOption) *ContributionAnalysisTimeRanges {
+	s.EndRange = v
+	return s
+}
+
+// SetStartRange sets the StartRange field's value.
+func (s *ContributionAnalysisTimeRanges) SetStartRange(v *TopicIRFilterOption) *ContributionAnalysisTimeRanges {
+	s.StartRange = v
+	return s
+}
+
 type CreateAccountCustomizationInput struct {
 	_ struct{} `type:"structure"`
 
@@ -31443,8 +33251,9 @@ type CreateAccountSubscriptionInput struct {
 	ActiveDirectoryName *string `type:"string"`
 
 	// The admin group associated with your Active Directory or IAM Identity Center
-	// account. This field is required if ACTIVE_DIRECTORY or IAM_IDENTITY_CENTER
-	// is the selected authentication method of the new Amazon QuickSight account.
+	// account. Either this field or the AdminProGroup field is required if ACTIVE_DIRECTORY
+	// or IAM_IDENTITY_CENTER is the selected authentication method of the new Amazon
+	// QuickSight account.
 	//
 	// For more information about using IAM Identity Center in Amazon QuickSight,
 	// see Using IAM Identity Center with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html)
@@ -31453,6 +33262,19 @@ type CreateAccountSubscriptionInput struct {
 	// Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
 	// in the Amazon QuickSight User Guide.
 	AdminGroup []*string `type:"list"`
+
+	// The admin pro group associated with your Active Directory or IAM Identity
+	// Center account. Either this field or the AdminGroup field is required if
+	// ACTIVE_DIRECTORY or IAM_IDENTITY_CENTER is the selected authentication method
+	// of the new Amazon QuickSight account.
+	//
+	// For more information about using IAM Identity Center in Amazon QuickSight,
+	// see Using IAM Identity Center with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html)
+	// in the Amazon QuickSight User Guide. For more information about using Active
+	// Directory in Amazon QuickSight, see Using Active Directory with Amazon QuickSight
+	// Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
+	// in the Amazon QuickSight User Guide.
+	AdminProGroup []*string `type:"list"`
 
 	// The method that you want to use to authenticate your Amazon QuickSight account.
 	//
@@ -31475,6 +33297,17 @@ type CreateAccountSubscriptionInput struct {
 	// Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
 	// in the Amazon QuickSight User Guide.
 	AuthorGroup []*string `type:"list"`
+
+	// The author pro group associated with your Active Directory or IAM Identity
+	// Center account.
+	//
+	// For more information about using IAM Identity Center in Amazon QuickSight,
+	// see Using IAM Identity Center with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html)
+	// in the Amazon QuickSight User Guide. For more information about using Active
+	// Directory in Amazon QuickSight, see Using Active Directory with Amazon QuickSight
+	// Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
+	// in the Amazon QuickSight User Guide.
+	AuthorProGroup []*string `type:"list"`
 
 	// The Amazon Web Services account ID of the account that you're using to create
 	// your Amazon QuickSight account.
@@ -31503,9 +33336,7 @@ type CreateAccountSubscriptionInput struct {
 	//    * EmailAddress
 	//
 	//    * ContactNumber
-	//
-	// Edition is a required field
-	Edition *string `type:"string" required:"true" enum:"Edition"`
+	Edition *string `type:"string" enum:"Edition"`
 
 	// The email address of the author of the Amazon QuickSight account to use for
 	// future communications. This field is required if ENTERPPRISE_AND_Q is the
@@ -31541,6 +33372,17 @@ type CreateAccountSubscriptionInput struct {
 	// Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
 	// in the Amazon QuickSight User Guide.
 	ReaderGroup []*string `type:"list"`
+
+	// The reader pro group associated with your Active Directory or IAM Identity
+	// Center account.
+	//
+	// For more information about using IAM Identity Center in Amazon QuickSight,
+	// see Using IAM Identity Center with Amazon QuickSight Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html)
+	// in the Amazon QuickSight User Guide. For more information about using Active
+	// Directory in Amazon QuickSight, see Using Active Directory with Amazon QuickSight
+	// Enterprise Edition (https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html)
+	// in the Amazon QuickSight User Guide.
+	ReaderProGroup []*string `type:"list"`
 
 	// The realm of the Active Directory that is associated with your Amazon QuickSight
 	// account. This field is required if ACTIVE_DIRECTORY is the selected authentication
@@ -31584,9 +33426,6 @@ func (s *CreateAccountSubscriptionInput) Validate() error {
 	if s.AwsAccountId != nil && len(*s.AwsAccountId) < 12 {
 		invalidParams.Add(request.NewErrParamMinLen("AwsAccountId", 12))
 	}
-	if s.Edition == nil {
-		invalidParams.Add(request.NewErrParamRequired("Edition"))
-	}
 	if s.NotificationEmail == nil {
 		invalidParams.Add(request.NewErrParamRequired("NotificationEmail"))
 	}
@@ -31615,6 +33454,12 @@ func (s *CreateAccountSubscriptionInput) SetAdminGroup(v []*string) *CreateAccou
 	return s
 }
 
+// SetAdminProGroup sets the AdminProGroup field's value.
+func (s *CreateAccountSubscriptionInput) SetAdminProGroup(v []*string) *CreateAccountSubscriptionInput {
+	s.AdminProGroup = v
+	return s
+}
+
 // SetAuthenticationMethod sets the AuthenticationMethod field's value.
 func (s *CreateAccountSubscriptionInput) SetAuthenticationMethod(v string) *CreateAccountSubscriptionInput {
 	s.AuthenticationMethod = &v
@@ -31624,6 +33469,12 @@ func (s *CreateAccountSubscriptionInput) SetAuthenticationMethod(v string) *Crea
 // SetAuthorGroup sets the AuthorGroup field's value.
 func (s *CreateAccountSubscriptionInput) SetAuthorGroup(v []*string) *CreateAccountSubscriptionInput {
 	s.AuthorGroup = v
+	return s
+}
+
+// SetAuthorProGroup sets the AuthorProGroup field's value.
+func (s *CreateAccountSubscriptionInput) SetAuthorProGroup(v []*string) *CreateAccountSubscriptionInput {
+	s.AuthorProGroup = v
 	return s
 }
 
@@ -31684,6 +33535,12 @@ func (s *CreateAccountSubscriptionInput) SetNotificationEmail(v string) *CreateA
 // SetReaderGroup sets the ReaderGroup field's value.
 func (s *CreateAccountSubscriptionInput) SetReaderGroup(v []*string) *CreateAccountSubscriptionInput {
 	s.ReaderGroup = v
+	return s
+}
+
+// SetReaderProGroup sets the ReaderProGroup field's value.
+func (s *CreateAccountSubscriptionInput) SetReaderProGroup(v []*string) *CreateAccountSubscriptionInput {
+	s.ReaderProGroup = v
 	return s
 }
 
@@ -35844,6 +37701,118 @@ func (s *CreateTopicRefreshScheduleOutput) SetTopicId(v string) *CreateTopicRefr
 	return s
 }
 
+// The definition for a CreateTopicReviewedAnswer.
+type CreateTopicReviewedAnswer struct {
+	_ struct{} `type:"structure"`
+
+	// The answer ID for the CreateTopicReviewedAnswer.
+	//
+	// AnswerId is a required field
+	AnswerId *string `type:"string" required:"true"`
+
+	// The Dataset arn for the CreateTopicReviewedAnswer.
+	//
+	// DatasetArn is a required field
+	DatasetArn *string `type:"string" required:"true"`
+
+	// The Mir for the CreateTopicReviewedAnswer.
+	Mir *TopicIR `type:"structure"`
+
+	// The PrimaryVisual for the CreateTopicReviewedAnswer.
+	PrimaryVisual *TopicVisual `type:"structure"`
+
+	// The Question to be created.
+	//
+	// Question is a required field
+	Question *string `type:"string" required:"true"`
+
+	// The template for the CreateTopicReviewedAnswer.
+	Template *TopicTemplate `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateTopicReviewedAnswer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateTopicReviewedAnswer) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateTopicReviewedAnswer) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateTopicReviewedAnswer"}
+	if s.AnswerId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AnswerId"))
+	}
+	if s.DatasetArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatasetArn"))
+	}
+	if s.Question == nil {
+		invalidParams.Add(request.NewErrParamRequired("Question"))
+	}
+	if s.Mir != nil {
+		if err := s.Mir.Validate(); err != nil {
+			invalidParams.AddNested("Mir", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.PrimaryVisual != nil {
+		if err := s.PrimaryVisual.Validate(); err != nil {
+			invalidParams.AddNested("PrimaryVisual", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAnswerId sets the AnswerId field's value.
+func (s *CreateTopicReviewedAnswer) SetAnswerId(v string) *CreateTopicReviewedAnswer {
+	s.AnswerId = &v
+	return s
+}
+
+// SetDatasetArn sets the DatasetArn field's value.
+func (s *CreateTopicReviewedAnswer) SetDatasetArn(v string) *CreateTopicReviewedAnswer {
+	s.DatasetArn = &v
+	return s
+}
+
+// SetMir sets the Mir field's value.
+func (s *CreateTopicReviewedAnswer) SetMir(v *TopicIR) *CreateTopicReviewedAnswer {
+	s.Mir = v
+	return s
+}
+
+// SetPrimaryVisual sets the PrimaryVisual field's value.
+func (s *CreateTopicReviewedAnswer) SetPrimaryVisual(v *TopicVisual) *CreateTopicReviewedAnswer {
+	s.PrimaryVisual = v
+	return s
+}
+
+// SetQuestion sets the Question field's value.
+func (s *CreateTopicReviewedAnswer) SetQuestion(v string) *CreateTopicReviewedAnswer {
+	s.Question = &v
+	return s
+}
+
+// SetTemplate sets the Template field's value.
+func (s *CreateTopicReviewedAnswer) SetTemplate(v *TopicTemplate) *CreateTopicReviewedAnswer {
+	s.Template = v
+	return s
+}
+
 type CreateVPCConnectionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -37099,16 +39068,16 @@ type CustomParameterValues struct {
 	_ struct{} `type:"structure"`
 
 	// A list of datetime-type parameter values.
-	DateTimeValues []*time.Time `type:"list"`
+	DateTimeValues []*time.Time `type:"list" sensitive:"true"`
 
 	// A list of decimal-type parameter values.
-	DecimalValues []*float64 `type:"list"`
+	DecimalValues []*float64 `type:"list" sensitive:"true"`
 
 	// A list of integer-type parameter values.
-	IntegerValues []*int64 `type:"list"`
+	IntegerValues []*int64 `type:"list" sensitive:"true"`
 
 	// A list of string-type parameter values.
-	StringValues []*string `type:"list"`
+	StringValues []*string `type:"list" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -41638,7 +43607,7 @@ type DateTimeDefaultValues struct {
 	RollingDate *RollingDateConfiguration `type:"structure"`
 
 	// The static values of the DataTimeDefaultValues.
-	StaticValues []*time.Time `type:"list"`
+	StaticValues []*time.Time `type:"list" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -41851,7 +43820,7 @@ type DateTimeParameter struct {
 	// The values for the date-time parameter.
 	//
 	// Values is a required field
-	Values []*time.Time `type:"list" required:"true"`
+	Values []*time.Time `type:"list" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -42007,8 +43976,14 @@ func (s *DateTimeParameterDeclaration) SetValueWhenUnset(v *DateTimeValueWhenUns
 type DateTimePickerControlDisplayOptions struct {
 	_ struct{} `type:"structure"`
 
+	// The date icon visibility of the DateTimePickerControlDisplayOptions.
+	DateIconVisibility *string `type:"string" enum:"Visibility"`
+
 	// Customize how dates are formatted in controls.
 	DateTimeFormat *string `min:"1" type:"string"`
+
+	// The helper text visibility of the DateTimePickerControlDisplayOptions.
+	HelperTextVisibility *string `type:"string" enum:"Visibility"`
 
 	// The configuration of info icon label options.
 	InfoIconLabelOptions *SheetControlInfoIconLabelOptions `type:"structure"`
@@ -42053,9 +44028,21 @@ func (s *DateTimePickerControlDisplayOptions) Validate() error {
 	return nil
 }
 
+// SetDateIconVisibility sets the DateIconVisibility field's value.
+func (s *DateTimePickerControlDisplayOptions) SetDateIconVisibility(v string) *DateTimePickerControlDisplayOptions {
+	s.DateIconVisibility = &v
+	return s
+}
+
 // SetDateTimeFormat sets the DateTimeFormat field's value.
 func (s *DateTimePickerControlDisplayOptions) SetDateTimeFormat(v string) *DateTimePickerControlDisplayOptions {
 	s.DateTimeFormat = &v
+	return s
+}
+
+// SetHelperTextVisibility sets the HelperTextVisibility field's value.
+func (s *DateTimePickerControlDisplayOptions) SetHelperTextVisibility(v string) *DateTimePickerControlDisplayOptions {
+	s.HelperTextVisibility = &v
 	return s
 }
 
@@ -42272,7 +44259,7 @@ type DecimalDefaultValues struct {
 	DynamicValue *DynamicDefaultValue `type:"structure"`
 
 	// The static values of the DecimalDefaultValues.
-	StaticValues []*float64 `type:"list"`
+	StaticValues []*float64 `type:"list" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -42332,7 +44319,7 @@ type DecimalParameter struct {
 	// The values for the decimal parameter.
 	//
 	// Values is a required field
-	Values []*float64 `type:"list" required:"true"`
+	Values []*float64 `type:"list" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -42584,6 +44571,408 @@ func (s *DecimalValueWhenUnsetConfiguration) SetCustomValue(v float64) *DecimalV
 // SetValueWhenUnsetOption sets the ValueWhenUnsetOption field's value.
 func (s *DecimalValueWhenUnsetConfiguration) SetValueWhenUnsetOption(v string) *DecimalValueWhenUnsetConfiguration {
 	s.ValueWhenUnsetOption = &v
+	return s
+}
+
+// The default options that correspond to the filter control type of a DateTimePicker.
+type DefaultDateTimePickerControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The display options of a control.
+	DisplayOptions *DateTimePickerControlDisplayOptions `type:"structure"`
+
+	// The date time picker type of the DefaultDateTimePickerControlOptions. Choose
+	// one of the following options:
+	//
+	//    * SINGLE_VALUED: The filter condition is a fixed date.
+	//
+	//    * DATE_RANGE: The filter condition is a date time range.
+	Type *string `type:"string" enum:"SheetControlDateTimePickerType"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultDateTimePickerControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultDateTimePickerControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultDateTimePickerControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultDateTimePickerControlOptions"}
+	if s.DisplayOptions != nil {
+		if err := s.DisplayOptions.Validate(); err != nil {
+			invalidParams.AddNested("DisplayOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDisplayOptions sets the DisplayOptions field's value.
+func (s *DefaultDateTimePickerControlOptions) SetDisplayOptions(v *DateTimePickerControlDisplayOptions) *DefaultDateTimePickerControlOptions {
+	s.DisplayOptions = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *DefaultDateTimePickerControlOptions) SetType(v string) *DefaultDateTimePickerControlOptions {
+	s.Type = &v
+	return s
+}
+
+// The default configuration for all dependent controls of the filter.
+type DefaultFilterControlConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The control option for the DefaultFilterControlConfiguration.
+	//
+	// ControlOptions is a required field
+	ControlOptions *DefaultFilterControlOptions `type:"structure" required:"true"`
+
+	// The title of the DefaultFilterControlConfiguration. This title is shared
+	// by all controls that are tied to this filter.
+	//
+	// Title is a required field
+	Title *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterControlConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterControlConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultFilterControlConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultFilterControlConfiguration"}
+	if s.ControlOptions == nil {
+		invalidParams.Add(request.NewErrParamRequired("ControlOptions"))
+	}
+	if s.Title == nil {
+		invalidParams.Add(request.NewErrParamRequired("Title"))
+	}
+	if s.Title != nil && len(*s.Title) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Title", 1))
+	}
+	if s.ControlOptions != nil {
+		if err := s.ControlOptions.Validate(); err != nil {
+			invalidParams.AddNested("ControlOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetControlOptions sets the ControlOptions field's value.
+func (s *DefaultFilterControlConfiguration) SetControlOptions(v *DefaultFilterControlOptions) *DefaultFilterControlConfiguration {
+	s.ControlOptions = v
+	return s
+}
+
+// SetTitle sets the Title field's value.
+func (s *DefaultFilterControlConfiguration) SetTitle(v string) *DefaultFilterControlConfiguration {
+	s.Title = &v
+	return s
+}
+
+// The option that corresponds to the control type of the filter.
+type DefaultFilterControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The default options that correspond to the filter control type of a DateTimePicker.
+	DefaultDateTimePickerOptions *DefaultDateTimePickerControlOptions `type:"structure"`
+
+	// The default options that correspond to the Dropdown filter control type.
+	DefaultDropdownOptions *DefaultFilterDropDownControlOptions `type:"structure"`
+
+	// The default options that correspond to the List filter control type.
+	DefaultListOptions *DefaultFilterListControlOptions `type:"structure"`
+
+	// The default options that correspond to the RelativeDateTime filter control
+	// type.
+	DefaultRelativeDateTimeOptions *DefaultRelativeDateTimeControlOptions `type:"structure"`
+
+	// The default options that correspond to the Slider filter control type.
+	DefaultSliderOptions *DefaultSliderControlOptions `type:"structure"`
+
+	// The default options that correspond to the TextArea filter control type.
+	DefaultTextAreaOptions *DefaultTextAreaControlOptions `type:"structure"`
+
+	// The default options that correspond to the TextField filter control type.
+	DefaultTextFieldOptions *DefaultTextFieldControlOptions `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultFilterControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultFilterControlOptions"}
+	if s.DefaultDateTimePickerOptions != nil {
+		if err := s.DefaultDateTimePickerOptions.Validate(); err != nil {
+			invalidParams.AddNested("DefaultDateTimePickerOptions", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DefaultDropdownOptions != nil {
+		if err := s.DefaultDropdownOptions.Validate(); err != nil {
+			invalidParams.AddNested("DefaultDropdownOptions", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DefaultListOptions != nil {
+		if err := s.DefaultListOptions.Validate(); err != nil {
+			invalidParams.AddNested("DefaultListOptions", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DefaultRelativeDateTimeOptions != nil {
+		if err := s.DefaultRelativeDateTimeOptions.Validate(); err != nil {
+			invalidParams.AddNested("DefaultRelativeDateTimeOptions", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DefaultSliderOptions != nil {
+		if err := s.DefaultSliderOptions.Validate(); err != nil {
+			invalidParams.AddNested("DefaultSliderOptions", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DefaultTextAreaOptions != nil {
+		if err := s.DefaultTextAreaOptions.Validate(); err != nil {
+			invalidParams.AddNested("DefaultTextAreaOptions", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DefaultTextFieldOptions != nil {
+		if err := s.DefaultTextFieldOptions.Validate(); err != nil {
+			invalidParams.AddNested("DefaultTextFieldOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDefaultDateTimePickerOptions sets the DefaultDateTimePickerOptions field's value.
+func (s *DefaultFilterControlOptions) SetDefaultDateTimePickerOptions(v *DefaultDateTimePickerControlOptions) *DefaultFilterControlOptions {
+	s.DefaultDateTimePickerOptions = v
+	return s
+}
+
+// SetDefaultDropdownOptions sets the DefaultDropdownOptions field's value.
+func (s *DefaultFilterControlOptions) SetDefaultDropdownOptions(v *DefaultFilterDropDownControlOptions) *DefaultFilterControlOptions {
+	s.DefaultDropdownOptions = v
+	return s
+}
+
+// SetDefaultListOptions sets the DefaultListOptions field's value.
+func (s *DefaultFilterControlOptions) SetDefaultListOptions(v *DefaultFilterListControlOptions) *DefaultFilterControlOptions {
+	s.DefaultListOptions = v
+	return s
+}
+
+// SetDefaultRelativeDateTimeOptions sets the DefaultRelativeDateTimeOptions field's value.
+func (s *DefaultFilterControlOptions) SetDefaultRelativeDateTimeOptions(v *DefaultRelativeDateTimeControlOptions) *DefaultFilterControlOptions {
+	s.DefaultRelativeDateTimeOptions = v
+	return s
+}
+
+// SetDefaultSliderOptions sets the DefaultSliderOptions field's value.
+func (s *DefaultFilterControlOptions) SetDefaultSliderOptions(v *DefaultSliderControlOptions) *DefaultFilterControlOptions {
+	s.DefaultSliderOptions = v
+	return s
+}
+
+// SetDefaultTextAreaOptions sets the DefaultTextAreaOptions field's value.
+func (s *DefaultFilterControlOptions) SetDefaultTextAreaOptions(v *DefaultTextAreaControlOptions) *DefaultFilterControlOptions {
+	s.DefaultTextAreaOptions = v
+	return s
+}
+
+// SetDefaultTextFieldOptions sets the DefaultTextFieldOptions field's value.
+func (s *DefaultFilterControlOptions) SetDefaultTextFieldOptions(v *DefaultTextFieldControlOptions) *DefaultFilterControlOptions {
+	s.DefaultTextFieldOptions = v
+	return s
+}
+
+// The default options that correspond to the Dropdown filter control type.
+type DefaultFilterDropDownControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The display options of a control.
+	DisplayOptions *DropDownControlDisplayOptions `type:"structure"`
+
+	// A list of selectable values that are used in a control.
+	SelectableValues *FilterSelectableValues `type:"structure"`
+
+	// The type of the FilterDropDownControl. Choose one of the following options:
+	//
+	//    * MULTI_SELECT: The user can select multiple entries from a dropdown menu.
+	//
+	//    * SINGLE_SELECT: The user can select a single entry from a dropdown menu.
+	Type *string `type:"string" enum:"SheetControlListType"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterDropDownControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterDropDownControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultFilterDropDownControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultFilterDropDownControlOptions"}
+	if s.DisplayOptions != nil {
+		if err := s.DisplayOptions.Validate(); err != nil {
+			invalidParams.AddNested("DisplayOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDisplayOptions sets the DisplayOptions field's value.
+func (s *DefaultFilterDropDownControlOptions) SetDisplayOptions(v *DropDownControlDisplayOptions) *DefaultFilterDropDownControlOptions {
+	s.DisplayOptions = v
+	return s
+}
+
+// SetSelectableValues sets the SelectableValues field's value.
+func (s *DefaultFilterDropDownControlOptions) SetSelectableValues(v *FilterSelectableValues) *DefaultFilterDropDownControlOptions {
+	s.SelectableValues = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *DefaultFilterDropDownControlOptions) SetType(v string) *DefaultFilterDropDownControlOptions {
+	s.Type = &v
+	return s
+}
+
+// The default options that correspond to the List filter control type.
+type DefaultFilterListControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The display options of a control.
+	DisplayOptions *ListControlDisplayOptions `type:"structure"`
+
+	// A list of selectable values that are used in a control.
+	SelectableValues *FilterSelectableValues `type:"structure"`
+
+	// The type of the DefaultFilterListControlOptions. Choose one of the following
+	// options:
+	//
+	//    * MULTI_SELECT: The user can select multiple entries from the list.
+	//
+	//    * SINGLE_SELECT: The user can select a single entry from the list.
+	Type *string `type:"string" enum:"SheetControlListType"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterListControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultFilterListControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultFilterListControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultFilterListControlOptions"}
+	if s.DisplayOptions != nil {
+		if err := s.DisplayOptions.Validate(); err != nil {
+			invalidParams.AddNested("DisplayOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDisplayOptions sets the DisplayOptions field's value.
+func (s *DefaultFilterListControlOptions) SetDisplayOptions(v *ListControlDisplayOptions) *DefaultFilterListControlOptions {
+	s.DisplayOptions = v
+	return s
+}
+
+// SetSelectableValues sets the SelectableValues field's value.
+func (s *DefaultFilterListControlOptions) SetSelectableValues(v *FilterSelectableValues) *DefaultFilterListControlOptions {
+	s.SelectableValues = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *DefaultFilterListControlOptions) SetType(v string) *DefaultFilterListControlOptions {
+	s.Type = &v
 	return s
 }
 
@@ -42912,6 +45301,54 @@ func (s *DefaultPaginatedLayoutConfiguration) SetSectionBased(v *DefaultSectionB
 	return s
 }
 
+// The default options that correspond to the RelativeDateTime filter control
+// type.
+type DefaultRelativeDateTimeControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The display options of a control.
+	DisplayOptions *RelativeDateTimeControlDisplayOptions `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultRelativeDateTimeControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultRelativeDateTimeControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultRelativeDateTimeControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultRelativeDateTimeControlOptions"}
+	if s.DisplayOptions != nil {
+		if err := s.DisplayOptions.Validate(); err != nil {
+			invalidParams.AddNested("DisplayOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDisplayOptions sets the DisplayOptions field's value.
+func (s *DefaultRelativeDateTimeControlOptions) SetDisplayOptions(v *RelativeDateTimeControlDisplayOptions) *DefaultRelativeDateTimeControlOptions {
+	s.DisplayOptions = v
+	return s
+}
+
 // The options that determine the default settings for a section-based layout
 // configuration.
 type DefaultSectionBasedLayoutConfiguration struct {
@@ -42957,6 +45394,215 @@ func (s *DefaultSectionBasedLayoutConfiguration) Validate() error {
 // SetCanvasSizeOptions sets the CanvasSizeOptions field's value.
 func (s *DefaultSectionBasedLayoutConfiguration) SetCanvasSizeOptions(v *SectionBasedLayoutCanvasSizeOptions) *DefaultSectionBasedLayoutConfiguration {
 	s.CanvasSizeOptions = v
+	return s
+}
+
+// The default options that correspond to the Slider filter control type.
+type DefaultSliderControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The display options of a control.
+	DisplayOptions *SliderControlDisplayOptions `type:"structure"`
+
+	// The larger value that is displayed at the right of the slider.
+	//
+	// MaximumValue is a required field
+	MaximumValue *float64 `type:"double" required:"true"`
+
+	// The smaller value that is displayed at the left of the slider.
+	//
+	// MinimumValue is a required field
+	MinimumValue *float64 `type:"double" required:"true"`
+
+	// The number of increments that the slider bar is divided into.
+	//
+	// StepSize is a required field
+	StepSize *float64 `type:"double" required:"true"`
+
+	// The type of the DefaultSliderControlOptions. Choose one of the following
+	// options:
+	//
+	//    * SINGLE_POINT: Filter against(equals) a single data point.
+	//
+	//    * RANGE: Filter data that is in a specified range.
+	Type *string `type:"string" enum:"SheetControlSliderType"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultSliderControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultSliderControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultSliderControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultSliderControlOptions"}
+	if s.MaximumValue == nil {
+		invalidParams.Add(request.NewErrParamRequired("MaximumValue"))
+	}
+	if s.MinimumValue == nil {
+		invalidParams.Add(request.NewErrParamRequired("MinimumValue"))
+	}
+	if s.StepSize == nil {
+		invalidParams.Add(request.NewErrParamRequired("StepSize"))
+	}
+	if s.DisplayOptions != nil {
+		if err := s.DisplayOptions.Validate(); err != nil {
+			invalidParams.AddNested("DisplayOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDisplayOptions sets the DisplayOptions field's value.
+func (s *DefaultSliderControlOptions) SetDisplayOptions(v *SliderControlDisplayOptions) *DefaultSliderControlOptions {
+	s.DisplayOptions = v
+	return s
+}
+
+// SetMaximumValue sets the MaximumValue field's value.
+func (s *DefaultSliderControlOptions) SetMaximumValue(v float64) *DefaultSliderControlOptions {
+	s.MaximumValue = &v
+	return s
+}
+
+// SetMinimumValue sets the MinimumValue field's value.
+func (s *DefaultSliderControlOptions) SetMinimumValue(v float64) *DefaultSliderControlOptions {
+	s.MinimumValue = &v
+	return s
+}
+
+// SetStepSize sets the StepSize field's value.
+func (s *DefaultSliderControlOptions) SetStepSize(v float64) *DefaultSliderControlOptions {
+	s.StepSize = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *DefaultSliderControlOptions) SetType(v string) *DefaultSliderControlOptions {
+	s.Type = &v
+	return s
+}
+
+// The default options that correspond to the TextArea filter control type.
+type DefaultTextAreaControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The delimiter that is used to separate the lines in text.
+	Delimiter *string `min:"1" type:"string"`
+
+	// The display options of a control.
+	DisplayOptions *TextAreaControlDisplayOptions `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultTextAreaControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultTextAreaControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultTextAreaControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultTextAreaControlOptions"}
+	if s.Delimiter != nil && len(*s.Delimiter) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Delimiter", 1))
+	}
+	if s.DisplayOptions != nil {
+		if err := s.DisplayOptions.Validate(); err != nil {
+			invalidParams.AddNested("DisplayOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDelimiter sets the Delimiter field's value.
+func (s *DefaultTextAreaControlOptions) SetDelimiter(v string) *DefaultTextAreaControlOptions {
+	s.Delimiter = &v
+	return s
+}
+
+// SetDisplayOptions sets the DisplayOptions field's value.
+func (s *DefaultTextAreaControlOptions) SetDisplayOptions(v *TextAreaControlDisplayOptions) *DefaultTextAreaControlOptions {
+	s.DisplayOptions = v
+	return s
+}
+
+// The default options that correspond to the TextField filter control type.
+type DefaultTextFieldControlOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The display options of a control.
+	DisplayOptions *TextFieldControlDisplayOptions `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultTextFieldControlOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DefaultTextFieldControlOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DefaultTextFieldControlOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DefaultTextFieldControlOptions"}
+	if s.DisplayOptions != nil {
+		if err := s.DisplayOptions.Validate(); err != nil {
+			invalidParams.AddNested("DisplayOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDisplayOptions sets the DisplayOptions field's value.
+func (s *DefaultTextFieldControlOptions) SetDisplayOptions(v *TextFieldControlDisplayOptions) *DefaultTextFieldControlOptions {
+	s.DisplayOptions = v
 	return s
 }
 
@@ -47561,6 +50207,10 @@ type DescribeAssetBundleImportJobOutput struct {
 
 	// The HTTP status of the response.
 	Status *int64 `location:"statusCode" type:"integer"`
+
+	// An array of warning records that describe all permitted errors that are encountered
+	// during the import job.
+	Warnings []*AssetBundleImportJobWarning `type:"list"`
 }
 
 // String returns the string representation.
@@ -47668,6 +50318,12 @@ func (s *DescribeAssetBundleImportJobOutput) SetRollbackErrors(v []*AssetBundleI
 // SetStatus sets the Status field's value.
 func (s *DescribeAssetBundleImportJobOutput) SetStatus(v int64) *DescribeAssetBundleImportJobOutput {
 	s.Status = &v
+	return s
+}
+
+// SetWarnings sets the Warnings field's value.
+func (s *DescribeAssetBundleImportJobOutput) SetWarnings(v []*AssetBundleImportJobWarning) *DescribeAssetBundleImportJobOutput {
+	s.Warnings = v
 	return s
 }
 
@@ -50345,6 +53001,124 @@ func (s *DescribeIpRestrictionOutput) SetVpcEndpointIdRestrictionRuleMap(v map[s
 // SetVpcIdRestrictionRuleMap sets the VpcIdRestrictionRuleMap field's value.
 func (s *DescribeIpRestrictionOutput) SetVpcIdRestrictionRuleMap(v map[string]*string) *DescribeIpRestrictionOutput {
 	s.VpcIdRestrictionRuleMap = v
+	return s
+}
+
+type DescribeKeyRegistrationInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon Web Services account that contains the customer managed
+	// key registration that you want to describe.
+	//
+	// AwsAccountId is a required field
+	AwsAccountId *string `location:"uri" locationName:"AwsAccountId" min:"12" type:"string" required:"true"`
+
+	// Determines whether the request returns the default key only.
+	DefaultKeyOnly *bool `location:"querystring" locationName:"default-key-only" type:"boolean"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeKeyRegistrationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeKeyRegistrationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeKeyRegistrationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeKeyRegistrationInput"}
+	if s.AwsAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AwsAccountId"))
+	}
+	if s.AwsAccountId != nil && len(*s.AwsAccountId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("AwsAccountId", 12))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAwsAccountId sets the AwsAccountId field's value.
+func (s *DescribeKeyRegistrationInput) SetAwsAccountId(v string) *DescribeKeyRegistrationInput {
+	s.AwsAccountId = &v
+	return s
+}
+
+// SetDefaultKeyOnly sets the DefaultKeyOnly field's value.
+func (s *DescribeKeyRegistrationInput) SetDefaultKeyOnly(v bool) *DescribeKeyRegistrationInput {
+	s.DefaultKeyOnly = &v
+	return s
+}
+
+type DescribeKeyRegistrationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Amazon Web Services account that contains the customer managed
+	// key registration specified in the request.
+	AwsAccountId *string `min:"12" type:"string"`
+
+	// A list of RegisteredCustomerManagedKey objects in a Amazon QuickSight account.
+	KeyRegistration []*RegisteredCustomerManagedKey `type:"list"`
+
+	// The Amazon Web Services request ID for this operation.
+	RequestId *string `type:"string"`
+
+	// The HTTP status of the request.
+	Status *int64 `type:"integer"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeKeyRegistrationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeKeyRegistrationOutput) GoString() string {
+	return s.String()
+}
+
+// SetAwsAccountId sets the AwsAccountId field's value.
+func (s *DescribeKeyRegistrationOutput) SetAwsAccountId(v string) *DescribeKeyRegistrationOutput {
+	s.AwsAccountId = &v
+	return s
+}
+
+// SetKeyRegistration sets the KeyRegistration field's value.
+func (s *DescribeKeyRegistrationOutput) SetKeyRegistration(v []*RegisteredCustomerManagedKey) *DescribeKeyRegistrationOutput {
+	s.KeyRegistration = v
+	return s
+}
+
+// SetRequestId sets the RequestId field's value.
+func (s *DescribeKeyRegistrationOutput) SetRequestId(v string) *DescribeKeyRegistrationOutput {
+	s.RequestId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *DescribeKeyRegistrationOutput) SetStatus(v int64) *DescribeKeyRegistrationOutput {
+	s.Status = &v
 	return s
 }
 
@@ -53772,6 +56546,77 @@ func (s *ExportWithHiddenFieldsOption) SetAvailabilityStatus(v string) *ExportWi
 	return s
 }
 
+// An entry that appears when a KeyRegistration update to Amazon QuickSight
+// fails.
+type FailedKeyRegistrationEntry struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the KMS key that failed to update.
+	KeyArn *string `type:"string"`
+
+	// A message that provides information about why a FailedKeyRegistrationEntry
+	// error occurred.
+	//
+	// Message is a required field
+	Message *string `type:"string" required:"true"`
+
+	// A boolean that indicates whether a FailedKeyRegistrationEntry resulted from
+	// user error. If the value of this property is True, the error was caused by
+	// user error. If the value of this property is False, the error occurred on
+	// the backend. If your job continues fail and with a False SenderFault value,
+	// contact Amazon Web Services Support.
+	//
+	// SenderFault is a required field
+	SenderFault *bool `type:"boolean" required:"true"`
+
+	// The HTTP status of a FailedKeyRegistrationEntry error.
+	//
+	// StatusCode is a required field
+	StatusCode *int64 `type:"integer" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s FailedKeyRegistrationEntry) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s FailedKeyRegistrationEntry) GoString() string {
+	return s.String()
+}
+
+// SetKeyArn sets the KeyArn field's value.
+func (s *FailedKeyRegistrationEntry) SetKeyArn(v string) *FailedKeyRegistrationEntry {
+	s.KeyArn = &v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *FailedKeyRegistrationEntry) SetMessage(v string) *FailedKeyRegistrationEntry {
+	s.Message = &v
+	return s
+}
+
+// SetSenderFault sets the SenderFault field's value.
+func (s *FailedKeyRegistrationEntry) SetSenderFault(v bool) *FailedKeyRegistrationEntry {
+	s.SenderFault = &v
+	return s
+}
+
+// SetStatusCode sets the StatusCode field's value.
+func (s *FailedKeyRegistrationEntry) SetStatusCode(v int64) *FailedKeyRegistrationEntry {
+	s.StatusCode = &v
+	return s
+}
+
 // The setup for the detailed tooltip.
 type FieldBasedTooltip struct {
 	_ struct{} `type:"structure"`
@@ -54849,6 +57694,10 @@ type Filter struct {
 	// in the Amazon QuickSight User Guide.
 	CategoryFilter *CategoryFilter `type:"structure"`
 
+	// A NestedFilter filters data with a subset of data that is defined by the
+	// nested inner filter.
+	NestedFilter *NestedFilter `type:"structure"`
+
 	// A NumericEqualityFilter filters numeric values that equal or do not equal
 	// a given numeric value.
 	NumericEqualityFilter *NumericEqualityFilter `type:"structure"`
@@ -54898,6 +57747,11 @@ func (s *Filter) Validate() error {
 			invalidParams.AddNested("CategoryFilter", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.NestedFilter != nil {
+		if err := s.NestedFilter.Validate(); err != nil {
+			invalidParams.AddNested("NestedFilter", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.NumericEqualityFilter != nil {
 		if err := s.NumericEqualityFilter.Validate(); err != nil {
 			invalidParams.AddNested("NumericEqualityFilter", err.(request.ErrInvalidParams))
@@ -54941,6 +57795,12 @@ func (s *Filter) SetCategoryFilter(v *CategoryFilter) *Filter {
 	return s
 }
 
+// SetNestedFilter sets the NestedFilter field's value.
+func (s *Filter) SetNestedFilter(v *NestedFilter) *Filter {
+	s.NestedFilter = v
+	return s
+}
+
 // SetNumericEqualityFilter sets the NumericEqualityFilter field's value.
 func (s *Filter) SetNumericEqualityFilter(v *NumericEqualityFilter) *Filter {
 	s.NumericEqualityFilter = v
@@ -54977,12 +57837,81 @@ func (s *Filter) SetTopBottomFilter(v *TopBottomFilter) *Filter {
 	return s
 }
 
+// The definition for the FilterAggMetrics.
+type FilterAggMetrics struct {
+	_ struct{} `type:"structure"`
+
+	// The function for the FilterAggMetrics.
+	Function *string `type:"string" enum:"AggType"`
+
+	// The metric operand of the FilterAggMetrics.
+	MetricOperand *Identifier `type:"structure"`
+
+	// The sort direction for FilterAggMetrics.
+	SortDirection *string `type:"string" enum:"TopicSortDirection"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s FilterAggMetrics) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s FilterAggMetrics) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *FilterAggMetrics) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "FilterAggMetrics"}
+	if s.MetricOperand != nil {
+		if err := s.MetricOperand.Validate(); err != nil {
+			invalidParams.AddNested("MetricOperand", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFunction sets the Function field's value.
+func (s *FilterAggMetrics) SetFunction(v string) *FilterAggMetrics {
+	s.Function = &v
+	return s
+}
+
+// SetMetricOperand sets the MetricOperand field's value.
+func (s *FilterAggMetrics) SetMetricOperand(v *Identifier) *FilterAggMetrics {
+	s.MetricOperand = v
+	return s
+}
+
+// SetSortDirection sets the SortDirection field's value.
+func (s *FilterAggMetrics) SetSortDirection(v string) *FilterAggMetrics {
+	s.SortDirection = &v
+	return s
+}
+
 // The control of a filter that is used to interact with a dashboard or an analysis.
 //
 // This is a union type structure. For this structure to be valid, only one
 // of the attributes can be defined.
 type FilterControl struct {
 	_ struct{} `type:"structure"`
+
+	// A control from a filter that is scoped across more than one sheet. This represents
+	// your filter control on a sheet
+	CrossSheet *FilterCrossSheetControl `type:"structure"`
 
 	// A control from a date filter that is used to specify date and time.
 	DateTimePicker *FilterDateTimePickerControl `type:"structure"`
@@ -55030,6 +57959,11 @@ func (s FilterControl) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *FilterControl) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "FilterControl"}
+	if s.CrossSheet != nil {
+		if err := s.CrossSheet.Validate(); err != nil {
+			invalidParams.AddNested("CrossSheet", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.DateTimePicker != nil {
 		if err := s.DateTimePicker.Validate(); err != nil {
 			invalidParams.AddNested("DateTimePicker", err.(request.ErrInvalidParams))
@@ -55070,6 +58004,12 @@ func (s *FilterControl) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCrossSheet sets the CrossSheet field's value.
+func (s *FilterControl) SetCrossSheet(v *FilterCrossSheetControl) *FilterControl {
+	s.CrossSheet = v
+	return s
 }
 
 // SetDateTimePicker sets the DateTimePicker field's value.
@@ -55114,6 +58054,89 @@ func (s *FilterControl) SetTextField(v *FilterTextFieldControl) *FilterControl {
 	return s
 }
 
+// A control from a filter that is scoped across more than one sheet. This represents
+// your filter control on a sheet
+type FilterCrossSheetControl struct {
+	_ struct{} `type:"structure"`
+
+	// The values that are displayed in a control can be configured to only show
+	// values that are valid based on what's selected in other controls.
+	CascadingControlConfiguration *CascadingControlConfiguration `type:"structure"`
+
+	// The ID of the FilterCrossSheetControl.
+	//
+	// FilterControlId is a required field
+	FilterControlId *string `min:"1" type:"string" required:"true"`
+
+	// The source filter ID of the FilterCrossSheetControl.
+	//
+	// SourceFilterId is a required field
+	SourceFilterId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s FilterCrossSheetControl) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s FilterCrossSheetControl) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *FilterCrossSheetControl) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "FilterCrossSheetControl"}
+	if s.FilterControlId == nil {
+		invalidParams.Add(request.NewErrParamRequired("FilterControlId"))
+	}
+	if s.FilterControlId != nil && len(*s.FilterControlId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FilterControlId", 1))
+	}
+	if s.SourceFilterId == nil {
+		invalidParams.Add(request.NewErrParamRequired("SourceFilterId"))
+	}
+	if s.SourceFilterId != nil && len(*s.SourceFilterId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SourceFilterId", 1))
+	}
+	if s.CascadingControlConfiguration != nil {
+		if err := s.CascadingControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("CascadingControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCascadingControlConfiguration sets the CascadingControlConfiguration field's value.
+func (s *FilterCrossSheetControl) SetCascadingControlConfiguration(v *CascadingControlConfiguration) *FilterCrossSheetControl {
+	s.CascadingControlConfiguration = v
+	return s
+}
+
+// SetFilterControlId sets the FilterControlId field's value.
+func (s *FilterCrossSheetControl) SetFilterControlId(v string) *FilterCrossSheetControl {
+	s.FilterControlId = &v
+	return s
+}
+
+// SetSourceFilterId sets the SourceFilterId field's value.
+func (s *FilterCrossSheetControl) SetSourceFilterId(v string) *FilterCrossSheetControl {
+	s.SourceFilterId = &v
+	return s
+}
+
 // A control from a date filter that is used to specify date and time.
 type FilterDateTimePickerControl struct {
 	_ struct{} `type:"structure"`
@@ -55136,12 +58159,11 @@ type FilterDateTimePickerControl struct {
 	// Title is a required field
 	Title *string `min:"1" type:"string" required:"true"`
 
-	// The date time picker type of a FilterDateTimePickerControl. Choose one of
-	// the following options:
+	// The type of the FilterDropDownControl. Choose one of the following options:
 	//
-	//    * SINGLE_VALUED: The filter condition is a fixed date.
+	//    * MULTI_SELECT: The user can select multiple entries from a dropdown menu.
 	//
-	//    * DATE_RANGE: The filter condition is a date time range.
+	//    * SINGLE_SELECT: The user can select a single entry from a dropdown menu.
 	Type *string `type:"string" enum:"SheetControlDateTimePickerType"`
 }
 
@@ -55604,7 +58626,7 @@ type FilterListControl struct {
 	// Title is a required field
 	Title *string `min:"1" type:"string" required:"true"`
 
-	// The type of FilterListControl. Choose one of the following options:
+	// The type of the FilterListControl. Choose one of the following options:
 	//
 	//    * MULTI_SELECT: The user can select multiple entries from the list.
 	//
@@ -56101,12 +59123,12 @@ type FilterSliderControl struct {
 	// FilterControlId is a required field
 	FilterControlId *string `min:"1" type:"string" required:"true"`
 
-	// The smaller value that is displayed at the left of the slider.
+	// The larger value that is displayed at the right of the slider.
 	//
 	// MaximumValue is a required field
 	MaximumValue *float64 `type:"double" required:"true"`
 
-	// The larger value that is displayed at the right of the slider.
+	// The smaller value that is displayed at the left of the slider.
 	//
 	// MinimumValue is a required field
 	MinimumValue *float64 `type:"double" required:"true"`
@@ -56126,7 +59148,7 @@ type FilterSliderControl struct {
 	// Title is a required field
 	Title *string `min:"1" type:"string" required:"true"`
 
-	// The type of FilterSliderControl. Choose one of the following options:
+	// The type of the FilterSliderControl. Choose one of the following options:
 	//
 	//    * SINGLE_POINT: Filter against(equals) a single data point.
 	//
@@ -58371,6 +61393,47 @@ func (s *GaugeChartArcConditionalFormatting) SetForegroundColor(v *ConditionalFo
 	return s
 }
 
+// The color configuration of a GaugeChartVisual.
+type GaugeChartColorConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The background color configuration of a GaugeChartVisual.
+	BackgroundColor *string `type:"string"`
+
+	// The foreground color configuration of a GaugeChartVisual.
+	ForegroundColor *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GaugeChartColorConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GaugeChartColorConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetBackgroundColor sets the BackgroundColor field's value.
+func (s *GaugeChartColorConfiguration) SetBackgroundColor(v string) *GaugeChartColorConfiguration {
+	s.BackgroundColor = &v
+	return s
+}
+
+// SetForegroundColor sets the ForegroundColor field's value.
+func (s *GaugeChartColorConfiguration) SetForegroundColor(v string) *GaugeChartColorConfiguration {
+	s.ForegroundColor = &v
+	return s
+}
+
 // The conditional formatting of a GaugeChartVisual.
 type GaugeChartConditionalFormatting struct {
 	_ struct{} `type:"structure"`
@@ -58488,6 +61551,9 @@ func (s *GaugeChartConditionalFormattingOption) SetPrimaryValue(v *GaugeChartPri
 type GaugeChartConfiguration struct {
 	_ struct{} `type:"structure"`
 
+	// The color configuration of a GaugeChartVisual.
+	ColorConfiguration *GaugeChartColorConfiguration `type:"structure"`
+
 	// The data label configuration of a GaugeChartVisual.
 	DataLabels *DataLabelOptions `type:"structure"`
 
@@ -58558,6 +61624,12 @@ func (s *GaugeChartConfiguration) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetColorConfiguration sets the ColorConfiguration field's value.
+func (s *GaugeChartConfiguration) SetColorConfiguration(v *GaugeChartColorConfiguration) *GaugeChartConfiguration {
+	s.ColorConfiguration = v
+	return s
 }
 
 // SetDataLabels sets the DataLabels field's value.
@@ -59197,9 +62269,10 @@ type GenerateEmbedUrlForRegisteredUserInput struct {
 	// AwsAccountId is a required field
 	AwsAccountId *string `location:"uri" locationName:"AwsAccountId" min:"12" type:"string" required:"true"`
 
-	// The experience you are embedding. For registered users, you can embed Amazon
-	// QuickSight dashboards, Amazon QuickSight visuals, the Amazon QuickSight Q
-	// search bar, or the entire Amazon QuickSight console.
+	// The experience that you want to embed. For registered users, you can embed
+	// Amazon QuickSight dashboards, Amazon QuickSight visuals, the Amazon QuickSight
+	// Q search bar, the Amazon QuickSight Generative Q&A experience, or the entire
+	// Amazon QuickSight console.
 	//
 	// ExperienceConfiguration is a required field
 	ExperienceConfiguration *RegisteredUserEmbeddingExperienceConfiguration `type:"structure" required:"true"`
@@ -59296,7 +62369,7 @@ type GenerateEmbedUrlForRegisteredUserOutput struct {
 	_ struct{} `type:"structure"`
 
 	// The embed URL for the Amazon QuickSight dashboard, visual, Q search bar,
-	// or console.
+	// Generative Q&A experience, or console.
 	//
 	// EmbedUrl is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by GenerateEmbedUrlForRegisteredUserOutput's
@@ -62554,6 +65627,53 @@ func (s *IAMPolicyAssignmentSummary) SetAssignmentStatus(v string) *IAMPolicyAss
 	return s
 }
 
+// The definition for the identifier.
+type Identifier struct {
+	_ struct{} `type:"structure"`
+
+	// The identity of the identifier.
+	//
+	// Identity is a required field
+	Identity *string `type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Identifier) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Identifier) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Identifier) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Identifier"}
+	if s.Identity == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identity"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetIdentity sets the Identity field's value.
+func (s *Identifier) SetIdentity(v string) *Identifier {
+	s.Identity = &v
+	return s
+}
+
 // The parameters for an IAM Identity Center configuration.
 type IdentityCenterConfiguration struct {
 	_ struct{} `type:"structure"`
@@ -62832,6 +65952,53 @@ func (s *Ingestion) SetRequestType(v string) *Ingestion {
 // SetRowInfo sets the RowInfo field's value.
 func (s *Ingestion) SetRowInfo(v *RowInfo) *Ingestion {
 	s.RowInfo = v
+	return s
+}
+
+// The InnerFilter defines the subset of data to be used with the NestedFilter.
+type InnerFilter struct {
+	_ struct{} `type:"structure"`
+
+	// A CategoryInnerFilter filters text values for the NestedFilter.
+	CategoryInnerFilter *CategoryInnerFilter `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InnerFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InnerFilter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InnerFilter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InnerFilter"}
+	if s.CategoryInnerFilter != nil {
+		if err := s.CategoryInnerFilter.Validate(); err != nil {
+			invalidParams.AddNested("CategoryInnerFilter", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCategoryInnerFilter sets the CategoryInnerFilter field's value.
+func (s *InnerFilter) SetCategoryInnerFilter(v *CategoryInnerFilter) *InnerFilter {
+	s.CategoryInnerFilter = v
 	return s
 }
 
@@ -63268,7 +66435,7 @@ type IntegerDefaultValues struct {
 	DynamicValue *DynamicDefaultValue `type:"structure"`
 
 	// The static values of the IntegerDefaultValues.
-	StaticValues []*int64 `type:"list"`
+	StaticValues []*int64 `type:"list" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -63328,7 +66495,7 @@ type IntegerParameter struct {
 	// The values for the integer parameter.
 	//
 	// Values is a required field
-	Values []*int64 `type:"list" required:"true"`
+	Values []*int64 `type:"list" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -63804,6 +66971,47 @@ func (s *InvalidRequestException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *InvalidRequestException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+// The definition for a InvalidTopicReviewedAnswer.
+type InvalidTopicReviewedAnswer struct {
+	_ struct{} `type:"structure"`
+
+	// The answer ID for the InvalidTopicReviewedAnswer.
+	AnswerId *string `type:"string"`
+
+	// The error that is returned for the InvalidTopicReviewedAnswer.
+	Error *string `type:"string" enum:"ReviewedAnswerErrorCode"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InvalidTopicReviewedAnswer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InvalidTopicReviewedAnswer) GoString() string {
+	return s.String()
+}
+
+// SetAnswerId sets the AnswerId field's value.
+func (s *InvalidTopicReviewedAnswer) SetAnswerId(v string) *InvalidTopicReviewedAnswer {
+	s.AnswerId = &v
+	return s
+}
+
+// SetError sets the Error field's value.
+func (s *InvalidTopicReviewedAnswer) SetError(v string) *InvalidTopicReviewedAnswer {
+	s.Error = &v
+	return s
 }
 
 // The limit configuration of the visual display for an axis.
@@ -70223,6 +73431,144 @@ func (s *ListTopicRefreshSchedulesOutput) SetTopicId(v string) *ListTopicRefresh
 	return s
 }
 
+type ListTopicReviewedAnswersInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon Web Services account that containd the reviewed answers
+	// that you want listed.
+	//
+	// AwsAccountId is a required field
+	AwsAccountId *string `location:"uri" locationName:"AwsAccountId" min:"12" type:"string" required:"true"`
+
+	// The ID for the topic that contains the reviewed answer that you want to list.
+	// This ID is unique per Amazon Web Services Region for each Amazon Web Services
+	// account.
+	//
+	// TopicId is a required field
+	TopicId *string `location:"uri" locationName:"TopicId" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListTopicReviewedAnswersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListTopicReviewedAnswersInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTopicReviewedAnswersInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTopicReviewedAnswersInput"}
+	if s.AwsAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AwsAccountId"))
+	}
+	if s.AwsAccountId != nil && len(*s.AwsAccountId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("AwsAccountId", 12))
+	}
+	if s.TopicId == nil {
+		invalidParams.Add(request.NewErrParamRequired("TopicId"))
+	}
+	if s.TopicId != nil && len(*s.TopicId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TopicId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAwsAccountId sets the AwsAccountId field's value.
+func (s *ListTopicReviewedAnswersInput) SetAwsAccountId(v string) *ListTopicReviewedAnswersInput {
+	s.AwsAccountId = &v
+	return s
+}
+
+// SetTopicId sets the TopicId field's value.
+func (s *ListTopicReviewedAnswersInput) SetTopicId(v string) *ListTopicReviewedAnswersInput {
+	s.TopicId = &v
+	return s
+}
+
+type ListTopicReviewedAnswersOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The definition of all Answers in the topic.
+	Answers []*TopicReviewedAnswer `type:"list"`
+
+	// The Amazon Web Services request ID for this operation.
+	RequestId *string `type:"string"`
+
+	// The HTTP status of the request.
+	Status *int64 `location:"statusCode" type:"integer"`
+
+	// The Amazon Resource Name (ARN) of the topic.
+	TopicArn *string `type:"string"`
+
+	// The ID for the topic that contains the reviewed answer that you want to list.
+	// This ID is unique per Amazon Web Services Region for each Amazon Web Services
+	// account.
+	TopicId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListTopicReviewedAnswersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListTopicReviewedAnswersOutput) GoString() string {
+	return s.String()
+}
+
+// SetAnswers sets the Answers field's value.
+func (s *ListTopicReviewedAnswersOutput) SetAnswers(v []*TopicReviewedAnswer) *ListTopicReviewedAnswersOutput {
+	s.Answers = v
+	return s
+}
+
+// SetRequestId sets the RequestId field's value.
+func (s *ListTopicReviewedAnswersOutput) SetRequestId(v string) *ListTopicReviewedAnswersOutput {
+	s.RequestId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ListTopicReviewedAnswersOutput) SetStatus(v int64) *ListTopicReviewedAnswersOutput {
+	s.Status = &v
+	return s
+}
+
+// SetTopicArn sets the TopicArn field's value.
+func (s *ListTopicReviewedAnswersOutput) SetTopicArn(v string) *ListTopicReviewedAnswersOutput {
+	s.TopicArn = &v
+	return s
+}
+
+// SetTopicId sets the TopicId field's value.
+func (s *ListTopicReviewedAnswersOutput) SetTopicId(v string) *ListTopicReviewedAnswersOutput {
+	s.TopicId = &v
+	return s
+}
+
 type ListTopicsInput struct {
 	_ struct{} `type:"structure" nopayload:"true"`
 
@@ -72066,6 +75412,38 @@ func (s *NamedEntityDefinitionMetric) SetAggregationFunctionParameters(v map[str
 	return s
 }
 
+// The definition for a NamedEntityRef.
+type NamedEntityRef struct {
+	_ struct{} `type:"structure"`
+
+	// The NamedEntityName for the NamedEntityRef.
+	NamedEntityName *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NamedEntityRef) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NamedEntityRef) GoString() string {
+	return s.String()
+}
+
+// SetNamedEntityName sets the NamedEntityName field's value.
+func (s *NamedEntityRef) SetNamedEntityName(v string) *NamedEntityRef {
+	s.NamedEntityName = &v
+	return s
+}
+
 // Errors that occur during namespace creation.
 type NamespaceError struct {
 	_ struct{} `type:"structure"`
@@ -72269,6 +75647,111 @@ func (s *NegativeValueConfiguration) Validate() error {
 // SetDisplayMode sets the DisplayMode field's value.
 func (s *NegativeValueConfiguration) SetDisplayMode(v string) *NegativeValueConfiguration {
 	s.DisplayMode = &v
+	return s
+}
+
+// A NestedFilter filters data with a subset of data that is defined by the
+// nested inner filter.
+type NestedFilter struct {
+	_ struct{} `type:"structure"`
+
+	// The column that the filter is applied to.
+	//
+	// Column is a required field
+	Column *ColumnIdentifier `type:"structure" required:"true"`
+
+	// An identifier that uniquely identifies a filter within a dashboard, analysis,
+	// or template.
+	//
+	// FilterId is a required field
+	FilterId *string `min:"1" type:"string" required:"true"`
+
+	// A boolean condition to include or exclude the subset that is defined by the
+	// values of the nested inner filter.
+	//
+	// IncludeInnerSet is a required field
+	IncludeInnerSet *bool `type:"boolean" required:"true"`
+
+	// The InnerFilter defines the subset of data to be used with the NestedFilter.
+	//
+	// InnerFilter is a required field
+	InnerFilter *InnerFilter `type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NestedFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NestedFilter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *NestedFilter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "NestedFilter"}
+	if s.Column == nil {
+		invalidParams.Add(request.NewErrParamRequired("Column"))
+	}
+	if s.FilterId == nil {
+		invalidParams.Add(request.NewErrParamRequired("FilterId"))
+	}
+	if s.FilterId != nil && len(*s.FilterId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FilterId", 1))
+	}
+	if s.IncludeInnerSet == nil {
+		invalidParams.Add(request.NewErrParamRequired("IncludeInnerSet"))
+	}
+	if s.InnerFilter == nil {
+		invalidParams.Add(request.NewErrParamRequired("InnerFilter"))
+	}
+	if s.Column != nil {
+		if err := s.Column.Validate(); err != nil {
+			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.InnerFilter != nil {
+		if err := s.InnerFilter.Validate(); err != nil {
+			invalidParams.AddNested("InnerFilter", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumn sets the Column field's value.
+func (s *NestedFilter) SetColumn(v *ColumnIdentifier) *NestedFilter {
+	s.Column = v
+	return s
+}
+
+// SetFilterId sets the FilterId field's value.
+func (s *NestedFilter) SetFilterId(v string) *NestedFilter {
+	s.FilterId = &v
+	return s
+}
+
+// SetIncludeInnerSet sets the IncludeInnerSet field's value.
+func (s *NestedFilter) SetIncludeInnerSet(v bool) *NestedFilter {
+	s.IncludeInnerSet = &v
+	return s
+}
+
+// SetInnerFilter sets the InnerFilter field's value.
+func (s *NestedFilter) SetInnerFilter(v *InnerFilter) *NestedFilter {
+	s.InnerFilter = v
 	return s
 }
 
@@ -72689,7 +76172,7 @@ func (s *NumericAxisOptions) SetScale(v *AxisScale) *NumericAxisOptions {
 	return s
 }
 
-// The category drill down filter.
+// The numeric equality type drill down filter.
 type NumericEqualityDrillDownFilter struct {
 	_ struct{} `type:"structure"`
 
@@ -72766,6 +76249,10 @@ type NumericEqualityFilter struct {
 	//
 	// Column is a required field
 	Column *ColumnIdentifier `type:"structure" required:"true"`
+
+	// The default configurations for the associated controls. This applies only
+	// for filters that are scoped to multiple sheets.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
 
 	// An identifier that uniquely identifies a filter within a dashboard, analysis,
 	// or template.
@@ -72845,6 +76332,11 @@ func (s *NumericEqualityFilter) Validate() error {
 			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -72861,6 +76353,12 @@ func (s *NumericEqualityFilter) SetAggregationFunction(v *AggregationFunction) *
 // SetColumn sets the Column field's value.
 func (s *NumericEqualityFilter) SetColumn(v *ColumnIdentifier) *NumericEqualityFilter {
 	s.Column = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *NumericEqualityFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *NumericEqualityFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -72990,6 +76488,10 @@ type NumericRangeFilter struct {
 	// Column is a required field
 	Column *ColumnIdentifier `type:"structure" required:"true"`
 
+	// The default configurations for the associated controls. This applies only
+	// for filters that are scoped to multiple sheets.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
+
 	// An identifier that uniquely identifies a filter within a dashboard, analysis,
 	// or template.
 	//
@@ -73065,6 +76567,11 @@ func (s *NumericRangeFilter) Validate() error {
 			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.RangeMaximum != nil {
 		if err := s.RangeMaximum.Validate(); err != nil {
 			invalidParams.AddNested("RangeMaximum", err.(request.ErrInvalidParams))
@@ -73091,6 +76598,12 @@ func (s *NumericRangeFilter) SetAggregationFunction(v *AggregationFunction) *Num
 // SetColumn sets the Column field's value.
 func (s *NumericRangeFilter) SetColumn(v *ColumnIdentifier) *NumericRangeFilter {
 	s.Column = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *NumericRangeFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *NumericRangeFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -74573,12 +78086,12 @@ type ParameterSliderControl struct {
 	// The display options of a control.
 	DisplayOptions *SliderControlDisplayOptions `type:"structure"`
 
-	// The smaller value that is displayed at the left of the slider.
+	// The larger value that is displayed at the right of the slider.
 	//
 	// MaximumValue is a required field
 	MaximumValue *float64 `type:"double" required:"true"`
 
-	// The larger value that is displayed at the right of the slider.
+	// The smaller value that is displayed at the left of the slider.
 	//
 	// MinimumValue is a required field
 	MinimumValue *float64 `type:"double" required:"true"`
@@ -79125,9 +82638,7 @@ type RedshiftIAMParameters struct {
 	// QuickSight is granted the same permissions that the user has. If the user
 	// doesn't exist, set the value of AutoCreateDatabaseUser to True to create
 	// a new user with PUBLIC permissions.
-	//
-	// DatabaseUser is a required field
-	DatabaseUser *string `min:"1" type:"string" required:"true"`
+	DatabaseUser *string `min:"1" type:"string"`
 
 	// Use the RoleArn structure to allow Amazon QuickSight to call redshift:GetClusterCredentials
 	// on your cluster. The calling principal must have iam:PassRole access to pass
@@ -79161,9 +82672,6 @@ func (s *RedshiftIAMParameters) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "RedshiftIAMParameters"}
 	if s.DatabaseGroups != nil && len(s.DatabaseGroups) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("DatabaseGroups", 1))
-	}
-	if s.DatabaseUser == nil {
-		invalidParams.Add(request.NewErrParamRequired("DatabaseUser"))
 	}
 	if s.DatabaseUser != nil && len(*s.DatabaseUser) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("DatabaseUser", 1))
@@ -80183,7 +83691,7 @@ type RegisterUserInput struct {
 	// Amazon QuickSight custom permissions are applied through IAM policies. Therefore,
 	// they override the permissions typically granted by assigning Amazon QuickSight
 	// users to one of the default security cohorts in Amazon QuickSight (admin,
-	// author, reader).
+	// author, reader, admin pro, author pro, reader pro).
 	//
 	// This feature is available only to Amazon QuickSight Enterprise edition subscriptions.
 	CustomPermissionsName *string `min:"1" type:"string"`
@@ -80213,13 +83721,8 @@ type RegisterUserInput struct {
 	// The ARN of the IAM user or role that you are registering with Amazon QuickSight.
 	IamArn *string `type:"string"`
 
-	// Amazon QuickSight supports several ways of managing the identity of users.
-	// This parameter accepts two values:
-	//
-	//    * IAM: A user whose identity maps to an existing IAM user or role.
-	//
-	//    * QUICKSIGHT: A user whose identity is owned and managed internally by
-	//    Amazon QuickSight.
+	// The identity type that your Amazon QuickSight account uses to manage the
+	// identity of users.
 	//
 	// IdentityType is a required field
 	IdentityType *string `type:"string" required:"true" enum:"IdentityType"`
@@ -80255,6 +83758,18 @@ type RegisterUserInput struct {
 	//
 	//    * ADMIN: A user who is an author, who can also manage Amazon QuickSight
 	//    settings.
+	//
+	//    * READER_PRO: Reader Pro adds Generative BI capabilities to the Reader
+	//    role. Reader Pros have access to Amazon Q in Amazon QuickSight, can build
+	//    stories with Amazon Q, and can generate executive summaries from dashboards.
+	//
+	//    * AUTHOR_PRO: Author Pro adds Generative BI capabilities to the Author
+	//    role. Author Pros can author dashboards with natural language with Amazon
+	//    Q, build stories with Amazon Q, create Topics for Q&A, and generate executive
+	//    summaries from dashboards.
+	//
+	//    * ADMIN_PRO: Admin Pros are Author Pros who can also manage Amazon QuickSight
+	//    administrative settings. Admin Pro users are billed at Author Pro pricing.
 	//
 	//    * RESTRICTED_READER: This role isn't currently available for use.
 	//
@@ -80469,6 +83984,55 @@ func (s *RegisterUserOutput) SetUser(v *User) *RegisterUserOutput {
 // SetUserInvitationUrl sets the UserInvitationUrl field's value.
 func (s *RegisterUserOutput) SetUserInvitationUrl(v string) *RegisterUserOutput {
 	s.UserInvitationUrl = &v
+	return s
+}
+
+// A customer managed key structure that contains the information listed below:
+//
+//   - KeyArn - The ARN of a KMS key that is registered to a Amazon QuickSight
+//     account for encryption and decryption use.
+//
+//   - DefaultKey - Indicates whether the current key is set as the default
+//     key for encryption and decryption use.
+type RegisteredCustomerManagedKey struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether a RegisteredCustomerManagedKey is set as the default key
+	// for encryption and decryption use.
+	DefaultKey *bool `type:"boolean"`
+
+	// The ARN of the KMS key that is registered to a Amazon QuickSight account
+	// for encryption and decryption use.
+	KeyArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RegisteredCustomerManagedKey) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RegisteredCustomerManagedKey) GoString() string {
+	return s.String()
+}
+
+// SetDefaultKey sets the DefaultKey field's value.
+func (s *RegisteredCustomerManagedKey) SetDefaultKey(v bool) *RegisteredCustomerManagedKey {
+	s.DefaultKey = &v
+	return s
+}
+
+// SetKeyArn sets the KeyArn field's value.
+func (s *RegisteredCustomerManagedKey) SetKeyArn(v string) *RegisteredCustomerManagedKey {
+	s.KeyArn = &v
 	return s
 }
 
@@ -80723,6 +84287,13 @@ type RegisteredUserEmbeddingExperienceConfiguration struct {
 	// The type of embedding experience. In this case, Amazon QuickSight visuals.
 	DashboardVisual *RegisteredUserDashboardVisualEmbeddingConfiguration `type:"structure"`
 
+	// The configuration details for embedding the Generative Q&A experience.
+	//
+	// For more information about embedding the Generative Q&A experience, see Embedding
+	// Overview (https://docs.aws.amazon.com/quicksight/latest/user/embedding-overview.html)
+	// in the Amazon QuickSight User Guide.
+	GenerativeQnA *RegisteredUserGenerativeQnAEmbeddingConfiguration `type:"structure"`
+
 	// The configuration details for embedding the Q search bar.
 	//
 	// For more information about embedding the Q search bar, see Embedding Overview
@@ -80789,6 +84360,11 @@ func (s *RegisteredUserEmbeddingExperienceConfiguration) Validate() error {
 			invalidParams.AddNested("DashboardVisual", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.GenerativeQnA != nil {
+		if err := s.GenerativeQnA.Validate(); err != nil {
+			invalidParams.AddNested("GenerativeQnA", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.QSearchBar != nil {
 		if err := s.QSearchBar.Validate(); err != nil {
 			invalidParams.AddNested("QSearchBar", err.(request.ErrInvalidParams))
@@ -80818,6 +84394,12 @@ func (s *RegisteredUserEmbeddingExperienceConfiguration) SetDashboardVisual(v *R
 	return s
 }
 
+// SetGenerativeQnA sets the GenerativeQnA field's value.
+func (s *RegisteredUserEmbeddingExperienceConfiguration) SetGenerativeQnA(v *RegisteredUserGenerativeQnAEmbeddingConfiguration) *RegisteredUserEmbeddingExperienceConfiguration {
+	s.GenerativeQnA = v
+	return s
+}
+
 // SetQSearchBar sets the QSearchBar field's value.
 func (s *RegisteredUserEmbeddingExperienceConfiguration) SetQSearchBar(v *RegisteredUserQSearchBarEmbeddingConfiguration) *RegisteredUserEmbeddingExperienceConfiguration {
 	s.QSearchBar = v
@@ -80830,19 +84412,75 @@ func (s *RegisteredUserEmbeddingExperienceConfiguration) SetQuickSightConsole(v 
 	return s
 }
 
+// An object that provides information about the configuration of a Generative
+// Q&A experience.
+type RegisteredUserGenerativeQnAEmbeddingConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the new Q reader experience topic that you want to make the starting
+	// topic in the Generative Q&A experience. You can find a topic ID by navigating
+	// to the Topics pane in the Amazon QuickSight application and opening a topic.
+	// The ID is in the URL for the topic that you open.
+	//
+	// If you don't specify an initial topic or you specify a legacy topic, a list
+	// of all shared new reader experience topics is shown in the Generative Q&A
+	// experience for your readers. When you select an initial new reader experience
+	// topic, you can specify whether or not readers are allowed to select other
+	// new reader experience topics from the available ones in the list.
+	InitialTopicId *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RegisteredUserGenerativeQnAEmbeddingConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RegisteredUserGenerativeQnAEmbeddingConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RegisteredUserGenerativeQnAEmbeddingConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RegisteredUserGenerativeQnAEmbeddingConfiguration"}
+	if s.InitialTopicId != nil && len(*s.InitialTopicId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InitialTopicId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetInitialTopicId sets the InitialTopicId field's value.
+func (s *RegisteredUserGenerativeQnAEmbeddingConfiguration) SetInitialTopicId(v string) *RegisteredUserGenerativeQnAEmbeddingConfiguration {
+	s.InitialTopicId = &v
+	return s
+}
+
 // Information about the Q search bar embedding experience.
 type RegisteredUserQSearchBarEmbeddingConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the Q topic that you want to make the starting topic in the Q search
-	// bar. You can find a topic ID by navigating to the Topics pane in the Amazon
-	// QuickSight application and opening a topic. The ID is in the URL for the
-	// topic that you open.
+	// The ID of the legacy Q topic that you want to use as the starting topic in
+	// the Q search bar. To locate the topic ID of the topic that you want to use,
+	// open the Amazon QuickSight console (https://quicksight.aws.amazon.com/),
+	// navigate to the Topics pane, and choose thre topic that you want to use.
+	// The TopicID is located in the URL of the topic that opens. When you select
+	// an initial topic, you can specify whether or not readers are allowed to select
+	// other topics from the list of available topics.
 	//
-	// If you don't specify an initial topic, a list of all shared topics is shown
-	// in the Q bar for your readers. When you select an initial topic, you can
-	// specify whether or not readers are allowed to select other topics from the
-	// available ones in the list.
+	// If you don't specify an initial topic or if you specify a new reader experience
+	// topic, a list of all shared legacy topics is shown in the Q bar.
 	InitialTopicId *string `min:"1" type:"string"`
 }
 
@@ -81149,6 +84787,10 @@ type RelativeDatesFilter struct {
 	// Column is a required field
 	Column *ColumnIdentifier `type:"structure" required:"true"`
 
+	// The default configurations for the associated controls. This applies only
+	// for filters that are scoped to multiple sheets.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
+
 	// The configuration for the exclude period of the filter.
 	ExcludePeriodConfiguration *ExcludePeriodConfiguration `type:"structure"`
 
@@ -81254,6 +84896,11 @@ func (s *RelativeDatesFilter) Validate() error {
 			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.ExcludePeriodConfiguration != nil {
 		if err := s.ExcludePeriodConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("ExcludePeriodConfiguration", err.(request.ErrInvalidParams))
@@ -81275,6 +84922,12 @@ func (s *RelativeDatesFilter) SetAnchorDateConfiguration(v *AnchorDateConfigurat
 // SetColumn sets the Column field's value.
 func (s *RelativeDatesFilter) SetColumn(v *ColumnIdentifier) *RelativeDatesFilter {
 	s.Column = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *RelativeDatesFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *RelativeDatesFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -85182,7 +88835,7 @@ type SemanticType struct {
 	FalseyCellValue *string `type:"string" sensitive:"true"`
 
 	// The other names or aliases for the false cell value.
-	FalseyCellValueSynonyms []*string `type:"list"`
+	FalseyCellValueSynonyms []*string `type:"list" sensitive:"true"`
 
 	// The semantic type sub type name.
 	SubTypeName *string `type:"string"`
@@ -85195,7 +88848,7 @@ type SemanticType struct {
 	TruthyCellValue *string `type:"string" sensitive:"true"`
 
 	// The other names or aliases for the true cell value.
-	TruthyCellValueSynonyms []*string `type:"list"`
+	TruthyCellValueSynonyms []*string `type:"list" sensitive:"true"`
 
 	// The semantic type name.
 	TypeName *string `type:"string"`
@@ -86675,6 +90328,47 @@ func (s *SliderControlDisplayOptions) SetInfoIconLabelOptions(v *SheetControlInf
 // SetTitleOptions sets the TitleOptions field's value.
 func (s *SliderControlDisplayOptions) SetTitleOptions(v *LabelOptions) *SliderControlDisplayOptions {
 	s.TitleOptions = v
+	return s
+}
+
+// The definition for the slot.
+type Slot struct {
+	_ struct{} `type:"structure"`
+
+	// The slot ID of the slot.
+	SlotId *string `type:"string"`
+
+	// The visual ID for the slot.
+	VisualId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Slot) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Slot) GoString() string {
+	return s.String()
+}
+
+// SetSlotId sets the SlotId field's value.
+func (s *Slot) SetSlotId(v string) *Slot {
+	s.SlotId = &v
+	return s
+}
+
+// SetVisualId sets the VisualId field's value.
+func (s *Slot) SetVisualId(v string) *Slot {
+	s.VisualId = &v
 	return s
 }
 
@@ -88903,7 +92597,7 @@ type StringDefaultValues struct {
 	DynamicValue *DynamicDefaultValue `type:"structure"`
 
 	// The static values of the DecimalDefaultValues.
-	StaticValues []*string `type:"list"`
+	StaticValues []*string `type:"list" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -89024,7 +92718,7 @@ type StringParameter struct {
 	// The values of a string parameter.
 	//
 	// Values is a required field
-	Values []*string `type:"list" required:"true"`
+	Values []*string `type:"list" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -89369,6 +93063,85 @@ func (s *SubtotalOptions) SetTotalsVisibility(v string) *SubtotalOptions {
 // SetValueCellStyle sets the ValueCellStyle field's value.
 func (s *SubtotalOptions) SetValueCellStyle(v *TableCellStyle) *SubtotalOptions {
 	s.ValueCellStyle = v
+	return s
+}
+
+// The definition for a SucceededTopicReviewedAnswer.
+type SucceededTopicReviewedAnswer struct {
+	_ struct{} `type:"structure"`
+
+	// The answer ID for the SucceededTopicReviewedAnswer.
+	AnswerId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SucceededTopicReviewedAnswer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SucceededTopicReviewedAnswer) GoString() string {
+	return s.String()
+}
+
+// SetAnswerId sets the AnswerId field's value.
+func (s *SucceededTopicReviewedAnswer) SetAnswerId(v string) *SucceededTopicReviewedAnswer {
+	s.AnswerId = &v
+	return s
+}
+
+// A success entry that occurs when a KeyRegistration job is successfully applied
+// to the Amazon QuickSight account.
+type SuccessfulKeyRegistrationEntry struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the KMS key that is associated with the SuccessfulKeyRegistrationEntry
+	// entry.
+	//
+	// KeyArn is a required field
+	KeyArn *string `type:"string" required:"true"`
+
+	// The HTTP status of a SuccessfulKeyRegistrationEntry entry.
+	//
+	// StatusCode is a required field
+	StatusCode *int64 `type:"integer" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SuccessfulKeyRegistrationEntry) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SuccessfulKeyRegistrationEntry) GoString() string {
+	return s.String()
+}
+
+// SetKeyArn sets the KeyArn field's value.
+func (s *SuccessfulKeyRegistrationEntry) SetKeyArn(v string) *SuccessfulKeyRegistrationEntry {
+	s.KeyArn = &v
+	return s
+}
+
+// SetStatusCode sets the StatusCode field's value.
+func (s *SuccessfulKeyRegistrationEntry) SetStatusCode(v int64) *SuccessfulKeyRegistrationEntry {
+	s.StatusCode = &v
 	return s
 }
 
@@ -93338,6 +97111,10 @@ type TimeEqualityFilter struct {
 	// Column is a required field
 	Column *ColumnIdentifier `type:"structure" required:"true"`
 
+	// The default configurations for the associated controls. This applies only
+	// for filters that are scoped to multiple sheets.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
+
 	// An identifier that uniquely identifies a filter within a dashboard, analysis,
 	// or template.
 	//
@@ -93401,6 +97178,11 @@ func (s *TimeEqualityFilter) Validate() error {
 			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.RollingDate != nil {
 		if err := s.RollingDate.Validate(); err != nil {
 			invalidParams.AddNested("RollingDate", err.(request.ErrInvalidParams))
@@ -93416,6 +97198,12 @@ func (s *TimeEqualityFilter) Validate() error {
 // SetColumn sets the Column field's value.
 func (s *TimeEqualityFilter) SetColumn(v *ColumnIdentifier) *TimeEqualityFilter {
 	s.Column = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *TimeEqualityFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *TimeEqualityFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -93552,6 +97340,10 @@ type TimeRangeFilter struct {
 	// Column is a required field
 	Column *ColumnIdentifier `type:"structure" required:"true"`
 
+	// The default configurations for the associated controls. This applies only
+	// for filters that are scoped to multiple sheets.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
+
 	// The exclude period of the time range filter.
 	ExcludePeriodConfiguration *ExcludePeriodConfiguration `type:"structure"`
 
@@ -93628,6 +97420,11 @@ func (s *TimeRangeFilter) Validate() error {
 			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.ExcludePeriodConfiguration != nil {
 		if err := s.ExcludePeriodConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("ExcludePeriodConfiguration", err.(request.ErrInvalidParams))
@@ -93653,6 +97450,12 @@ func (s *TimeRangeFilter) Validate() error {
 // SetColumn sets the Column field's value.
 func (s *TimeRangeFilter) SetColumn(v *ColumnIdentifier) *TimeRangeFilter {
 	s.Column = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *TimeRangeFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *TimeRangeFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -93923,6 +97726,10 @@ type TopBottomFilter struct {
 	// Column is a required field
 	Column *ColumnIdentifier `type:"structure" required:"true"`
 
+	// The default configurations for the associated controls. This applies only
+	// for filters that are scoped to multiple sheets.
+	DefaultFilterControlConfiguration *DefaultFilterControlConfiguration `type:"structure"`
+
 	// An identifier that uniquely identifies a filter within a dashboard, analysis,
 	// or template.
 	//
@@ -93990,6 +97797,11 @@ func (s *TopBottomFilter) Validate() error {
 			invalidParams.AddNested("Column", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.DefaultFilterControlConfiguration != nil {
+		if err := s.DefaultFilterControlConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("DefaultFilterControlConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -94006,6 +97818,12 @@ func (s *TopBottomFilter) SetAggregationSortConfigurations(v []*AggregationSortC
 // SetColumn sets the Column field's value.
 func (s *TopBottomFilter) SetColumn(v *ColumnIdentifier) *TopBottomFilter {
 	s.Column = v
+	return s
+}
+
+// SetDefaultFilterControlConfiguration sets the DefaultFilterControlConfiguration field's value.
+func (s *TopBottomFilter) SetDefaultFilterControlConfiguration(v *DefaultFilterControlConfiguration) *TopBottomFilter {
+	s.DefaultFilterControlConfiguration = v
 	return s
 }
 
@@ -94818,6 +98636,74 @@ func (s *TopicColumn) SetTimeGranularity(v string) *TopicColumn {
 	return s
 }
 
+// The definition for a TopicConstantValue.
+type TopicConstantValue struct {
+	_ struct{} `type:"structure"`
+
+	// The constant type of a TopicConstantValue.
+	ConstantType *string `type:"string" enum:"ConstantType"`
+
+	// The maximum for the TopicConstantValue.
+	Maximum *string `type:"string"`
+
+	// The minimum for the TopicConstantValue.
+	Minimum *string `type:"string"`
+
+	// The value of the TopicConstantValue.
+	Value *string `type:"string"`
+
+	// The value list of the TopicConstantValue.
+	ValueList []*CollectiveConstantEntry `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicConstantValue) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicConstantValue) GoString() string {
+	return s.String()
+}
+
+// SetConstantType sets the ConstantType field's value.
+func (s *TopicConstantValue) SetConstantType(v string) *TopicConstantValue {
+	s.ConstantType = &v
+	return s
+}
+
+// SetMaximum sets the Maximum field's value.
+func (s *TopicConstantValue) SetMaximum(v string) *TopicConstantValue {
+	s.Maximum = &v
+	return s
+}
+
+// SetMinimum sets the Minimum field's value.
+func (s *TopicConstantValue) SetMinimum(v string) *TopicConstantValue {
+	s.Minimum = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *TopicConstantValue) SetValue(v string) *TopicConstantValue {
+	s.Value = &v
+	return s
+}
+
+// SetValueList sets the ValueList field's value.
+func (s *TopicConstantValue) SetValueList(v []*CollectiveConstantEntry) *TopicConstantValue {
+	s.ValueList = v
+	return s
+}
+
 // A filter used to restrict data based on a range of dates or times.
 type TopicDateRangeFilter struct {
 	_ struct{} `type:"structure"`
@@ -95089,6 +98975,700 @@ func (s *TopicFilter) SetOperandFieldName(v string) *TopicFilter {
 // SetRelativeDateFilter sets the RelativeDateFilter field's value.
 func (s *TopicFilter) SetRelativeDateFilter(v *TopicRelativeDateFilter) *TopicFilter {
 	s.RelativeDateFilter = v
+	return s
+}
+
+// The definition for a TopicIR.
+type TopicIR struct {
+	_ struct{} `type:"structure"`
+
+	// The contribution analysis for the TopicIR.
+	ContributionAnalysis *TopicIRContributionAnalysis `type:"structure"`
+
+	// The filters for the TopicIR.
+	Filters [][]*TopicIRFilterOption `type:"list"`
+
+	// The GroupBy list for the TopicIR.
+	GroupByList []*TopicIRGroupBy `type:"list"`
+
+	// The metrics for the TopicIR.
+	Metrics []*TopicIRMetric `type:"list"`
+
+	// The sort for the TopicIR.
+	Sort *TopicSortClause `type:"structure"`
+
+	// The visual for the TopicIR.
+	Visual *VisualOptions `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIR) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIR) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TopicIR) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TopicIR"}
+	if s.ContributionAnalysis != nil {
+		if err := s.ContributionAnalysis.Validate(); err != nil {
+			invalidParams.AddNested("ContributionAnalysis", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.GroupByList != nil {
+		for i, v := range s.GroupByList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "GroupByList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Metrics != nil {
+		for i, v := range s.Metrics {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Metrics", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Sort != nil {
+		if err := s.Sort.Validate(); err != nil {
+			invalidParams.AddNested("Sort", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetContributionAnalysis sets the ContributionAnalysis field's value.
+func (s *TopicIR) SetContributionAnalysis(v *TopicIRContributionAnalysis) *TopicIR {
+	s.ContributionAnalysis = v
+	return s
+}
+
+// SetFilters sets the Filters field's value.
+func (s *TopicIR) SetFilters(v [][]*TopicIRFilterOption) *TopicIR {
+	s.Filters = v
+	return s
+}
+
+// SetGroupByList sets the GroupByList field's value.
+func (s *TopicIR) SetGroupByList(v []*TopicIRGroupBy) *TopicIR {
+	s.GroupByList = v
+	return s
+}
+
+// SetMetrics sets the Metrics field's value.
+func (s *TopicIR) SetMetrics(v []*TopicIRMetric) *TopicIR {
+	s.Metrics = v
+	return s
+}
+
+// SetSort sets the Sort field's value.
+func (s *TopicIR) SetSort(v *TopicSortClause) *TopicIR {
+	s.Sort = v
+	return s
+}
+
+// SetVisual sets the Visual field's value.
+func (s *TopicIR) SetVisual(v *VisualOptions) *TopicIR {
+	s.Visual = v
+	return s
+}
+
+// The definition of a TopicIRComparisonMethod.
+type TopicIRComparisonMethod struct {
+	_ struct{} `type:"structure"`
+
+	// The period for the TopicIRComparisonMethod.
+	Period *string `type:"string" enum:"TopicTimeGranularity"`
+
+	// The type for the TopicIRComparisonMethod.
+	Type *string `type:"string" enum:"ComparisonMethodType"`
+
+	// The window size for the TopicIRComparisonMethod.
+	WindowSize *int64 `type:"integer"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRComparisonMethod) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRComparisonMethod) GoString() string {
+	return s.String()
+}
+
+// SetPeriod sets the Period field's value.
+func (s *TopicIRComparisonMethod) SetPeriod(v string) *TopicIRComparisonMethod {
+	s.Period = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *TopicIRComparisonMethod) SetType(v string) *TopicIRComparisonMethod {
+	s.Type = &v
+	return s
+}
+
+// SetWindowSize sets the WindowSize field's value.
+func (s *TopicIRComparisonMethod) SetWindowSize(v int64) *TopicIRComparisonMethod {
+	s.WindowSize = &v
+	return s
+}
+
+// The definition for a TopicIRContributionAnalysis.
+type TopicIRContributionAnalysis struct {
+	_ struct{} `type:"structure"`
+
+	// The direction for the TopicIRContributionAnalysis.
+	Direction *string `type:"string" enum:"ContributionAnalysisDirection"`
+
+	// The factors for a TopicIRContributionAnalysis.
+	Factors []*ContributionAnalysisFactor `type:"list"`
+
+	// The sort type for the TopicIRContributionAnalysis.
+	SortType *string `type:"string" enum:"ContributionAnalysisSortType"`
+
+	// The time ranges for the TopicIRContributionAnalysis.
+	TimeRanges *ContributionAnalysisTimeRanges `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRContributionAnalysis) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRContributionAnalysis) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TopicIRContributionAnalysis) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TopicIRContributionAnalysis"}
+	if s.TimeRanges != nil {
+		if err := s.TimeRanges.Validate(); err != nil {
+			invalidParams.AddNested("TimeRanges", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDirection sets the Direction field's value.
+func (s *TopicIRContributionAnalysis) SetDirection(v string) *TopicIRContributionAnalysis {
+	s.Direction = &v
+	return s
+}
+
+// SetFactors sets the Factors field's value.
+func (s *TopicIRContributionAnalysis) SetFactors(v []*ContributionAnalysisFactor) *TopicIRContributionAnalysis {
+	s.Factors = v
+	return s
+}
+
+// SetSortType sets the SortType field's value.
+func (s *TopicIRContributionAnalysis) SetSortType(v string) *TopicIRContributionAnalysis {
+	s.SortType = &v
+	return s
+}
+
+// SetTimeRanges sets the TimeRanges field's value.
+func (s *TopicIRContributionAnalysis) SetTimeRanges(v *ContributionAnalysisTimeRanges) *TopicIRContributionAnalysis {
+	s.TimeRanges = v
+	return s
+}
+
+// The definition for a TopicIRFilterOption.
+type TopicIRFilterOption struct {
+	_ struct{} `type:"structure"`
+
+	// The agg metrics for the TopicIRFilterOption.
+	AggMetrics []*FilterAggMetrics `type:"list"`
+
+	// The aggregation for the TopicIRFilterOption.
+	Aggregation *string `type:"string" enum:"AggType"`
+
+	// The aggregation function parameters for the TopicIRFilterOption.
+	AggregationFunctionParameters map[string]*string `type:"map"`
+
+	// The AggregationPartitionBy for the TopicIRFilterOption.
+	AggregationPartitionBy []*AggregationPartitionBy `type:"list"`
+
+	// The anchor for the TopicIRFilterOption.
+	Anchor *Anchor `type:"structure"`
+
+	// The constant for the TopicIRFilterOption.
+	Constant *TopicConstantValue `type:"structure"`
+
+	// The filter class for the TopicIRFilterOption.
+	FilterClass *string `type:"string" enum:"FilterClass"`
+
+	// The filter type for the TopicIRFilterOption.
+	FilterType *string `type:"string" enum:"TopicIRFilterType"`
+
+	// The function for the TopicIRFilterOption.
+	Function *string `type:"string" enum:"TopicIRFilterFunction"`
+
+	// The inclusive for the TopicIRFilterOption.
+	Inclusive *bool `type:"boolean"`
+
+	// The inverse for the TopicIRFilterOption.
+	Inverse *bool `type:"boolean"`
+
+	// The last next offset for the TopicIRFilterOption.
+	LastNextOffset *TopicConstantValue `type:"structure"`
+
+	// The null filter for the TopicIRFilterOption.
+	NullFilter *string `type:"string" enum:"NullFilterOption"`
+
+	// The operand field for the TopicIRFilterOption.
+	OperandField *Identifier `type:"structure"`
+
+	// The range for the TopicIRFilterOption.
+	Range *TopicConstantValue `type:"structure"`
+
+	// The sort direction for the TopicIRFilterOption.
+	SortDirection *string `type:"string" enum:"TopicSortDirection"`
+
+	// The time granularity for the TopicIRFilterOption.
+	TimeGranularity *string `type:"string" enum:"TimeGranularity"`
+
+	// The TopBottomLimit for the TopicIRFilterOption.
+	TopBottomLimit *TopicConstantValue `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRFilterOption) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRFilterOption) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TopicIRFilterOption) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TopicIRFilterOption"}
+	if s.AggMetrics != nil {
+		for i, v := range s.AggMetrics {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AggMetrics", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.OperandField != nil {
+		if err := s.OperandField.Validate(); err != nil {
+			invalidParams.AddNested("OperandField", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAggMetrics sets the AggMetrics field's value.
+func (s *TopicIRFilterOption) SetAggMetrics(v []*FilterAggMetrics) *TopicIRFilterOption {
+	s.AggMetrics = v
+	return s
+}
+
+// SetAggregation sets the Aggregation field's value.
+func (s *TopicIRFilterOption) SetAggregation(v string) *TopicIRFilterOption {
+	s.Aggregation = &v
+	return s
+}
+
+// SetAggregationFunctionParameters sets the AggregationFunctionParameters field's value.
+func (s *TopicIRFilterOption) SetAggregationFunctionParameters(v map[string]*string) *TopicIRFilterOption {
+	s.AggregationFunctionParameters = v
+	return s
+}
+
+// SetAggregationPartitionBy sets the AggregationPartitionBy field's value.
+func (s *TopicIRFilterOption) SetAggregationPartitionBy(v []*AggregationPartitionBy) *TopicIRFilterOption {
+	s.AggregationPartitionBy = v
+	return s
+}
+
+// SetAnchor sets the Anchor field's value.
+func (s *TopicIRFilterOption) SetAnchor(v *Anchor) *TopicIRFilterOption {
+	s.Anchor = v
+	return s
+}
+
+// SetConstant sets the Constant field's value.
+func (s *TopicIRFilterOption) SetConstant(v *TopicConstantValue) *TopicIRFilterOption {
+	s.Constant = v
+	return s
+}
+
+// SetFilterClass sets the FilterClass field's value.
+func (s *TopicIRFilterOption) SetFilterClass(v string) *TopicIRFilterOption {
+	s.FilterClass = &v
+	return s
+}
+
+// SetFilterType sets the FilterType field's value.
+func (s *TopicIRFilterOption) SetFilterType(v string) *TopicIRFilterOption {
+	s.FilterType = &v
+	return s
+}
+
+// SetFunction sets the Function field's value.
+func (s *TopicIRFilterOption) SetFunction(v string) *TopicIRFilterOption {
+	s.Function = &v
+	return s
+}
+
+// SetInclusive sets the Inclusive field's value.
+func (s *TopicIRFilterOption) SetInclusive(v bool) *TopicIRFilterOption {
+	s.Inclusive = &v
+	return s
+}
+
+// SetInverse sets the Inverse field's value.
+func (s *TopicIRFilterOption) SetInverse(v bool) *TopicIRFilterOption {
+	s.Inverse = &v
+	return s
+}
+
+// SetLastNextOffset sets the LastNextOffset field's value.
+func (s *TopicIRFilterOption) SetLastNextOffset(v *TopicConstantValue) *TopicIRFilterOption {
+	s.LastNextOffset = v
+	return s
+}
+
+// SetNullFilter sets the NullFilter field's value.
+func (s *TopicIRFilterOption) SetNullFilter(v string) *TopicIRFilterOption {
+	s.NullFilter = &v
+	return s
+}
+
+// SetOperandField sets the OperandField field's value.
+func (s *TopicIRFilterOption) SetOperandField(v *Identifier) *TopicIRFilterOption {
+	s.OperandField = v
+	return s
+}
+
+// SetRange sets the Range field's value.
+func (s *TopicIRFilterOption) SetRange(v *TopicConstantValue) *TopicIRFilterOption {
+	s.Range = v
+	return s
+}
+
+// SetSortDirection sets the SortDirection field's value.
+func (s *TopicIRFilterOption) SetSortDirection(v string) *TopicIRFilterOption {
+	s.SortDirection = &v
+	return s
+}
+
+// SetTimeGranularity sets the TimeGranularity field's value.
+func (s *TopicIRFilterOption) SetTimeGranularity(v string) *TopicIRFilterOption {
+	s.TimeGranularity = &v
+	return s
+}
+
+// SetTopBottomLimit sets the TopBottomLimit field's value.
+func (s *TopicIRFilterOption) SetTopBottomLimit(v *TopicConstantValue) *TopicIRFilterOption {
+	s.TopBottomLimit = v
+	return s
+}
+
+// The definition for a TopicIRGroupBy.
+type TopicIRGroupBy struct {
+	_ struct{} `type:"structure"`
+
+	// The display format for the TopicIRGroupBy.
+	DisplayFormat *string `type:"string" enum:"DisplayFormat"`
+
+	// A structure that represents additional options for display formatting.
+	DisplayFormatOptions *DisplayFormatOptions `type:"structure"`
+
+	// The field name for the TopicIRGroupBy.
+	FieldName *Identifier `type:"structure"`
+
+	// The named entity for the TopicIRGroupBy.
+	NamedEntity *NamedEntityRef `type:"structure"`
+
+	// The sort for the TopicIRGroupBy.
+	Sort *TopicSortClause `type:"structure"`
+
+	// The time granularity for the TopicIRGroupBy.
+	TimeGranularity *string `type:"string" enum:"TopicTimeGranularity"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRGroupBy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRGroupBy) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TopicIRGroupBy) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TopicIRGroupBy"}
+	if s.FieldName != nil {
+		if err := s.FieldName.Validate(); err != nil {
+			invalidParams.AddNested("FieldName", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Sort != nil {
+		if err := s.Sort.Validate(); err != nil {
+			invalidParams.AddNested("Sort", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDisplayFormat sets the DisplayFormat field's value.
+func (s *TopicIRGroupBy) SetDisplayFormat(v string) *TopicIRGroupBy {
+	s.DisplayFormat = &v
+	return s
+}
+
+// SetDisplayFormatOptions sets the DisplayFormatOptions field's value.
+func (s *TopicIRGroupBy) SetDisplayFormatOptions(v *DisplayFormatOptions) *TopicIRGroupBy {
+	s.DisplayFormatOptions = v
+	return s
+}
+
+// SetFieldName sets the FieldName field's value.
+func (s *TopicIRGroupBy) SetFieldName(v *Identifier) *TopicIRGroupBy {
+	s.FieldName = v
+	return s
+}
+
+// SetNamedEntity sets the NamedEntity field's value.
+func (s *TopicIRGroupBy) SetNamedEntity(v *NamedEntityRef) *TopicIRGroupBy {
+	s.NamedEntity = v
+	return s
+}
+
+// SetSort sets the Sort field's value.
+func (s *TopicIRGroupBy) SetSort(v *TopicSortClause) *TopicIRGroupBy {
+	s.Sort = v
+	return s
+}
+
+// SetTimeGranularity sets the TimeGranularity field's value.
+func (s *TopicIRGroupBy) SetTimeGranularity(v string) *TopicIRGroupBy {
+	s.TimeGranularity = &v
+	return s
+}
+
+// The definition for a TopicIRMetric.
+type TopicIRMetric struct {
+	_ struct{} `type:"structure"`
+
+	// The calculated field references for the TopicIRMetric.
+	CalculatedFieldReferences []*Identifier `type:"list"`
+
+	// The comparison method for the TopicIRMetric.
+	ComparisonMethod *TopicIRComparisonMethod `type:"structure"`
+
+	// The display format for the TopicIRMetric.
+	DisplayFormat *string `type:"string" enum:"DisplayFormat"`
+
+	// A structure that represents additional options for display formatting.
+	DisplayFormatOptions *DisplayFormatOptions `type:"structure"`
+
+	// The expression for the TopicIRMetric.
+	//
+	// Expression is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by TopicIRMetric's
+	// String and GoString methods.
+	Expression *string `min:"1" type:"string" sensitive:"true"`
+
+	// The function for the TopicIRMetric.
+	Function *AggFunction `type:"structure"`
+
+	// The metric ID for the TopicIRMetric.
+	MetricId *Identifier `type:"structure"`
+
+	// The named entity for the TopicIRMetric.
+	NamedEntity *NamedEntityRef `type:"structure"`
+
+	// The operands for the TopicIRMetric.
+	Operands []*Identifier `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRMetric) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicIRMetric) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TopicIRMetric) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TopicIRMetric"}
+	if s.Expression != nil && len(*s.Expression) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Expression", 1))
+	}
+	if s.CalculatedFieldReferences != nil {
+		for i, v := range s.CalculatedFieldReferences {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CalculatedFieldReferences", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.MetricId != nil {
+		if err := s.MetricId.Validate(); err != nil {
+			invalidParams.AddNested("MetricId", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Operands != nil {
+		for i, v := range s.Operands {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Operands", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCalculatedFieldReferences sets the CalculatedFieldReferences field's value.
+func (s *TopicIRMetric) SetCalculatedFieldReferences(v []*Identifier) *TopicIRMetric {
+	s.CalculatedFieldReferences = v
+	return s
+}
+
+// SetComparisonMethod sets the ComparisonMethod field's value.
+func (s *TopicIRMetric) SetComparisonMethod(v *TopicIRComparisonMethod) *TopicIRMetric {
+	s.ComparisonMethod = v
+	return s
+}
+
+// SetDisplayFormat sets the DisplayFormat field's value.
+func (s *TopicIRMetric) SetDisplayFormat(v string) *TopicIRMetric {
+	s.DisplayFormat = &v
+	return s
+}
+
+// SetDisplayFormatOptions sets the DisplayFormatOptions field's value.
+func (s *TopicIRMetric) SetDisplayFormatOptions(v *DisplayFormatOptions) *TopicIRMetric {
+	s.DisplayFormatOptions = v
+	return s
+}
+
+// SetExpression sets the Expression field's value.
+func (s *TopicIRMetric) SetExpression(v string) *TopicIRMetric {
+	s.Expression = &v
+	return s
+}
+
+// SetFunction sets the Function field's value.
+func (s *TopicIRMetric) SetFunction(v *AggFunction) *TopicIRMetric {
+	s.Function = v
+	return s
+}
+
+// SetMetricId sets the MetricId field's value.
+func (s *TopicIRMetric) SetMetricId(v *Identifier) *TopicIRMetric {
+	s.MetricId = v
+	return s
+}
+
+// SetNamedEntity sets the NamedEntity field's value.
+func (s *TopicIRMetric) SetNamedEntity(v *NamedEntityRef) *TopicIRMetric {
+	s.NamedEntity = v
+	return s
+}
+
+// SetOperands sets the Operands field's value.
+func (s *TopicIRMetric) SetOperands(v []*Identifier) *TopicIRMetric {
+	s.Operands = v
 	return s
 }
 
@@ -95597,6 +100177,98 @@ func (s *TopicRelativeDateFilter) SetTimeGranularity(v string) *TopicRelativeDat
 	return s
 }
 
+// The deinition for a TopicReviewedAnswer.
+type TopicReviewedAnswer struct {
+	_ struct{} `type:"structure"`
+
+	// The answer ID of the reviewed answer.
+	//
+	// AnswerId is a required field
+	AnswerId *string `type:"string" required:"true"`
+
+	// The Amazon Resource Name (ARN) of the reviewed answer.
+	Arn *string `type:"string"`
+
+	// The Dataset ARN for the TopicReviewedAnswer.
+	//
+	// DatasetArn is a required field
+	DatasetArn *string `type:"string" required:"true"`
+
+	// The mir for the TopicReviewedAnswer.
+	Mir *TopicIR `type:"structure"`
+
+	// The primary visual for the TopicReviewedAnswer.
+	PrimaryVisual *TopicVisual `type:"structure"`
+
+	// The question for the TopicReviewedAnswer.
+	//
+	// Question is a required field
+	Question *string `type:"string" required:"true"`
+
+	// The template for the TopicReviewedAnswer.
+	Template *TopicTemplate `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicReviewedAnswer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicReviewedAnswer) GoString() string {
+	return s.String()
+}
+
+// SetAnswerId sets the AnswerId field's value.
+func (s *TopicReviewedAnswer) SetAnswerId(v string) *TopicReviewedAnswer {
+	s.AnswerId = &v
+	return s
+}
+
+// SetArn sets the Arn field's value.
+func (s *TopicReviewedAnswer) SetArn(v string) *TopicReviewedAnswer {
+	s.Arn = &v
+	return s
+}
+
+// SetDatasetArn sets the DatasetArn field's value.
+func (s *TopicReviewedAnswer) SetDatasetArn(v string) *TopicReviewedAnswer {
+	s.DatasetArn = &v
+	return s
+}
+
+// SetMir sets the Mir field's value.
+func (s *TopicReviewedAnswer) SetMir(v *TopicIR) *TopicReviewedAnswer {
+	s.Mir = v
+	return s
+}
+
+// SetPrimaryVisual sets the PrimaryVisual field's value.
+func (s *TopicReviewedAnswer) SetPrimaryVisual(v *TopicVisual) *TopicReviewedAnswer {
+	s.PrimaryVisual = v
+	return s
+}
+
+// SetQuestion sets the Question field's value.
+func (s *TopicReviewedAnswer) SetQuestion(v string) *TopicReviewedAnswer {
+	s.Question = &v
+	return s
+}
+
+// SetTemplate sets the Template field's value.
+func (s *TopicReviewedAnswer) SetTemplate(v *TopicTemplate) *TopicReviewedAnswer {
+	s.Template = v
+	return s
+}
+
 // A structure that represents a singular filter constant, used in filters to
 // specify a single value to match against.
 type TopicSingularFilterConstant struct {
@@ -95640,6 +100312,62 @@ func (s *TopicSingularFilterConstant) SetSingularConstant(v string) *TopicSingul
 	return s
 }
 
+// The definition for a TopicSortClause.
+type TopicSortClause struct {
+	_ struct{} `type:"structure"`
+
+	// The operand for a TopicSortClause.
+	Operand *Identifier `type:"structure"`
+
+	// The sort direction for the TopicSortClause.
+	SortDirection *string `type:"string" enum:"TopicSortDirection"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicSortClause) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicSortClause) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TopicSortClause) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TopicSortClause"}
+	if s.Operand != nil {
+		if err := s.Operand.Validate(); err != nil {
+			invalidParams.AddNested("Operand", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetOperand sets the Operand field's value.
+func (s *TopicSortClause) SetOperand(v *Identifier) *TopicSortClause {
+	s.Operand = v
+	return s
+}
+
+// SetSortDirection sets the SortDirection field's value.
+func (s *TopicSortClause) SetSortDirection(v string) *TopicSortClause {
+	s.SortDirection = &v
+	return s
+}
+
 // A topic summary.
 type TopicSummary struct {
 	_ struct{} `type:"structure"`
@@ -95653,6 +100381,9 @@ type TopicSummary struct {
 	// The ID for the topic. This ID is unique per Amazon Web Services Region for
 	// each Amazon Web Services account.
 	TopicId *string `type:"string"`
+
+	// The user experience version of the topic.
+	UserExperienceVersion *string `type:"string" enum:"TopicUserExperienceVersion"`
 }
 
 // String returns the string representation.
@@ -95688,6 +100419,137 @@ func (s *TopicSummary) SetName(v string) *TopicSummary {
 // SetTopicId sets the TopicId field's value.
 func (s *TopicSummary) SetTopicId(v string) *TopicSummary {
 	s.TopicId = &v
+	return s
+}
+
+// SetUserExperienceVersion sets the UserExperienceVersion field's value.
+func (s *TopicSummary) SetUserExperienceVersion(v string) *TopicSummary {
+	s.UserExperienceVersion = &v
+	return s
+}
+
+// The definition for a TopicTemplate.
+type TopicTemplate struct {
+	_ struct{} `type:"structure"`
+
+	// The slots for the TopicTemplate.
+	Slots []*Slot `type:"list"`
+
+	// The template type for the TopicTemplate.
+	TemplateType *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicTemplate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicTemplate) GoString() string {
+	return s.String()
+}
+
+// SetSlots sets the Slots field's value.
+func (s *TopicTemplate) SetSlots(v []*Slot) *TopicTemplate {
+	s.Slots = v
+	return s
+}
+
+// SetTemplateType sets the TemplateType field's value.
+func (s *TopicTemplate) SetTemplateType(v string) *TopicTemplate {
+	s.TemplateType = &v
+	return s
+}
+
+// The definition for a TopicVisual.
+type TopicVisual struct {
+	_ struct{} `type:"structure"`
+
+	// The ir for the TopicVisual.
+	Ir *TopicIR `type:"structure"`
+
+	// The role for the TopicVisual.
+	Role *string `type:"string" enum:"VisualRole"`
+
+	// The supporting visuals for the TopicVisual.
+	SupportingVisuals []*TopicVisual `type:"list"`
+
+	// The visual ID for the TopicVisual.
+	VisualId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicVisual) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TopicVisual) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TopicVisual) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TopicVisual"}
+	if s.Ir != nil {
+		if err := s.Ir.Validate(); err != nil {
+			invalidParams.AddNested("Ir", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SupportingVisuals != nil {
+		for i, v := range s.SupportingVisuals {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SupportingVisuals", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetIr sets the Ir field's value.
+func (s *TopicVisual) SetIr(v *TopicIR) *TopicVisual {
+	s.Ir = v
+	return s
+}
+
+// SetRole sets the Role field's value.
+func (s *TopicVisual) SetRole(v string) *TopicVisual {
+	s.Role = &v
+	return s
+}
+
+// SetSupportingVisuals sets the SupportingVisuals field's value.
+func (s *TopicVisual) SetSupportingVisuals(v []*TopicVisual) *TopicVisual {
+	s.SupportingVisuals = v
+	return s
+}
+
+// SetVisualId sets the VisualId field's value.
+func (s *TopicVisual) SetVisualId(v string) *TopicVisual {
+	s.VisualId = &v
 	return s
 }
 
@@ -100771,6 +105633,120 @@ func (s *UpdateIpRestrictionOutput) SetStatus(v int64) *UpdateIpRestrictionOutpu
 	return s
 }
 
+type UpdateKeyRegistrationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Amazon Web Services account that contains the customer managed
+	// key registration that you want to update.
+	//
+	// AwsAccountId is a required field
+	AwsAccountId *string `location:"uri" locationName:"AwsAccountId" min:"12" type:"string" required:"true"`
+
+	// A list of RegisteredCustomerManagedKey objects to be updated to the Amazon
+	// QuickSight account.
+	//
+	// KeyRegistration is a required field
+	KeyRegistration []*RegisteredCustomerManagedKey `type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateKeyRegistrationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateKeyRegistrationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateKeyRegistrationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateKeyRegistrationInput"}
+	if s.AwsAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AwsAccountId"))
+	}
+	if s.AwsAccountId != nil && len(*s.AwsAccountId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("AwsAccountId", 12))
+	}
+	if s.KeyRegistration == nil {
+		invalidParams.Add(request.NewErrParamRequired("KeyRegistration"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAwsAccountId sets the AwsAccountId field's value.
+func (s *UpdateKeyRegistrationInput) SetAwsAccountId(v string) *UpdateKeyRegistrationInput {
+	s.AwsAccountId = &v
+	return s
+}
+
+// SetKeyRegistration sets the KeyRegistration field's value.
+func (s *UpdateKeyRegistrationInput) SetKeyRegistration(v []*RegisteredCustomerManagedKey) *UpdateKeyRegistrationInput {
+	s.KeyRegistration = v
+	return s
+}
+
+type UpdateKeyRegistrationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of all customer managed key registrations that failed to update.
+	FailedKeyRegistration []*FailedKeyRegistrationEntry `type:"list"`
+
+	// The Amazon Web Services request ID for this operation.
+	RequestId *string `type:"string"`
+
+	// A list of all customer managed key registrations that were successfully updated.
+	SuccessfulKeyRegistration []*SuccessfulKeyRegistrationEntry `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateKeyRegistrationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateKeyRegistrationOutput) GoString() string {
+	return s.String()
+}
+
+// SetFailedKeyRegistration sets the FailedKeyRegistration field's value.
+func (s *UpdateKeyRegistrationOutput) SetFailedKeyRegistration(v []*FailedKeyRegistrationEntry) *UpdateKeyRegistrationOutput {
+	s.FailedKeyRegistration = v
+	return s
+}
+
+// SetRequestId sets the RequestId field's value.
+func (s *UpdateKeyRegistrationOutput) SetRequestId(v string) *UpdateKeyRegistrationOutput {
+	s.RequestId = &v
+	return s
+}
+
+// SetSuccessfulKeyRegistration sets the SuccessfulKeyRegistration field's value.
+func (s *UpdateKeyRegistrationOutput) SetSuccessfulKeyRegistration(v []*SuccessfulKeyRegistrationEntry) *UpdateKeyRegistrationOutput {
+	s.SuccessfulKeyRegistration = v
+	return s
+}
+
 type UpdatePublicSharingSettingsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -101152,6 +106128,117 @@ func (s *UpdateRoleCustomPermissionOutput) SetRequestId(v string) *UpdateRoleCus
 
 // SetStatus sets the Status field's value.
 func (s *UpdateRoleCustomPermissionOutput) SetStatus(v int64) *UpdateRoleCustomPermissionOutput {
+	s.Status = &v
+	return s
+}
+
+type UpdateSPICECapacityConfigurationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Amazon Web Services account that contains the SPICE configuration
+	// that you want to update.
+	//
+	// AwsAccountId is a required field
+	AwsAccountId *string `location:"uri" locationName:"AwsAccountId" min:"12" type:"string" required:"true"`
+
+	// Determines how SPICE capacity can be purchased. The following options are
+	// available.
+	//
+	//    * MANUAL: SPICE capacity can only be purchased manually.
+	//
+	//    * AUTO_PURCHASE: Extra SPICE capacity is automatically purchased on your
+	//    behalf as needed. SPICE capacity can also be purchased manually with this
+	//    option.
+	//
+	// PurchaseMode is a required field
+	PurchaseMode *string `type:"string" required:"true" enum:"PurchaseMode"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateSPICECapacityConfigurationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateSPICECapacityConfigurationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateSPICECapacityConfigurationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateSPICECapacityConfigurationInput"}
+	if s.AwsAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AwsAccountId"))
+	}
+	if s.AwsAccountId != nil && len(*s.AwsAccountId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("AwsAccountId", 12))
+	}
+	if s.PurchaseMode == nil {
+		invalidParams.Add(request.NewErrParamRequired("PurchaseMode"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAwsAccountId sets the AwsAccountId field's value.
+func (s *UpdateSPICECapacityConfigurationInput) SetAwsAccountId(v string) *UpdateSPICECapacityConfigurationInput {
+	s.AwsAccountId = &v
+	return s
+}
+
+// SetPurchaseMode sets the PurchaseMode field's value.
+func (s *UpdateSPICECapacityConfigurationInput) SetPurchaseMode(v string) *UpdateSPICECapacityConfigurationInput {
+	s.PurchaseMode = &v
+	return s
+}
+
+type UpdateSPICECapacityConfigurationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Web Services request ID for this operation.
+	RequestId *string `type:"string"`
+
+	// The HTTP status of the request.
+	Status *int64 `location:"statusCode" type:"integer"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateSPICECapacityConfigurationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateSPICECapacityConfigurationOutput) GoString() string {
+	return s.String()
+}
+
+// SetRequestId sets the RequestId field's value.
+func (s *UpdateSPICECapacityConfigurationOutput) SetRequestId(v string) *UpdateSPICECapacityConfigurationOutput {
+	s.RequestId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *UpdateSPICECapacityConfigurationOutput) SetStatus(v int64) *UpdateSPICECapacityConfigurationOutput {
 	s.Status = &v
 	return s
 }
@@ -102808,6 +107895,18 @@ type UpdateUserInput struct {
 	//    * ADMIN: A user who is an author, who can also manage Amazon QuickSight
 	//    settings.
 	//
+	//    * READER_PRO: Reader Pro adds Generative BI capabilities to the Reader
+	//    role. Reader Pros have access to Amazon Q in Amazon QuickSight, can build
+	//    stories with Amazon Q, and can generate executive summaries from dashboards.
+	//
+	//    * AUTHOR_PRO: Author Pro adds Generative BI capabilities to the Author
+	//    role. Author Pros can author dashboards with natural language with Amazon
+	//    Q, build stories with Amazon Q, create Topics for Q&A, and generate executive
+	//    summaries from dashboards.
+	//
+	//    * ADMIN_PRO: Admin Pros are Author Pros who can also manage Amazon QuickSight
+	//    administrative settings. Admin Pro users are billed at Author Pro pricing.
+	//
 	// The name of the Amazon QuickSight role is invisible to the user except for
 	// the console screens dealing with permissions.
 	//
@@ -103345,6 +108444,18 @@ type User struct {
 	//
 	//    * ADMIN: A user who is an author, who can also manage Amazon Amazon QuickSight
 	//    settings.
+	//
+	//    * READER_PRO: Reader Pro adds Generative BI capabilities to the Reader
+	//    role. Reader Pros have access to Amazon Q in Amazon QuickSight, can build
+	//    stories with Amazon Q, and can generate executive summaries from dashboards.
+	//
+	//    * AUTHOR_PRO: Author Pro adds Generative BI capabilities to the Author
+	//    role. Author Pros can author dashboards with natural language with Amazon
+	//    Q, build stories with Amazon Q, create Topics for Q&A, and generate executive
+	//    summaries from dashboards.
+	//
+	//    * ADMIN_PRO: Admin Pros are Author Pros who can also manage Amazon QuickSight
+	//    administrative settings. Admin Pro users are billed at Author Pro pricing.
 	//
 	//    * RESTRICTED_READER: This role isn't currently available for use.
 	//
@@ -104606,6 +109717,38 @@ func (s VisualMenuOption) GoString() string {
 // SetAvailabilityStatus sets the AvailabilityStatus field's value.
 func (s *VisualMenuOption) SetAvailabilityStatus(v string) *VisualMenuOption {
 	s.AvailabilityStatus = &v
+	return s
+}
+
+// The definition for a VisualOptions.
+type VisualOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The type for a VisualOptions.
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s VisualOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s VisualOptions) GoString() string {
+	return s.String()
+}
+
+// SetType sets the Type field's value.
+func (s *VisualOptions) SetType(v string) *VisualOptions {
+	s.Type = &v
 	return s
 }
 
@@ -106144,6 +111287,94 @@ func (s *YAxisOptions) SetYAxis(v string) *YAxisOptions {
 }
 
 const (
+	// AggTypeSum is a AggType enum value
+	AggTypeSum = "SUM"
+
+	// AggTypeMin is a AggType enum value
+	AggTypeMin = "MIN"
+
+	// AggTypeMax is a AggType enum value
+	AggTypeMax = "MAX"
+
+	// AggTypeCount is a AggType enum value
+	AggTypeCount = "COUNT"
+
+	// AggTypeAverage is a AggType enum value
+	AggTypeAverage = "AVERAGE"
+
+	// AggTypeDistinctCount is a AggType enum value
+	AggTypeDistinctCount = "DISTINCT_COUNT"
+
+	// AggTypeStdev is a AggType enum value
+	AggTypeStdev = "STDEV"
+
+	// AggTypeStdevp is a AggType enum value
+	AggTypeStdevp = "STDEVP"
+
+	// AggTypeVar is a AggType enum value
+	AggTypeVar = "VAR"
+
+	// AggTypeVarp is a AggType enum value
+	AggTypeVarp = "VARP"
+
+	// AggTypePercentile is a AggType enum value
+	AggTypePercentile = "PERCENTILE"
+
+	// AggTypeMedian is a AggType enum value
+	AggTypeMedian = "MEDIAN"
+
+	// AggTypePtdSum is a AggType enum value
+	AggTypePtdSum = "PTD_SUM"
+
+	// AggTypePtdMin is a AggType enum value
+	AggTypePtdMin = "PTD_MIN"
+
+	// AggTypePtdMax is a AggType enum value
+	AggTypePtdMax = "PTD_MAX"
+
+	// AggTypePtdCount is a AggType enum value
+	AggTypePtdCount = "PTD_COUNT"
+
+	// AggTypePtdDistinctCount is a AggType enum value
+	AggTypePtdDistinctCount = "PTD_DISTINCT_COUNT"
+
+	// AggTypePtdAverage is a AggType enum value
+	AggTypePtdAverage = "PTD_AVERAGE"
+
+	// AggTypeColumn is a AggType enum value
+	AggTypeColumn = "COLUMN"
+
+	// AggTypeCustom is a AggType enum value
+	AggTypeCustom = "CUSTOM"
+)
+
+// AggType_Values returns all elements of the AggType enum
+func AggType_Values() []string {
+	return []string{
+		AggTypeSum,
+		AggTypeMin,
+		AggTypeMax,
+		AggTypeCount,
+		AggTypeAverage,
+		AggTypeDistinctCount,
+		AggTypeStdev,
+		AggTypeStdevp,
+		AggTypeVar,
+		AggTypeVarp,
+		AggTypePercentile,
+		AggTypeMedian,
+		AggTypePtdSum,
+		AggTypePtdMin,
+		AggTypePtdMax,
+		AggTypePtdCount,
+		AggTypePtdDistinctCount,
+		AggTypePtdAverage,
+		AggTypeColumn,
+		AggTypeCustom,
+	}
+}
+
+const (
 	// AnalysisErrorTypeAccessDenied is a AnalysisErrorType enum value
 	AnalysisErrorTypeAccessDenied = "ACCESS_DENIED"
 
@@ -106236,6 +111467,18 @@ const (
 func AnchorOption_Values() []string {
 	return []string{
 		AnchorOptionNow,
+	}
+}
+
+const (
+	// AnchorTypeToday is a AnchorType enum value
+	AnchorTypeToday = "TODAY"
+)
+
+// AnchorType_Values returns all elements of the AnchorType enum
+func AnchorType_Values() []string {
+	return []string{
+		AnchorTypeToday,
 	}
 }
 
@@ -106386,6 +111629,9 @@ const (
 
 	// AssetBundleExportJobDataSourcePropertyToOverrideRoleArn is a AssetBundleExportJobDataSourcePropertyToOverride enum value
 	AssetBundleExportJobDataSourcePropertyToOverrideRoleArn = "RoleArn"
+
+	// AssetBundleExportJobDataSourcePropertyToOverrideProductType is a AssetBundleExportJobDataSourcePropertyToOverride enum value
+	AssetBundleExportJobDataSourcePropertyToOverrideProductType = "ProductType"
 )
 
 // AssetBundleExportJobDataSourcePropertyToOverride_Values returns all elements of the AssetBundleExportJobDataSourcePropertyToOverride enum
@@ -106408,6 +111654,7 @@ func AssetBundleExportJobDataSourcePropertyToOverride_Values() []string {
 		AssetBundleExportJobDataSourcePropertyToOverrideManifestFileLocation,
 		AssetBundleExportJobDataSourcePropertyToOverrideWarehouse,
 		AssetBundleExportJobDataSourcePropertyToOverrideRoleArn,
+		AssetBundleExportJobDataSourcePropertyToOverrideProductType,
 	}
 }
 
@@ -106964,6 +112211,54 @@ func ComparisonMethod_Values() []string {
 }
 
 const (
+	// ComparisonMethodTypeDiff is a ComparisonMethodType enum value
+	ComparisonMethodTypeDiff = "DIFF"
+
+	// ComparisonMethodTypePercDiff is a ComparisonMethodType enum value
+	ComparisonMethodTypePercDiff = "PERC_DIFF"
+
+	// ComparisonMethodTypeDiffAsPerc is a ComparisonMethodType enum value
+	ComparisonMethodTypeDiffAsPerc = "DIFF_AS_PERC"
+
+	// ComparisonMethodTypePopCurrentDiffAsPerc is a ComparisonMethodType enum value
+	ComparisonMethodTypePopCurrentDiffAsPerc = "POP_CURRENT_DIFF_AS_PERC"
+
+	// ComparisonMethodTypePopCurrentDiff is a ComparisonMethodType enum value
+	ComparisonMethodTypePopCurrentDiff = "POP_CURRENT_DIFF"
+
+	// ComparisonMethodTypePopOvertimeDiffAsPerc is a ComparisonMethodType enum value
+	ComparisonMethodTypePopOvertimeDiffAsPerc = "POP_OVERTIME_DIFF_AS_PERC"
+
+	// ComparisonMethodTypePopOvertimeDiff is a ComparisonMethodType enum value
+	ComparisonMethodTypePopOvertimeDiff = "POP_OVERTIME_DIFF"
+
+	// ComparisonMethodTypePercentOfTotal is a ComparisonMethodType enum value
+	ComparisonMethodTypePercentOfTotal = "PERCENT_OF_TOTAL"
+
+	// ComparisonMethodTypeRunningSum is a ComparisonMethodType enum value
+	ComparisonMethodTypeRunningSum = "RUNNING_SUM"
+
+	// ComparisonMethodTypeMovingAverage is a ComparisonMethodType enum value
+	ComparisonMethodTypeMovingAverage = "MOVING_AVERAGE"
+)
+
+// ComparisonMethodType_Values returns all elements of the ComparisonMethodType enum
+func ComparisonMethodType_Values() []string {
+	return []string{
+		ComparisonMethodTypeDiff,
+		ComparisonMethodTypePercDiff,
+		ComparisonMethodTypeDiffAsPerc,
+		ComparisonMethodTypePopCurrentDiffAsPerc,
+		ComparisonMethodTypePopCurrentDiff,
+		ComparisonMethodTypePopOvertimeDiffAsPerc,
+		ComparisonMethodTypePopOvertimeDiff,
+		ComparisonMethodTypePercentOfTotal,
+		ComparisonMethodTypeRunningSum,
+		ComparisonMethodTypeMovingAverage,
+	}
+}
+
+const (
 	// ConditionalFormattingIconDisplayOptionIconOnly is a ConditionalFormattingIconDisplayOption enum value
 	ConditionalFormattingIconDisplayOptionIconOnly = "ICON_ONLY"
 )
@@ -107044,6 +112339,50 @@ func ConstantType_Values() []string {
 		ConstantTypeSingular,
 		ConstantTypeRange,
 		ConstantTypeCollective,
+	}
+}
+
+const (
+	// ContributionAnalysisDirectionIncrease is a ContributionAnalysisDirection enum value
+	ContributionAnalysisDirectionIncrease = "INCREASE"
+
+	// ContributionAnalysisDirectionDecrease is a ContributionAnalysisDirection enum value
+	ContributionAnalysisDirectionDecrease = "DECREASE"
+
+	// ContributionAnalysisDirectionNeutral is a ContributionAnalysisDirection enum value
+	ContributionAnalysisDirectionNeutral = "NEUTRAL"
+)
+
+// ContributionAnalysisDirection_Values returns all elements of the ContributionAnalysisDirection enum
+func ContributionAnalysisDirection_Values() []string {
+	return []string{
+		ContributionAnalysisDirectionIncrease,
+		ContributionAnalysisDirectionDecrease,
+		ContributionAnalysisDirectionNeutral,
+	}
+}
+
+const (
+	// ContributionAnalysisSortTypeAbsoluteDifference is a ContributionAnalysisSortType enum value
+	ContributionAnalysisSortTypeAbsoluteDifference = "ABSOLUTE_DIFFERENCE"
+
+	// ContributionAnalysisSortTypeContributionPercentage is a ContributionAnalysisSortType enum value
+	ContributionAnalysisSortTypeContributionPercentage = "CONTRIBUTION_PERCENTAGE"
+
+	// ContributionAnalysisSortTypeDeviationFromExpected is a ContributionAnalysisSortType enum value
+	ContributionAnalysisSortTypeDeviationFromExpected = "DEVIATION_FROM_EXPECTED"
+
+	// ContributionAnalysisSortTypePercentageDifference is a ContributionAnalysisSortType enum value
+	ContributionAnalysisSortTypePercentageDifference = "PERCENTAGE_DIFFERENCE"
+)
+
+// ContributionAnalysisSortType_Values returns all elements of the ContributionAnalysisSortType enum
+func ContributionAnalysisSortType_Values() []string {
+	return []string{
+		ContributionAnalysisSortTypeAbsoluteDifference,
+		ContributionAnalysisSortTypeContributionPercentage,
+		ContributionAnalysisSortTypeDeviationFromExpected,
+		ContributionAnalysisSortTypePercentageDifference,
 	}
 }
 
@@ -109190,6 +114529,26 @@ func NetworkInterfaceStatus_Values() []string {
 }
 
 const (
+	// NullFilterOptionAllValues is a NullFilterOption enum value
+	NullFilterOptionAllValues = "ALL_VALUES"
+
+	// NullFilterOptionNonNullsOnly is a NullFilterOption enum value
+	NullFilterOptionNonNullsOnly = "NON_NULLS_ONLY"
+
+	// NullFilterOptionNullsOnly is a NullFilterOption enum value
+	NullFilterOptionNullsOnly = "NULLS_ONLY"
+)
+
+// NullFilterOption_Values returns all elements of the NullFilterOption enum
+func NullFilterOption_Values() []string {
+	return []string{
+		NullFilterOptionAllValues,
+		NullFilterOptionNonNullsOnly,
+		NullFilterOptionNullsOnly,
+	}
+}
+
+const (
 	// NumberScaleNone is a NumberScale enum value
 	NumberScaleNone = "NONE"
 
@@ -109558,6 +114917,22 @@ func PropertyUsage_Values() []string {
 }
 
 const (
+	// PurchaseModeManual is a PurchaseMode enum value
+	PurchaseModeManual = "MANUAL"
+
+	// PurchaseModeAutoPurchase is a PurchaseMode enum value
+	PurchaseModeAutoPurchase = "AUTO_PURCHASE"
+)
+
+// PurchaseMode_Values returns all elements of the PurchaseMode enum
+func PurchaseMode_Values() []string {
+	return []string{
+		PurchaseModeManual,
+		PurchaseModeAutoPurchase,
+	}
+}
+
+const (
 	// RadarChartAxesRangeScaleAuto is a RadarChartAxesRangeScale enum value
 	RadarChartAxesRangeScaleAuto = "AUTO"
 
@@ -109822,6 +115197,42 @@ func ResourceStatus_Values() []string {
 }
 
 const (
+	// ReviewedAnswerErrorCodeInternalError is a ReviewedAnswerErrorCode enum value
+	ReviewedAnswerErrorCodeInternalError = "INTERNAL_ERROR"
+
+	// ReviewedAnswerErrorCodeMissingAnswer is a ReviewedAnswerErrorCode enum value
+	ReviewedAnswerErrorCodeMissingAnswer = "MISSING_ANSWER"
+
+	// ReviewedAnswerErrorCodeDatasetDoesNotExist is a ReviewedAnswerErrorCode enum value
+	ReviewedAnswerErrorCodeDatasetDoesNotExist = "DATASET_DOES_NOT_EXIST"
+
+	// ReviewedAnswerErrorCodeInvalidDatasetArn is a ReviewedAnswerErrorCode enum value
+	ReviewedAnswerErrorCodeInvalidDatasetArn = "INVALID_DATASET_ARN"
+
+	// ReviewedAnswerErrorCodeDuplicatedAnswer is a ReviewedAnswerErrorCode enum value
+	ReviewedAnswerErrorCodeDuplicatedAnswer = "DUPLICATED_ANSWER"
+
+	// ReviewedAnswerErrorCodeInvalidData is a ReviewedAnswerErrorCode enum value
+	ReviewedAnswerErrorCodeInvalidData = "INVALID_DATA"
+
+	// ReviewedAnswerErrorCodeMissingRequiredFields is a ReviewedAnswerErrorCode enum value
+	ReviewedAnswerErrorCodeMissingRequiredFields = "MISSING_REQUIRED_FIELDS"
+)
+
+// ReviewedAnswerErrorCode_Values returns all elements of the ReviewedAnswerErrorCode enum
+func ReviewedAnswerErrorCode_Values() []string {
+	return []string{
+		ReviewedAnswerErrorCodeInternalError,
+		ReviewedAnswerErrorCodeMissingAnswer,
+		ReviewedAnswerErrorCodeDatasetDoesNotExist,
+		ReviewedAnswerErrorCodeInvalidDatasetArn,
+		ReviewedAnswerErrorCodeDuplicatedAnswer,
+		ReviewedAnswerErrorCodeInvalidData,
+		ReviewedAnswerErrorCodeMissingRequiredFields,
+	}
+}
+
+const (
 	// RoleAdmin is a Role enum value
 	RoleAdmin = "ADMIN"
 
@@ -109830,6 +115241,15 @@ const (
 
 	// RoleReader is a Role enum value
 	RoleReader = "READER"
+
+	// RoleAdminPro is a Role enum value
+	RoleAdminPro = "ADMIN_PRO"
+
+	// RoleAuthorPro is a Role enum value
+	RoleAuthorPro = "AUTHOR_PRO"
+
+	// RoleReaderPro is a Role enum value
+	RoleReaderPro = "READER_PRO"
 )
 
 // Role_Values returns all elements of the Role enum
@@ -109838,6 +115258,9 @@ func Role_Values() []string {
 		RoleAdmin,
 		RoleAuthor,
 		RoleReader,
+		RoleAdminPro,
+		RoleAuthorPro,
+		RoleReaderPro,
 	}
 }
 
@@ -110622,6 +116045,98 @@ func TopBottomSortOrder_Values() []string {
 }
 
 const (
+	// TopicIRFilterFunctionContains is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionContains = "CONTAINS"
+
+	// TopicIRFilterFunctionExact is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionExact = "EXACT"
+
+	// TopicIRFilterFunctionStartsWith is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionStartsWith = "STARTS_WITH"
+
+	// TopicIRFilterFunctionEndsWith is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionEndsWith = "ENDS_WITH"
+
+	// TopicIRFilterFunctionContainsString is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionContainsString = "CONTAINS_STRING"
+
+	// TopicIRFilterFunctionPrevious is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionPrevious = "PREVIOUS"
+
+	// TopicIRFilterFunctionThis is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionThis = "THIS"
+
+	// TopicIRFilterFunctionLast is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionLast = "LAST"
+
+	// TopicIRFilterFunctionNext is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionNext = "NEXT"
+
+	// TopicIRFilterFunctionNow is a TopicIRFilterFunction enum value
+	TopicIRFilterFunctionNow = "NOW"
+)
+
+// TopicIRFilterFunction_Values returns all elements of the TopicIRFilterFunction enum
+func TopicIRFilterFunction_Values() []string {
+	return []string{
+		TopicIRFilterFunctionContains,
+		TopicIRFilterFunctionExact,
+		TopicIRFilterFunctionStartsWith,
+		TopicIRFilterFunctionEndsWith,
+		TopicIRFilterFunctionContainsString,
+		TopicIRFilterFunctionPrevious,
+		TopicIRFilterFunctionThis,
+		TopicIRFilterFunctionLast,
+		TopicIRFilterFunctionNext,
+		TopicIRFilterFunctionNow,
+	}
+}
+
+const (
+	// TopicIRFilterTypeCategoryFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeCategoryFilter = "CATEGORY_FILTER"
+
+	// TopicIRFilterTypeNumericEqualityFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeNumericEqualityFilter = "NUMERIC_EQUALITY_FILTER"
+
+	// TopicIRFilterTypeNumericRangeFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeNumericRangeFilter = "NUMERIC_RANGE_FILTER"
+
+	// TopicIRFilterTypeDateRangeFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeDateRangeFilter = "DATE_RANGE_FILTER"
+
+	// TopicIRFilterTypeRelativeDateFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeRelativeDateFilter = "RELATIVE_DATE_FILTER"
+
+	// TopicIRFilterTypeTopBottomFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeTopBottomFilter = "TOP_BOTTOM_FILTER"
+
+	// TopicIRFilterTypeEquals is a TopicIRFilterType enum value
+	TopicIRFilterTypeEquals = "EQUALS"
+
+	// TopicIRFilterTypeRankLimitFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeRankLimitFilter = "RANK_LIMIT_FILTER"
+
+	// TopicIRFilterTypeAcceptAllFilter is a TopicIRFilterType enum value
+	TopicIRFilterTypeAcceptAllFilter = "ACCEPT_ALL_FILTER"
+)
+
+// TopicIRFilterType_Values returns all elements of the TopicIRFilterType enum
+func TopicIRFilterType_Values() []string {
+	return []string{
+		TopicIRFilterTypeCategoryFilter,
+		TopicIRFilterTypeNumericEqualityFilter,
+		TopicIRFilterTypeNumericRangeFilter,
+		TopicIRFilterTypeDateRangeFilter,
+		TopicIRFilterTypeRelativeDateFilter,
+		TopicIRFilterTypeTopBottomFilter,
+		TopicIRFilterTypeEquals,
+		TopicIRFilterTypeRankLimitFilter,
+		TopicIRFilterTypeAcceptAllFilter,
+	}
+}
+
+const (
 	// TopicNumericSeparatorSymbolComma is a TopicNumericSeparatorSymbol enum value
 	TopicNumericSeparatorSymbolComma = "COMMA"
 
@@ -110714,6 +116229,22 @@ func TopicScheduleType_Values() []string {
 		TopicScheduleTypeDaily,
 		TopicScheduleTypeWeekly,
 		TopicScheduleTypeMonthly,
+	}
+}
+
+const (
+	// TopicSortDirectionAscending is a TopicSortDirection enum value
+	TopicSortDirectionAscending = "ASCENDING"
+
+	// TopicSortDirectionDescending is a TopicSortDirection enum value
+	TopicSortDirectionDescending = "DESCENDING"
+)
+
+// TopicSortDirection_Values returns all elements of the TopicSortDirection enum
+func TopicSortDirection_Values() []string {
+	return []string{
+		TopicSortDirectionAscending,
+		TopicSortDirectionDescending,
 	}
 }
 
@@ -110824,6 +116355,15 @@ const (
 
 	// UserRoleRestrictedReader is a UserRole enum value
 	UserRoleRestrictedReader = "RESTRICTED_READER"
+
+	// UserRoleAdminPro is a UserRole enum value
+	UserRoleAdminPro = "ADMIN_PRO"
+
+	// UserRoleAuthorPro is a UserRole enum value
+	UserRoleAuthorPro = "AUTHOR_PRO"
+
+	// UserRoleReaderPro is a UserRole enum value
+	UserRoleReaderPro = "READER_PRO"
 )
 
 // UserRole_Values returns all elements of the UserRole enum
@@ -110834,6 +116374,9 @@ func UserRole_Values() []string {
 		UserRoleReader,
 		UserRoleRestrictedAuthor,
 		UserRoleRestrictedReader,
+		UserRoleAdminPro,
+		UserRoleAuthorPro,
+		UserRoleReaderPro,
 	}
 }
 
@@ -110986,6 +116529,34 @@ func VisualCustomActionTrigger_Values() []string {
 	return []string{
 		VisualCustomActionTriggerDataPointClick,
 		VisualCustomActionTriggerDataPointMenu,
+	}
+}
+
+const (
+	// VisualRolePrimary is a VisualRole enum value
+	VisualRolePrimary = "PRIMARY"
+
+	// VisualRoleComplimentary is a VisualRole enum value
+	VisualRoleComplimentary = "COMPLIMENTARY"
+
+	// VisualRoleMultiIntent is a VisualRole enum value
+	VisualRoleMultiIntent = "MULTI_INTENT"
+
+	// VisualRoleFallback is a VisualRole enum value
+	VisualRoleFallback = "FALLBACK"
+
+	// VisualRoleFragment is a VisualRole enum value
+	VisualRoleFragment = "FRAGMENT"
+)
+
+// VisualRole_Values returns all elements of the VisualRole enum
+func VisualRole_Values() []string {
+	return []string{
+		VisualRolePrimary,
+		VisualRoleComplimentary,
+		VisualRoleMultiIntent,
+		VisualRoleFallback,
+		VisualRoleFragment,
 	}
 }
 

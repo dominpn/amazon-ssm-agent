@@ -128,6 +128,10 @@ type ConnectAPI interface {
 	BatchDisassociateAnalyticsDataSetWithContext(aws.Context, *connect.BatchDisassociateAnalyticsDataSetInput, ...request.Option) (*connect.BatchDisassociateAnalyticsDataSetOutput, error)
 	BatchDisassociateAnalyticsDataSetRequest(*connect.BatchDisassociateAnalyticsDataSetInput) (*request.Request, *connect.BatchDisassociateAnalyticsDataSetOutput)
 
+	BatchGetAttachedFileMetadata(*connect.BatchGetAttachedFileMetadataInput) (*connect.BatchGetAttachedFileMetadataOutput, error)
+	BatchGetAttachedFileMetadataWithContext(aws.Context, *connect.BatchGetAttachedFileMetadataInput, ...request.Option) (*connect.BatchGetAttachedFileMetadataOutput, error)
+	BatchGetAttachedFileMetadataRequest(*connect.BatchGetAttachedFileMetadataInput) (*request.Request, *connect.BatchGetAttachedFileMetadataOutput)
+
 	BatchGetFlowAssociation(*connect.BatchGetFlowAssociationInput) (*connect.BatchGetFlowAssociationOutput, error)
 	BatchGetFlowAssociationWithContext(aws.Context, *connect.BatchGetFlowAssociationInput, ...request.Option) (*connect.BatchGetFlowAssociationOutput, error)
 	BatchGetFlowAssociationRequest(*connect.BatchGetFlowAssociationInput) (*request.Request, *connect.BatchGetFlowAssociationOutput)
@@ -139,6 +143,10 @@ type ConnectAPI interface {
 	ClaimPhoneNumber(*connect.ClaimPhoneNumberInput) (*connect.ClaimPhoneNumberOutput, error)
 	ClaimPhoneNumberWithContext(aws.Context, *connect.ClaimPhoneNumberInput, ...request.Option) (*connect.ClaimPhoneNumberOutput, error)
 	ClaimPhoneNumberRequest(*connect.ClaimPhoneNumberInput) (*request.Request, *connect.ClaimPhoneNumberOutput)
+
+	CompleteAttachedFileUpload(*connect.CompleteAttachedFileUploadInput) (*connect.CompleteAttachedFileUploadOutput, error)
+	CompleteAttachedFileUploadWithContext(aws.Context, *connect.CompleteAttachedFileUploadInput, ...request.Option) (*connect.CompleteAttachedFileUploadOutput, error)
+	CompleteAttachedFileUploadRequest(*connect.CompleteAttachedFileUploadInput) (*request.Request, *connect.CompleteAttachedFileUploadOutput)
 
 	CreateAgentStatus(*connect.CreateAgentStatusInput) (*connect.CreateAgentStatusOutput, error)
 	CreateAgentStatusWithContext(aws.Context, *connect.CreateAgentStatusInput, ...request.Option) (*connect.CreateAgentStatusOutput, error)
@@ -240,6 +248,10 @@ type ConnectAPI interface {
 	DeactivateEvaluationFormWithContext(aws.Context, *connect.DeactivateEvaluationFormInput, ...request.Option) (*connect.DeactivateEvaluationFormOutput, error)
 	DeactivateEvaluationFormRequest(*connect.DeactivateEvaluationFormInput) (*request.Request, *connect.DeactivateEvaluationFormOutput)
 
+	DeleteAttachedFile(*connect.DeleteAttachedFileInput) (*connect.DeleteAttachedFileOutput, error)
+	DeleteAttachedFileWithContext(aws.Context, *connect.DeleteAttachedFileInput, ...request.Option) (*connect.DeleteAttachedFileOutput, error)
+	DeleteAttachedFileRequest(*connect.DeleteAttachedFileInput) (*request.Request, *connect.DeleteAttachedFileOutput)
+
 	DeleteContactEvaluation(*connect.DeleteContactEvaluationInput) (*connect.DeleteContactEvaluationOutput, error)
 	DeleteContactEvaluationWithContext(aws.Context, *connect.DeleteContactEvaluationInput, ...request.Option) (*connect.DeleteContactEvaluationOutput, error)
 	DeleteContactEvaluationRequest(*connect.DeleteContactEvaluationInput) (*request.Request, *connect.DeleteContactEvaluationOutput)
@@ -331,6 +343,10 @@ type ConnectAPI interface {
 	DescribeAgentStatus(*connect.DescribeAgentStatusInput) (*connect.DescribeAgentStatusOutput, error)
 	DescribeAgentStatusWithContext(aws.Context, *connect.DescribeAgentStatusInput, ...request.Option) (*connect.DescribeAgentStatusOutput, error)
 	DescribeAgentStatusRequest(*connect.DescribeAgentStatusInput) (*request.Request, *connect.DescribeAgentStatusOutput)
+
+	DescribeAuthenticationProfile(*connect.DescribeAuthenticationProfileInput) (*connect.DescribeAuthenticationProfileOutput, error)
+	DescribeAuthenticationProfileWithContext(aws.Context, *connect.DescribeAuthenticationProfileInput, ...request.Option) (*connect.DescribeAuthenticationProfileOutput, error)
+	DescribeAuthenticationProfileRequest(*connect.DescribeAuthenticationProfileInput) (*request.Request, *connect.DescribeAuthenticationProfileOutput)
 
 	DescribeContact(*connect.DescribeContactInput) (*connect.DescribeContactOutput, error)
 	DescribeContactWithContext(aws.Context, *connect.DescribeContactInput, ...request.Option) (*connect.DescribeContactOutput, error)
@@ -480,6 +496,10 @@ type ConnectAPI interface {
 	DismissUserContactWithContext(aws.Context, *connect.DismissUserContactInput, ...request.Option) (*connect.DismissUserContactOutput, error)
 	DismissUserContactRequest(*connect.DismissUserContactInput) (*request.Request, *connect.DismissUserContactOutput)
 
+	GetAttachedFile(*connect.GetAttachedFileInput) (*connect.GetAttachedFileOutput, error)
+	GetAttachedFileWithContext(aws.Context, *connect.GetAttachedFileInput, ...request.Option) (*connect.GetAttachedFileOutput, error)
+	GetAttachedFileRequest(*connect.GetAttachedFileInput) (*request.Request, *connect.GetAttachedFileOutput)
+
 	GetContactAttributes(*connect.GetContactAttributesInput) (*connect.GetContactAttributesOutput, error)
 	GetContactAttributesWithContext(aws.Context, *connect.GetContactAttributesInput, ...request.Option) (*connect.GetContactAttributesOutput, error)
 	GetContactAttributesRequest(*connect.GetContactAttributesInput) (*request.Request, *connect.GetContactAttributesOutput)
@@ -553,6 +573,13 @@ type ConnectAPI interface {
 
 	ListApprovedOriginsPages(*connect.ListApprovedOriginsInput, func(*connect.ListApprovedOriginsOutput, bool) bool) error
 	ListApprovedOriginsPagesWithContext(aws.Context, *connect.ListApprovedOriginsInput, func(*connect.ListApprovedOriginsOutput, bool) bool, ...request.Option) error
+
+	ListAuthenticationProfiles(*connect.ListAuthenticationProfilesInput) (*connect.ListAuthenticationProfilesOutput, error)
+	ListAuthenticationProfilesWithContext(aws.Context, *connect.ListAuthenticationProfilesInput, ...request.Option) (*connect.ListAuthenticationProfilesOutput, error)
+	ListAuthenticationProfilesRequest(*connect.ListAuthenticationProfilesInput) (*request.Request, *connect.ListAuthenticationProfilesOutput)
+
+	ListAuthenticationProfilesPages(*connect.ListAuthenticationProfilesInput, func(*connect.ListAuthenticationProfilesOutput, bool) bool) error
+	ListAuthenticationProfilesPagesWithContext(aws.Context, *connect.ListAuthenticationProfilesInput, func(*connect.ListAuthenticationProfilesOutput, bool) bool, ...request.Option) error
 
 	ListBots(*connect.ListBotsInput) (*connect.ListBotsOutput, error)
 	ListBotsWithContext(aws.Context, *connect.ListBotsInput, ...request.Option) (*connect.ListBotsOutput, error)
@@ -866,12 +893,33 @@ type ConnectAPI interface {
 	ResumeContactRecordingWithContext(aws.Context, *connect.ResumeContactRecordingInput, ...request.Option) (*connect.ResumeContactRecordingOutput, error)
 	ResumeContactRecordingRequest(*connect.ResumeContactRecordingInput) (*request.Request, *connect.ResumeContactRecordingOutput)
 
+	SearchAgentStatuses(*connect.SearchAgentStatusesInput) (*connect.SearchAgentStatusesOutput, error)
+	SearchAgentStatusesWithContext(aws.Context, *connect.SearchAgentStatusesInput, ...request.Option) (*connect.SearchAgentStatusesOutput, error)
+	SearchAgentStatusesRequest(*connect.SearchAgentStatusesInput) (*request.Request, *connect.SearchAgentStatusesOutput)
+
+	SearchAgentStatusesPages(*connect.SearchAgentStatusesInput, func(*connect.SearchAgentStatusesOutput, bool) bool) error
+	SearchAgentStatusesPagesWithContext(aws.Context, *connect.SearchAgentStatusesInput, func(*connect.SearchAgentStatusesOutput, bool) bool, ...request.Option) error
+
 	SearchAvailablePhoneNumbers(*connect.SearchAvailablePhoneNumbersInput) (*connect.SearchAvailablePhoneNumbersOutput, error)
 	SearchAvailablePhoneNumbersWithContext(aws.Context, *connect.SearchAvailablePhoneNumbersInput, ...request.Option) (*connect.SearchAvailablePhoneNumbersOutput, error)
 	SearchAvailablePhoneNumbersRequest(*connect.SearchAvailablePhoneNumbersInput) (*request.Request, *connect.SearchAvailablePhoneNumbersOutput)
 
 	SearchAvailablePhoneNumbersPages(*connect.SearchAvailablePhoneNumbersInput, func(*connect.SearchAvailablePhoneNumbersOutput, bool) bool) error
 	SearchAvailablePhoneNumbersPagesWithContext(aws.Context, *connect.SearchAvailablePhoneNumbersInput, func(*connect.SearchAvailablePhoneNumbersOutput, bool) bool, ...request.Option) error
+
+	SearchContactFlowModules(*connect.SearchContactFlowModulesInput) (*connect.SearchContactFlowModulesOutput, error)
+	SearchContactFlowModulesWithContext(aws.Context, *connect.SearchContactFlowModulesInput, ...request.Option) (*connect.SearchContactFlowModulesOutput, error)
+	SearchContactFlowModulesRequest(*connect.SearchContactFlowModulesInput) (*request.Request, *connect.SearchContactFlowModulesOutput)
+
+	SearchContactFlowModulesPages(*connect.SearchContactFlowModulesInput, func(*connect.SearchContactFlowModulesOutput, bool) bool) error
+	SearchContactFlowModulesPagesWithContext(aws.Context, *connect.SearchContactFlowModulesInput, func(*connect.SearchContactFlowModulesOutput, bool) bool, ...request.Option) error
+
+	SearchContactFlows(*connect.SearchContactFlowsInput) (*connect.SearchContactFlowsOutput, error)
+	SearchContactFlowsWithContext(aws.Context, *connect.SearchContactFlowsInput, ...request.Option) (*connect.SearchContactFlowsOutput, error)
+	SearchContactFlowsRequest(*connect.SearchContactFlowsInput) (*request.Request, *connect.SearchContactFlowsOutput)
+
+	SearchContactFlowsPages(*connect.SearchContactFlowsInput, func(*connect.SearchContactFlowsOutput, bool) bool) error
+	SearchContactFlowsPagesWithContext(aws.Context, *connect.SearchContactFlowsInput, func(*connect.SearchContactFlowsOutput, bool) bool, ...request.Option) error
 
 	SearchContacts(*connect.SearchContactsInput) (*connect.SearchContactsOutput, error)
 	SearchContactsWithContext(aws.Context, *connect.SearchContactsInput, ...request.Option) (*connect.SearchContactsOutput, error)
@@ -936,6 +984,13 @@ type ConnectAPI interface {
 	SearchSecurityProfilesPages(*connect.SearchSecurityProfilesInput, func(*connect.SearchSecurityProfilesOutput, bool) bool) error
 	SearchSecurityProfilesPagesWithContext(aws.Context, *connect.SearchSecurityProfilesInput, func(*connect.SearchSecurityProfilesOutput, bool) bool, ...request.Option) error
 
+	SearchUserHierarchyGroups(*connect.SearchUserHierarchyGroupsInput) (*connect.SearchUserHierarchyGroupsOutput, error)
+	SearchUserHierarchyGroupsWithContext(aws.Context, *connect.SearchUserHierarchyGroupsInput, ...request.Option) (*connect.SearchUserHierarchyGroupsOutput, error)
+	SearchUserHierarchyGroupsRequest(*connect.SearchUserHierarchyGroupsInput) (*request.Request, *connect.SearchUserHierarchyGroupsOutput)
+
+	SearchUserHierarchyGroupsPages(*connect.SearchUserHierarchyGroupsInput, func(*connect.SearchUserHierarchyGroupsOutput, bool) bool) error
+	SearchUserHierarchyGroupsPagesWithContext(aws.Context, *connect.SearchUserHierarchyGroupsInput, func(*connect.SearchUserHierarchyGroupsOutput, bool) bool, ...request.Option) error
+
 	SearchUsers(*connect.SearchUsersInput) (*connect.SearchUsersOutput, error)
 	SearchUsersWithContext(aws.Context, *connect.SearchUsersInput, ...request.Option) (*connect.SearchUsersOutput, error)
 	SearchUsersRequest(*connect.SearchUsersInput) (*request.Request, *connect.SearchUsersOutput)
@@ -953,6 +1008,10 @@ type ConnectAPI interface {
 	SendChatIntegrationEvent(*connect.SendChatIntegrationEventInput) (*connect.SendChatIntegrationEventOutput, error)
 	SendChatIntegrationEventWithContext(aws.Context, *connect.SendChatIntegrationEventInput, ...request.Option) (*connect.SendChatIntegrationEventOutput, error)
 	SendChatIntegrationEventRequest(*connect.SendChatIntegrationEventInput) (*request.Request, *connect.SendChatIntegrationEventOutput)
+
+	StartAttachedFileUpload(*connect.StartAttachedFileUploadInput) (*connect.StartAttachedFileUploadOutput, error)
+	StartAttachedFileUploadWithContext(aws.Context, *connect.StartAttachedFileUploadInput, ...request.Option) (*connect.StartAttachedFileUploadOutput, error)
+	StartAttachedFileUploadRequest(*connect.StartAttachedFileUploadInput) (*request.Request, *connect.StartAttachedFileUploadOutput)
 
 	StartChatContact(*connect.StartChatContactInput) (*connect.StartChatContactOutput, error)
 	StartChatContactWithContext(aws.Context, *connect.StartChatContactInput, ...request.Option) (*connect.StartChatContactOutput, error)
@@ -1025,6 +1084,10 @@ type ConnectAPI interface {
 	UpdateAgentStatus(*connect.UpdateAgentStatusInput) (*connect.UpdateAgentStatusOutput, error)
 	UpdateAgentStatusWithContext(aws.Context, *connect.UpdateAgentStatusInput, ...request.Option) (*connect.UpdateAgentStatusOutput, error)
 	UpdateAgentStatusRequest(*connect.UpdateAgentStatusInput) (*request.Request, *connect.UpdateAgentStatusOutput)
+
+	UpdateAuthenticationProfile(*connect.UpdateAuthenticationProfileInput) (*connect.UpdateAuthenticationProfileOutput, error)
+	UpdateAuthenticationProfileWithContext(aws.Context, *connect.UpdateAuthenticationProfileInput, ...request.Option) (*connect.UpdateAuthenticationProfileOutput, error)
+	UpdateAuthenticationProfileRequest(*connect.UpdateAuthenticationProfileInput) (*request.Request, *connect.UpdateAuthenticationProfileOutput)
 
 	UpdateContact(*connect.UpdateContactInput) (*connect.UpdateContactOutput, error)
 	UpdateContactWithContext(aws.Context, *connect.UpdateContactInput, ...request.Option) (*connect.UpdateContactOutput, error)

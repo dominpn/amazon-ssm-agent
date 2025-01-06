@@ -26,7 +26,7 @@ import (
 //	// myFunc uses an SDK service client to make a request to
 //	// Amazon Bedrock Runtime.
 //	func myFunc(svc bedrockruntimeiface.BedrockRuntimeAPI) bool {
-//	    // Make svc.InvokeModel request
+//	    // Make svc.ApplyGuardrail request
 //	}
 //
 //	func main() {
@@ -42,7 +42,7 @@ import (
 //	type mockBedrockRuntimeClient struct {
 //	    bedrockruntimeiface.BedrockRuntimeAPI
 //	}
-//	func (m *mockBedrockRuntimeClient) InvokeModel(input *bedrockruntime.InvokeModelInput) (*bedrockruntime.InvokeModelOutput, error) {
+//	func (m *mockBedrockRuntimeClient) ApplyGuardrail(input *bedrockruntime.ApplyGuardrailInput) (*bedrockruntime.ApplyGuardrailOutput, error) {
 //	    // mock response/functionality
 //	}
 //
@@ -60,6 +60,18 @@ import (
 // and waiters. Its suggested to use the pattern above for testing, or using
 // tooling to generate mocks to satisfy the interfaces.
 type BedrockRuntimeAPI interface {
+	ApplyGuardrail(*bedrockruntime.ApplyGuardrailInput) (*bedrockruntime.ApplyGuardrailOutput, error)
+	ApplyGuardrailWithContext(aws.Context, *bedrockruntime.ApplyGuardrailInput, ...request.Option) (*bedrockruntime.ApplyGuardrailOutput, error)
+	ApplyGuardrailRequest(*bedrockruntime.ApplyGuardrailInput) (*request.Request, *bedrockruntime.ApplyGuardrailOutput)
+
+	Converse(*bedrockruntime.ConverseInput) (*bedrockruntime.ConverseOutput, error)
+	ConverseWithContext(aws.Context, *bedrockruntime.ConverseInput, ...request.Option) (*bedrockruntime.ConverseOutput, error)
+	ConverseRequest(*bedrockruntime.ConverseInput) (*request.Request, *bedrockruntime.ConverseOutput)
+
+	ConverseStream(*bedrockruntime.ConverseStreamInput) (*bedrockruntime.ConverseStreamOutput, error)
+	ConverseStreamWithContext(aws.Context, *bedrockruntime.ConverseStreamInput, ...request.Option) (*bedrockruntime.ConverseStreamOutput, error)
+	ConverseStreamRequest(*bedrockruntime.ConverseStreamInput) (*request.Request, *bedrockruntime.ConverseStreamOutput)
+
 	InvokeModel(*bedrockruntime.InvokeModelInput) (*bedrockruntime.InvokeModelOutput, error)
 	InvokeModelWithContext(aws.Context, *bedrockruntime.InvokeModelInput, ...request.Option) (*bedrockruntime.InvokeModelOutput, error)
 	InvokeModelRequest(*bedrockruntime.InvokeModelInput) (*request.Request, *bedrockruntime.InvokeModelOutput)

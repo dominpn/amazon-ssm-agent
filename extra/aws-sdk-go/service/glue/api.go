@@ -2189,7 +2189,6 @@ func (c *Glue) CreateConnectionRequest(input *CreateConnectionInput) (req *reque
 
 	output = &CreateConnectionOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3911,6 +3910,100 @@ func (c *Glue) CreateTrigger(input *CreateTriggerInput) (*CreateTriggerOutput, e
 // for more information on using Contexts.
 func (c *Glue) CreateTriggerWithContext(ctx aws.Context, input *CreateTriggerInput, opts ...request.Option) (*CreateTriggerOutput, error) {
 	req, out := c.CreateTriggerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateUsageProfile = "CreateUsageProfile"
+
+// CreateUsageProfileRequest generates a "aws/request.Request" representing the
+// client's request for the CreateUsageProfile operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateUsageProfile for more information on using the CreateUsageProfile
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the CreateUsageProfileRequest method.
+//	req, resp := client.CreateUsageProfileRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/CreateUsageProfile
+func (c *Glue) CreateUsageProfileRequest(input *CreateUsageProfileInput) (req *request.Request, output *CreateUsageProfileOutput) {
+	op := &request.Operation{
+		Name:       opCreateUsageProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateUsageProfileInput{}
+	}
+
+	output = &CreateUsageProfileOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateUsageProfile API operation for AWS Glue.
+//
+// Creates an Glue usage profile.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation CreateUsageProfile for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InvalidInputException
+//     The input provided was not valid.
+//
+//   - InternalServiceException
+//     An internal service error occurred.
+//
+//   - AlreadyExistsException
+//     A resource to be created or added already exists.
+//
+//   - OperationTimeoutException
+//     The operation timed out.
+//
+//   - ResourceNumberLimitExceededException
+//     A resource numerical limit was exceeded.
+//
+//   - OperationNotSupportedException
+//     The operation is not available in the region.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/CreateUsageProfile
+func (c *Glue) CreateUsageProfile(input *CreateUsageProfileInput) (*CreateUsageProfileOutput, error) {
+	req, out := c.CreateUsageProfileRequest(input)
+	return out, req.Send()
+}
+
+// CreateUsageProfileWithContext is the same as CreateUsageProfile with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateUsageProfile for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) CreateUsageProfileWithContext(ctx aws.Context, input *CreateUsageProfileInput, opts ...request.Option) (*CreateUsageProfileOutput, error) {
+	req, out := c.CreateUsageProfileRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -6302,6 +6395,95 @@ func (c *Glue) DeleteTrigger(input *DeleteTriggerInput) (*DeleteTriggerOutput, e
 // for more information on using Contexts.
 func (c *Glue) DeleteTriggerWithContext(ctx aws.Context, input *DeleteTriggerInput, opts ...request.Option) (*DeleteTriggerOutput, error) {
 	req, out := c.DeleteTriggerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteUsageProfile = "DeleteUsageProfile"
+
+// DeleteUsageProfileRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteUsageProfile operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteUsageProfile for more information on using the DeleteUsageProfile
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DeleteUsageProfileRequest method.
+//	req, resp := client.DeleteUsageProfileRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/DeleteUsageProfile
+func (c *Glue) DeleteUsageProfileRequest(input *DeleteUsageProfileInput) (req *request.Request, output *DeleteUsageProfileOutput) {
+	op := &request.Operation{
+		Name:       opDeleteUsageProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteUsageProfileInput{}
+	}
+
+	output = &DeleteUsageProfileOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteUsageProfile API operation for AWS Glue.
+//
+// Deletes the Glue specified usage profile.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation DeleteUsageProfile for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InvalidInputException
+//     The input provided was not valid.
+//
+//   - InternalServiceException
+//     An internal service error occurred.
+//
+//   - OperationTimeoutException
+//     The operation timed out.
+//
+//   - OperationNotSupportedException
+//     The operation is not available in the region.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/DeleteUsageProfile
+func (c *Glue) DeleteUsageProfile(input *DeleteUsageProfileInput) (*DeleteUsageProfileOutput, error) {
+	req, out := c.DeleteUsageProfileRequest(input)
+	return out, req.Send()
+}
+
+// DeleteUsageProfileWithContext is the same as DeleteUsageProfile with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteUsageProfile for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) DeleteUsageProfileWithContext(ctx aws.Context, input *DeleteUsageProfileInput, opts ...request.Option) (*DeleteUsageProfileOutput, error) {
+	req, out := c.DeleteUsageProfileRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -9420,7 +9602,8 @@ func (c *Glue) GetJobRunRequest(input *GetJobRunInput) (req *request.Request, ou
 
 // GetJobRun API operation for AWS Glue.
 //
-// Retrieves the metadata for a given job run.
+// Retrieves the metadata for a given job run. Job run history is accessible
+// for 90 days for your workflow and job run.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -13136,7 +13319,8 @@ func (c *Glue) GetUnfilteredTableMetadataRequest(input *GetUnfilteredTableMetada
 
 // GetUnfilteredTableMetadata API operation for AWS Glue.
 //
-// Retrieves table metadata from the Data Catalog that contains unfiltered metadata.
+// Allows a third-party analytical engine to retrieve unfiltered table metadata
+// from the Data Catalog.
 //
 // For IAM authorization, the public IAM action associated with this API is
 // glue:GetTable.
@@ -13191,6 +13375,97 @@ func (c *Glue) GetUnfilteredTableMetadata(input *GetUnfilteredTableMetadataInput
 // for more information on using Contexts.
 func (c *Glue) GetUnfilteredTableMetadataWithContext(ctx aws.Context, input *GetUnfilteredTableMetadataInput, opts ...request.Option) (*GetUnfilteredTableMetadataOutput, error) {
 	req, out := c.GetUnfilteredTableMetadataRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetUsageProfile = "GetUsageProfile"
+
+// GetUsageProfileRequest generates a "aws/request.Request" representing the
+// client's request for the GetUsageProfile operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetUsageProfile for more information on using the GetUsageProfile
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the GetUsageProfileRequest method.
+//	req, resp := client.GetUsageProfileRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetUsageProfile
+func (c *Glue) GetUsageProfileRequest(input *GetUsageProfileInput) (req *request.Request, output *GetUsageProfileOutput) {
+	op := &request.Operation{
+		Name:       opGetUsageProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetUsageProfileInput{}
+	}
+
+	output = &GetUsageProfileOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetUsageProfile API operation for AWS Glue.
+//
+// Retrieves information about the specified Glue usage profile.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation GetUsageProfile for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InvalidInputException
+//     The input provided was not valid.
+//
+//   - InternalServiceException
+//     An internal service error occurred.
+//
+//   - EntityNotFoundException
+//     A specified entity does not exist
+//
+//   - OperationTimeoutException
+//     The operation timed out.
+//
+//   - OperationNotSupportedException
+//     The operation is not available in the region.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetUsageProfile
+func (c *Glue) GetUsageProfile(input *GetUsageProfileInput) (*GetUsageProfileOutput, error) {
+	req, out := c.GetUsageProfileRequest(input)
+	return out, req.Send()
+}
+
+// GetUsageProfileWithContext is the same as GetUsageProfile with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetUsageProfile for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) GetUsageProfileWithContext(ctx aws.Context, input *GetUsageProfileInput, opts ...request.Option) (*GetUsageProfileOutput, error) {
+	req, out := c.GetUsageProfileRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -13566,7 +13841,8 @@ func (c *Glue) GetWorkflowRunRequest(input *GetWorkflowRunInput) (req *request.R
 
 // GetWorkflowRun API operation for AWS Glue.
 //
-// Retrieves the metadata for a given workflow run.
+// Retrieves the metadata for a given workflow run. Job run history is accessible
+// for 90 days for your workflow and job run.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -16577,6 +16853,151 @@ func (c *Glue) ListTriggersPagesWithContext(ctx aws.Context, input *ListTriggers
 
 	for p.Next() {
 		if !fn(p.Page().(*ListTriggersOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListUsageProfiles = "ListUsageProfiles"
+
+// ListUsageProfilesRequest generates a "aws/request.Request" representing the
+// client's request for the ListUsageProfiles operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListUsageProfiles for more information on using the ListUsageProfiles
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the ListUsageProfilesRequest method.
+//	req, resp := client.ListUsageProfilesRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/ListUsageProfiles
+func (c *Glue) ListUsageProfilesRequest(input *ListUsageProfilesInput) (req *request.Request, output *ListUsageProfilesOutput) {
+	op := &request.Operation{
+		Name:       opListUsageProfiles,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListUsageProfilesInput{}
+	}
+
+	output = &ListUsageProfilesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListUsageProfiles API operation for AWS Glue.
+//
+// List all the Glue usage profiles.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation ListUsageProfiles for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServiceException
+//     An internal service error occurred.
+//
+//   - OperationTimeoutException
+//     The operation timed out.
+//
+//   - InvalidInputException
+//     The input provided was not valid.
+//
+//   - OperationNotSupportedException
+//     The operation is not available in the region.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/ListUsageProfiles
+func (c *Glue) ListUsageProfiles(input *ListUsageProfilesInput) (*ListUsageProfilesOutput, error) {
+	req, out := c.ListUsageProfilesRequest(input)
+	return out, req.Send()
+}
+
+// ListUsageProfilesWithContext is the same as ListUsageProfiles with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListUsageProfiles for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) ListUsageProfilesWithContext(ctx aws.Context, input *ListUsageProfilesInput, opts ...request.Option) (*ListUsageProfilesOutput, error) {
+	req, out := c.ListUsageProfilesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListUsageProfilesPages iterates over the pages of a ListUsageProfiles operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListUsageProfiles method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//	// Example iterating over at most 3 pages of a ListUsageProfiles operation.
+//	pageNum := 0
+//	err := client.ListUsageProfilesPages(params,
+//	    func(page *glue.ListUsageProfilesOutput, lastPage bool) bool {
+//	        pageNum++
+//	        fmt.Println(page)
+//	        return pageNum <= 3
+//	    })
+func (c *Glue) ListUsageProfilesPages(input *ListUsageProfilesInput, fn func(*ListUsageProfilesOutput, bool) bool) error {
+	return c.ListUsageProfilesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListUsageProfilesPagesWithContext same as ListUsageProfilesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) ListUsageProfilesPagesWithContext(ctx aws.Context, input *ListUsageProfilesInput, fn func(*ListUsageProfilesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListUsageProfilesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListUsageProfilesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListUsageProfilesOutput), !p.HasNextPage()) {
 			break
 		}
 	}
@@ -21692,6 +22113,100 @@ func (c *Glue) UpdateTriggerWithContext(ctx aws.Context, input *UpdateTriggerInp
 	return out, req.Send()
 }
 
+const opUpdateUsageProfile = "UpdateUsageProfile"
+
+// UpdateUsageProfileRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateUsageProfile operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateUsageProfile for more information on using the UpdateUsageProfile
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the UpdateUsageProfileRequest method.
+//	req, resp := client.UpdateUsageProfileRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/UpdateUsageProfile
+func (c *Glue) UpdateUsageProfileRequest(input *UpdateUsageProfileInput) (req *request.Request, output *UpdateUsageProfileOutput) {
+	op := &request.Operation{
+		Name:       opUpdateUsageProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateUsageProfileInput{}
+	}
+
+	output = &UpdateUsageProfileOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateUsageProfile API operation for AWS Glue.
+//
+// Update an Glue usage profile.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation UpdateUsageProfile for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InvalidInputException
+//     The input provided was not valid.
+//
+//   - InternalServiceException
+//     An internal service error occurred.
+//
+//   - EntityNotFoundException
+//     A specified entity does not exist
+//
+//   - OperationTimeoutException
+//     The operation timed out.
+//
+//   - OperationNotSupportedException
+//     The operation is not available in the region.
+//
+//   - ConcurrentModificationException
+//     Two processes are trying to modify a resource simultaneously.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/UpdateUsageProfile
+func (c *Glue) UpdateUsageProfile(input *UpdateUsageProfileInput) (*UpdateUsageProfileOutput, error) {
+	req, out := c.UpdateUsageProfileRequest(input)
+	return out, req.Send()
+}
+
+// UpdateUsageProfileWithContext is the same as UpdateUsageProfile with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateUsageProfile for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) UpdateUsageProfileWithContext(ctx aws.Context, input *UpdateUsageProfileInput, opts ...request.Option) (*UpdateUsageProfileOutput, error) {
+	req, out := c.UpdateUsageProfileRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateUserDefinedFunction = "UpdateUserDefinedFunction"
 
 // UpdateUserDefinedFunctionRequest generates a "aws/request.Request" representing the
@@ -22970,6 +23485,183 @@ func (s *AuditContext) SetAllColumnsRequested(v bool) *AuditContext {
 // SetRequestedColumns sets the RequestedColumns field's value.
 func (s *AuditContext) SetRequestedColumns(v []*string) *AuditContext {
 	s.RequestedColumns = v
+	return s
+}
+
+// A structure containing the authentication configuration.
+type AuthenticationConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// A structure containing the authentication configuration.
+	AuthenticationType *string `type:"string" enum:"AuthenticationType"`
+
+	// The properties for OAuth2 authentication.
+	OAuth2Properties *OAuth2Properties `type:"structure"`
+
+	// The secret manager ARN to store credentials.
+	SecretArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AuthenticationConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AuthenticationConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetAuthenticationType sets the AuthenticationType field's value.
+func (s *AuthenticationConfiguration) SetAuthenticationType(v string) *AuthenticationConfiguration {
+	s.AuthenticationType = &v
+	return s
+}
+
+// SetOAuth2Properties sets the OAuth2Properties field's value.
+func (s *AuthenticationConfiguration) SetOAuth2Properties(v *OAuth2Properties) *AuthenticationConfiguration {
+	s.OAuth2Properties = v
+	return s
+}
+
+// SetSecretArn sets the SecretArn field's value.
+func (s *AuthenticationConfiguration) SetSecretArn(v string) *AuthenticationConfiguration {
+	s.SecretArn = &v
+	return s
+}
+
+// A structure containing the authentication configuration in the CreateConnection
+// request.
+type AuthenticationConfigurationInput_ struct {
+	_ struct{} `type:"structure"`
+
+	// A structure containing the authentication configuration in the CreateConnection
+	// request.
+	AuthenticationType *string `type:"string" enum:"AuthenticationType"`
+
+	// The properties for OAuth2 authentication in the CreateConnection request.
+	OAuth2Properties *OAuth2PropertiesInput_ `type:"structure"`
+
+	// The secret manager ARN to store credentials in the CreateConnection request.
+	SecretArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AuthenticationConfigurationInput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AuthenticationConfigurationInput_) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AuthenticationConfigurationInput_) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AuthenticationConfigurationInput_"}
+	if s.OAuth2Properties != nil {
+		if err := s.OAuth2Properties.Validate(); err != nil {
+			invalidParams.AddNested("OAuth2Properties", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAuthenticationType sets the AuthenticationType field's value.
+func (s *AuthenticationConfigurationInput_) SetAuthenticationType(v string) *AuthenticationConfigurationInput_ {
+	s.AuthenticationType = &v
+	return s
+}
+
+// SetOAuth2Properties sets the OAuth2Properties field's value.
+func (s *AuthenticationConfigurationInput_) SetOAuth2Properties(v *OAuth2PropertiesInput_) *AuthenticationConfigurationInput_ {
+	s.OAuth2Properties = v
+	return s
+}
+
+// SetSecretArn sets the SecretArn field's value.
+func (s *AuthenticationConfigurationInput_) SetSecretArn(v string) *AuthenticationConfigurationInput_ {
+	s.SecretArn = &v
+	return s
+}
+
+// The set of properties required for the the OAuth2 AUTHORIZATION_CODE grant
+// type workflow.
+type AuthorizationCodeProperties struct {
+	_ struct{} `type:"structure"`
+
+	// An authorization code to be used in the third leg of the AUTHORIZATION_CODE
+	// grant workflow. This is a single-use code which becomes invalid once exchanged
+	// for an access token, thus it is acceptable to have this value as a request
+	// parameter.
+	AuthorizationCode *string `min:"1" type:"string"`
+
+	// The redirect URI where the user gets redirected to by authorization server
+	// when issuing an authorization code. The URI is subsequently used when the
+	// authorization code is exchanged for an access token.
+	RedirectUri *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AuthorizationCodeProperties) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AuthorizationCodeProperties) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AuthorizationCodeProperties) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AuthorizationCodeProperties"}
+	if s.AuthorizationCode != nil && len(*s.AuthorizationCode) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AuthorizationCode", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAuthorizationCode sets the AuthorizationCode field's value.
+func (s *AuthorizationCodeProperties) SetAuthorizationCode(v string) *AuthorizationCodeProperties {
+	s.AuthorizationCode = &v
+	return s
+}
+
+// SetRedirectUri sets the RedirectUri field's value.
+func (s *AuthorizationCodeProperties) SetRedirectUri(v string) *AuthorizationCodeProperties {
+	s.RedirectUri = &v
 	return s
 }
 
@@ -29604,6 +30296,161 @@ func (s *ConditionCheckFailureException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// Condition expression defined in the Glue Studio data preparation recipe node.
+type ConditionExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The condition of the condition expression.
+	//
+	// Condition is a required field
+	Condition *string `min:"1" type:"string" required:"true"`
+
+	// The target column of the condition expressions.
+	//
+	// TargetColumn is a required field
+	TargetColumn *string `min:"1" type:"string" required:"true"`
+
+	// The value of the condition expression.
+	Value *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ConditionExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ConditionExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ConditionExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ConditionExpression"}
+	if s.Condition == nil {
+		invalidParams.Add(request.NewErrParamRequired("Condition"))
+	}
+	if s.Condition != nil && len(*s.Condition) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Condition", 1))
+	}
+	if s.TargetColumn == nil {
+		invalidParams.Add(request.NewErrParamRequired("TargetColumn"))
+	}
+	if s.TargetColumn != nil && len(*s.TargetColumn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TargetColumn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCondition sets the Condition field's value.
+func (s *ConditionExpression) SetCondition(v string) *ConditionExpression {
+	s.Condition = &v
+	return s
+}
+
+// SetTargetColumn sets the TargetColumn field's value.
+func (s *ConditionExpression) SetTargetColumn(v string) *ConditionExpression {
+	s.TargetColumn = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *ConditionExpression) SetValue(v string) *ConditionExpression {
+	s.Value = &v
+	return s
+}
+
+// Specifies the values that an admin sets for each job or session parameter
+// configured in a Glue usage profile.
+type ConfigurationObject struct {
+	_ struct{} `type:"structure"`
+
+	// A list of allowed values for the parameter.
+	AllowedValues []*string `type:"list"`
+
+	// A default value for the parameter.
+	DefaultValue *string `min:"1" type:"string"`
+
+	// A maximum allowed value for the parameter.
+	MaxValue *string `min:"1" type:"string"`
+
+	// A minimum allowed value for the parameter.
+	MinValue *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ConfigurationObject) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ConfigurationObject) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ConfigurationObject) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ConfigurationObject"}
+	if s.DefaultValue != nil && len(*s.DefaultValue) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DefaultValue", 1))
+	}
+	if s.MaxValue != nil && len(*s.MaxValue) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MaxValue", 1))
+	}
+	if s.MinValue != nil && len(*s.MinValue) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MinValue", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAllowedValues sets the AllowedValues field's value.
+func (s *ConfigurationObject) SetAllowedValues(v []*string) *ConfigurationObject {
+	s.AllowedValues = v
+	return s
+}
+
+// SetDefaultValue sets the DefaultValue field's value.
+func (s *ConfigurationObject) SetDefaultValue(v string) *ConfigurationObject {
+	s.DefaultValue = &v
+	return s
+}
+
+// SetMaxValue sets the MaxValue field's value.
+func (s *ConfigurationObject) SetMaxValue(v string) *ConfigurationObject {
+	s.MaxValue = &v
+	return s
+}
+
+// SetMinValue sets the MinValue field's value.
+func (s *ConfigurationObject) SetMinValue(v string) *ConfigurationObject {
+	s.MinValue = &v
+	return s
+}
+
 // The CreatePartitions API was called on a table that has indexes enabled.
 type ConflictException struct {
 	_            struct{}                  `type:"structure"`
@@ -29739,6 +30586,9 @@ func (s *ConfusionMatrix) SetNumTruePositives(v int64) *ConfusionMatrix {
 // Defines a connection to a data source.
 type Connection struct {
 	_ struct{} `type:"structure"`
+
+	// The authentication properties of the connection.
+	AuthenticationConfiguration *AuthenticationConfiguration `type:"structure"`
 
 	// These key-value pairs define parameters for the connection:
 	//
@@ -29884,16 +30734,19 @@ type Connection struct {
 	// The type of the connection. Currently, SFTP is not supported.
 	ConnectionType *string `type:"string" enum:"ConnectionType"`
 
-	// The time that this connection definition was created.
+	// The timestamp of the time that this connection definition was created.
 	CreationTime *time.Time `type:"timestamp"`
 
 	// The description of the connection.
 	Description *string `type:"string"`
 
+	// A timestamp of the time this connection was last validated.
+	LastConnectionValidationTime *time.Time `type:"timestamp"`
+
 	// The user, group, or role that last updated this connection definition.
 	LastUpdatedBy *string `min:"1" type:"string"`
 
-	// The last time that this connection definition was updated.
+	// The timestamp of the last time the connection definition was updated.
 	LastUpdatedTime *time.Time `type:"timestamp"`
 
 	// A list of criteria that can be used in selecting this connection.
@@ -29902,9 +30755,15 @@ type Connection struct {
 	// The name of the connection definition.
 	Name *string `min:"1" type:"string"`
 
-	// A map of physical connection requirements, such as virtual private cloud
-	// (VPC) and SecurityGroup, that are needed to make this connection successfully.
+	// The physical connection requirements, such as virtual private cloud (VPC)
+	// and SecurityGroup, that are needed to make this connection successfully.
 	PhysicalConnectionRequirements *PhysicalConnectionRequirements `type:"structure"`
+
+	// The status of the connection. Can be one of: READY, IN_PROGRESS, or FAILED.
+	Status *string `type:"string" enum:"ConnectionStatus"`
+
+	// The reason for the connection status.
+	StatusReason *string `min:"1" type:"string"`
 }
 
 // String returns the string representation.
@@ -29923,6 +30782,12 @@ func (s Connection) String() string {
 // value will be replaced with "sensitive".
 func (s Connection) GoString() string {
 	return s.String()
+}
+
+// SetAuthenticationConfiguration sets the AuthenticationConfiguration field's value.
+func (s *Connection) SetAuthenticationConfiguration(v *AuthenticationConfiguration) *Connection {
+	s.AuthenticationConfiguration = v
+	return s
 }
 
 // SetConnectionProperties sets the ConnectionProperties field's value.
@@ -29946,6 +30811,12 @@ func (s *Connection) SetCreationTime(v time.Time) *Connection {
 // SetDescription sets the Description field's value.
 func (s *Connection) SetDescription(v string) *Connection {
 	s.Description = &v
+	return s
+}
+
+// SetLastConnectionValidationTime sets the LastConnectionValidationTime field's value.
+func (s *Connection) SetLastConnectionValidationTime(v time.Time) *Connection {
+	s.LastConnectionValidationTime = &v
 	return s
 }
 
@@ -29979,9 +30850,24 @@ func (s *Connection) SetPhysicalConnectionRequirements(v *PhysicalConnectionRequ
 	return s
 }
 
+// SetStatus sets the Status field's value.
+func (s *Connection) SetStatus(v string) *Connection {
+	s.Status = &v
+	return s
+}
+
+// SetStatusReason sets the StatusReason field's value.
+func (s *Connection) SetStatusReason(v string) *Connection {
+	s.StatusReason = &v
+	return s
+}
+
 // A structure that is used to specify a connection to create or update.
 type ConnectionInput struct {
 	_ struct{} `type:"structure"`
+
+	// The authentication properties of the connection. Used for a Salesforce connection.
+	AuthenticationConfiguration *AuthenticationConfigurationInput_ `type:"structure"`
 
 	// These key-value pairs define parameters for the connection.
 	//
@@ -30014,6 +30900,9 @@ type ConnectionInput struct {
 	//    * MONGODB - Designates a connection to a MongoDB document database. MONGODB
 	//    Connections use the following ConnectionParameters. Required: CONNECTION_URL.
 	//    Required: All of (USERNAME, PASSWORD) or SECRET_ID.
+	//
+	//    * SALESFORCE - Designates a connection to Salesforce using OAuth authencation.
+	//    Requires the AuthenticationConfiguration member to be configured.
 	//
 	//    * NETWORK - Designates a network connection to a data source within an
 	//    Amazon Virtual Private Cloud environment (Amazon VPC). NETWORK Connections
@@ -30048,15 +30937,18 @@ type ConnectionInput struct {
 	// A list of criteria that can be used in selecting this connection.
 	MatchCriteria []*string `type:"list"`
 
-	// The name of the connection. Connection will not function as expected without
-	// a name.
+	// The name of the connection.
 	//
 	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
 
-	// A map of physical connection requirements, such as virtual private cloud
-	// (VPC) and SecurityGroup, that are needed to successfully make this connection.
+	// The physical connection requirements, such as virtual private cloud (VPC)
+	// and SecurityGroup, that are needed to successfully make this connection.
 	PhysicalConnectionRequirements *PhysicalConnectionRequirements `type:"structure"`
+
+	// A flag to validate the credentials during create connection. Used for a Salesforce
+	// connection. Default is true.
+	ValidateCredentials *bool `type:"boolean"`
 }
 
 // String returns the string representation.
@@ -30092,6 +30984,11 @@ func (s *ConnectionInput) Validate() error {
 	if s.Name != nil && len(*s.Name) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
 	}
+	if s.AuthenticationConfiguration != nil {
+		if err := s.AuthenticationConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("AuthenticationConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.PhysicalConnectionRequirements != nil {
 		if err := s.PhysicalConnectionRequirements.Validate(); err != nil {
 			invalidParams.AddNested("PhysicalConnectionRequirements", err.(request.ErrInvalidParams))
@@ -30102,6 +30999,12 @@ func (s *ConnectionInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAuthenticationConfiguration sets the AuthenticationConfiguration field's value.
+func (s *ConnectionInput) SetAuthenticationConfiguration(v *AuthenticationConfigurationInput_) *ConnectionInput {
+	s.AuthenticationConfiguration = v
+	return s
 }
 
 // SetConnectionProperties sets the ConnectionProperties field's value.
@@ -30137,6 +31040,12 @@ func (s *ConnectionInput) SetName(v string) *ConnectionInput {
 // SetPhysicalConnectionRequirements sets the PhysicalConnectionRequirements field's value.
 func (s *ConnectionInput) SetPhysicalConnectionRequirements(v *PhysicalConnectionRequirements) *ConnectionInput {
 	s.PhysicalConnectionRequirements = v
+	return s
+}
+
+// SetValidateCredentials sets the ValidateCredentials field's value.
+func (s *ConnectionInput) SetValidateCredentials(v bool) *ConnectionInput {
+	s.ValidateCredentials = &v
 	return s
 }
 
@@ -31688,6 +32597,11 @@ func (s *CreateConnectionInput) SetTags(v map[string]*string) *CreateConnectionI
 
 type CreateConnectionOutput struct {
 	_ struct{} `type:"structure"`
+
+	// The status of the connection creation request. The request can take some
+	// time for certain authentication types, for example when creating an OAuth
+	// connection with token exchange over VPC.
+	CreateConnectionStatus *string `type:"string" enum:"ConnectionStatus"`
 }
 
 // String returns the string representation.
@@ -31706,6 +32620,12 @@ func (s CreateConnectionOutput) String() string {
 // value will be replaced with "sensitive".
 func (s CreateConnectionOutput) GoString() string {
 	return s.String()
+}
+
+// SetCreateConnectionStatus sets the CreateConnectionStatus field's value.
+func (s *CreateConnectionOutput) SetCreateConnectionStatus(v string) *CreateConnectionOutput {
+	s.CreateConnectionStatus = &v
+	return s
 }
 
 type CreateCrawlerInput struct {
@@ -33059,8 +33979,29 @@ type CreateJobInput struct {
 	// Jobs that are created without specifying a Glue version default to Glue 0.9.
 	GlueVersion *string `min:"1" type:"string"`
 
+	// A mode that describes how a job was created. Valid values are:
+	//
+	//    * SCRIPT - The job was created using the Glue Studio script editor.
+	//
+	//    * VISUAL - The job was created using the Glue Studio visual editor.
+	//
+	//    * NOTEBOOK - The job was created using an interactive sessions notebook.
+	//
+	// When the JobMode field is missing or null, SCRIPT is assigned as the default
+	// value.
+	JobMode *string `type:"string" enum:"JobMode"`
+
 	// This field is reserved for future use.
 	LogUri *string `type:"string"`
+
+	// This field specifies a day of the week and hour for a maintenance window
+	// for streaming jobs. Glue periodically performs maintenance activities. During
+	// these maintenance windows, Glue will need to restart your streaming jobs.
+	//
+	// Glue will restart the job within 3 hours of the specified maintenance window.
+	// For instance, if you set up the maintenance window for Monday at 10:00AM
+	// GMT, your jobs will be restarted between 10:00AM GMT to 1:00PM GMT.
+	MaintenanceWindow *string `type:"string"`
 
 	// For Glue version 1.0 or earlier jobs, using the standard worker type, the
 	// number of Glue data processing units (DPUs) that can be allocated when this
@@ -33126,7 +34067,12 @@ type CreateJobInput struct {
 
 	// The job timeout in minutes. This is the maximum time that a job run can consume
 	// resources before it is terminated and enters TIMEOUT status. The default
-	// is 2,880 minutes (48 hours).
+	// is 2,880 minutes (48 hours) for batch jobs.
+	//
+	// Streaming jobs must have timeout values less than 7 days or 10080 minutes.
+	// When the value is left blank, the job will be restarted after 7 days based
+	// if you have not setup a maintenance window. If you have setup maintenance
+	// window, it will be restarted during the maintenance window after 7 days.
 	Timeout *int64 `min:"1" type:"integer"`
 
 	// The type of predefined worker that is allocated when a job runs. Accepts
@@ -33298,9 +34244,21 @@ func (s *CreateJobInput) SetGlueVersion(v string) *CreateJobInput {
 	return s
 }
 
+// SetJobMode sets the JobMode field's value.
+func (s *CreateJobInput) SetJobMode(v string) *CreateJobInput {
+	s.JobMode = &v
+	return s
+}
+
 // SetLogUri sets the LogUri field's value.
 func (s *CreateJobInput) SetLogUri(v string) *CreateJobInput {
 	s.LogUri = &v
+	return s
+}
+
+// SetMaintenanceWindow sets the MaintenanceWindow field's value.
+func (s *CreateJobInput) SetMaintenanceWindow(v string) *CreateJobInput {
+	s.MaintenanceWindow = &v
 	return s
 }
 
@@ -35454,6 +36412,124 @@ func (s *CreateTriggerOutput) SetName(v string) *CreateTriggerOutput {
 	return s
 }
 
+type CreateUsageProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// A ProfileConfiguration object specifying the job and session values for the
+	// profile.
+	//
+	// Configuration is a required field
+	Configuration *ProfileConfiguration `type:"structure" required:"true"`
+
+	// A description of the usage profile.
+	Description *string `type:"string"`
+
+	// The name of the usage profile.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+
+	// A list of tags applied to the usage profile.
+	Tags map[string]*string `type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateUsageProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateUsageProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateUsageProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateUsageProfileInput"}
+	if s.Configuration == nil {
+		invalidParams.Add(request.NewErrParamRequired("Configuration"))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Configuration != nil {
+		if err := s.Configuration.Validate(); err != nil {
+			invalidParams.AddNested("Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *CreateUsageProfileInput) SetConfiguration(v *ProfileConfiguration) *CreateUsageProfileInput {
+	s.Configuration = v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateUsageProfileInput) SetDescription(v string) *CreateUsageProfileInput {
+	s.Description = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateUsageProfileInput) SetName(v string) *CreateUsageProfileInput {
+	s.Name = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateUsageProfileInput) SetTags(v map[string]*string) *CreateUsageProfileInput {
+	s.Tags = v
+	return s
+}
+
+type CreateUsageProfileOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the usage profile that was created.
+	Name *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateUsageProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateUsageProfileOutput) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *CreateUsageProfileOutput) SetName(v string) *CreateUsageProfileOutput {
+	s.Name = &v
+	return s
+}
+
 type CreateUserDefinedFunctionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -36343,6 +37419,9 @@ type DataQualityEvaluationRunAdditionalRunOptions struct {
 	// Whether or not to enable CloudWatch metrics.
 	CloudWatchMetricsEnabled *bool `type:"boolean"`
 
+	// Set the evaluation method for composite rules in the ruleset to ROW/COLUMN
+	CompositeRuleEvaluationMethod *string `type:"string" enum:"DQCompositeRuleEvaluationMethod"`
+
 	// Prefix for Amazon S3 to store results.
 	ResultsS3Prefix *string `type:"string"`
 }
@@ -36368,6 +37447,12 @@ func (s DataQualityEvaluationRunAdditionalRunOptions) GoString() string {
 // SetCloudWatchMetricsEnabled sets the CloudWatchMetricsEnabled field's value.
 func (s *DataQualityEvaluationRunAdditionalRunOptions) SetCloudWatchMetricsEnabled(v bool) *DataQualityEvaluationRunAdditionalRunOptions {
 	s.CloudWatchMetricsEnabled = &v
+	return s
+}
+
+// SetCompositeRuleEvaluationMethod sets the CompositeRuleEvaluationMethod field's value.
+func (s *DataQualityEvaluationRunAdditionalRunOptions) SetCompositeRuleEvaluationMethod(v string) *DataQualityEvaluationRunAdditionalRunOptions {
+	s.CompositeRuleEvaluationMethod = &v
 	return s
 }
 
@@ -40272,6 +41357,77 @@ func (s DeleteTriggerOutput) GoString() string {
 func (s *DeleteTriggerOutput) SetName(v string) *DeleteTriggerOutput {
 	s.Name = &v
 	return s
+}
+
+type DeleteUsageProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the usage profile to delete.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteUsageProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteUsageProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteUsageProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteUsageProfileInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *DeleteUsageProfileInput) SetName(v string) *DeleteUsageProfileInput {
+	s.Name = &v
+	return s
+}
+
+type DeleteUsageProfileOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteUsageProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteUsageProfileOutput) GoString() string {
+	return s.String()
 }
 
 type DeleteUserDefinedFunctionInput struct {
@@ -45773,7 +46929,8 @@ type GetDataQualityRulesetEvaluationRunOutput struct {
 	// An IAM role supplied to encrypt the results of the run.
 	Role *string `type:"string"`
 
-	// A list of ruleset names for the run.
+	// A list of ruleset names for the run. Currently, this parameter takes only
+	// one Ruleset name.
 	RulesetNames []*string `min:"1" type:"list"`
 
 	// The unique run identifier associated with this run.
@@ -46132,6 +47289,10 @@ func (s *GetDatabaseOutput) SetDatabase(v *Database) *GetDatabaseOutput {
 type GetDatabasesInput struct {
 	_ struct{} `type:"structure"`
 
+	// Specifies the database fields returned by the GetDatabases call. This parameter
+	// doesn’t accept an empty list. The request must include the NAME.
+	AttributesToGet []*string `type:"list" enum:"DatabaseAttributes"`
+
 	// The ID of the Data Catalog from which to retrieve Databases. If none is provided,
 	// the Amazon Web Services account ID is used by default.
 	CatalogId *string `min:"1" type:"string"`
@@ -46187,6 +47348,12 @@ func (s *GetDatabasesInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAttributesToGet sets the AttributesToGet field's value.
+func (s *GetDatabasesInput) SetAttributesToGet(v []*string) *GetDatabasesInput {
+	s.AttributesToGet = v
+	return s
 }
 
 // SetCatalogId sets the CatalogId field's value.
@@ -51342,6 +52509,9 @@ type GetUnfilteredTableMetadataInput struct {
 	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
 
+	// The resource ARN of the view.
+	ParentResourceArn *string `min:"20" type:"string"`
+
 	// The Lake Formation data permissions of the caller on the table. Used to authorize
 	// the call when no view context is found.
 	Permissions []*string `type:"list" enum:"Permission"`
@@ -51355,11 +52525,43 @@ type GetUnfilteredTableMetadataInput struct {
 	// Region.
 	Region *string `type:"string"`
 
+	// The resource ARN of the root view in a chain of nested views.
+	RootResourceArn *string `min:"20" type:"string"`
+
 	// A structure specifying the dialect and dialect version used by the query
 	// engine.
 	SupportedDialect *SupportedDialect `type:"structure"`
 
-	// (Required) A list of supported permission types.
+	// Indicates the level of filtering a third-party analytical engine is capable
+	// of enforcing when calling the GetUnfilteredTableMetadata API operation. Accepted
+	// values are:
+	//
+	//    * COLUMN_PERMISSION - Column permissions ensure that users can access
+	//    only specific columns in the table. If there are particular columns contain
+	//    sensitive data, data lake administrators can define column filters that
+	//    exclude access to specific columns.
+	//
+	//    * CELL_FILTER_PERMISSION - Cell-level filtering combines column filtering
+	//    (include or exclude columns) and row filter expressions to restrict access
+	//    to individual elements in the table.
+	//
+	//    * NESTED_PERMISSION - Nested permissions combines cell-level filtering
+	//    and nested column filtering to restrict access to columns and/or nested
+	//    columns in specific rows based on row filter expressions.
+	//
+	//    * NESTED_CELL_PERMISSION - Nested cell permissions combines nested permission
+	//    with nested cell-level filtering. This allows different subsets of nested
+	//    columns to be restricted based on an array of row filter expressions.
+	//
+	// Note: Each of these permission types follows a hierarchical order where each
+	// subsequent permission type includes all permission of the previous type.
+	//
+	// Important: If you provide a supported permission type that doesn't match
+	// the user's level of permissions on the table, then Lake Formation raises
+	// an exception. For example, if the third-party engine calling the GetUnfilteredTableMetadata
+	// operation can enforce only column-level filtering, and the user has nested
+	// cell filtering applied on the table, Lake Formation throws an exception,
+	// and will not return unfiltered table metadata and data access credentials.
 	//
 	// SupportedPermissionTypes is a required field
 	SupportedPermissionTypes []*string `min:"1" type:"list" required:"true" enum:"PermissionType"`
@@ -51403,6 +52605,12 @@ func (s *GetUnfilteredTableMetadataInput) Validate() error {
 	}
 	if s.Name != nil && len(*s.Name) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.ParentResourceArn != nil && len(*s.ParentResourceArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("ParentResourceArn", 20))
+	}
+	if s.RootResourceArn != nil && len(*s.RootResourceArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("RootResourceArn", 20))
 	}
 	if s.SupportedPermissionTypes == nil {
 		invalidParams.Add(request.NewErrParamRequired("SupportedPermissionTypes"))
@@ -51451,6 +52659,12 @@ func (s *GetUnfilteredTableMetadataInput) SetName(v string) *GetUnfilteredTableM
 	return s
 }
 
+// SetParentResourceArn sets the ParentResourceArn field's value.
+func (s *GetUnfilteredTableMetadataInput) SetParentResourceArn(v string) *GetUnfilteredTableMetadataInput {
+	s.ParentResourceArn = &v
+	return s
+}
+
 // SetPermissions sets the Permissions field's value.
 func (s *GetUnfilteredTableMetadataInput) SetPermissions(v []*string) *GetUnfilteredTableMetadataInput {
 	s.Permissions = v
@@ -51466,6 +52680,12 @@ func (s *GetUnfilteredTableMetadataInput) SetQuerySessionContext(v *QuerySession
 // SetRegion sets the Region field's value.
 func (s *GetUnfilteredTableMetadataInput) SetRegion(v string) *GetUnfilteredTableMetadataInput {
 	s.Region = &v
+	return s
+}
+
+// SetRootResourceArn sets the RootResourceArn field's value.
+func (s *GetUnfilteredTableMetadataInput) SetRootResourceArn(v string) *GetUnfilteredTableMetadataInput {
+	s.RootResourceArn = &v
 	return s
 }
 
@@ -51514,6 +52734,11 @@ type GetUnfilteredTableMetadataOutput struct {
 
 	// The resource ARN of the parent resource extracted from the request.
 	ResourceArn *string `min:"20" type:"string"`
+
+	// The filter that applies to the table. For example when applying the filter
+	// in SQL, it would go in the WHERE clause and can be evaluated by using an
+	// AND operator with any other predicates applied by the user querying the table.
+	RowFilter *string `type:"string"`
 
 	// A Table object containing the table metadata.
 	Table *TableData `type:"structure"`
@@ -51585,9 +52810,132 @@ func (s *GetUnfilteredTableMetadataOutput) SetResourceArn(v string) *GetUnfilter
 	return s
 }
 
+// SetRowFilter sets the RowFilter field's value.
+func (s *GetUnfilteredTableMetadataOutput) SetRowFilter(v string) *GetUnfilteredTableMetadataOutput {
+	s.RowFilter = &v
+	return s
+}
+
 // SetTable sets the Table field's value.
 func (s *GetUnfilteredTableMetadataOutput) SetTable(v *TableData) *GetUnfilteredTableMetadataOutput {
 	s.Table = v
+	return s
+}
+
+type GetUsageProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the usage profile to retrieve.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetUsageProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetUsageProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetUsageProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetUsageProfileInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *GetUsageProfileInput) SetName(v string) *GetUsageProfileInput {
+	s.Name = &v
+	return s
+}
+
+type GetUsageProfileOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A ProfileConfiguration object specifying the job and session values for the
+	// profile.
+	Configuration *ProfileConfiguration `type:"structure"`
+
+	// The date and time when the usage profile was created.
+	CreatedOn *time.Time `type:"timestamp"`
+
+	// A description of the usage profile.
+	Description *string `type:"string"`
+
+	// The date and time when the usage profile was last modified.
+	LastModifiedOn *time.Time `type:"timestamp"`
+
+	// The name of the usage profile.
+	Name *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetUsageProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetUsageProfileOutput) GoString() string {
+	return s.String()
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *GetUsageProfileOutput) SetConfiguration(v *ProfileConfiguration) *GetUsageProfileOutput {
+	s.Configuration = v
+	return s
+}
+
+// SetCreatedOn sets the CreatedOn field's value.
+func (s *GetUsageProfileOutput) SetCreatedOn(v time.Time) *GetUsageProfileOutput {
+	s.CreatedOn = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *GetUsageProfileOutput) SetDescription(v string) *GetUsageProfileOutput {
+	s.Description = &v
+	return s
+}
+
+// SetLastModifiedOn sets the LastModifiedOn field's value.
+func (s *GetUsageProfileOutput) SetLastModifiedOn(v time.Time) *GetUsageProfileOutput {
+	s.LastModifiedOn = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *GetUsageProfileOutput) SetName(v string) *GetUsageProfileOutput {
+	s.Name = &v
 	return s
 }
 
@@ -54027,11 +55375,32 @@ type Job struct {
 	// Jobs that are created without specifying a Glue version default to Glue 0.9.
 	GlueVersion *string `min:"1" type:"string"`
 
+	// A mode that describes how a job was created. Valid values are:
+	//
+	//    * SCRIPT - The job was created using the Glue Studio script editor.
+	//
+	//    * VISUAL - The job was created using the Glue Studio visual editor.
+	//
+	//    * NOTEBOOK - The job was created using an interactive sessions notebook.
+	//
+	// When the JobMode field is missing or null, SCRIPT is assigned as the default
+	// value.
+	JobMode *string `type:"string" enum:"JobMode"`
+
 	// The last point in time when this job definition was modified.
 	LastModifiedOn *time.Time `type:"timestamp"`
 
 	// This field is reserved for future use.
 	LogUri *string `type:"string"`
+
+	// This field specifies a day of the week and hour for a maintenance window
+	// for streaming jobs. Glue periodically performs maintenance activities. During
+	// these maintenance windows, Glue will need to restart your streaming jobs.
+	//
+	// Glue will restart the job within 3 hours of the specified maintenance window.
+	// For instance, if you set up the maintenance window for Monday at 10:00AM
+	// GMT, your jobs will be restarted between 10:00AM GMT to 1:00PM GMT.
+	MaintenanceWindow *string `type:"string"`
 
 	// For Glue version 1.0 or earlier jobs, using the standard worker type, the
 	// number of Glue data processing units (DPUs) that can be allocated when this
@@ -54074,6 +55443,9 @@ type Job struct {
 	// runs.
 	NumberOfWorkers *int64 `type:"integer"`
 
+	// The name of an Glue usage profile associated with the job.
+	ProfileName *string `min:"1" type:"string"`
+
 	// The name or Amazon Resource Name (ARN) of the IAM role associated with this
 	// job.
 	Role *string `type:"string"`
@@ -54087,7 +55459,12 @@ type Job struct {
 
 	// The job timeout in minutes. This is the maximum time that a job run can consume
 	// resources before it is terminated and enters TIMEOUT status. The default
-	// is 2,880 minutes (48 hours).
+	// is 2,880 minutes (48 hours) for batch jobs.
+	//
+	// Streaming jobs must have timeout values less than 7 days or 10080 minutes.
+	// When the value is left blank, the job will be restarted after 7 days based
+	// if you have not setup a maintenance window. If you have setup maintenance
+	// window, it will be restarted during the maintenance window after 7 days.
 	Timeout *int64 `min:"1" type:"integer"`
 
 	// The type of predefined worker that is allocated when a job runs. Accepts
@@ -54214,6 +55591,12 @@ func (s *Job) SetGlueVersion(v string) *Job {
 	return s
 }
 
+// SetJobMode sets the JobMode field's value.
+func (s *Job) SetJobMode(v string) *Job {
+	s.JobMode = &v
+	return s
+}
+
 // SetLastModifiedOn sets the LastModifiedOn field's value.
 func (s *Job) SetLastModifiedOn(v time.Time) *Job {
 	s.LastModifiedOn = &v
@@ -54223,6 +55606,12 @@ func (s *Job) SetLastModifiedOn(v time.Time) *Job {
 // SetLogUri sets the LogUri field's value.
 func (s *Job) SetLogUri(v string) *Job {
 	s.LogUri = &v
+	return s
+}
+
+// SetMaintenanceWindow sets the MaintenanceWindow field's value.
+func (s *Job) SetMaintenanceWindow(v string) *Job {
+	s.MaintenanceWindow = &v
 	return s
 }
 
@@ -54259,6 +55648,12 @@ func (s *Job) SetNotificationProperty(v *NotificationProperty) *Job {
 // SetNumberOfWorkers sets the NumberOfWorkers field's value.
 func (s *Job) SetNumberOfWorkers(v int64) *Job {
 	s.NumberOfWorkers = &v
+	return s
+}
+
+// SetProfileName sets the ProfileName field's value.
+func (s *Job) SetProfileName(v string) *Job {
+	s.ProfileName = &v
 	return s
 }
 
@@ -54561,13 +55956,14 @@ type JobRun struct {
 	// The date and time that this job run completed.
 	CompletedOn *time.Time `type:"timestamp"`
 
-	// This field populates only for Auto Scaling job runs, and represents the total
-	// time each executor ran during the lifecycle of a job run in seconds, multiplied
-	// by a DPU factor (1 for G.1X, 2 for G.2X, or 0.25 for G.025X workers). This
-	// value may be different than the executionEngineRuntime * MaxCapacity as in
-	// the case of Auto Scaling jobs, as the number of executors running at a given
-	// time may be less than the MaxCapacity. Therefore, it is possible that the
-	// value of DPUSeconds is less than executionEngineRuntime * MaxCapacity.
+	// This field can be set for either job runs with execution class FLEX or when
+	// Auto Scaling is enabled, and represents the total time each executor ran
+	// during the lifecycle of a job run in seconds, multiplied by a DPU factor
+	// (1 for G.1X, 2 for G.2X, or 0.25 for G.025X workers). This value may be different
+	// than the executionEngineRuntime * MaxCapacity as in the case of Auto Scaling
+	// jobs, as the number of executors running at a given time may be less than
+	// the MaxCapacity. Therefore, it is possible that the value of DPUSeconds is
+	// less than executionEngineRuntime * MaxCapacity.
 	DPUSeconds *float64 `type:"double"`
 
 	// An error message associated with this job run.
@@ -54606,6 +56002,18 @@ type JobRun struct {
 	// The ID of this job run.
 	Id *string `min:"1" type:"string"`
 
+	// A mode that describes how a job was created. Valid values are:
+	//
+	//    * SCRIPT - The job was created using the Glue Studio script editor.
+	//
+	//    * VISUAL - The job was created using the Glue Studio visual editor.
+	//
+	//    * NOTEBOOK - The job was created using an interactive sessions notebook.
+	//
+	// When the JobMode field is missing or null, SCRIPT is assigned as the default
+	// value.
+	JobMode *string `type:"string" enum:"JobMode"`
+
 	// The name of the job definition being used in this run.
 	JobName *string `min:"1" type:"string"`
 
@@ -54622,6 +56030,15 @@ type JobRun struct {
 	// name (in other words, /aws-glue/jobs-yourRoleName-yourSecurityConfigurationName/),
 	// then that security configuration is used to encrypt the log group.
 	LogGroupName *string `type:"string"`
+
+	// This field specifies a day of the week and hour for a maintenance window
+	// for streaming jobs. Glue periodically performs maintenance activities. During
+	// these maintenance windows, Glue will need to restart your streaming jobs.
+	//
+	// Glue will restart the job within 3 hours of the specified maintenance window.
+	// For instance, if you set up the maintenance window for Monday at 10:00AM
+	// GMT, your jobs will be restarted between 10:00AM GMT to 1:00PM GMT.
+	MaintenanceWindow *string `type:"string"`
 
 	// For Glue version 1.0 or earlier jobs, using the standard worker type, the
 	// number of Glue data processing units (DPUs) that can be allocated when this
@@ -54661,6 +56078,9 @@ type JobRun struct {
 	// in the StartJobRun action.
 	PreviousRunId *string `min:"1" type:"string"`
 
+	// The name of an Glue usage profile associated with the job run.
+	ProfileName *string `min:"1" type:"string"`
+
 	// The name of the SecurityConfiguration structure to be used with this job
 	// run.
 	SecurityConfiguration *string `min:"1" type:"string"`
@@ -54672,8 +56092,10 @@ type JobRun struct {
 	// consume resources before it is terminated and enters TIMEOUT status. This
 	// value overrides the timeout value set in the parent job.
 	//
-	// Streaming jobs do not have a timeout. The default for non-streaming jobs
-	// is 2,880 minutes (48 hours).
+	// Streaming jobs must have timeout values less than 7 days or 10080 minutes.
+	// When the value is left blank, the job will be restarted after 7 days based
+	// if you have not setup a maintenance window. If you have setup maintenance
+	// window, it will be restarted during the maintenance window after 7 days.
 	Timeout *int64 `min:"1" type:"integer"`
 
 	// The name of the trigger that started this job run.
@@ -54803,6 +56225,12 @@ func (s *JobRun) SetId(v string) *JobRun {
 	return s
 }
 
+// SetJobMode sets the JobMode field's value.
+func (s *JobRun) SetJobMode(v string) *JobRun {
+	s.JobMode = &v
+	return s
+}
+
 // SetJobName sets the JobName field's value.
 func (s *JobRun) SetJobName(v string) *JobRun {
 	s.JobName = &v
@@ -54824,6 +56252,12 @@ func (s *JobRun) SetLastModifiedOn(v time.Time) *JobRun {
 // SetLogGroupName sets the LogGroupName field's value.
 func (s *JobRun) SetLogGroupName(v string) *JobRun {
 	s.LogGroupName = &v
+	return s
+}
+
+// SetMaintenanceWindow sets the MaintenanceWindow field's value.
+func (s *JobRun) SetMaintenanceWindow(v string) *JobRun {
+	s.MaintenanceWindow = &v
 	return s
 }
 
@@ -54854,6 +56288,12 @@ func (s *JobRun) SetPredecessorRuns(v []*Predecessor) *JobRun {
 // SetPreviousRunId sets the PreviousRunId field's value.
 func (s *JobRun) SetPreviousRunId(v string) *JobRun {
 	s.PreviousRunId = &v
+	return s
+}
+
+// SetProfileName sets the ProfileName field's value.
+func (s *JobRun) SetProfileName(v string) *JobRun {
+	s.ProfileName = &v
 	return s
 }
 
@@ -54973,8 +56413,29 @@ type JobUpdate struct {
 	// Jobs that are created without specifying a Glue version default to Glue 0.9.
 	GlueVersion *string `min:"1" type:"string"`
 
+	// A mode that describes how a job was created. Valid values are:
+	//
+	//    * SCRIPT - The job was created using the Glue Studio script editor.
+	//
+	//    * VISUAL - The job was created using the Glue Studio visual editor.
+	//
+	//    * NOTEBOOK - The job was created using an interactive sessions notebook.
+	//
+	// When the JobMode field is missing or null, SCRIPT is assigned as the default
+	// value.
+	JobMode *string `type:"string" enum:"JobMode"`
+
 	// This field is reserved for future use.
 	LogUri *string `type:"string"`
+
+	// This field specifies a day of the week and hour for a maintenance window
+	// for streaming jobs. Glue periodically performs maintenance activities. During
+	// these maintenance windows, Glue will need to restart your streaming jobs.
+	//
+	// Glue will restart the job within 3 hours of the specified maintenance window.
+	// For instance, if you set up the maintenance window for Monday at 10:00AM
+	// GMT, your jobs will be restarted between 10:00AM GMT to 1:00PM GMT.
+	MaintenanceWindow *string `type:"string"`
 
 	// For Glue version 1.0 or earlier jobs, using the standard worker type, the
 	// number of Glue data processing units (DPUs) that can be allocated when this
@@ -55027,7 +56488,12 @@ type JobUpdate struct {
 
 	// The job timeout in minutes. This is the maximum time that a job run can consume
 	// resources before it is terminated and enters TIMEOUT status. The default
-	// is 2,880 minutes (48 hours).
+	// is 2,880 minutes (48 hours) for batch jobs.
+	//
+	// Streaming jobs must have timeout values less than 7 days or 10080 minutes.
+	// When the value is left blank, the job will be restarted after 7 days based
+	// if you have not setup a maintenance window. If you have setup maintenance
+	// window, it will be restarted during the maintenance window after 7 days.
 	Timeout *int64 `min:"1" type:"integer"`
 
 	// The type of predefined worker that is allocated when a job runs. Accepts
@@ -55187,9 +56653,21 @@ func (s *JobUpdate) SetGlueVersion(v string) *JobUpdate {
 	return s
 }
 
+// SetJobMode sets the JobMode field's value.
+func (s *JobUpdate) SetJobMode(v string) *JobUpdate {
+	s.JobMode = &v
+	return s
+}
+
 // SetLogUri sets the LogUri field's value.
 func (s *JobUpdate) SetLogUri(v string) *JobUpdate {
 	s.LogUri = &v
+	return s
+}
+
+// SetMaintenanceWindow sets the MaintenanceWindow field's value.
+func (s *JobUpdate) SetMaintenanceWindow(v string) *JobUpdate {
+	s.MaintenanceWindow = &v
 	return s
 }
 
@@ -55808,13 +57286,16 @@ type KinesisStreamingSourceOptions struct {
 	// version 2.0 and above.
 	IdleTimeBetweenReadsInMs *int64 `type:"long"`
 
-	// The maximum number of records to fetch per shard in the Kinesis data stream.
-	// The default value is 100000.
+	// The maximum number of records to fetch per shard in the Kinesis data stream
+	// per microbatch. Note: The client can exceed this limit if the streaming job
+	// has already read extra records from Kinesis (in the same get-records call).
+	// If MaxFetchRecordsPerShard needs to be strict then it needs to be a multiple
+	// of MaxRecordPerRead. The default value is 100000.
 	MaxFetchRecordsPerShard *int64 `type:"long"`
 
-	// The maximum time spent in the job executor to fetch a record from the Kinesis
-	// data stream per shard, specified in milliseconds (ms). The default value
-	// is 1000.
+	// The maximum time spent for the job executor to read records for the current
+	// batch from the Kinesis data stream, specified in milliseconds (ms). Multiple
+	// GetRecords API calls may be made within this time. The default value is 1000.
 	MaxFetchTimeInMs *int64 `type:"long"`
 
 	// The maximum number of records to fetch from the Kinesis data stream in each
@@ -58439,6 +59920,99 @@ func (s *ListTriggersOutput) SetTriggerNames(v []*string) *ListTriggersOutput {
 	return s
 }
 
+type ListUsageProfilesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of usage profiles to return in a single response.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// A continuation token, included if this is a continuation call.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListUsageProfilesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListUsageProfilesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListUsageProfilesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListUsageProfilesInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListUsageProfilesInput) SetMaxResults(v int64) *ListUsageProfilesInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUsageProfilesInput) SetNextToken(v string) *ListUsageProfilesInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListUsageProfilesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A continuation token, present if the current list segment is not the last.
+	NextToken *string `type:"string"`
+
+	// A list of usage profile (UsageProfileDefinition) objects.
+	Profiles []*UsageProfileDefinition `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListUsageProfilesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListUsageProfilesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUsageProfilesOutput) SetNextToken(v string) *ListUsageProfilesOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetProfiles sets the Profiles field's value.
+func (s *ListUsageProfilesOutput) SetProfiles(v []*UsageProfileDefinition) *ListUsageProfilesOutput {
+	s.Profiles = v
+	return s
+}
+
 type ListWorkflowsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -60218,6 +61792,194 @@ func (s *NullValueField) SetValue(v string) *NullValueField {
 	return s
 }
 
+// The OAuth2 client app used for the connection.
+type OAuth2ClientApplication struct {
+	_ struct{} `type:"structure"`
+
+	// The reference to the SaaS-side client app that is Amazon Web Services managed.
+	AWSManagedClientApplicationReference *string `type:"string"`
+
+	// The client application clientID if the ClientAppType is USER_MANAGED.
+	UserManagedClientApplicationClientId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OAuth2ClientApplication) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OAuth2ClientApplication) GoString() string {
+	return s.String()
+}
+
+// SetAWSManagedClientApplicationReference sets the AWSManagedClientApplicationReference field's value.
+func (s *OAuth2ClientApplication) SetAWSManagedClientApplicationReference(v string) *OAuth2ClientApplication {
+	s.AWSManagedClientApplicationReference = &v
+	return s
+}
+
+// SetUserManagedClientApplicationClientId sets the UserManagedClientApplicationClientId field's value.
+func (s *OAuth2ClientApplication) SetUserManagedClientApplicationClientId(v string) *OAuth2ClientApplication {
+	s.UserManagedClientApplicationClientId = &v
+	return s
+}
+
+// A structure containing properties for OAuth2 authentication.
+type OAuth2Properties struct {
+	_ struct{} `type:"structure"`
+
+	// The client application type. For example, AWS_MANAGED or USER_MANAGED.
+	OAuth2ClientApplication *OAuth2ClientApplication `type:"structure"`
+
+	// The OAuth2 grant type. For example, AUTHORIZATION_CODE, JWT_BEARER, or CLIENT_CREDENTIALS.
+	OAuth2GrantType *string `type:"string" enum:"OAuth2GrantType"`
+
+	// The URL of the provider's authentication server, to exchange an authorization
+	// code for an access token.
+	TokenUrl *string `type:"string"`
+
+	// A map of parameters that are added to the token GET request.
+	TokenUrlParametersMap map[string]*string `type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OAuth2Properties) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OAuth2Properties) GoString() string {
+	return s.String()
+}
+
+// SetOAuth2ClientApplication sets the OAuth2ClientApplication field's value.
+func (s *OAuth2Properties) SetOAuth2ClientApplication(v *OAuth2ClientApplication) *OAuth2Properties {
+	s.OAuth2ClientApplication = v
+	return s
+}
+
+// SetOAuth2GrantType sets the OAuth2GrantType field's value.
+func (s *OAuth2Properties) SetOAuth2GrantType(v string) *OAuth2Properties {
+	s.OAuth2GrantType = &v
+	return s
+}
+
+// SetTokenUrl sets the TokenUrl field's value.
+func (s *OAuth2Properties) SetTokenUrl(v string) *OAuth2Properties {
+	s.TokenUrl = &v
+	return s
+}
+
+// SetTokenUrlParametersMap sets the TokenUrlParametersMap field's value.
+func (s *OAuth2Properties) SetTokenUrlParametersMap(v map[string]*string) *OAuth2Properties {
+	s.TokenUrlParametersMap = v
+	return s
+}
+
+// A structure containing properties for OAuth2 in the CreateConnection request.
+type OAuth2PropertiesInput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The set of properties required for the the OAuth2 AUTHORIZATION_CODE grant
+	// type.
+	AuthorizationCodeProperties *AuthorizationCodeProperties `type:"structure"`
+
+	// The client application type in the CreateConnection request. For example,
+	// AWS_MANAGED or USER_MANAGED.
+	OAuth2ClientApplication *OAuth2ClientApplication `type:"structure"`
+
+	// The OAuth2 grant type in the CreateConnection request. For example, AUTHORIZATION_CODE,
+	// JWT_BEARER, or CLIENT_CREDENTIALS.
+	OAuth2GrantType *string `type:"string" enum:"OAuth2GrantType"`
+
+	// The URL of the provider's authentication server, to exchange an authorization
+	// code for an access token.
+	TokenUrl *string `type:"string"`
+
+	// A map of parameters that are added to the token GET request.
+	TokenUrlParametersMap map[string]*string `type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OAuth2PropertiesInput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OAuth2PropertiesInput_) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OAuth2PropertiesInput_) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OAuth2PropertiesInput_"}
+	if s.AuthorizationCodeProperties != nil {
+		if err := s.AuthorizationCodeProperties.Validate(); err != nil {
+			invalidParams.AddNested("AuthorizationCodeProperties", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAuthorizationCodeProperties sets the AuthorizationCodeProperties field's value.
+func (s *OAuth2PropertiesInput_) SetAuthorizationCodeProperties(v *AuthorizationCodeProperties) *OAuth2PropertiesInput_ {
+	s.AuthorizationCodeProperties = v
+	return s
+}
+
+// SetOAuth2ClientApplication sets the OAuth2ClientApplication field's value.
+func (s *OAuth2PropertiesInput_) SetOAuth2ClientApplication(v *OAuth2ClientApplication) *OAuth2PropertiesInput_ {
+	s.OAuth2ClientApplication = v
+	return s
+}
+
+// SetOAuth2GrantType sets the OAuth2GrantType field's value.
+func (s *OAuth2PropertiesInput_) SetOAuth2GrantType(v string) *OAuth2PropertiesInput_ {
+	s.OAuth2GrantType = &v
+	return s
+}
+
+// SetTokenUrl sets the TokenUrl field's value.
+func (s *OAuth2PropertiesInput_) SetTokenUrl(v string) *OAuth2PropertiesInput_ {
+	s.TokenUrl = &v
+	return s
+}
+
+// SetTokenUrlParametersMap sets the TokenUrlParametersMap field's value.
+func (s *OAuth2PropertiesInput_) SetTokenUrlParametersMap(v map[string]*string) *OAuth2PropertiesInput_ {
+	s.TokenUrlParametersMap = v
+	return s
+}
+
 // A structure representing an open format table.
 type OpenTableFormatInput_ struct {
 	_ struct{} `type:"structure"`
@@ -60264,6 +62026,71 @@ func (s *OpenTableFormatInput_) Validate() error {
 func (s *OpenTableFormatInput_) SetIcebergInput(v *IcebergInput_) *OpenTableFormatInput_ {
 	s.IcebergInput = v
 	return s
+}
+
+// The operation is not available in the region.
+type OperationNotSupportedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OperationNotSupportedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OperationNotSupportedException) GoString() string {
+	return s.String()
+}
+
+func newErrorOperationNotSupportedException(v protocol.ResponseMetadata) error {
+	return &OperationNotSupportedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *OperationNotSupportedException) Code() string {
+	return "OperationNotSupportedException"
+}
+
+// Message returns the exception's message.
+func (s *OperationNotSupportedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *OperationNotSupportedException) OrigErr() error {
+	return nil
+}
+
+func (s *OperationNotSupportedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *OperationNotSupportedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *OperationNotSupportedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The operation timed out.
@@ -61283,13 +63110,11 @@ func (s *PermissionTypeMismatchException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Specifies the physical requirements for a connection.
+// The OAuth client app in GetConnection response.
 type PhysicalConnectionRequirements struct {
 	_ struct{} `type:"structure"`
 
-	// The connection's Availability Zone. This field is redundant because the specified
-	// subnet implies the Availability Zone to be used. Currently the field must
-	// be populated, but it will be deprecated in the future.
+	// The connection's Availability Zone.
 	AvailabilityZone *string `min:"1" type:"string"`
 
 	// The security group ID list used by the connection.
@@ -61675,6 +63500,78 @@ func (s *PrincipalPermissions) SetPermissions(v []*string) *PrincipalPermissions
 // SetPrincipal sets the Principal field's value.
 func (s *PrincipalPermissions) SetPrincipal(v *DataLakePrincipal) *PrincipalPermissions {
 	s.Principal = v
+	return s
+}
+
+// Specifies the job and session values that an admin configures in an Glue
+// usage profile.
+type ProfileConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// A key-value map of configuration parameters for Glue jobs.
+	JobConfiguration map[string]*ConfigurationObject `type:"map"`
+
+	// A key-value map of configuration parameters for Glue sessions.
+	SessionConfiguration map[string]*ConfigurationObject `type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ProfileConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ProfileConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ProfileConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ProfileConfiguration"}
+	if s.JobConfiguration != nil {
+		for i, v := range s.JobConfiguration {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "JobConfiguration", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.SessionConfiguration != nil {
+		for i, v := range s.SessionConfiguration {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SessionConfiguration", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetJobConfiguration sets the JobConfiguration field's value.
+func (s *ProfileConfiguration) SetJobConfiguration(v map[string]*ConfigurationObject) *ProfileConfiguration {
+	s.JobConfiguration = v
+	return s
+}
+
+// SetSessionConfiguration sets the SessionConfiguration field's value.
+func (s *ProfileConfiguration) SetSessionConfiguration(v map[string]*ConfigurationObject) *ProfileConfiguration {
+	s.SessionConfiguration = v
 	return s
 }
 
@@ -62504,9 +64401,10 @@ type Recipe struct {
 	Name *string `type:"string" required:"true"`
 
 	// A reference to the DataBrew recipe used by the node.
-	//
-	// RecipeReference is a required field
-	RecipeReference *RecipeReference `type:"structure" required:"true"`
+	RecipeReference *RecipeReference `type:"structure"`
+
+	// Transform steps used in the recipe node.
+	RecipeSteps []*RecipeStep `type:"list"`
 }
 
 // String returns the string representation.
@@ -62539,12 +64437,19 @@ func (s *Recipe) Validate() error {
 	if s.Name == nil {
 		invalidParams.Add(request.NewErrParamRequired("Name"))
 	}
-	if s.RecipeReference == nil {
-		invalidParams.Add(request.NewErrParamRequired("RecipeReference"))
-	}
 	if s.RecipeReference != nil {
 		if err := s.RecipeReference.Validate(); err != nil {
 			invalidParams.AddNested("RecipeReference", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RecipeSteps != nil {
+		for i, v := range s.RecipeSteps {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "RecipeSteps", i), err.(request.ErrInvalidParams))
+			}
 		}
 	}
 
@@ -62569,6 +64474,71 @@ func (s *Recipe) SetName(v string) *Recipe {
 // SetRecipeReference sets the RecipeReference field's value.
 func (s *Recipe) SetRecipeReference(v *RecipeReference) *Recipe {
 	s.RecipeReference = v
+	return s
+}
+
+// SetRecipeSteps sets the RecipeSteps field's value.
+func (s *Recipe) SetRecipeSteps(v []*RecipeStep) *Recipe {
+	s.RecipeSteps = v
+	return s
+}
+
+// Actions defined in the Glue Studio data preparation recipe node.
+type RecipeAction struct {
+	_ struct{} `type:"structure"`
+
+	// The operation of the recipe action.
+	//
+	// Operation is a required field
+	Operation *string `min:"1" type:"string" required:"true"`
+
+	// The parameters of the recipe action.
+	Parameters map[string]*string `type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RecipeAction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RecipeAction) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RecipeAction) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RecipeAction"}
+	if s.Operation == nil {
+		invalidParams.Add(request.NewErrParamRequired("Operation"))
+	}
+	if s.Operation != nil && len(*s.Operation) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Operation", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetOperation sets the Operation field's value.
+func (s *RecipeAction) SetOperation(v string) *RecipeAction {
+	s.Operation = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *RecipeAction) SetParameters(v map[string]*string) *RecipeAction {
+	s.Parameters = v
 	return s
 }
 
@@ -62633,6 +64603,77 @@ func (s *RecipeReference) SetRecipeArn(v string) *RecipeReference {
 // SetRecipeVersion sets the RecipeVersion field's value.
 func (s *RecipeReference) SetRecipeVersion(v string) *RecipeReference {
 	s.RecipeVersion = &v
+	return s
+}
+
+// A recipe step used in a Glue Studio data preparation recipe node.
+type RecipeStep struct {
+	_ struct{} `type:"structure"`
+
+	// The transformation action of the recipe step.
+	//
+	// Action is a required field
+	Action *RecipeAction `type:"structure" required:"true"`
+
+	// The condition expressions for the recipe step.
+	ConditionExpressions []*ConditionExpression `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RecipeStep) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RecipeStep) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RecipeStep) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RecipeStep"}
+	if s.Action == nil {
+		invalidParams.Add(request.NewErrParamRequired("Action"))
+	}
+	if s.Action != nil {
+		if err := s.Action.Validate(); err != nil {
+			invalidParams.AddNested("Action", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ConditionExpressions != nil {
+		for i, v := range s.ConditionExpressions {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ConditionExpressions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAction sets the Action field's value.
+func (s *RecipeStep) SetAction(v *RecipeAction) *RecipeStep {
+	s.Action = v
+	return s
+}
+
+// SetConditionExpressions sets the ConditionExpressions field's value.
+func (s *RecipeStep) SetConditionExpressions(v []*ConditionExpression) *RecipeStep {
+	s.ConditionExpressions = v
 	return s
 }
 
@@ -67539,6 +69580,9 @@ type Session struct {
 	// The number of workers of a defined WorkerType to use for the session.
 	NumberOfWorkers *int64 `type:"integer"`
 
+	// The name of an Glue usage profile associated with the session.
+	ProfileName *string `min:"1" type:"string"`
+
 	// The code execution progress of the session.
 	Progress *float64 `type:"double"`
 
@@ -67657,6 +69701,12 @@ func (s *Session) SetMaxCapacity(v float64) *Session {
 // SetNumberOfWorkers sets the NumberOfWorkers field's value.
 func (s *Session) SetNumberOfWorkers(v int64) *Session {
 	s.NumberOfWorkers = &v
+	return s
+}
+
+// SetProfileName sets the ProfileName field's value.
+func (s *Session) SetProfileName(v string) *Session {
+	s.ProfileName = &v
 	return s
 }
 
@@ -69994,8 +72044,10 @@ type StartJobRunInput struct {
 	// consume resources before it is terminated and enters TIMEOUT status. This
 	// value overrides the timeout value set in the parent job.
 	//
-	// Streaming jobs do not have a timeout. The default for non-streaming jobs
-	// is 2,880 minutes (48 hours).
+	// Streaming jobs must have timeout values less than 7 days or 10080 minutes.
+	// When the value is left blank, the job will be restarted after 7 days based
+	// if you have not setup a maintenance window. If you have setup maintenance
+	// window, it will be restarted during the maintenance window after 7 days.
 	Timeout *int64 `min:"1" type:"integer"`
 
 	// The type of predefined worker that is allocated when a job runs. Accepts
@@ -72207,6 +74259,10 @@ type TableInput struct {
 	// A TableIdentifier structure that describes a target table for resource linking.
 	TargetTable *TableIdentifier `type:"structure"`
 
+	// A structure that contains all the information that defines the view, including
+	// the dialect or dialects for the view, and the query.
+	ViewDefinition *ViewDefinitionInput_ `type:"structure"`
+
 	// Included for Apache Hive compatibility. Not used in the normal course of
 	// Glue operations.
 	ViewExpandedText *string `type:"string"`
@@ -72265,6 +74321,11 @@ func (s *TableInput) Validate() error {
 	if s.TargetTable != nil {
 		if err := s.TargetTable.Validate(); err != nil {
 			invalidParams.AddNested("TargetTable", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ViewDefinition != nil {
+		if err := s.ViewDefinition.Validate(); err != nil {
+			invalidParams.AddNested("ViewDefinition", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -72337,6 +74398,12 @@ func (s *TableInput) SetTableType(v string) *TableInput {
 // SetTargetTable sets the TargetTable field's value.
 func (s *TableInput) SetTargetTable(v *TableIdentifier) *TableInput {
 	s.TargetTable = v
+	return s
+}
+
+// SetViewDefinition sets the ViewDefinition field's value.
+func (s *TableInput) SetViewDefinition(v *ViewDefinitionInput_) *TableInput {
+	s.ViewDefinition = v
 	return s
 }
 
@@ -76522,6 +78589,10 @@ type UpdateTableInput struct {
 	// DatabaseName is a required field
 	DatabaseName *string `min:"1" type:"string" required:"true"`
 
+	// A flag that can be set to true to ignore matching storage descriptor and
+	// subobject matching requirements.
+	Force *bool `type:"boolean"`
+
 	// By default, UpdateTable always creates an archived version of the table before
 	// updating it. However, if skipArchive is set to true, UpdateTable does not
 	// create the archived version.
@@ -76537,6 +78608,9 @@ type UpdateTableInput struct {
 
 	// The version ID at which to update the table contents.
 	VersionId *string `min:"1" type:"string"`
+
+	// The operation to be performed when updating the view.
+	ViewUpdateAction *string `type:"string" enum:"ViewUpdateAction"`
 }
 
 // String returns the string representation.
@@ -76602,6 +78676,12 @@ func (s *UpdateTableInput) SetDatabaseName(v string) *UpdateTableInput {
 	return s
 }
 
+// SetForce sets the Force field's value.
+func (s *UpdateTableInput) SetForce(v bool) *UpdateTableInput {
+	s.Force = &v
+	return s
+}
+
 // SetSkipArchive sets the SkipArchive field's value.
 func (s *UpdateTableInput) SetSkipArchive(v bool) *UpdateTableInput {
 	s.SkipArchive = &v
@@ -76623,6 +78703,12 @@ func (s *UpdateTableInput) SetTransactionId(v string) *UpdateTableInput {
 // SetVersionId sets the VersionId field's value.
 func (s *UpdateTableInput) SetVersionId(v string) *UpdateTableInput {
 	s.VersionId = &v
+	return s
+}
+
+// SetViewUpdateAction sets the ViewUpdateAction field's value.
+func (s *UpdateTableInput) SetViewUpdateAction(v string) *UpdateTableInput {
+	s.ViewUpdateAction = &v
 	return s
 }
 
@@ -76883,6 +78969,115 @@ func (s UpdateTriggerOutput) GoString() string {
 // SetTrigger sets the Trigger field's value.
 func (s *UpdateTriggerOutput) SetTrigger(v *Trigger) *UpdateTriggerOutput {
 	s.Trigger = v
+	return s
+}
+
+type UpdateUsageProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// A ProfileConfiguration object specifying the job and session values for the
+	// profile.
+	//
+	// Configuration is a required field
+	Configuration *ProfileConfiguration `type:"structure" required:"true"`
+
+	// A description of the usage profile.
+	Description *string `type:"string"`
+
+	// The name of the usage profile.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateUsageProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateUsageProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateUsageProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateUsageProfileInput"}
+	if s.Configuration == nil {
+		invalidParams.Add(request.NewErrParamRequired("Configuration"))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Configuration != nil {
+		if err := s.Configuration.Validate(); err != nil {
+			invalidParams.AddNested("Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *UpdateUsageProfileInput) SetConfiguration(v *ProfileConfiguration) *UpdateUsageProfileInput {
+	s.Configuration = v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateUsageProfileInput) SetDescription(v string) *UpdateUsageProfileInput {
+	s.Description = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateUsageProfileInput) SetName(v string) *UpdateUsageProfileInput {
+	s.Name = &v
+	return s
+}
+
+type UpdateUsageProfileOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the usage profile that was updated.
+	Name *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateUsageProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateUsageProfileOutput) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateUsageProfileOutput) SetName(v string) *UpdateUsageProfileOutput {
+	s.Name = &v
 	return s
 }
 
@@ -77235,6 +79430,65 @@ func (s *UpsertRedshiftTargetOptions) SetTableLocation(v string) *UpsertRedshift
 // SetUpsertKeys sets the UpsertKeys field's value.
 func (s *UpsertRedshiftTargetOptions) SetUpsertKeys(v []*string) *UpsertRedshiftTargetOptions {
 	s.UpsertKeys = v
+	return s
+}
+
+// Describes an Glue usage profile.
+type UsageProfileDefinition struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time when the usage profile was created.
+	CreatedOn *time.Time `type:"timestamp"`
+
+	// A description of the usage profile.
+	Description *string `type:"string"`
+
+	// The date and time when the usage profile was last modified.
+	LastModifiedOn *time.Time `type:"timestamp"`
+
+	// The name of the usage profile.
+	Name *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UsageProfileDefinition) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UsageProfileDefinition) GoString() string {
+	return s.String()
+}
+
+// SetCreatedOn sets the CreatedOn field's value.
+func (s *UsageProfileDefinition) SetCreatedOn(v time.Time) *UsageProfileDefinition {
+	s.CreatedOn = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *UsageProfileDefinition) SetDescription(v string) *UsageProfileDefinition {
+	s.Description = &v
+	return s
+}
+
+// SetLastModifiedOn sets the LastModifiedOn field's value.
+func (s *UsageProfileDefinition) SetLastModifiedOn(v time.Time) *UsageProfileDefinition {
+	s.LastModifiedOn = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UsageProfileDefinition) SetName(v string) *UsageProfileDefinition {
+	s.Name = &v
 	return s
 }
 
@@ -77622,6 +79876,95 @@ func (s *ViewDefinition) SetSubObjects(v []*string) *ViewDefinition {
 	return s
 }
 
+// A structure containing details for creating or updating an Glue view.
+type ViewDefinitionInput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The definer of a view in SQL.
+	Definer *string `min:"20" type:"string"`
+
+	// You can set this flag as true to instruct the engine not to push user-provided
+	// operations into the logical plan of the view during query planning. However,
+	// setting this flag does not guarantee that the engine will comply. Refer to
+	// the engine's documentation to understand the guarantees provided, if any.
+	IsProtected *bool `type:"boolean"`
+
+	// A list of structures that contains the dialect of the view, and the query
+	// that defines the view.
+	Representations []*ViewRepresentationInput_ `min:"1" type:"list"`
+
+	// A list of base table ARNs that make up the view.
+	SubObjects []*string `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ViewDefinitionInput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ViewDefinitionInput_) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ViewDefinitionInput_) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ViewDefinitionInput_"}
+	if s.Definer != nil && len(*s.Definer) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("Definer", 20))
+	}
+	if s.Representations != nil && len(s.Representations) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Representations", 1))
+	}
+	if s.Representations != nil {
+		for i, v := range s.Representations {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Representations", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDefiner sets the Definer field's value.
+func (s *ViewDefinitionInput_) SetDefiner(v string) *ViewDefinitionInput_ {
+	s.Definer = &v
+	return s
+}
+
+// SetIsProtected sets the IsProtected field's value.
+func (s *ViewDefinitionInput_) SetIsProtected(v bool) *ViewDefinitionInput_ {
+	s.IsProtected = &v
+	return s
+}
+
+// SetRepresentations sets the Representations field's value.
+func (s *ViewDefinitionInput_) SetRepresentations(v []*ViewRepresentationInput_) *ViewDefinitionInput_ {
+	s.Representations = v
+	return s
+}
+
+// SetSubObjects sets the SubObjects field's value.
+func (s *ViewDefinitionInput_) SetSubObjects(v []*string) *ViewDefinitionInput_ {
+	s.SubObjects = v
+	return s
+}
+
 // A structure that contains the dialect of the view, and the query that defines
 // the view.
 type ViewRepresentation struct {
@@ -77637,11 +79980,15 @@ type ViewRepresentation struct {
 	// can be queried in their respective query engines.
 	IsStale *bool `type:"boolean"`
 
+	// The name of the connection to be used to validate the specific representation
+	// of the view.
+	ValidationConnection *string `min:"1" type:"string"`
+
 	// The expanded SQL for the view. This SQL is used by engines while processing
 	// a query on a view. Engines may perform operations during view creation to
 	// transform ViewOriginalText to ViewExpandedText. For example:
 	//
-	//    * Fully qualify identifiers: SELECT * from table1 → SELECT * from db1.table1
+	//    * Fully qualified identifiers: SELECT * from table1 -> SELECT * from db1.table1
 	ViewExpandedText *string `type:"string"`
 
 	// The SELECT query provided by the customer during CREATE VIEW DDL. This SQL
@@ -77687,6 +80034,12 @@ func (s *ViewRepresentation) SetIsStale(v bool) *ViewRepresentation {
 	return s
 }
 
+// SetValidationConnection sets the ValidationConnection field's value.
+func (s *ViewRepresentation) SetValidationConnection(v string) *ViewRepresentation {
+	s.ValidationConnection = &v
+	return s
+}
+
 // SetViewExpandedText sets the ViewExpandedText field's value.
 func (s *ViewRepresentation) SetViewExpandedText(v string) *ViewRepresentation {
 	s.ViewExpandedText = &v
@@ -77695,6 +80048,93 @@ func (s *ViewRepresentation) SetViewExpandedText(v string) *ViewRepresentation {
 
 // SetViewOriginalText sets the ViewOriginalText field's value.
 func (s *ViewRepresentation) SetViewOriginalText(v string) *ViewRepresentation {
+	s.ViewOriginalText = &v
+	return s
+}
+
+// A structure containing details of a representation to update or create a
+// Lake Formation view.
+type ViewRepresentationInput_ struct {
+	_ struct{} `type:"structure"`
+
+	// A parameter that specifies the engine type of a specific representation.
+	Dialect *string `type:"string" enum:"ViewDialect"`
+
+	// A parameter that specifies the version of the engine of a specific representation.
+	DialectVersion *string `min:"1" type:"string"`
+
+	// The name of the connection to be used to validate the specific representation
+	// of the view.
+	ValidationConnection *string `min:"1" type:"string"`
+
+	// A string that represents the SQL query that describes the view with expanded
+	// resource ARNs
+	ViewExpandedText *string `type:"string"`
+
+	// A string that represents the original SQL query that describes the view.
+	ViewOriginalText *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ViewRepresentationInput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ViewRepresentationInput_) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ViewRepresentationInput_) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ViewRepresentationInput_"}
+	if s.DialectVersion != nil && len(*s.DialectVersion) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DialectVersion", 1))
+	}
+	if s.ValidationConnection != nil && len(*s.ValidationConnection) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ValidationConnection", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDialect sets the Dialect field's value.
+func (s *ViewRepresentationInput_) SetDialect(v string) *ViewRepresentationInput_ {
+	s.Dialect = &v
+	return s
+}
+
+// SetDialectVersion sets the DialectVersion field's value.
+func (s *ViewRepresentationInput_) SetDialectVersion(v string) *ViewRepresentationInput_ {
+	s.DialectVersion = &v
+	return s
+}
+
+// SetValidationConnection sets the ValidationConnection field's value.
+func (s *ViewRepresentationInput_) SetValidationConnection(v string) *ViewRepresentationInput_ {
+	s.ValidationConnection = &v
+	return s
+}
+
+// SetViewExpandedText sets the ViewExpandedText field's value.
+func (s *ViewRepresentationInput_) SetViewExpandedText(v string) *ViewRepresentationInput_ {
+	s.ViewExpandedText = &v
+	return s
+}
+
+// SetViewOriginalText sets the ViewOriginalText field's value.
+func (s *ViewRepresentationInput_) SetViewOriginalText(v string) *ViewRepresentationInput_ {
 	s.ViewOriginalText = &v
 	return s
 }
@@ -78246,6 +80686,26 @@ func AggFunction_Values() []string {
 }
 
 const (
+	// AuthenticationTypeBasic is a AuthenticationType enum value
+	AuthenticationTypeBasic = "BASIC"
+
+	// AuthenticationTypeOauth2 is a AuthenticationType enum value
+	AuthenticationTypeOauth2 = "OAUTH2"
+
+	// AuthenticationTypeCustom is a AuthenticationType enum value
+	AuthenticationTypeCustom = "CUSTOM"
+)
+
+// AuthenticationType_Values returns all elements of the AuthenticationType enum
+func AuthenticationType_Values() []string {
+	return []string{
+		AuthenticationTypeBasic,
+		AuthenticationTypeOauth2,
+		AuthenticationTypeCustom,
+	}
+}
+
+const (
 	// BackfillErrorCodeEncryptedPartitionError is a BackfillErrorCode enum value
 	BackfillErrorCodeEncryptedPartitionError = "ENCRYPTED_PARTITION_ERROR"
 
@@ -78631,6 +81091,9 @@ const (
 
 	// ConnectionPropertyKeyKafkaSaslGssapiPrincipal is a ConnectionPropertyKey enum value
 	ConnectionPropertyKeyKafkaSaslGssapiPrincipal = "KAFKA_SASL_GSSAPI_PRINCIPAL"
+
+	// ConnectionPropertyKeyRoleArn is a ConnectionPropertyKey enum value
+	ConnectionPropertyKeyRoleArn = "ROLE_ARN"
 )
 
 // ConnectionPropertyKey_Values returns all elements of the ConnectionPropertyKey enum
@@ -78678,6 +81141,27 @@ func ConnectionPropertyKey_Values() []string {
 		ConnectionPropertyKeyKafkaSaslGssapiKrb5Conf,
 		ConnectionPropertyKeyKafkaSaslGssapiService,
 		ConnectionPropertyKeyKafkaSaslGssapiPrincipal,
+		ConnectionPropertyKeyRoleArn,
+	}
+}
+
+const (
+	// ConnectionStatusReady is a ConnectionStatus enum value
+	ConnectionStatusReady = "READY"
+
+	// ConnectionStatusInProgress is a ConnectionStatus enum value
+	ConnectionStatusInProgress = "IN_PROGRESS"
+
+	// ConnectionStatusFailed is a ConnectionStatus enum value
+	ConnectionStatusFailed = "FAILED"
+)
+
+// ConnectionStatus_Values returns all elements of the ConnectionStatus enum
+func ConnectionStatus_Values() []string {
+	return []string{
+		ConnectionStatusReady,
+		ConnectionStatusInProgress,
+		ConnectionStatusFailed,
 	}
 }
 
@@ -78702,6 +81186,9 @@ const (
 
 	// ConnectionTypeCustom is a ConnectionType enum value
 	ConnectionTypeCustom = "CUSTOM"
+
+	// ConnectionTypeSalesforce is a ConnectionType enum value
+	ConnectionTypeSalesforce = "SALESFORCE"
 )
 
 // ConnectionType_Values returns all elements of the ConnectionType enum
@@ -78714,6 +81201,7 @@ func ConnectionType_Values() []string {
 		ConnectionTypeNetwork,
 		ConnectionTypeMarketplace,
 		ConnectionTypeCustom,
+		ConnectionTypeSalesforce,
 	}
 }
 
@@ -78850,6 +81338,22 @@ func CsvSerdeOption_Values() []string {
 }
 
 const (
+	// DQCompositeRuleEvaluationMethodColumn is a DQCompositeRuleEvaluationMethod enum value
+	DQCompositeRuleEvaluationMethodColumn = "COLUMN"
+
+	// DQCompositeRuleEvaluationMethodRow is a DQCompositeRuleEvaluationMethod enum value
+	DQCompositeRuleEvaluationMethodRow = "ROW"
+)
+
+// DQCompositeRuleEvaluationMethod_Values returns all elements of the DQCompositeRuleEvaluationMethod enum
+func DQCompositeRuleEvaluationMethod_Values() []string {
+	return []string{
+		DQCompositeRuleEvaluationMethodColumn,
+		DQCompositeRuleEvaluationMethodRow,
+	}
+}
+
+const (
 	// DQStopJobOnFailureTimingImmediate is a DQStopJobOnFailureTiming enum value
 	DQStopJobOnFailureTimingImmediate = "Immediate"
 
@@ -78918,6 +81422,18 @@ func DataQualityRuleResultStatus_Values() []string {
 		DataQualityRuleResultStatusPass,
 		DataQualityRuleResultStatusFail,
 		DataQualityRuleResultStatusError,
+	}
+}
+
+const (
+	// DatabaseAttributesName is a DatabaseAttributes enum value
+	DatabaseAttributesName = "NAME"
+)
+
+// DatabaseAttributes_Values returns all elements of the DatabaseAttributes enum
+func DatabaseAttributes_Values() []string {
+	return []string{
+		DatabaseAttributesName,
 	}
 }
 
@@ -79010,6 +81526,18 @@ func ExistCondition_Values() []string {
 }
 
 const (
+	// FederationSourceErrorCodeAccessDeniedException is a FederationSourceErrorCode enum value
+	FederationSourceErrorCodeAccessDeniedException = "AccessDeniedException"
+
+	// FederationSourceErrorCodeEntityNotFoundException is a FederationSourceErrorCode enum value
+	FederationSourceErrorCodeEntityNotFoundException = "EntityNotFoundException"
+
+	// FederationSourceErrorCodeInvalidCredentialsException is a FederationSourceErrorCode enum value
+	FederationSourceErrorCodeInvalidCredentialsException = "InvalidCredentialsException"
+
+	// FederationSourceErrorCodeInvalidInputException is a FederationSourceErrorCode enum value
+	FederationSourceErrorCodeInvalidInputException = "InvalidInputException"
+
 	// FederationSourceErrorCodeInvalidResponseException is a FederationSourceErrorCode enum value
 	FederationSourceErrorCodeInvalidResponseException = "InvalidResponseException"
 
@@ -79022,6 +81550,9 @@ const (
 	// FederationSourceErrorCodeInternalServiceException is a FederationSourceErrorCode enum value
 	FederationSourceErrorCodeInternalServiceException = "InternalServiceException"
 
+	// FederationSourceErrorCodePartialFailureException is a FederationSourceErrorCode enum value
+	FederationSourceErrorCodePartialFailureException = "PartialFailureException"
+
 	// FederationSourceErrorCodeThrottlingException is a FederationSourceErrorCode enum value
 	FederationSourceErrorCodeThrottlingException = "ThrottlingException"
 )
@@ -79029,10 +81560,15 @@ const (
 // FederationSourceErrorCode_Values returns all elements of the FederationSourceErrorCode enum
 func FederationSourceErrorCode_Values() []string {
 	return []string{
+		FederationSourceErrorCodeAccessDeniedException,
+		FederationSourceErrorCodeEntityNotFoundException,
+		FederationSourceErrorCodeInvalidCredentialsException,
+		FederationSourceErrorCodeInvalidInputException,
 		FederationSourceErrorCodeInvalidResponseException,
 		FederationSourceErrorCodeOperationTimeoutException,
 		FederationSourceErrorCodeOperationNotSupportedException,
 		FederationSourceErrorCodeInternalServiceException,
+		FederationSourceErrorCodePartialFailureException,
 		FederationSourceErrorCodeThrottlingException,
 	}
 }
@@ -79462,6 +81998,26 @@ func JobBookmarksEncryptionMode_Values() []string {
 }
 
 const (
+	// JobModeScript is a JobMode enum value
+	JobModeScript = "SCRIPT"
+
+	// JobModeVisual is a JobMode enum value
+	JobModeVisual = "VISUAL"
+
+	// JobModeNotebook is a JobMode enum value
+	JobModeNotebook = "NOTEBOOK"
+)
+
+// JobMode_Values returns all elements of the JobMode enum
+func JobMode_Values() []string {
+	return []string{
+		JobModeScript,
+		JobModeVisual,
+		JobModeNotebook,
+	}
+}
+
+const (
 	// JobRunStateStarting is a JobRunState enum value
 	JobRunStateStarting = "STARTING"
 
@@ -79488,6 +82044,9 @@ const (
 
 	// JobRunStateWaiting is a JobRunState enum value
 	JobRunStateWaiting = "WAITING"
+
+	// JobRunStateExpired is a JobRunState enum value
+	JobRunStateExpired = "EXPIRED"
 )
 
 // JobRunState_Values returns all elements of the JobRunState enum
@@ -79502,6 +82061,7 @@ func JobRunState_Values() []string {
 		JobRunStateTimeout,
 		JobRunStateError,
 		JobRunStateWaiting,
+		JobRunStateExpired,
 	}
 }
 
@@ -79646,6 +82206,26 @@ func NodeType_Values() []string {
 		NodeTypeCrawler,
 		NodeTypeJob,
 		NodeTypeTrigger,
+	}
+}
+
+const (
+	// OAuth2GrantTypeAuthorizationCode is a OAuth2GrantType enum value
+	OAuth2GrantTypeAuthorizationCode = "AUTHORIZATION_CODE"
+
+	// OAuth2GrantTypeClientCredentials is a OAuth2GrantType enum value
+	OAuth2GrantTypeClientCredentials = "CLIENT_CREDENTIALS"
+
+	// OAuth2GrantTypeJwtBearer is a OAuth2GrantType enum value
+	OAuth2GrantTypeJwtBearer = "JWT_BEARER"
+)
+
+// OAuth2GrantType_Values returns all elements of the OAuth2GrantType enum
+func OAuth2GrantType_Values() []string {
+	return []string{
+		OAuth2GrantTypeAuthorizationCode,
+		OAuth2GrantTypeClientCredentials,
+		OAuth2GrantTypeJwtBearer,
 	}
 }
 
@@ -80578,6 +83158,30 @@ func ViewDialect_Values() []string {
 		ViewDialectRedshift,
 		ViewDialectAthena,
 		ViewDialectSpark,
+	}
+}
+
+const (
+	// ViewUpdateActionAdd is a ViewUpdateAction enum value
+	ViewUpdateActionAdd = "ADD"
+
+	// ViewUpdateActionReplace is a ViewUpdateAction enum value
+	ViewUpdateActionReplace = "REPLACE"
+
+	// ViewUpdateActionAddOrReplace is a ViewUpdateAction enum value
+	ViewUpdateActionAddOrReplace = "ADD_OR_REPLACE"
+
+	// ViewUpdateActionDrop is a ViewUpdateAction enum value
+	ViewUpdateActionDrop = "DROP"
+)
+
+// ViewUpdateAction_Values returns all elements of the ViewUpdateAction enum
+func ViewUpdateAction_Values() []string {
+	return []string{
+		ViewUpdateActionAdd,
+		ViewUpdateActionReplace,
+		ViewUpdateActionAddOrReplace,
+		ViewUpdateActionDrop,
 	}
 }
 

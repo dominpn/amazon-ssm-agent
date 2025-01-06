@@ -6653,6 +6653,114 @@ func (c *OpenSearchService) UpgradeDomainWithContext(ctx aws.Context, input *Upg
 	return out, req.Send()
 }
 
+// Container for parameters required to enable all machine learning features.
+type AIMLOptionsInput_ struct {
+	_ struct{} `type:"structure"`
+
+	// Container for parameters required for natural language query generation on
+	// the specified domain.
+	NaturalLanguageQueryGenerationOptions *NaturalLanguageQueryGenerationOptionsInput_ `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AIMLOptionsInput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AIMLOptionsInput_) GoString() string {
+	return s.String()
+}
+
+// SetNaturalLanguageQueryGenerationOptions sets the NaturalLanguageQueryGenerationOptions field's value.
+func (s *AIMLOptionsInput_) SetNaturalLanguageQueryGenerationOptions(v *NaturalLanguageQueryGenerationOptionsInput_) *AIMLOptionsInput_ {
+	s.NaturalLanguageQueryGenerationOptions = v
+	return s
+}
+
+// Container for parameters representing the state of machine learning features
+// on the specified domain.
+type AIMLOptionsOutput_ struct {
+	_ struct{} `type:"structure"`
+
+	// Container for parameters required for natural language query generation on
+	// the specified domain.
+	NaturalLanguageQueryGenerationOptions *NaturalLanguageQueryGenerationOptionsOutput_ `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AIMLOptionsOutput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AIMLOptionsOutput_) GoString() string {
+	return s.String()
+}
+
+// SetNaturalLanguageQueryGenerationOptions sets the NaturalLanguageQueryGenerationOptions field's value.
+func (s *AIMLOptionsOutput_) SetNaturalLanguageQueryGenerationOptions(v *NaturalLanguageQueryGenerationOptionsOutput_) *AIMLOptionsOutput_ {
+	s.NaturalLanguageQueryGenerationOptions = v
+	return s
+}
+
+// The status of machine learning options on the specified domain.
+type AIMLOptionsStatus struct {
+	_ struct{} `type:"structure"`
+
+	// Machine learning options on the specified domain.
+	Options *AIMLOptionsOutput_ `type:"structure"`
+
+	// Provides the current status of an entity.
+	Status *OptionStatus `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AIMLOptionsStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AIMLOptionsStatus) GoString() string {
+	return s.String()
+}
+
+// SetOptions sets the Options field's value.
+func (s *AIMLOptionsStatus) SetOptions(v *AIMLOptionsOutput_) *AIMLOptionsStatus {
+	s.Options = v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *AIMLOptionsStatus) SetStatus(v *OptionStatus) *AIMLOptionsStatus {
+	s.Status = v
+	return s
+}
+
 // Information about an Amazon OpenSearch Service domain.
 type AWSDomainInformation struct {
 	_ struct{} `type:"structure"`
@@ -7281,6 +7389,10 @@ type AdvancedSecurityOptions struct {
 	// True if the internal user database is enabled.
 	InternalUserDatabaseEnabled *bool `type:"boolean"`
 
+	// Container for information about the JWT configuration of the Amazon OpenSearch
+	// Service.
+	JWTOptions *JWTOptionsOutput_ `type:"structure"`
+
 	// Container for information about the SAML configuration for OpenSearch Dashboards.
 	SAMLOptions *SAMLOptionsOutput_ `type:"structure"`
 }
@@ -7327,6 +7439,12 @@ func (s *AdvancedSecurityOptions) SetInternalUserDatabaseEnabled(v bool) *Advanc
 	return s
 }
 
+// SetJWTOptions sets the JWTOptions field's value.
+func (s *AdvancedSecurityOptions) SetJWTOptions(v *JWTOptionsOutput_) *AdvancedSecurityOptions {
+	s.JWTOptions = v
+	return s
+}
+
 // SetSAMLOptions sets the SAMLOptions field's value.
 func (s *AdvancedSecurityOptions) SetSAMLOptions(v *SAMLOptionsOutput_) *AdvancedSecurityOptions {
 	s.SAMLOptions = v
@@ -7349,6 +7467,10 @@ type AdvancedSecurityOptionsInput_ struct {
 
 	// True to enable the internal user database.
 	InternalUserDatabaseEnabled *bool `type:"boolean"`
+
+	// Container for information about the JWT configuration of the Amazon OpenSearch
+	// Service.
+	JWTOptions *JWTOptionsInput_ `type:"structure"`
 
 	// Container for information about the master user.
 	MasterUserOptions *MasterUserOptions `type:"structure"`
@@ -7378,6 +7500,11 @@ func (s AdvancedSecurityOptionsInput_) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *AdvancedSecurityOptionsInput_) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "AdvancedSecurityOptionsInput_"}
+	if s.JWTOptions != nil {
+		if err := s.JWTOptions.Validate(); err != nil {
+			invalidParams.AddNested("JWTOptions", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.MasterUserOptions != nil {
 		if err := s.MasterUserOptions.Validate(); err != nil {
 			invalidParams.AddNested("MasterUserOptions", err.(request.ErrInvalidParams))
@@ -7410,6 +7537,12 @@ func (s *AdvancedSecurityOptionsInput_) SetEnabled(v bool) *AdvancedSecurityOpti
 // SetInternalUserDatabaseEnabled sets the InternalUserDatabaseEnabled field's value.
 func (s *AdvancedSecurityOptionsInput_) SetInternalUserDatabaseEnabled(v bool) *AdvancedSecurityOptionsInput_ {
 	s.InternalUserDatabaseEnabled = &v
+	return s
+}
+
+// SetJWTOptions sets the JWTOptions field's value.
+func (s *AdvancedSecurityOptionsInput_) SetJWTOptions(v *JWTOptionsInput_) *AdvancedSecurityOptionsInput_ {
+	s.JWTOptions = v
 	return s
 }
 
@@ -9379,6 +9512,9 @@ func (s *ConnectionProperties) SetEndpoint(v string) *ConnectionProperties {
 type CreateDomainInput struct {
 	_ struct{} `type:"structure"`
 
+	// Options for all machine learning features for the specified domain.
+	AIMLOptions *AIMLOptionsInput_ `type:"structure"`
+
 	// Identity and Access Management (IAM) policy document specifying the access
 	// policies for the new domain.
 	AccessPolicies *string `type:"string"`
@@ -9572,6 +9708,12 @@ func (s *CreateDomainInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAIMLOptions sets the AIMLOptions field's value.
+func (s *CreateDomainInput) SetAIMLOptions(v *AIMLOptionsInput_) *CreateDomainInput {
+	s.AIMLOptions = v
+	return s
 }
 
 // SetAccessPolicies sets the AccessPolicies field's value.
@@ -10194,6 +10336,9 @@ type DataSourceDetails struct {
 
 	// The name of the data source.
 	Name *string `min:"3" type:"string"`
+
+	// The status of the data source.
+	Status *string `type:"string" enum:"DataSourceStatus"`
 }
 
 // String returns the string representation.
@@ -10229,6 +10374,12 @@ func (s *DataSourceDetails) SetDescription(v string) *DataSourceDetails {
 // SetName sets the Name field's value.
 func (s *DataSourceDetails) SetName(v string) *DataSourceDetails {
 	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *DataSourceDetails) SetStatus(v string) *DataSourceDetails {
+	s.Status = &v
 	return s
 }
 
@@ -12741,6 +12892,9 @@ func (s *DissociatePackageOutput) SetDomainPackageDetails(v *DomainPackageDetail
 type DomainConfig struct {
 	_ struct{} `type:"structure"`
 
+	// Container for parameters required to enable all machine learning features.
+	AIMLOptions *AIMLOptionsStatus `type:"structure"`
+
 	// Specifies the access policies for the domain.
 	AccessPolicies *AccessPoliciesStatus `type:"structure"`
 
@@ -12823,6 +12977,12 @@ func (s DomainConfig) String() string {
 // value will be replaced with "sensitive".
 func (s DomainConfig) GoString() string {
 	return s.String()
+}
+
+// SetAIMLOptions sets the AIMLOptions field's value.
+func (s *DomainConfig) SetAIMLOptions(v *AIMLOptionsStatus) *DomainConfig {
+	s.AIMLOptions = v
+	return s
 }
 
 // SetAccessPolicies sets the AccessPolicies field's value.
@@ -13469,6 +13629,9 @@ func (s *DomainPackageDetails) SetReferencePath(v string) *DomainPackageDetails 
 type DomainStatus struct {
 	_ struct{} `type:"structure"`
 
+	// Container for parameters required to enable all machine learning features.
+	AIMLOptions *AIMLOptionsOutput_ `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the domain. For more information, see IAM
 	// identifiers (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html)
 	// in the AWS Identity and Access Management User Guide.
@@ -13514,6 +13677,9 @@ type DomainStatus struct {
 	// for all traffic.
 	DomainEndpointOptions *DomainEndpointOptions `type:"structure"`
 
+	// The dual stack hosted zone ID for the domain.
+	DomainEndpointV2HostedZoneId *string `type:"string"`
+
 	// Unique identifier for the domain.
 	//
 	// DomainId is a required field
@@ -13545,7 +13711,11 @@ type DomainStatus struct {
 	EndpointV2 *string `type:"string"`
 
 	// The key-value pair that exists if the OpenSearch Service domain uses VPC
-	// endpoints. Example key, value: 'vpc','vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.us-east-1.es.amazonaws.com'.
+	// endpoints. For example:
+	//
+	//    * IPv4 IP addresses - 'vpc','vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.us-east-1.es.amazonaws.com'
+	//
+	//    * Dual stack IP addresses - 'vpcv2':'vpc-endpoint-h2dsd34efgyghrtguk5gt6j2foh4.aos.us-east-1.on.aws'
 	Endpoints map[string]*string `type:"map"`
 
 	// Version of OpenSearch or Elasticsearch that the domain is running, in the
@@ -13607,6 +13777,12 @@ func (s DomainStatus) String() string {
 // value will be replaced with "sensitive".
 func (s DomainStatus) GoString() string {
 	return s.String()
+}
+
+// SetAIMLOptions sets the AIMLOptions field's value.
+func (s *DomainStatus) SetAIMLOptions(v *AIMLOptionsOutput_) *DomainStatus {
+	s.AIMLOptions = v
+	return s
 }
 
 // SetARN sets the ARN field's value.
@@ -13672,6 +13848,12 @@ func (s *DomainStatus) SetDeleted(v bool) *DomainStatus {
 // SetDomainEndpointOptions sets the DomainEndpointOptions field's value.
 func (s *DomainStatus) SetDomainEndpointOptions(v *DomainEndpointOptions) *DomainStatus {
 	s.DomainEndpointOptions = v
+	return s
+}
+
+// SetDomainEndpointV2HostedZoneId sets the DomainEndpointV2HostedZoneId field's value.
+func (s *DomainStatus) SetDomainEndpointV2HostedZoneId(v string) *DomainStatus {
+	s.DomainEndpointV2HostedZoneId = &v
 	return s
 }
 
@@ -14489,6 +14671,9 @@ type GetDataSourceOutput struct {
 
 	// The name of the data source.
 	Name *string `min:"3" type:"string"`
+
+	// The status of the data source.
+	Status *string `type:"string" enum:"DataSourceStatus"`
 }
 
 // String returns the string representation.
@@ -14524,6 +14709,12 @@ func (s *GetDataSourceOutput) SetDescription(v string) *GetDataSourceOutput {
 // SetName sets the Name field's value.
 func (s *GetDataSourceOutput) SetName(v string) *GetDataSourceOutput {
 	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *GetDataSourceOutput) SetStatus(v string) *GetDataSourceOutput {
+	s.Status = &v
 	return s
 }
 
@@ -15549,6 +15740,141 @@ func (s *InvalidTypeException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *InvalidTypeException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+// The JWT authentication and authorization configuration for an Amazon OpenSearch
+// Service domain.
+type JWTOptionsInput_ struct {
+	_ struct{} `type:"structure"`
+
+	// True to enable JWT authentication and authorization for a domain.
+	Enabled *bool `type:"boolean"`
+
+	// Element of the JWT assertion used by the cluster to verify JWT signatures.
+	PublicKey *string `type:"string"`
+
+	// Element of the JWT assertion to use for roles.
+	RolesKey *string `min:"1" type:"string"`
+
+	// Element of the JWT assertion to use for the user name.
+	SubjectKey *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s JWTOptionsInput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s JWTOptionsInput_) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *JWTOptionsInput_) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "JWTOptionsInput_"}
+	if s.RolesKey != nil && len(*s.RolesKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RolesKey", 1))
+	}
+	if s.SubjectKey != nil && len(*s.SubjectKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubjectKey", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *JWTOptionsInput_) SetEnabled(v bool) *JWTOptionsInput_ {
+	s.Enabled = &v
+	return s
+}
+
+// SetPublicKey sets the PublicKey field's value.
+func (s *JWTOptionsInput_) SetPublicKey(v string) *JWTOptionsInput_ {
+	s.PublicKey = &v
+	return s
+}
+
+// SetRolesKey sets the RolesKey field's value.
+func (s *JWTOptionsInput_) SetRolesKey(v string) *JWTOptionsInput_ {
+	s.RolesKey = &v
+	return s
+}
+
+// SetSubjectKey sets the SubjectKey field's value.
+func (s *JWTOptionsInput_) SetSubjectKey(v string) *JWTOptionsInput_ {
+	s.SubjectKey = &v
+	return s
+}
+
+// Describes the JWT options configured for the domain.
+type JWTOptionsOutput_ struct {
+	_ struct{} `type:"structure"`
+
+	// True if JWT use is enabled.
+	Enabled *bool `type:"boolean"`
+
+	// The key used to verify the signature of incoming JWT requests.
+	PublicKey *string `type:"string"`
+
+	// The key used for matching the JWT roles attribute.
+	RolesKey *string `type:"string"`
+
+	// The key used for matching the JWT subject attribute.
+	SubjectKey *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s JWTOptionsOutput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s JWTOptionsOutput_) GoString() string {
+	return s.String()
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *JWTOptionsOutput_) SetEnabled(v bool) *JWTOptionsOutput_ {
+	s.Enabled = &v
+	return s
+}
+
+// SetPublicKey sets the PublicKey field's value.
+func (s *JWTOptionsOutput_) SetPublicKey(v string) *JWTOptionsOutput_ {
+	s.PublicKey = &v
+	return s
+}
+
+// SetRolesKey sets the RolesKey field's value.
+func (s *JWTOptionsOutput_) SetRolesKey(v string) *JWTOptionsOutput_ {
+	s.RolesKey = &v
+	return s
+}
+
+// SetSubjectKey sets the SubjectKey field's value.
+func (s *JWTOptionsOutput_) SetSubjectKey(v string) *JWTOptionsOutput_ {
+	s.SubjectKey = &v
+	return s
 }
 
 // An exception for trying to create more than the allowed number of resources
@@ -17142,6 +17468,84 @@ func (s *ModifyingProperties) SetPendingValue(v string) *ModifyingProperties {
 // SetValueType sets the ValueType field's value.
 func (s *ModifyingProperties) SetValueType(v string) *ModifyingProperties {
 	s.ValueType = &v
+	return s
+}
+
+// Container for parameters required to enable the natural language query generation
+// feature.
+type NaturalLanguageQueryGenerationOptionsInput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The desired state of the natural language query generation feature. Valid
+	// values are ENABLED and DISABLED.
+	DesiredState *string `type:"string" enum:"NaturalLanguageQueryGenerationDesiredState"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NaturalLanguageQueryGenerationOptionsInput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NaturalLanguageQueryGenerationOptionsInput_) GoString() string {
+	return s.String()
+}
+
+// SetDesiredState sets the DesiredState field's value.
+func (s *NaturalLanguageQueryGenerationOptionsInput_) SetDesiredState(v string) *NaturalLanguageQueryGenerationOptionsInput_ {
+	s.DesiredState = &v
+	return s
+}
+
+// Container for parameters representing the state of the natural language query
+// generation feature on the specified domain.
+type NaturalLanguageQueryGenerationOptionsOutput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The current state of the natural language query generation feature, indicating
+	// completion, in progress, or failure.
+	CurrentState *string `type:"string" enum:"NaturalLanguageQueryGenerationCurrentState"`
+
+	// The desired state of the natural language query generation feature. Valid
+	// values are ENABLED and DISABLED.
+	DesiredState *string `type:"string" enum:"NaturalLanguageQueryGenerationDesiredState"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NaturalLanguageQueryGenerationOptionsOutput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NaturalLanguageQueryGenerationOptionsOutput_) GoString() string {
+	return s.String()
+}
+
+// SetCurrentState sets the CurrentState field's value.
+func (s *NaturalLanguageQueryGenerationOptionsOutput_) SetCurrentState(v string) *NaturalLanguageQueryGenerationOptionsOutput_ {
+	s.CurrentState = &v
+	return s
+}
+
+// SetDesiredState sets the DesiredState field's value.
+func (s *NaturalLanguageQueryGenerationOptionsOutput_) SetDesiredState(v string) *NaturalLanguageQueryGenerationOptionsOutput_ {
+	s.DesiredState = &v
 	return s
 }
 
@@ -19935,6 +20339,9 @@ type UpdateDataSourceInput struct {
 	//
 	// Name is a required field
 	Name *string `location:"uri" locationName:"DataSourceName" min:"3" type:"string" required:"true"`
+
+	// The status of the data source update.
+	Status *string `type:"string" enum:"DataSourceStatus"`
 }
 
 // String returns the string representation.
@@ -20009,6 +20416,12 @@ func (s *UpdateDataSourceInput) SetName(v string) *UpdateDataSourceInput {
 	return s
 }
 
+// SetStatus sets the Status field's value.
+func (s *UpdateDataSourceInput) SetStatus(v string) *UpdateDataSourceInput {
+	s.Status = &v
+	return s
+}
+
 // The result of an UpdateDataSource operation.
 type UpdateDataSourceOutput struct {
 	_ struct{} `type:"structure"`
@@ -20044,6 +20457,9 @@ func (s *UpdateDataSourceOutput) SetMessage(v string) *UpdateDataSourceOutput {
 // Container for the request parameters to the UpdateDomain operation.
 type UpdateDomainConfigInput struct {
 	_ struct{} `type:"structure"`
+
+	// Options for all machine learning features for the specified domain.
+	AIMLOptions *AIMLOptionsInput_ `type:"structure"`
 
 	// Identity and Access Management (IAM) access policy as a JSON-formatted string.
 	AccessPolicies *string `type:"string"`
@@ -20217,6 +20633,12 @@ func (s *UpdateDomainConfigInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAIMLOptions sets the AIMLOptions field's value.
+func (s *UpdateDomainConfigInput) SetAIMLOptions(v *AIMLOptionsInput_) *UpdateDomainConfigInput {
+	s.AIMLOptions = v
+	return s
 }
 
 // SetAccessPolicies sets the AccessPolicies field's value.
@@ -21863,6 +22285,22 @@ func ConnectionMode_Values() []string {
 }
 
 const (
+	// DataSourceStatusActive is a DataSourceStatus enum value
+	DataSourceStatusActive = "ACTIVE"
+
+	// DataSourceStatusDisabled is a DataSourceStatus enum value
+	DataSourceStatusDisabled = "DISABLED"
+)
+
+// DataSourceStatus_Values returns all elements of the DataSourceStatus enum
+func DataSourceStatus_Values() []string {
+	return []string{
+		DataSourceStatusActive,
+		DataSourceStatusDisabled,
+	}
+}
+
+const (
 	// DeploymentStatusPendingUpdate is a DeploymentStatus enum value
 	DeploymentStatusPendingUpdate = "PENDING_UPDATE"
 
@@ -22229,6 +22667,58 @@ func MasterNodeStatus_Values() []string {
 	return []string{
 		MasterNodeStatusAvailable,
 		MasterNodeStatusUnAvailable,
+	}
+}
+
+const (
+	// NaturalLanguageQueryGenerationCurrentStateNotEnabled is a NaturalLanguageQueryGenerationCurrentState enum value
+	NaturalLanguageQueryGenerationCurrentStateNotEnabled = "NOT_ENABLED"
+
+	// NaturalLanguageQueryGenerationCurrentStateEnableComplete is a NaturalLanguageQueryGenerationCurrentState enum value
+	NaturalLanguageQueryGenerationCurrentStateEnableComplete = "ENABLE_COMPLETE"
+
+	// NaturalLanguageQueryGenerationCurrentStateEnableInProgress is a NaturalLanguageQueryGenerationCurrentState enum value
+	NaturalLanguageQueryGenerationCurrentStateEnableInProgress = "ENABLE_IN_PROGRESS"
+
+	// NaturalLanguageQueryGenerationCurrentStateEnableFailed is a NaturalLanguageQueryGenerationCurrentState enum value
+	NaturalLanguageQueryGenerationCurrentStateEnableFailed = "ENABLE_FAILED"
+
+	// NaturalLanguageQueryGenerationCurrentStateDisableComplete is a NaturalLanguageQueryGenerationCurrentState enum value
+	NaturalLanguageQueryGenerationCurrentStateDisableComplete = "DISABLE_COMPLETE"
+
+	// NaturalLanguageQueryGenerationCurrentStateDisableInProgress is a NaturalLanguageQueryGenerationCurrentState enum value
+	NaturalLanguageQueryGenerationCurrentStateDisableInProgress = "DISABLE_IN_PROGRESS"
+
+	// NaturalLanguageQueryGenerationCurrentStateDisableFailed is a NaturalLanguageQueryGenerationCurrentState enum value
+	NaturalLanguageQueryGenerationCurrentStateDisableFailed = "DISABLE_FAILED"
+)
+
+// NaturalLanguageQueryGenerationCurrentState_Values returns all elements of the NaturalLanguageQueryGenerationCurrentState enum
+func NaturalLanguageQueryGenerationCurrentState_Values() []string {
+	return []string{
+		NaturalLanguageQueryGenerationCurrentStateNotEnabled,
+		NaturalLanguageQueryGenerationCurrentStateEnableComplete,
+		NaturalLanguageQueryGenerationCurrentStateEnableInProgress,
+		NaturalLanguageQueryGenerationCurrentStateEnableFailed,
+		NaturalLanguageQueryGenerationCurrentStateDisableComplete,
+		NaturalLanguageQueryGenerationCurrentStateDisableInProgress,
+		NaturalLanguageQueryGenerationCurrentStateDisableFailed,
+	}
+}
+
+const (
+	// NaturalLanguageQueryGenerationDesiredStateEnabled is a NaturalLanguageQueryGenerationDesiredState enum value
+	NaturalLanguageQueryGenerationDesiredStateEnabled = "ENABLED"
+
+	// NaturalLanguageQueryGenerationDesiredStateDisabled is a NaturalLanguageQueryGenerationDesiredState enum value
+	NaturalLanguageQueryGenerationDesiredStateDisabled = "DISABLED"
+)
+
+// NaturalLanguageQueryGenerationDesiredState_Values returns all elements of the NaturalLanguageQueryGenerationDesiredState enum
+func NaturalLanguageQueryGenerationDesiredState_Values() []string {
+	return []string{
+		NaturalLanguageQueryGenerationDesiredStateEnabled,
+		NaturalLanguageQueryGenerationDesiredStateDisabled,
 	}
 }
 

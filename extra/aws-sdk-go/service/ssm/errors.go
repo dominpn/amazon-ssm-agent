@@ -131,10 +131,6 @@ const (
 	// schemas and try again.
 	ErrCodeCustomSchemaCountLimitExceededException = "CustomSchemaCountLimitExceededException"
 
-	// ErrCodeDependencyTimeoutException for service response error code
-	// "DependencyTimeoutException".
-	ErrCodeDependencyTimeoutException = "DependencyTimeoutException"
-
 	// ErrCodeDocumentAlreadyExists for service response error code
 	// "DocumentAlreadyExists".
 	//
@@ -281,15 +277,15 @@ const (
 	// ErrCodeInvalidActivationId for service response error code
 	// "InvalidActivationId".
 	//
-	// The activation ID isn't valid. Verify the you entered the correct ActivationId
+	// The activation ID isn't valid. Verify that you entered the correct ActivationId
 	// or ActivationCode and try again.
 	ErrCodeInvalidActivationId = "InvalidActivationId"
 
 	// ErrCodeInvalidAggregatorException for service response error code
 	// "InvalidAggregatorException".
 	//
-	// The specified aggregator isn't valid for inventory groups. Verify that the
-	// aggregator uses a valid inventory type such as AWS:Application or AWS:InstanceInformation.
+	// The specified aggregator isn't valid for the group type. Verify that the
+	// aggregator you provided is supported.
 	ErrCodeInvalidAggregatorException = "InvalidAggregatorException"
 
 	// ErrCodeInvalidAllowedPatternException for service response error code
@@ -393,7 +389,7 @@ const (
 	// ErrCodeInvalidFilter for service response error code
 	// "InvalidFilter".
 	//
-	// The filter name isn't valid. Verify the you entered the correct name and
+	// The filter name isn't valid. Verify that you entered the correct name and
 	// try again.
 	ErrCodeInvalidFilter = "InvalidFilter"
 
@@ -446,6 +442,8 @@ const (
 
 	// ErrCodeInvalidInstancePropertyFilterValue for service response error code
 	// "InvalidInstancePropertyFilterValue".
+	//
+	// The specified filter value isn't valid.
 	ErrCodeInvalidInstancePropertyFilterValue = "InvalidInstancePropertyFilterValue"
 
 	// ErrCodeInvalidInventoryGroupException for service response error code
@@ -518,6 +516,10 @@ const (
 	//
 	// The output location isn't valid or doesn't exist.
 	ErrCodeInvalidOutputLocation = "InvalidOutputLocation"
+
+	// ErrCodeInvalidParameterException for service response error code
+	// "InvalidParameterException".
+	ErrCodeInvalidParameterException = "InvalidParameterException"
 
 	// ErrCodeInvalidParameters for service response error code
 	// "InvalidParameters".
@@ -684,6 +686,10 @@ const (
 	//
 	// The specified OpsItem is in the process of being deleted.
 	ErrCodeOpsItemConflictException = "OpsItemConflictException"
+
+	// ErrCodeOpsItemGroupNotFoundException for service response error code
+	// "OpsItemGroupNotFoundException".
+	ErrCodeOpsItemGroupNotFoundException = "OpsItemGroupNotFoundException"
 
 	// ErrCodeOpsItemInvalidParameterException for service response error code
 	// "OpsItemInvalidParameterException".
@@ -948,6 +954,10 @@ const (
 	// "ServiceLinkedRoleLockServiceException".
 	ErrCodeServiceLinkedRoleLockServiceException = "ServiceLinkedRoleLockServiceException"
 
+	// ErrCodeServiceQuotaExceededException for service response error code
+	// "ServiceQuotaExceededException".
+	ErrCodeServiceQuotaExceededException = "ServiceQuotaExceededException"
+
 	// ErrCodeServiceSettingNotFound for service response error code
 	// "ServiceSettingNotFound".
 	//
@@ -978,8 +988,8 @@ const (
 	// "TargetNotConnected".
 	//
 	// The specified target managed node for the session isn't fully configured
-	// for use with Session Manager. For more information, see Getting started with
-	// Session Manager (https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started.html)
+	// for use with Session Manager. For more information, see Setting up Session
+	// Manager (https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started.html)
 	// in the Amazon Web Services Systems Manager User Guide. This error is also
 	// returned if you attempt to start a session on a managed node that is located
 	// in a different account or Region
@@ -1044,6 +1054,13 @@ const (
 	// supported for the operating system.
 	ErrCodeUnsupportedOperatingSystem = "UnsupportedOperatingSystem"
 
+	// ErrCodeUnsupportedOperationException for service response error code
+	// "UnsupportedOperationException".
+	//
+	// This operation is not supported for the current account. You must first enable
+	// the Systems Manager integrated experience in your account.
+	ErrCodeUnsupportedOperationException = "UnsupportedOperationException"
+
 	// ErrCodeUnsupportedParameterType for service response error code
 	// "UnsupportedParameterType".
 	//
@@ -1081,7 +1098,6 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"CommandNotInteractive":                          newErrorCommandNotInteractive,
 	"ComplianceTypeCountLimitExceededException":      newErrorComplianceTypeCountLimitExceededException,
 	"CustomSchemaCountLimitExceededException":        newErrorCustomSchemaCountLimitExceededException,
-	"DependencyTimeoutException":                     newErrorDependencyTimeoutException,
 	"DocumentAlreadyExists":                          newErrorDocumentAlreadyExists,
 	"DocumentLimitExceeded":                          newErrorDocumentLimitExceeded,
 	"DocumentPermissionLimit":                        newErrorDocumentPermissionLimit,
@@ -1141,6 +1157,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InvalidOptionException":                         newErrorInvalidOptionException,
 	"InvalidOutputFolder":                            newErrorInvalidOutputFolder,
 	"InvalidOutputLocation":                          newErrorInvalidOutputLocation,
+	"InvalidParameterException":                      newErrorInvalidParameterException,
 	"InvalidParameters":                              newErrorInvalidParameters,
 	"InvalidPermissionType":                          newErrorInvalidPermissionType,
 	"InvalidPluginName":                              newErrorInvalidPluginName,
@@ -1167,6 +1184,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"OpsItemAccessDeniedException":                   newErrorOpsItemAccessDeniedException,
 	"OpsItemAlreadyExistsException":                  newErrorOpsItemAlreadyExistsException,
 	"OpsItemConflictException":                       newErrorOpsItemConflictException,
+	"OpsItemGroupNotFoundException":                  newErrorOpsItemGroupNotFoundException,
 	"OpsItemInvalidParameterException":               newErrorOpsItemInvalidParameterException,
 	"OpsItemLimitExceededException":                  newErrorOpsItemLimitExceededException,
 	"OpsItemNotFoundException":                       newErrorOpsItemNotFoundException,
@@ -1206,6 +1224,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"ResourcePolicyNotFoundException":                newErrorResourcePolicyNotFoundException,
 	"ServiceLinkedRoleLockClientException":           newErrorServiceLinkedRoleLockClientException,
 	"ServiceLinkedRoleLockServiceException":          newErrorServiceLinkedRoleLockServiceException,
+	"ServiceQuotaExceededException":                  newErrorServiceQuotaExceededException,
 	"ServiceSettingNotFound":                         newErrorServiceSettingNotFound,
 	"StatusUnchanged":                                newErrorStatusUnchanged,
 	"SubTypeCountLimitExceededException":             newErrorSubTypeCountLimitExceededException,
@@ -1219,6 +1238,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"UnsupportedInventoryItemContextException":       newErrorUnsupportedInventoryItemContextException,
 	"UnsupportedInventorySchemaVersionException":     newErrorUnsupportedInventorySchemaVersionException,
 	"UnsupportedOperatingSystem":                     newErrorUnsupportedOperatingSystem,
+	"UnsupportedOperationException":                  newErrorUnsupportedOperationException,
 	"UnsupportedParameterType":                       newErrorUnsupportedParameterType,
 	"UnsupportedPlatformType":                        newErrorUnsupportedPlatformType,
 }

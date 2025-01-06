@@ -2442,8 +2442,6 @@ func (c *SageMaker) CreateHubRequest(input *CreateHubInput) (req *request.Reques
 //
 // Create a hub.
 //
-// Hub APIs are only callable through SageMaker Studio.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -2477,6 +2475,93 @@ func (c *SageMaker) CreateHub(input *CreateHubInput) (*CreateHubOutput, error) {
 // for more information on using Contexts.
 func (c *SageMaker) CreateHubWithContext(ctx aws.Context, input *CreateHubInput, opts ...request.Option) (*CreateHubOutput, error) {
 	req, out := c.CreateHubRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateHubContentReference = "CreateHubContentReference"
+
+// CreateHubContentReferenceRequest generates a "aws/request.Request" representing the
+// client's request for the CreateHubContentReference operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateHubContentReference for more information on using the CreateHubContentReference
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the CreateHubContentReferenceRequest method.
+//	req, resp := client.CreateHubContentReferenceRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreateHubContentReference
+func (c *SageMaker) CreateHubContentReferenceRequest(input *CreateHubContentReferenceInput) (req *request.Request, output *CreateHubContentReferenceOutput) {
+	op := &request.Operation{
+		Name:       opCreateHubContentReference,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateHubContentReferenceInput{}
+	}
+
+	output = &CreateHubContentReferenceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateHubContentReference API operation for Amazon SageMaker Service.
+//
+// Create a hub content reference in order to add a model in the JumpStart public
+// hub to a private hub.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation CreateHubContentReference for usage and error information.
+//
+// Returned Error Types:
+//
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+//   - ResourceInUse
+//     Resource being accessed is in use.
+//
+//   - ResourceLimitExceeded
+//     You have exceeded an SageMaker resource limit. For example, you might have
+//     too many training jobs created.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreateHubContentReference
+func (c *SageMaker) CreateHubContentReference(input *CreateHubContentReferenceInput) (*CreateHubContentReferenceOutput, error) {
+	req, out := c.CreateHubContentReferenceRequest(input)
+	return out, req.Send()
+}
+
+// CreateHubContentReferenceWithContext is the same as CreateHubContentReference with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateHubContentReference for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) CreateHubContentReferenceWithContext(ctx aws.Context, input *CreateHubContentReferenceInput, opts ...request.Option) (*CreateHubContentReferenceOutput, error) {
+	req, out := c.CreateHubContentReferenceRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3217,6 +3302,87 @@ func (c *SageMaker) CreateLabelingJob(input *CreateLabelingJobInput) (*CreateLab
 // for more information on using Contexts.
 func (c *SageMaker) CreateLabelingJobWithContext(ctx aws.Context, input *CreateLabelingJobInput, opts ...request.Option) (*CreateLabelingJobOutput, error) {
 	req, out := c.CreateLabelingJobRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateMlflowTrackingServer = "CreateMlflowTrackingServer"
+
+// CreateMlflowTrackingServerRequest generates a "aws/request.Request" representing the
+// client's request for the CreateMlflowTrackingServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateMlflowTrackingServer for more information on using the CreateMlflowTrackingServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the CreateMlflowTrackingServerRequest method.
+//	req, resp := client.CreateMlflowTrackingServerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreateMlflowTrackingServer
+func (c *SageMaker) CreateMlflowTrackingServerRequest(input *CreateMlflowTrackingServerInput) (req *request.Request, output *CreateMlflowTrackingServerOutput) {
+	op := &request.Operation{
+		Name:       opCreateMlflowTrackingServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateMlflowTrackingServerInput{}
+	}
+
+	output = &CreateMlflowTrackingServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateMlflowTrackingServer API operation for Amazon SageMaker Service.
+//
+// Creates an MLflow Tracking Server using a general purpose Amazon S3 bucket
+// as the artifact store. For more information, see Create an MLflow Tracking
+// Server (https://docs.aws.amazon.com/sagemaker/latest/dg/mlflow-create-tracking-server.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation CreateMlflowTrackingServer for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceLimitExceeded
+//     You have exceeded an SageMaker resource limit. For example, you might have
+//     too many training jobs created.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreateMlflowTrackingServer
+func (c *SageMaker) CreateMlflowTrackingServer(input *CreateMlflowTrackingServerInput) (*CreateMlflowTrackingServerOutput, error) {
+	req, out := c.CreateMlflowTrackingServerRequest(input)
+	return out, req.Send()
+}
+
+// CreateMlflowTrackingServerWithContext is the same as CreateMlflowTrackingServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateMlflowTrackingServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) CreateMlflowTrackingServerWithContext(ctx aws.Context, input *CreateMlflowTrackingServerInput, opts ...request.Option) (*CreateMlflowTrackingServerOutput, error) {
+	req, out := c.CreateMlflowTrackingServerRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4222,6 +4388,97 @@ func (c *SageMaker) CreateNotebookInstanceLifecycleConfigWithContext(ctx aws.Con
 	return out, req.Send()
 }
 
+const opCreateOptimizationJob = "CreateOptimizationJob"
+
+// CreateOptimizationJobRequest generates a "aws/request.Request" representing the
+// client's request for the CreateOptimizationJob operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateOptimizationJob for more information on using the CreateOptimizationJob
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the CreateOptimizationJobRequest method.
+//	req, resp := client.CreateOptimizationJobRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreateOptimizationJob
+func (c *SageMaker) CreateOptimizationJobRequest(input *CreateOptimizationJobInput) (req *request.Request, output *CreateOptimizationJobOutput) {
+	op := &request.Operation{
+		Name:       opCreateOptimizationJob,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateOptimizationJobInput{}
+	}
+
+	output = &CreateOptimizationJobOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateOptimizationJob API operation for Amazon SageMaker Service.
+//
+// Creates a job that optimizes a model for inference performance. To create
+// the job, you provide the location of a source model, and you provide the
+// settings for the optimization techniques that you want the job to apply.
+// When the job completes successfully, SageMaker uploads the new optimized
+// model to the output destination that you specify.
+//
+// For more information about how to use this action, and about the supported
+// optimization techniques, see Optimize model inference with Amazon SageMaker
+// (https://docs.aws.amazon.com/sagemaker/latest/dg/model-optimize.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation CreateOptimizationJob for usage and error information.
+//
+// Returned Error Types:
+//
+//   - ResourceInUse
+//     Resource being accessed is in use.
+//
+//   - ResourceLimitExceeded
+//     You have exceeded an SageMaker resource limit. For example, you might have
+//     too many training jobs created.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreateOptimizationJob
+func (c *SageMaker) CreateOptimizationJob(input *CreateOptimizationJobInput) (*CreateOptimizationJobOutput, error) {
+	req, out := c.CreateOptimizationJobRequest(input)
+	return out, req.Send()
+}
+
+// CreateOptimizationJobWithContext is the same as CreateOptimizationJob with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateOptimizationJob for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) CreateOptimizationJobWithContext(ctx aws.Context, input *CreateOptimizationJobInput, opts ...request.Option) (*CreateOptimizationJobOutput, error) {
+	req, out := c.CreateOptimizationJobRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreatePipeline = "CreatePipeline"
 
 // CreatePipelineRequest generates a "aws/request.Request" representing the
@@ -4402,6 +4659,86 @@ func (c *SageMaker) CreatePresignedDomainUrl(input *CreatePresignedDomainUrlInpu
 // for more information on using Contexts.
 func (c *SageMaker) CreatePresignedDomainUrlWithContext(ctx aws.Context, input *CreatePresignedDomainUrlInput, opts ...request.Option) (*CreatePresignedDomainUrlOutput, error) {
 	req, out := c.CreatePresignedDomainUrlRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreatePresignedMlflowTrackingServerUrl = "CreatePresignedMlflowTrackingServerUrl"
+
+// CreatePresignedMlflowTrackingServerUrlRequest generates a "aws/request.Request" representing the
+// client's request for the CreatePresignedMlflowTrackingServerUrl operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreatePresignedMlflowTrackingServerUrl for more information on using the CreatePresignedMlflowTrackingServerUrl
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the CreatePresignedMlflowTrackingServerUrlRequest method.
+//	req, resp := client.CreatePresignedMlflowTrackingServerUrlRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreatePresignedMlflowTrackingServerUrl
+func (c *SageMaker) CreatePresignedMlflowTrackingServerUrlRequest(input *CreatePresignedMlflowTrackingServerUrlInput) (req *request.Request, output *CreatePresignedMlflowTrackingServerUrlOutput) {
+	op := &request.Operation{
+		Name:       opCreatePresignedMlflowTrackingServerUrl,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreatePresignedMlflowTrackingServerUrlInput{}
+	}
+
+	output = &CreatePresignedMlflowTrackingServerUrlOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreatePresignedMlflowTrackingServerUrl API operation for Amazon SageMaker Service.
+//
+// Returns a presigned URL that you can use to connect to the MLflow UI attached
+// to your tracking server. For more information, see Launch the MLflow UI using
+// a presigned URL (https://docs.aws.amazon.com/sagemaker/latest/dg/mlflow-launch-ui.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation CreatePresignedMlflowTrackingServerUrl for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/CreatePresignedMlflowTrackingServerUrl
+func (c *SageMaker) CreatePresignedMlflowTrackingServerUrl(input *CreatePresignedMlflowTrackingServerUrlInput) (*CreatePresignedMlflowTrackingServerUrlOutput, error) {
+	req, out := c.CreatePresignedMlflowTrackingServerUrlRequest(input)
+	return out, req.Send()
+}
+
+// CreatePresignedMlflowTrackingServerUrlWithContext is the same as CreatePresignedMlflowTrackingServerUrl with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreatePresignedMlflowTrackingServerUrl for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) CreatePresignedMlflowTrackingServerUrlWithContext(ctx aws.Context, input *CreatePresignedMlflowTrackingServerUrlInput, opts ...request.Option) (*CreatePresignedMlflowTrackingServerUrlOutput, error) {
+	req, out := c.CreatePresignedMlflowTrackingServerUrlRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4710,7 +5047,8 @@ func (c *SageMaker) CreateSpaceRequest(input *CreateSpaceInput) (req *request.Re
 
 // CreateSpace API operation for Amazon SageMaker Service.
 //
-// Creates a space used for real time collaboration in a domain.
+// Creates a private space or a space used for real time collaboration in a
+// domain.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7198,8 +7536,6 @@ func (c *SageMaker) DeleteHubRequest(input *DeleteHubInput) (req *request.Reques
 //
 // Delete a hub.
 //
-// Hub APIs are only callable through SageMaker Studio.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -7283,8 +7619,6 @@ func (c *SageMaker) DeleteHubContentRequest(input *DeleteHubContentInput) (req *
 //
 // Delete the contents of a hub.
 //
-// Hub APIs are only callable through SageMaker Studio.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -7317,6 +7651,86 @@ func (c *SageMaker) DeleteHubContent(input *DeleteHubContentInput) (*DeleteHubCo
 // for more information on using Contexts.
 func (c *SageMaker) DeleteHubContentWithContext(ctx aws.Context, input *DeleteHubContentInput, opts ...request.Option) (*DeleteHubContentOutput, error) {
 	req, out := c.DeleteHubContentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteHubContentReference = "DeleteHubContentReference"
+
+// DeleteHubContentReferenceRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteHubContentReference operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteHubContentReference for more information on using the DeleteHubContentReference
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DeleteHubContentReferenceRequest method.
+//	req, resp := client.DeleteHubContentReferenceRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DeleteHubContentReference
+func (c *SageMaker) DeleteHubContentReferenceRequest(input *DeleteHubContentReferenceInput) (req *request.Request, output *DeleteHubContentReferenceOutput) {
+	op := &request.Operation{
+		Name:       opDeleteHubContentReference,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteHubContentReferenceInput{}
+	}
+
+	output = &DeleteHubContentReferenceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteHubContentReference API operation for Amazon SageMaker Service.
+//
+// Delete a hub content reference in order to remove a model from a private
+// hub.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation DeleteHubContentReference for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DeleteHubContentReference
+func (c *SageMaker) DeleteHubContentReference(input *DeleteHubContentReferenceInput) (*DeleteHubContentReferenceOutput, error) {
+	req, out := c.DeleteHubContentReferenceRequest(input)
+	return out, req.Send()
+}
+
+// DeleteHubContentReferenceWithContext is the same as DeleteHubContentReference with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteHubContentReference for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) DeleteHubContentReferenceWithContext(ctx aws.Context, input *DeleteHubContentReferenceInput, opts ...request.Option) (*DeleteHubContentReferenceOutput, error) {
+	req, out := c.DeleteHubContentReferenceRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -7806,6 +8220,85 @@ func (c *SageMaker) DeleteInferenceExperiment(input *DeleteInferenceExperimentIn
 // for more information on using Contexts.
 func (c *SageMaker) DeleteInferenceExperimentWithContext(ctx aws.Context, input *DeleteInferenceExperimentInput, opts ...request.Option) (*DeleteInferenceExperimentOutput, error) {
 	req, out := c.DeleteInferenceExperimentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteMlflowTrackingServer = "DeleteMlflowTrackingServer"
+
+// DeleteMlflowTrackingServerRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteMlflowTrackingServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteMlflowTrackingServer for more information on using the DeleteMlflowTrackingServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DeleteMlflowTrackingServerRequest method.
+//	req, resp := client.DeleteMlflowTrackingServerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DeleteMlflowTrackingServer
+func (c *SageMaker) DeleteMlflowTrackingServerRequest(input *DeleteMlflowTrackingServerInput) (req *request.Request, output *DeleteMlflowTrackingServerOutput) {
+	op := &request.Operation{
+		Name:       opDeleteMlflowTrackingServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteMlflowTrackingServerInput{}
+	}
+
+	output = &DeleteMlflowTrackingServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteMlflowTrackingServer API operation for Amazon SageMaker Service.
+//
+// Deletes an MLflow Tracking Server. For more information, see Clean up MLflow
+// resources (https://docs.aws.amazon.com/sagemaker/latest/dg/mlflow-cleanup.html.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation DeleteMlflowTrackingServer for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DeleteMlflowTrackingServer
+func (c *SageMaker) DeleteMlflowTrackingServer(input *DeleteMlflowTrackingServerInput) (*DeleteMlflowTrackingServerOutput, error) {
+	req, out := c.DeleteMlflowTrackingServerRequest(input)
+	return out, req.Send()
+}
+
+// DeleteMlflowTrackingServerWithContext is the same as DeleteMlflowTrackingServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteMlflowTrackingServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) DeleteMlflowTrackingServerWithContext(ctx aws.Context, input *DeleteMlflowTrackingServerInput, opts ...request.Option) (*DeleteMlflowTrackingServerOutput, error) {
+	req, out := c.DeleteMlflowTrackingServerRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -8681,6 +9174,85 @@ func (c *SageMaker) DeleteNotebookInstanceLifecycleConfigWithContext(ctx aws.Con
 	return out, req.Send()
 }
 
+const opDeleteOptimizationJob = "DeleteOptimizationJob"
+
+// DeleteOptimizationJobRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteOptimizationJob operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteOptimizationJob for more information on using the DeleteOptimizationJob
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DeleteOptimizationJobRequest method.
+//	req, resp := client.DeleteOptimizationJobRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DeleteOptimizationJob
+func (c *SageMaker) DeleteOptimizationJobRequest(input *DeleteOptimizationJobInput) (req *request.Request, output *DeleteOptimizationJobOutput) {
+	op := &request.Operation{
+		Name:       opDeleteOptimizationJob,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteOptimizationJobInput{}
+	}
+
+	output = &DeleteOptimizationJobOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteOptimizationJob API operation for Amazon SageMaker Service.
+//
+// Deletes an optimization job.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation DeleteOptimizationJob for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DeleteOptimizationJob
+func (c *SageMaker) DeleteOptimizationJob(input *DeleteOptimizationJobInput) (*DeleteOptimizationJobOutput, error) {
+	req, out := c.DeleteOptimizationJobRequest(input)
+	return out, req.Send()
+}
+
+// DeleteOptimizationJobWithContext is the same as DeleteOptimizationJob with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteOptimizationJob for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) DeleteOptimizationJobWithContext(ctx aws.Context, input *DeleteOptimizationJobInput, opts ...request.Option) (*DeleteOptimizationJobOutput, error) {
+	req, out := c.DeleteOptimizationJobRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeletePipeline = "DeletePipeline"
 
 // DeletePipelineRequest generates a "aws/request.Request" representing the
@@ -9400,7 +9972,7 @@ func (c *SageMaker) DeleteWorkforceRequest(input *DeleteWorkforceInput) (req *re
 // DeleteWorkteam (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DeleteWorkteam.html)
 // operation to delete all work teams before you delete the workforce. If you
 // try to delete a workforce that contains one or more work teams, you will
-// recieve a ResourceInUse error.
+// receive a ResourceInUse error.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -10252,7 +10824,7 @@ func (c *SageMaker) DescribeClusterNodeRequest(input *DescribeClusterNodeInput) 
 
 // DescribeClusterNode API operation for Amazon SageMaker Service.
 //
-// Retrieves information of an instance (also called a node interchangeably)
+// Retrieves information of a node (also called a instance interchangeably)
 // of a SageMaker HyperPod cluster.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -11493,9 +12065,7 @@ func (c *SageMaker) DescribeHubRequest(input *DescribeHubInput) (req *request.Re
 
 // DescribeHub API operation for Amazon SageMaker Service.
 //
-// Describe a hub.
-//
-// Hub APIs are only callable through SageMaker Studio.
+// Describes a hub.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -11574,8 +12144,6 @@ func (c *SageMaker) DescribeHubContentRequest(input *DescribeHubContentInput) (r
 // DescribeHubContent API operation for Amazon SageMaker Service.
 //
 // Describe the content of a hub.
-//
-// Hub APIs are only callable through SageMaker Studio.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -12313,6 +12881,84 @@ func (c *SageMaker) DescribeLineageGroupWithContext(ctx aws.Context, input *Desc
 	return out, req.Send()
 }
 
+const opDescribeMlflowTrackingServer = "DescribeMlflowTrackingServer"
+
+// DescribeMlflowTrackingServerRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeMlflowTrackingServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeMlflowTrackingServer for more information on using the DescribeMlflowTrackingServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DescribeMlflowTrackingServerRequest method.
+//	req, resp := client.DescribeMlflowTrackingServerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DescribeMlflowTrackingServer
+func (c *SageMaker) DescribeMlflowTrackingServerRequest(input *DescribeMlflowTrackingServerInput) (req *request.Request, output *DescribeMlflowTrackingServerOutput) {
+	op := &request.Operation{
+		Name:       opDescribeMlflowTrackingServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeMlflowTrackingServerInput{}
+	}
+
+	output = &DescribeMlflowTrackingServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeMlflowTrackingServer API operation for Amazon SageMaker Service.
+//
+// Returns information about an MLflow Tracking Server.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation DescribeMlflowTrackingServer for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DescribeMlflowTrackingServer
+func (c *SageMaker) DescribeMlflowTrackingServer(input *DescribeMlflowTrackingServerInput) (*DescribeMlflowTrackingServerOutput, error) {
+	req, out := c.DescribeMlflowTrackingServerRequest(input)
+	return out, req.Send()
+}
+
+// DescribeMlflowTrackingServerWithContext is the same as DescribeMlflowTrackingServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeMlflowTrackingServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) DescribeMlflowTrackingServerWithContext(ctx aws.Context, input *DescribeMlflowTrackingServerInput, opts ...request.Option) (*DescribeMlflowTrackingServerOutput, error) {
+	req, out := c.DescribeMlflowTrackingServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeModel = "DescribeModel"
 
 // DescribeModelRequest generates a "aws/request.Request" representing the
@@ -12745,6 +13391,10 @@ func (c *SageMaker) DescribeModelPackageRequest(input *DescribeModelPackageInput
 // Returns a description of the specified model package, which is used to create
 // SageMaker models or list them on Amazon Web Services Marketplace.
 //
+// If you provided a KMS Key ID when you created your model package, you will
+// see the KMS Decrypt (https://docs.aws.amazon.com/kms/latest/APIReference/API_Decrypt.html)
+// API call in your CloudTrail logs when you use this API.
+//
 // To create models in SageMaker, buyers can subscribe to model packages listed
 // on Amazon Web Services Marketplace.
 //
@@ -13149,6 +13799,84 @@ func (c *SageMaker) DescribeNotebookInstanceLifecycleConfig(input *DescribeNoteb
 // for more information on using Contexts.
 func (c *SageMaker) DescribeNotebookInstanceLifecycleConfigWithContext(ctx aws.Context, input *DescribeNotebookInstanceLifecycleConfigInput, opts ...request.Option) (*DescribeNotebookInstanceLifecycleConfigOutput, error) {
 	req, out := c.DescribeNotebookInstanceLifecycleConfigRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeOptimizationJob = "DescribeOptimizationJob"
+
+// DescribeOptimizationJobRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeOptimizationJob operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeOptimizationJob for more information on using the DescribeOptimizationJob
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DescribeOptimizationJobRequest method.
+//	req, resp := client.DescribeOptimizationJobRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DescribeOptimizationJob
+func (c *SageMaker) DescribeOptimizationJobRequest(input *DescribeOptimizationJobInput) (req *request.Request, output *DescribeOptimizationJobOutput) {
+	op := &request.Operation{
+		Name:       opDescribeOptimizationJob,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeOptimizationJobInput{}
+	}
+
+	output = &DescribeOptimizationJobOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeOptimizationJob API operation for Amazon SageMaker Service.
+//
+// Provides the properties of the specified optimization job.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation DescribeOptimizationJob for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/DescribeOptimizationJob
+func (c *SageMaker) DescribeOptimizationJob(input *DescribeOptimizationJobInput) (*DescribeOptimizationJobOutput, error) {
+	req, out := c.DescribeOptimizationJobRequest(input)
+	return out, req.Send()
+}
+
+// DescribeOptimizationJobWithContext is the same as DescribeOptimizationJob with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeOptimizationJob for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) DescribeOptimizationJobWithContext(ctx aws.Context, input *DescribeOptimizationJobInput, opts ...request.Option) (*DescribeOptimizationJobOutput, error) {
+	req, out := c.DescribeOptimizationJobRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -14291,8 +15019,8 @@ func (c *SageMaker) DescribeWorkteamRequest(input *DescribeWorkteamInput) (req *
 // DescribeWorkteam API operation for Amazon SageMaker Service.
 //
 // Gets information about a specific work team. You can see information such
-// as the create date, the last updated date, membership information, and the
-// work team's Amazon Resource Name (ARN).
+// as the creation date, the last updated date, membership information, and
+// the work team's Amazon Resource Name (ARN).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -15060,8 +15788,6 @@ func (c *SageMaker) ImportHubContentRequest(input *ImportHubContentInput) (req *
 // ImportHubContent API operation for Amazon SageMaker Service.
 //
 // Import hub content.
-//
-// Hub APIs are only callable through SageMaker Studio.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -18443,8 +19169,6 @@ func (c *SageMaker) ListHubContentVersionsRequest(input *ListHubContentVersionsI
 //
 // List hub content versions.
 //
-// Hub APIs are only callable through SageMaker Studio.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -18523,8 +19247,6 @@ func (c *SageMaker) ListHubContentsRequest(input *ListHubContentsInput) (req *re
 //
 // List the contents of a hub.
 //
-// Hub APIs are only callable through SageMaker Studio.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -18602,8 +19324,6 @@ func (c *SageMaker) ListHubsRequest(input *ListHubsInput) (req *request.Request,
 // ListHubs API operation for Amazon SageMaker Service.
 //
 // List all existing hubs.
-//
-// Hub APIs are only callable through SageMaker Studio.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -20080,6 +20800,136 @@ func (c *SageMaker) ListLineageGroupsPagesWithContext(ctx aws.Context, input *Li
 
 	for p.Next() {
 		if !fn(p.Page().(*ListLineageGroupsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListMlflowTrackingServers = "ListMlflowTrackingServers"
+
+// ListMlflowTrackingServersRequest generates a "aws/request.Request" representing the
+// client's request for the ListMlflowTrackingServers operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListMlflowTrackingServers for more information on using the ListMlflowTrackingServers
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the ListMlflowTrackingServersRequest method.
+//	req, resp := client.ListMlflowTrackingServersRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/ListMlflowTrackingServers
+func (c *SageMaker) ListMlflowTrackingServersRequest(input *ListMlflowTrackingServersInput) (req *request.Request, output *ListMlflowTrackingServersOutput) {
+	op := &request.Operation{
+		Name:       opListMlflowTrackingServers,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListMlflowTrackingServersInput{}
+	}
+
+	output = &ListMlflowTrackingServersOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListMlflowTrackingServers API operation for Amazon SageMaker Service.
+//
+// Lists all MLflow Tracking Servers.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation ListMlflowTrackingServers for usage and error information.
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/ListMlflowTrackingServers
+func (c *SageMaker) ListMlflowTrackingServers(input *ListMlflowTrackingServersInput) (*ListMlflowTrackingServersOutput, error) {
+	req, out := c.ListMlflowTrackingServersRequest(input)
+	return out, req.Send()
+}
+
+// ListMlflowTrackingServersWithContext is the same as ListMlflowTrackingServers with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListMlflowTrackingServers for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) ListMlflowTrackingServersWithContext(ctx aws.Context, input *ListMlflowTrackingServersInput, opts ...request.Option) (*ListMlflowTrackingServersOutput, error) {
+	req, out := c.ListMlflowTrackingServersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListMlflowTrackingServersPages iterates over the pages of a ListMlflowTrackingServers operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListMlflowTrackingServers method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//	// Example iterating over at most 3 pages of a ListMlflowTrackingServers operation.
+//	pageNum := 0
+//	err := client.ListMlflowTrackingServersPages(params,
+//	    func(page *sagemaker.ListMlflowTrackingServersOutput, lastPage bool) bool {
+//	        pageNum++
+//	        fmt.Println(page)
+//	        return pageNum <= 3
+//	    })
+func (c *SageMaker) ListMlflowTrackingServersPages(input *ListMlflowTrackingServersInput, fn func(*ListMlflowTrackingServersOutput, bool) bool) error {
+	return c.ListMlflowTrackingServersPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListMlflowTrackingServersPagesWithContext same as ListMlflowTrackingServersPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) ListMlflowTrackingServersPagesWithContext(ctx aws.Context, input *ListMlflowTrackingServersInput, fn func(*ListMlflowTrackingServersOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListMlflowTrackingServersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListMlflowTrackingServersRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListMlflowTrackingServersOutput), !p.HasNextPage()) {
 			break
 		}
 	}
@@ -22179,6 +23029,136 @@ func (c *SageMaker) ListNotebookInstancesPagesWithContext(ctx aws.Context, input
 
 	for p.Next() {
 		if !fn(p.Page().(*ListNotebookInstancesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListOptimizationJobs = "ListOptimizationJobs"
+
+// ListOptimizationJobsRequest generates a "aws/request.Request" representing the
+// client's request for the ListOptimizationJobs operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListOptimizationJobs for more information on using the ListOptimizationJobs
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the ListOptimizationJobsRequest method.
+//	req, resp := client.ListOptimizationJobsRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/ListOptimizationJobs
+func (c *SageMaker) ListOptimizationJobsRequest(input *ListOptimizationJobsInput) (req *request.Request, output *ListOptimizationJobsOutput) {
+	op := &request.Operation{
+		Name:       opListOptimizationJobs,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListOptimizationJobsInput{}
+	}
+
+	output = &ListOptimizationJobsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListOptimizationJobs API operation for Amazon SageMaker Service.
+//
+// Lists the optimization jobs in your account and their properties.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation ListOptimizationJobs for usage and error information.
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/ListOptimizationJobs
+func (c *SageMaker) ListOptimizationJobs(input *ListOptimizationJobsInput) (*ListOptimizationJobsOutput, error) {
+	req, out := c.ListOptimizationJobsRequest(input)
+	return out, req.Send()
+}
+
+// ListOptimizationJobsWithContext is the same as ListOptimizationJobs with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListOptimizationJobs for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) ListOptimizationJobsWithContext(ctx aws.Context, input *ListOptimizationJobsInput, opts ...request.Option) (*ListOptimizationJobsOutput, error) {
+	req, out := c.ListOptimizationJobsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListOptimizationJobsPages iterates over the pages of a ListOptimizationJobs operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListOptimizationJobs method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//	// Example iterating over at most 3 pages of a ListOptimizationJobs operation.
+//	pageNum := 0
+//	err := client.ListOptimizationJobsPages(params,
+//	    func(page *sagemaker.ListOptimizationJobsOutput, lastPage bool) bool {
+//	        pageNum++
+//	        fmt.Println(page)
+//	        return pageNum <= 3
+//	    })
+func (c *SageMaker) ListOptimizationJobsPages(input *ListOptimizationJobsInput, fn func(*ListOptimizationJobsOutput, bool) bool) error {
+	return c.ListOptimizationJobsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListOptimizationJobsPagesWithContext same as ListOptimizationJobsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) ListOptimizationJobsPagesWithContext(ctx aws.Context, input *ListOptimizationJobsInput, fn func(*ListOptimizationJobsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListOptimizationJobsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListOptimizationJobsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListOptimizationJobsOutput), !p.HasNextPage()) {
 			break
 		}
 	}
@@ -25805,6 +26785,89 @@ func (c *SageMaker) StartInferenceExperimentWithContext(ctx aws.Context, input *
 	return out, req.Send()
 }
 
+const opStartMlflowTrackingServer = "StartMlflowTrackingServer"
+
+// StartMlflowTrackingServerRequest generates a "aws/request.Request" representing the
+// client's request for the StartMlflowTrackingServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StartMlflowTrackingServer for more information on using the StartMlflowTrackingServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the StartMlflowTrackingServerRequest method.
+//	req, resp := client.StartMlflowTrackingServerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/StartMlflowTrackingServer
+func (c *SageMaker) StartMlflowTrackingServerRequest(input *StartMlflowTrackingServerInput) (req *request.Request, output *StartMlflowTrackingServerOutput) {
+	op := &request.Operation{
+		Name:       opStartMlflowTrackingServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StartMlflowTrackingServerInput{}
+	}
+
+	output = &StartMlflowTrackingServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StartMlflowTrackingServer API operation for Amazon SageMaker Service.
+//
+// Programmatically start an MLflow Tracking Server.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation StartMlflowTrackingServer for usage and error information.
+//
+// Returned Error Types:
+//
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+//   - ConflictException
+//     There was a conflict when you attempted to modify a SageMaker entity such
+//     as an Experiment or Artifact.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/StartMlflowTrackingServer
+func (c *SageMaker) StartMlflowTrackingServer(input *StartMlflowTrackingServerInput) (*StartMlflowTrackingServerOutput, error) {
+	req, out := c.StartMlflowTrackingServerRequest(input)
+	return out, req.Send()
+}
+
+// StartMlflowTrackingServerWithContext is the same as StartMlflowTrackingServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StartMlflowTrackingServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) StartMlflowTrackingServerWithContext(ctx aws.Context, input *StartMlflowTrackingServerInput, opts ...request.Option) (*StartMlflowTrackingServerOutput, error) {
+	req, out := c.StartMlflowTrackingServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opStartMonitoringSchedule = "StartMonitoringSchedule"
 
 // StartMonitoringScheduleRequest generates a "aws/request.Request" representing the
@@ -26699,6 +27762,89 @@ func (c *SageMaker) StopLabelingJobWithContext(ctx aws.Context, input *StopLabel
 	return out, req.Send()
 }
 
+const opStopMlflowTrackingServer = "StopMlflowTrackingServer"
+
+// StopMlflowTrackingServerRequest generates a "aws/request.Request" representing the
+// client's request for the StopMlflowTrackingServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopMlflowTrackingServer for more information on using the StopMlflowTrackingServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the StopMlflowTrackingServerRequest method.
+//	req, resp := client.StopMlflowTrackingServerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/StopMlflowTrackingServer
+func (c *SageMaker) StopMlflowTrackingServerRequest(input *StopMlflowTrackingServerInput) (req *request.Request, output *StopMlflowTrackingServerOutput) {
+	op := &request.Operation{
+		Name:       opStopMlflowTrackingServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopMlflowTrackingServerInput{}
+	}
+
+	output = &StopMlflowTrackingServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StopMlflowTrackingServer API operation for Amazon SageMaker Service.
+//
+// Programmatically stop an MLflow Tracking Server.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation StopMlflowTrackingServer for usage and error information.
+//
+// Returned Error Types:
+//
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+//   - ConflictException
+//     There was a conflict when you attempted to modify a SageMaker entity such
+//     as an Experiment or Artifact.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/StopMlflowTrackingServer
+func (c *SageMaker) StopMlflowTrackingServer(input *StopMlflowTrackingServerInput) (*StopMlflowTrackingServerOutput, error) {
+	req, out := c.StopMlflowTrackingServerRequest(input)
+	return out, req.Send()
+}
+
+// StopMlflowTrackingServerWithContext is the same as StopMlflowTrackingServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopMlflowTrackingServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) StopMlflowTrackingServerWithContext(ctx aws.Context, input *StopMlflowTrackingServerInput, opts ...request.Option) (*StopMlflowTrackingServerOutput, error) {
+	req, out := c.StopMlflowTrackingServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opStopMonitoringSchedule = "StopMonitoringSchedule"
 
 // StopMonitoringScheduleRequest generates a "aws/request.Request" representing the
@@ -26855,6 +28001,85 @@ func (c *SageMaker) StopNotebookInstance(input *StopNotebookInstanceInput) (*Sto
 // for more information on using Contexts.
 func (c *SageMaker) StopNotebookInstanceWithContext(ctx aws.Context, input *StopNotebookInstanceInput, opts ...request.Option) (*StopNotebookInstanceOutput, error) {
 	req, out := c.StopNotebookInstanceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opStopOptimizationJob = "StopOptimizationJob"
+
+// StopOptimizationJobRequest generates a "aws/request.Request" representing the
+// client's request for the StopOptimizationJob operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopOptimizationJob for more information on using the StopOptimizationJob
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the StopOptimizationJobRequest method.
+//	req, resp := client.StopOptimizationJobRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/StopOptimizationJob
+func (c *SageMaker) StopOptimizationJobRequest(input *StopOptimizationJobInput) (req *request.Request, output *StopOptimizationJobOutput) {
+	op := &request.Operation{
+		Name:       opStopOptimizationJob,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopOptimizationJobInput{}
+	}
+
+	output = &StopOptimizationJobOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// StopOptimizationJob API operation for Amazon SageMaker Service.
+//
+// Ends a running inference optimization job.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation StopOptimizationJob for usage and error information.
+//
+// Returned Error Types:
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/StopOptimizationJob
+func (c *SageMaker) StopOptimizationJob(input *StopOptimizationJobInput) (*StopOptimizationJobOutput, error) {
+	req, out := c.StopOptimizationJobRequest(input)
+	return out, req.Send()
+}
+
+// StopOptimizationJobWithContext is the same as StopOptimizationJob with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopOptimizationJob for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) StopOptimizationJobWithContext(ctx aws.Context, input *StopOptimizationJobInput, opts ...request.Option) (*StopOptimizationJobOutput, error) {
+	req, out := c.StopOptimizationJobRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -28520,8 +29745,6 @@ func (c *SageMaker) UpdateHubRequest(input *UpdateHubInput) (req *request.Reques
 //
 // Update a hub.
 //
-// Hub APIs are only callable through SageMaker Studio.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -28960,6 +30183,93 @@ func (c *SageMaker) UpdateInferenceExperiment(input *UpdateInferenceExperimentIn
 // for more information on using Contexts.
 func (c *SageMaker) UpdateInferenceExperimentWithContext(ctx aws.Context, input *UpdateInferenceExperimentInput, opts ...request.Option) (*UpdateInferenceExperimentOutput, error) {
 	req, out := c.UpdateInferenceExperimentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateMlflowTrackingServer = "UpdateMlflowTrackingServer"
+
+// UpdateMlflowTrackingServerRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateMlflowTrackingServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateMlflowTrackingServer for more information on using the UpdateMlflowTrackingServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the UpdateMlflowTrackingServerRequest method.
+//	req, resp := client.UpdateMlflowTrackingServerRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/UpdateMlflowTrackingServer
+func (c *SageMaker) UpdateMlflowTrackingServerRequest(input *UpdateMlflowTrackingServerInput) (req *request.Request, output *UpdateMlflowTrackingServerOutput) {
+	op := &request.Operation{
+		Name:       opUpdateMlflowTrackingServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateMlflowTrackingServerInput{}
+	}
+
+	output = &UpdateMlflowTrackingServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateMlflowTrackingServer API operation for Amazon SageMaker Service.
+//
+// Updates properties of an existing MLflow Tracking Server.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon SageMaker Service's
+// API operation UpdateMlflowTrackingServer for usage and error information.
+//
+// Returned Error Types:
+//
+//   - ResourceNotFound
+//     Resource being access is not found.
+//
+//   - ResourceLimitExceeded
+//     You have exceeded an SageMaker resource limit. For example, you might have
+//     too many training jobs created.
+//
+//   - ConflictException
+//     There was a conflict when you attempted to modify a SageMaker entity such
+//     as an Experiment or Artifact.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/sagemaker-2017-07-24/UpdateMlflowTrackingServer
+func (c *SageMaker) UpdateMlflowTrackingServer(input *UpdateMlflowTrackingServerInput) (*UpdateMlflowTrackingServerOutput, error) {
+	req, out := c.UpdateMlflowTrackingServerRequest(input)
+	return out, req.Send()
+}
+
+// UpdateMlflowTrackingServerWithContext is the same as UpdateMlflowTrackingServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateMlflowTrackingServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) UpdateMlflowTrackingServerWithContext(ctx aws.Context, input *UpdateMlflowTrackingServerInput, opts ...request.Option) (*UpdateMlflowTrackingServerOutput, error) {
+	req, out := c.UpdateMlflowTrackingServerRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -30842,6 +32152,76 @@ func (s *AdditionalInferenceSpecificationDefinition) SetSupportedTransformInstan
 	return s
 }
 
+// Data sources that are available to your model in addition to the one that
+// you specify for ModelDataSource when you use the CreateModel action.
+type AdditionalModelDataSource struct {
+	_ struct{} `type:"structure"`
+
+	// A custom name for this AdditionalModelDataSource object.
+	//
+	// ChannelName is a required field
+	ChannelName *string `min:"1" type:"string" required:"true"`
+
+	// Specifies the S3 location of ML model data to deploy.
+	//
+	// S3DataSource is a required field
+	S3DataSource *S3ModelDataSource `type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AdditionalModelDataSource) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AdditionalModelDataSource) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AdditionalModelDataSource) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AdditionalModelDataSource"}
+	if s.ChannelName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ChannelName"))
+	}
+	if s.ChannelName != nil && len(*s.ChannelName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelName", 1))
+	}
+	if s.S3DataSource == nil {
+		invalidParams.Add(request.NewErrParamRequired("S3DataSource"))
+	}
+	if s.S3DataSource != nil {
+		if err := s.S3DataSource.Validate(); err != nil {
+			invalidParams.AddNested("S3DataSource", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetChannelName sets the ChannelName field's value.
+func (s *AdditionalModelDataSource) SetChannelName(v string) *AdditionalModelDataSource {
+	s.ChannelName = &v
+	return s
+}
+
+// SetS3DataSource sets the S3DataSource field's value.
+func (s *AdditionalModelDataSource) SetS3DataSource(v *S3ModelDataSource) *AdditionalModelDataSource {
+	s.S3DataSource = v
+	return s
+}
+
 // A data source used for training or inference that is in addition to the input
 // dataset or model data.
 type AdditionalS3DataSource struct {
@@ -31562,6 +32942,48 @@ func (s *AlgorithmValidationSpecification) SetValidationProfiles(v []*AlgorithmV
 // SetValidationRole sets the ValidationRole field's value.
 func (s *AlgorithmValidationSpecification) SetValidationRole(v string) *AlgorithmValidationSpecification {
 	s.ValidationRole = &v
+	return s
+}
+
+// A collection of settings that configure the Amazon Q experience within the
+// domain.
+type AmazonQSettings struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the Amazon Q profile used within the domain.
+	QProfileArn *string `type:"string"`
+
+	// Whether Amazon Q has been enabled within the domain.
+	Status *string `type:"string" enum:"FeatureStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AmazonQSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AmazonQSettings) GoString() string {
+	return s.String()
+}
+
+// SetQProfileArn sets the QProfileArn field's value.
+func (s *AmazonQSettings) SetQProfileArn(v string) *AmazonQSettings {
+	s.QProfileArn = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *AmazonQSettings) SetStatus(v string) *AmazonQSettings {
+	s.Status = &v
 	return s
 }
 
@@ -33292,22 +34714,25 @@ func (s *AthenaDatasetDefinition) SetWorkGroup(v string) *AthenaDatasetDefinitio
 	return s
 }
 
-// The collection of algorithms run on a dataset for training the model candidates
-// of an Autopilot job.
+// The selection of algorithms trained on your dataset to generate the model
+// candidates for an Autopilot job.
 type AutoMLAlgorithmConfig struct {
 	_ struct{} `type:"structure"`
 
-	// The selection of algorithms run on a dataset to train the model candidates
-	// of an Autopilot job.
+	// The selection of algorithms trained on your dataset to generate the model
+	// candidates for an Autopilot job.
 	//
-	// Selected algorithms must belong to the list corresponding to the training
-	// mode set in AutoMLJobConfig.Mode (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLJobConfig.html#sagemaker-Type-AutoMLJobConfig-Mode)
-	// (ENSEMBLING or HYPERPARAMETER_TUNING). Choose a minimum of 1 algorithm.
+	//    * For the tabular problem type TabularJobConfig: Selected algorithms must
+	//    belong to the list corresponding to the training mode set in AutoMLJobConfig.Mode
+	//    (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLJobConfig.html#sagemaker-Type-AutoMLJobConfig-Mode)
+	//    (ENSEMBLING or HYPERPARAMETER_TUNING). Choose a minimum of 1 algorithm.
+	//    In ENSEMBLING mode: "catboost" "extra-trees" "fastai" "lightgbm" "linear-learner"
+	//    "nn-torch" "randomforest" "xgboost" In HYPERPARAMETER_TUNING mode: "linear-learner"
+	//    "mlp" "xgboost"
 	//
-	//    * In ENSEMBLING mode: "catboost" "extra-trees" "fastai" "lightgbm" "linear-learner"
-	//    "nn-torch" "randomforest" "xgboost"
-	//
-	//    * In HYPERPARAMETER_TUNING mode: "linear-learner" "mlp" "xgboost"
+	//    * For the time-series forecasting problem type TimeSeriesForecastingJobConfig:
+	//    Choose your algorithms from this list. "cnn-qr" "deepar" "prophet" "arima"
+	//    "npts" "ets"
 	//
 	// AutoMLAlgorithms is a required field
 	AutoMLAlgorithms []*string `type:"list" required:"true" enum:"AutoMLAlgorithm"`
@@ -33501,23 +34926,23 @@ func (s *AutoMLCandidate) SetObjectiveStatus(v string) *AutoMLCandidate {
 type AutoMLCandidateGenerationConfig struct {
 	_ struct{} `type:"structure"`
 
-	// Stores the configuration information for the selection of algorithms used
-	// to train the model candidates.
+	// Stores the configuration information for the selection of algorithms trained
+	// on tabular data.
 	//
 	// The list of available algorithms to choose from depends on the training mode
-	// set in AutoMLJobConfig.Mode (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLJobConfig.html).
+	// set in TabularJobConfig.Mode (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_TabularJobConfig.html).
 	//
-	//    * AlgorithmsConfig should not be set in AUTO training mode.
+	//    * AlgorithmsConfig should not be set if the training mode is set on AUTO.
 	//
 	//    * When AlgorithmsConfig is provided, one AutoMLAlgorithms attribute must
 	//    be set and one only. If the list of algorithms provided as values for
-	//    AutoMLAlgorithms is empty, AutoMLCandidateGenerationConfig uses the full
-	//    set of algorithms for the given training mode.
+	//    AutoMLAlgorithms is empty, CandidateGenerationConfig uses the full set
+	//    of algorithms for the given training mode.
 	//
-	//    * When AlgorithmsConfig is not provided, AutoMLCandidateGenerationConfig
-	//    uses the full set of algorithms for the given training mode.
+	//    * When AlgorithmsConfig is not provided, CandidateGenerationConfig uses
+	//    the full set of algorithms for the given training mode.
 	//
-	// For the list of all algorithms per training mode, see AutoMLAlgorithmConfig
+	// For the list of all algorithms per problem type and training mode, see AutoMLAlgorithmConfig
 	// (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLAlgorithmConfig.html).
 	//
 	// For more information on each algorithm, see the Algorithm support (https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-model-support-validation.html#autopilot-algorithm-support)
@@ -35982,27 +37407,37 @@ func (s *CandidateArtifactLocations) SetModelInsights(v string) *CandidateArtifa
 type CandidateGenerationConfig struct {
 	_ struct{} `type:"structure"`
 
-	// Stores the configuration information for the selection of algorithms used
-	// to train model candidates on tabular data.
+	// Your Autopilot job trains a default set of algorithms on your dataset. For
+	// tabular and time-series data, you can customize the algorithm list by selecting
+	// a subset of algorithms for your problem type.
 	//
-	// The list of available algorithms to choose from depends on the training mode
-	// set in TabularJobConfig.Mode (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_TabularJobConfig.html).
+	// AlgorithmsConfig stores the customized selection of algorithms to train on
+	// your data.
 	//
-	//    * AlgorithmsConfig should not be set in AUTO training mode.
+	//    * For the tabular problem type TabularJobConfig, the list of available
+	//    algorithms to choose from depends on the training mode set in AutoMLJobConfig.Mode
+	//    (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLJobConfig.html).
+	//    AlgorithmsConfig should not be set when the training mode AutoMLJobConfig.Mode
+	//    is set to AUTO. When AlgorithmsConfig is provided, one AutoMLAlgorithms
+	//    attribute must be set and one only. If the list of algorithms provided
+	//    as values for AutoMLAlgorithms is empty, CandidateGenerationConfig uses
+	//    the full set of algorithms for the given training mode. When AlgorithmsConfig
+	//    is not provided, CandidateGenerationConfig uses the full set of algorithms
+	//    for the given training mode. For the list of all algorithms per training
+	//    mode, see AlgorithmConfig (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLAlgorithmConfig.html).
+	//    For more information on each algorithm, see the Algorithm support (https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-model-support-validation.html#autopilot-algorithm-support)
+	//    section in the Autopilot developer guide.
 	//
-	//    * When AlgorithmsConfig is provided, one AutoMLAlgorithms attribute must
-	//    be set and one only. If the list of algorithms provided as values for
-	//    AutoMLAlgorithms is empty, CandidateGenerationConfig uses the full set
-	//    of algorithms for the given training mode.
-	//
-	//    * When AlgorithmsConfig is not provided, CandidateGenerationConfig uses
-	//    the full set of algorithms for the given training mode.
-	//
-	// For the list of all algorithms per problem type and training mode, see AutoMLAlgorithmConfig
-	// (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLAlgorithmConfig.html).
-	//
-	// For more information on each algorithm, see the Algorithm support (https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-model-support-validation.html#autopilot-algorithm-support)
-	// section in Autopilot developer guide.
+	//    * For the time-series forecasting problem type TimeSeriesForecastingJobConfig,
+	//    choose your algorithms from the list provided in AlgorithmConfig (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_AutoMLAlgorithmConfig.html).
+	//    For more information on each algorithm, see the Algorithms support for
+	//    time-series forecasting (https://docs.aws.amazon.com/sagemaker/latest/dg/timeseries-forecasting-algorithms.html)
+	//    section in the Autopilot developer guide. When AlgorithmsConfig is provided,
+	//    one AutoMLAlgorithms attribute must be set and one only. If the list of
+	//    algorithms provided as values for AutoMLAlgorithms is empty, CandidateGenerationConfig
+	//    uses the full set of algorithms for time-series forecasting. When AlgorithmsConfig
+	//    is not provided, CandidateGenerationConfig uses the full set of algorithms
+	//    for time-series forecasting.
 	AlgorithmsConfig []*AutoMLAlgorithmConfig `type:"list"`
 }
 
@@ -36609,6 +38044,7 @@ type Channel struct {
 	// To use a model for incremental training, choose File input model.
 	InputMode *string `type:"string" enum:"TrainingInputMode"`
 
+	//
 	// Specify RecordIO as the value when input data is in raw format but the training
 	// algorithm requires the RecordIO format. In this case, SageMaker wraps each
 	// individual S3 object in a RecordIO record. If the input data is already in
@@ -37560,6 +38996,62 @@ func (s *ClarifyTextConfig) SetLanguage(v string) *ClarifyTextConfig {
 	return s
 }
 
+// Defines the configuration for attaching an additional Amazon Elastic Block
+// Store (EBS) volume to each instance of the SageMaker HyperPod cluster instance
+// group. To learn more, see SageMaker HyperPod release notes: June 20, 2024
+// (https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-release-notes.html#sagemaker-hyperpod-release-notes-20240620).
+type ClusterEbsVolumeConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The size in gigabytes (GB) of the additional EBS volume to be attached to
+	// the instances in the SageMaker HyperPod cluster instance group. The additional
+	// EBS volume is attached to each instance within the SageMaker HyperPod cluster
+	// instance group and mounted to /opt/sagemaker.
+	//
+	// VolumeSizeInGB is a required field
+	VolumeSizeInGB *int64 `min:"1" type:"integer" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ClusterEbsVolumeConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ClusterEbsVolumeConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ClusterEbsVolumeConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ClusterEbsVolumeConfig"}
+	if s.VolumeSizeInGB == nil {
+		invalidParams.Add(request.NewErrParamRequired("VolumeSizeInGB"))
+	}
+	if s.VolumeSizeInGB != nil && *s.VolumeSizeInGB < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("VolumeSizeInGB", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetVolumeSizeInGB sets the VolumeSizeInGB field's value.
+func (s *ClusterEbsVolumeConfig) SetVolumeSizeInGB(v int64) *ClusterEbsVolumeConfig {
+	s.VolumeSizeInGB = &v
+	return s
+}
+
 // Details of an instance group in a SageMaker HyperPod cluster.
 type ClusterInstanceGroupDetails struct {
 	_ struct{} `type:"structure"`
@@ -37573,6 +39065,10 @@ type ClusterInstanceGroupDetails struct {
 
 	// The name of the instance group of a SageMaker HyperPod cluster.
 	InstanceGroupName *string `min:"1" type:"string"`
+
+	// The additional storage configurations for the instances in the SageMaker
+	// HyperPod cluster instance group.
+	InstanceStorageConfigs []*ClusterInstanceStorageConfig `type:"list"`
 
 	// The instance type of the instance group of a SageMaker HyperPod cluster.
 	InstanceType *string `type:"string" enum:"ClusterInstanceType"`
@@ -37629,6 +39125,12 @@ func (s *ClusterInstanceGroupDetails) SetInstanceGroupName(v string) *ClusterIns
 	return s
 }
 
+// SetInstanceStorageConfigs sets the InstanceStorageConfigs field's value.
+func (s *ClusterInstanceGroupDetails) SetInstanceStorageConfigs(v []*ClusterInstanceStorageConfig) *ClusterInstanceGroupDetails {
+	s.InstanceStorageConfigs = v
+	return s
+}
+
 // SetInstanceType sets the InstanceType field's value.
 func (s *ClusterInstanceGroupDetails) SetInstanceType(v string) *ClusterInstanceGroupDetails {
 	s.InstanceType = &v
@@ -37672,6 +39174,10 @@ type ClusterInstanceGroupSpecification struct {
 	//
 	// InstanceGroupName is a required field
 	InstanceGroupName *string `min:"1" type:"string" required:"true"`
+
+	// Specifies the additional storage configurations for the instances in the
+	// SageMaker HyperPod cluster instance group.
+	InstanceStorageConfigs []*ClusterInstanceStorageConfig `type:"list"`
 
 	// Specifies the instance type of the instance group.
 	//
@@ -37740,6 +39246,16 @@ func (s *ClusterInstanceGroupSpecification) Validate() error {
 	if s.ThreadsPerCore != nil && *s.ThreadsPerCore < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("ThreadsPerCore", 1))
 	}
+	if s.InstanceStorageConfigs != nil {
+		for i, v := range s.InstanceStorageConfigs {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "InstanceStorageConfigs", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.LifeCycleConfig != nil {
 		if err := s.LifeCycleConfig.Validate(); err != nil {
 			invalidParams.AddNested("LifeCycleConfig", err.(request.ErrInvalidParams))
@@ -37770,6 +39286,12 @@ func (s *ClusterInstanceGroupSpecification) SetInstanceGroupName(v string) *Clus
 	return s
 }
 
+// SetInstanceStorageConfigs sets the InstanceStorageConfigs field's value.
+func (s *ClusterInstanceGroupSpecification) SetInstanceStorageConfigs(v []*ClusterInstanceStorageConfig) *ClusterInstanceGroupSpecification {
+	s.InstanceStorageConfigs = v
+	return s
+}
+
 // SetInstanceType sets the InstanceType field's value.
 func (s *ClusterInstanceGroupSpecification) SetInstanceType(v string) *ClusterInstanceGroupSpecification {
 	s.InstanceType = &v
@@ -37785,6 +39307,51 @@ func (s *ClusterInstanceGroupSpecification) SetLifeCycleConfig(v *ClusterLifeCyc
 // SetThreadsPerCore sets the ThreadsPerCore field's value.
 func (s *ClusterInstanceGroupSpecification) SetThreadsPerCore(v int64) *ClusterInstanceGroupSpecification {
 	s.ThreadsPerCore = &v
+	return s
+}
+
+// Specifies the placement details for the node in the SageMaker HyperPod cluster,
+// including the Availability Zone and the unique identifier (ID) of the Availability
+// Zone.
+type ClusterInstancePlacement struct {
+	_ struct{} `type:"structure"`
+
+	// The Availability Zone where the node in the SageMaker HyperPod cluster is
+	// launched.
+	AvailabilityZone *string `type:"string"`
+
+	// The unique identifier (ID) of the Availability Zone where the node in the
+	// SageMaker HyperPod cluster is launched.
+	AvailabilityZoneId *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ClusterInstancePlacement) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ClusterInstancePlacement) GoString() string {
+	return s.String()
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field's value.
+func (s *ClusterInstancePlacement) SetAvailabilityZone(v string) *ClusterInstancePlacement {
+	s.AvailabilityZone = &v
+	return s
+}
+
+// SetAvailabilityZoneId sets the AvailabilityZoneId field's value.
+func (s *ClusterInstancePlacement) SetAvailabilityZoneId(v string) *ClusterInstancePlacement {
+	s.AvailabilityZoneId = &v
 	return s
 }
 
@@ -37831,17 +39398,74 @@ func (s *ClusterInstanceStatusDetails) SetStatus(v string) *ClusterInstanceStatu
 	return s
 }
 
-// The LifeCycle configuration for a SageMaker HyperPod cluster.
+// Defines the configuration for attaching additional storage to the instances
+// in the SageMaker HyperPod cluster instance group. To learn more, see SageMaker
+// HyperPod release notes: June 20, 2024 (https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-release-notes.html#sagemaker-hyperpod-release-notes-20240620).
+type ClusterInstanceStorageConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Defines the configuration for attaching additional Amazon Elastic Block Store
+	// (EBS) volumes to the instances in the SageMaker HyperPod cluster instance
+	// group. The additional EBS volume is attached to each instance within the
+	// SageMaker HyperPod cluster instance group and mounted to /opt/sagemaker.
+	EbsVolumeConfig *ClusterEbsVolumeConfig `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ClusterInstanceStorageConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ClusterInstanceStorageConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ClusterInstanceStorageConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ClusterInstanceStorageConfig"}
+	if s.EbsVolumeConfig != nil {
+		if err := s.EbsVolumeConfig.Validate(); err != nil {
+			invalidParams.AddNested("EbsVolumeConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEbsVolumeConfig sets the EbsVolumeConfig field's value.
+func (s *ClusterInstanceStorageConfig) SetEbsVolumeConfig(v *ClusterEbsVolumeConfig) *ClusterInstanceStorageConfig {
+	s.EbsVolumeConfig = v
+	return s
+}
+
+// The lifecycle configuration for a SageMaker HyperPod cluster.
 type ClusterLifeCycleConfig struct {
 	_ struct{} `type:"structure"`
 
-	// The directory of the LifeCycle script under SourceS3Uri. This LifeCycle script
-	// runs during cluster creation.
+	// The file name of the entrypoint script of lifecycle scripts under SourceS3Uri.
+	// This entrypoint script runs during cluster creation.
 	//
 	// OnCreate is a required field
 	OnCreate *string `min:"1" type:"string" required:"true"`
 
-	// An Amazon S3 bucket path where your LifeCycle scripts are stored.
+	// An Amazon S3 bucket path where your lifecycle scripts are stored.
+	//
+	// Make sure that the S3 bucket path starts with s3://sagemaker-. The IAM role
+	// for SageMaker HyperPod (https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-prerequisites.html#sagemaker-hyperpod-prerequisites-iam-role-for-hyperpod)
+	// has the managed AmazonSageMakerClusterInstanceRolePolicy (https://docs.aws.amazon.com/sagemaker/latest/dg/security-iam-awsmanpol-cluster.html)
+	// attached, which allows access to S3 buckets with the specific prefix sagemaker-.
 	//
 	// SourceS3Uri is a required field
 	SourceS3Uri *string `type:"string" required:"true"`
@@ -37910,6 +39534,10 @@ type ClusterNodeDetails struct {
 	// The status of the instance.
 	InstanceStatus *ClusterInstanceStatusDetails `type:"structure"`
 
+	// The configurations of additional storage specified to the instance group
+	// where the instance (node) is launched.
+	InstanceStorageConfigs []*ClusterInstanceStorageConfig `type:"list"`
+
 	// The type of the instance.
 	InstanceType *string `type:"string" enum:"ClusterInstanceType"`
 
@@ -37918,6 +39546,15 @@ type ClusterNodeDetails struct {
 
 	// The LifeCycle configuration applied to the instance.
 	LifeCycleConfig *ClusterLifeCycleConfig `type:"structure"`
+
+	// The placement details of the SageMaker HyperPod cluster node.
+	Placement *ClusterInstancePlacement `type:"structure"`
+
+	// The private DNS hostname of the SageMaker HyperPod cluster node.
+	PrivateDnsHostname *string `type:"string"`
+
+	// The private primary IP address of the SageMaker HyperPod cluster node.
+	PrivatePrimaryIp *string `type:"string"`
 
 	// The number of threads per CPU core you specified under CreateCluster.
 	ThreadsPerCore *int64 `min:"1" type:"integer"`
@@ -37959,6 +39596,12 @@ func (s *ClusterNodeDetails) SetInstanceStatus(v *ClusterInstanceStatusDetails) 
 	return s
 }
 
+// SetInstanceStorageConfigs sets the InstanceStorageConfigs field's value.
+func (s *ClusterNodeDetails) SetInstanceStorageConfigs(v []*ClusterInstanceStorageConfig) *ClusterNodeDetails {
+	s.InstanceStorageConfigs = v
+	return s
+}
+
 // SetInstanceType sets the InstanceType field's value.
 func (s *ClusterNodeDetails) SetInstanceType(v string) *ClusterNodeDetails {
 	s.InstanceType = &v
@@ -37974,6 +39617,24 @@ func (s *ClusterNodeDetails) SetLaunchTime(v time.Time) *ClusterNodeDetails {
 // SetLifeCycleConfig sets the LifeCycleConfig field's value.
 func (s *ClusterNodeDetails) SetLifeCycleConfig(v *ClusterLifeCycleConfig) *ClusterNodeDetails {
 	s.LifeCycleConfig = v
+	return s
+}
+
+// SetPlacement sets the Placement field's value.
+func (s *ClusterNodeDetails) SetPlacement(v *ClusterInstancePlacement) *ClusterNodeDetails {
+	s.Placement = v
+	return s
+}
+
+// SetPrivateDnsHostname sets the PrivateDnsHostname field's value.
+func (s *ClusterNodeDetails) SetPrivateDnsHostname(v string) *ClusterNodeDetails {
+	s.PrivateDnsHostname = &v
+	return s
+}
+
+// SetPrivatePrimaryIp sets the PrivatePrimaryIp field's value.
+func (s *ClusterNodeDetails) SetPrivatePrimaryIp(v string) *ClusterNodeDetails {
+	s.PrivatePrimaryIp = &v
 	return s
 }
 
@@ -38927,6 +40588,10 @@ func (s *ContainerConfig) SetContainerEnvironmentVariables(v map[string]*string)
 type ContainerDefinition struct {
 	_ struct{} `type:"structure"`
 
+	// Data sources that are available to your model in addition to the one that
+	// you specify for ModelDataSource when you use the CreateModel action.
+	AdditionalModelDataSources []*AdditionalModelDataSource `type:"list"`
+
 	// This parameter is ignored for models that contain only a PrimaryContainer.
 	//
 	// When a ContainerDefinition is part of an inference pipeline, the value of
@@ -39042,6 +40707,16 @@ func (s *ContainerDefinition) Validate() error {
 	if s.ModelPackageName != nil && len(*s.ModelPackageName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ModelPackageName", 1))
 	}
+	if s.AdditionalModelDataSources != nil {
+		for i, v := range s.AdditionalModelDataSources {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AdditionalModelDataSources", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.ImageConfig != nil {
 		if err := s.ImageConfig.Validate(); err != nil {
 			invalidParams.AddNested("ImageConfig", err.(request.ErrInvalidParams))
@@ -39057,6 +40732,12 @@ func (s *ContainerDefinition) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAdditionalModelDataSources sets the AdditionalModelDataSources field's value.
+func (s *ContainerDefinition) SetAdditionalModelDataSources(v []*AdditionalModelDataSource) *ContainerDefinition {
+	s.AdditionalModelDataSources = v
+	return s
 }
 
 // SetContainerHostname sets the ContainerHostname field's value.
@@ -43125,7 +44806,7 @@ type CreateFeatureGroupInput struct {
 	//
 	// The name:
 	//
-	//    * Must start and end with an alphanumeric character.
+	//    * Must start with an alphanumeric character.
 	//
 	//    * Can only include alphanumeric characters, underscores, and hyphens.
 	//    Spaces are not allowed.
@@ -43172,7 +44853,7 @@ type CreateFeatureGroupInput struct {
 	//
 	// This name:
 	//
-	//    * Must start and end with an alphanumeric character.
+	//    * Must start with an alphanumeric character.
 	//
 	//    * Can only contains alphanumeric characters, hyphens, underscores. Spaces
 	//    are not allowed.
@@ -43569,6 +45250,150 @@ func (s CreateFlowDefinitionOutput) GoString() string {
 // SetFlowDefinitionArn sets the FlowDefinitionArn field's value.
 func (s *CreateFlowDefinitionOutput) SetFlowDefinitionArn(v string) *CreateFlowDefinitionOutput {
 	s.FlowDefinitionArn = &v
+	return s
+}
+
+type CreateHubContentReferenceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the hub content to reference.
+	HubContentName *string `type:"string"`
+
+	// The name of the hub to add the hub content reference to.
+	//
+	// HubName is a required field
+	HubName *string `type:"string" required:"true"`
+
+	// The minimum version of the hub content to reference.
+	MinVersion *string `min:"5" type:"string"`
+
+	// The ARN of the public hub content to reference.
+	//
+	// SageMakerPublicHubContentArn is a required field
+	SageMakerPublicHubContentArn *string `type:"string" required:"true"`
+
+	// Any tags associated with the hub content to reference.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateHubContentReferenceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateHubContentReferenceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateHubContentReferenceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateHubContentReferenceInput"}
+	if s.HubName == nil {
+		invalidParams.Add(request.NewErrParamRequired("HubName"))
+	}
+	if s.MinVersion != nil && len(*s.MinVersion) < 5 {
+		invalidParams.Add(request.NewErrParamMinLen("MinVersion", 5))
+	}
+	if s.SageMakerPublicHubContentArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("SageMakerPublicHubContentArn"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetHubContentName sets the HubContentName field's value.
+func (s *CreateHubContentReferenceInput) SetHubContentName(v string) *CreateHubContentReferenceInput {
+	s.HubContentName = &v
+	return s
+}
+
+// SetHubName sets the HubName field's value.
+func (s *CreateHubContentReferenceInput) SetHubName(v string) *CreateHubContentReferenceInput {
+	s.HubName = &v
+	return s
+}
+
+// SetMinVersion sets the MinVersion field's value.
+func (s *CreateHubContentReferenceInput) SetMinVersion(v string) *CreateHubContentReferenceInput {
+	s.MinVersion = &v
+	return s
+}
+
+// SetSageMakerPublicHubContentArn sets the SageMakerPublicHubContentArn field's value.
+func (s *CreateHubContentReferenceInput) SetSageMakerPublicHubContentArn(v string) *CreateHubContentReferenceInput {
+	s.SageMakerPublicHubContentArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateHubContentReferenceInput) SetTags(v []*Tag) *CreateHubContentReferenceInput {
+	s.Tags = v
+	return s
+}
+
+type CreateHubContentReferenceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the hub that the hub content reference was added to.
+	//
+	// HubArn is a required field
+	HubArn *string `type:"string" required:"true"`
+
+	// The ARN of the hub content.
+	//
+	// HubContentArn is a required field
+	HubContentArn *string `type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateHubContentReferenceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateHubContentReferenceOutput) GoString() string {
+	return s.String()
+}
+
+// SetHubArn sets the HubArn field's value.
+func (s *CreateHubContentReferenceOutput) SetHubArn(v string) *CreateHubContentReferenceOutput {
+	s.HubArn = &v
+	return s
+}
+
+// SetHubContentArn sets the HubContentArn field's value.
+func (s *CreateHubContentReferenceOutput) SetHubContentArn(v string) *CreateHubContentReferenceOutput {
+	s.HubContentArn = &v
 	return s
 }
 
@@ -45410,6 +47235,193 @@ func (s *CreateLabelingJobOutput) SetLabelingJobArn(v string) *CreateLabelingJob
 	return s
 }
 
+type CreateMlflowTrackingServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The S3 URI for a general purpose bucket to use as the MLflow Tracking Server
+	// artifact store.
+	//
+	// ArtifactStoreUri is a required field
+	ArtifactStoreUri *string `type:"string" required:"true"`
+
+	// Whether to enable or disable automatic registration of new MLflow models
+	// to the SageMaker Model Registry. To enable automatic model registration,
+	// set this value to True. To disable automatic model registration, set this
+	// value to False. If not specified, AutomaticModelRegistration defaults to
+	// False.
+	AutomaticModelRegistration *bool `type:"boolean"`
+
+	// The version of MLflow that the tracking server uses. To see which MLflow
+	// versions are available to use, see How it works (https://docs.aws.amazon.com/sagemaker/latest/dg/mlflow.html#mlflow-create-tracking-server-how-it-works).
+	MlflowVersion *string `type:"string"`
+
+	// The Amazon Resource Name (ARN) for an IAM role in your account that the MLflow
+	// Tracking Server uses to access the artifact store in Amazon S3. The role
+	// should have AmazonS3FullAccess permissions. For more information on IAM permissions
+	// for tracking server creation, see Set up IAM permissions for MLflow (https://docs.aws.amazon.com/sagemaker/latest/dg/mlflow-create-tracking-server-iam.html).
+	//
+	// RoleArn is a required field
+	RoleArn *string `min:"20" type:"string" required:"true"`
+
+	// Tags consisting of key-value pairs used to manage metadata for the tracking
+	// server.
+	Tags []*Tag `type:"list"`
+
+	// A unique string identifying the tracking server name. This string is part
+	// of the tracking server ARN.
+	//
+	// TrackingServerName is a required field
+	TrackingServerName *string `min:"1" type:"string" required:"true"`
+
+	// The size of the tracking server you want to create. You can choose between
+	// "Small", "Medium", and "Large". The default MLflow Tracking Server configuration
+	// size is "Small". You can choose a size depending on the projected use of
+	// the tracking server such as the volume of data logged, number of users, and
+	// frequency of use.
+	//
+	// We recommend using a small tracking server for teams of up to 25 users, a
+	// medium tracking server for teams of up to 50 users, and a large tracking
+	// server for teams of up to 100 users.
+	TrackingServerSize *string `type:"string" enum:"TrackingServerSize"`
+
+	// The day and time of the week in Coordinated Universal Time (UTC) 24-hour
+	// standard time that weekly maintenance updates are scheduled. For example:
+	// TUE:03:30.
+	WeeklyMaintenanceWindowStart *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateMlflowTrackingServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateMlflowTrackingServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateMlflowTrackingServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateMlflowTrackingServerInput"}
+	if s.ArtifactStoreUri == nil {
+		invalidParams.Add(request.NewErrParamRequired("ArtifactStoreUri"))
+	}
+	if s.RoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleArn"))
+	}
+	if s.RoleArn != nil && len(*s.RoleArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 20))
+	}
+	if s.TrackingServerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrackingServerName"))
+	}
+	if s.TrackingServerName != nil && len(*s.TrackingServerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrackingServerName", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArtifactStoreUri sets the ArtifactStoreUri field's value.
+func (s *CreateMlflowTrackingServerInput) SetArtifactStoreUri(v string) *CreateMlflowTrackingServerInput {
+	s.ArtifactStoreUri = &v
+	return s
+}
+
+// SetAutomaticModelRegistration sets the AutomaticModelRegistration field's value.
+func (s *CreateMlflowTrackingServerInput) SetAutomaticModelRegistration(v bool) *CreateMlflowTrackingServerInput {
+	s.AutomaticModelRegistration = &v
+	return s
+}
+
+// SetMlflowVersion sets the MlflowVersion field's value.
+func (s *CreateMlflowTrackingServerInput) SetMlflowVersion(v string) *CreateMlflowTrackingServerInput {
+	s.MlflowVersion = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *CreateMlflowTrackingServerInput) SetRoleArn(v string) *CreateMlflowTrackingServerInput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateMlflowTrackingServerInput) SetTags(v []*Tag) *CreateMlflowTrackingServerInput {
+	s.Tags = v
+	return s
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *CreateMlflowTrackingServerInput) SetTrackingServerName(v string) *CreateMlflowTrackingServerInput {
+	s.TrackingServerName = &v
+	return s
+}
+
+// SetTrackingServerSize sets the TrackingServerSize field's value.
+func (s *CreateMlflowTrackingServerInput) SetTrackingServerSize(v string) *CreateMlflowTrackingServerInput {
+	s.TrackingServerSize = &v
+	return s
+}
+
+// SetWeeklyMaintenanceWindowStart sets the WeeklyMaintenanceWindowStart field's value.
+func (s *CreateMlflowTrackingServerInput) SetWeeklyMaintenanceWindowStart(v string) *CreateMlflowTrackingServerInput {
+	s.WeeklyMaintenanceWindowStart = &v
+	return s
+}
+
+type CreateMlflowTrackingServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the tracking server.
+	TrackingServerArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateMlflowTrackingServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateMlflowTrackingServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetTrackingServerArn sets the TrackingServerArn field's value.
+func (s *CreateMlflowTrackingServerOutput) SetTrackingServerArn(v string) *CreateMlflowTrackingServerOutput {
+	s.TrackingServerArn = &v
+	return s
+}
+
 type CreateModelBiasJobDefinitionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -46541,6 +48553,17 @@ type CreateModelPackageInput struct {
 	// to deploy the model.
 	ModelApprovalStatus *string `type:"string" enum:"ModelApprovalStatus"`
 
+	// The model card associated with the model package. Since ModelPackageModelCard
+	// is tied to a model package, it is a specific usage of a model card and its
+	// schema is simplified compared to the schema of ModelCard. The ModelPackageModelCard
+	// schema does not include model_package_details, and model_overview is composed
+	// of the model_creator and model_artifact properties. For more information
+	// about the model package model card schema, see Model package model card schema
+	// (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema).
+	// For more information about the model card associated with the model package,
+	// see View the Details of a Model Version (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html).
+	ModelCard *ModelPackageModelCard `type:"structure"`
+
 	// A structure that contains model metrics reports.
 	ModelMetrics *ModelMetrics `type:"structure"`
 
@@ -46568,6 +48591,9 @@ type CreateModelPackageInput struct {
 	// of the InvokeEndpoint (https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_runtime_InvokeEndpoint.html#API_runtime_InvokeEndpoint_RequestSyntax)
 	// call.
 	SamplePayloadUrl *string `type:"string"`
+
+	// The KMS Key ID (KMSKeyId) used for encryption of model package information.
+	SecurityConfig *ModelPackageSecurityConfig `type:"structure"`
 
 	// Indicates if you want to skip model validation.
 	SkipModelValidation *string `type:"string" enum:"SkipModelValidation"`
@@ -46664,6 +48690,11 @@ func (s *CreateModelPackageInput) Validate() error {
 			invalidParams.AddNested("ModelMetrics", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.SecurityConfig != nil {
+		if err := s.SecurityConfig.Validate(); err != nil {
+			invalidParams.AddNested("SecurityConfig", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.SourceAlgorithmSpecification != nil {
 		if err := s.SourceAlgorithmSpecification.Validate(); err != nil {
 			invalidParams.AddNested("SourceAlgorithmSpecification", err.(request.ErrInvalidParams))
@@ -46745,6 +48776,12 @@ func (s *CreateModelPackageInput) SetModelApprovalStatus(v string) *CreateModelP
 	return s
 }
 
+// SetModelCard sets the ModelCard field's value.
+func (s *CreateModelPackageInput) SetModelCard(v *ModelPackageModelCard) *CreateModelPackageInput {
+	s.ModelCard = v
+	return s
+}
+
 // SetModelMetrics sets the ModelMetrics field's value.
 func (s *CreateModelPackageInput) SetModelMetrics(v *ModelMetrics) *CreateModelPackageInput {
 	s.ModelMetrics = v
@@ -46772,6 +48809,12 @@ func (s *CreateModelPackageInput) SetModelPackageName(v string) *CreateModelPack
 // SetSamplePayloadUrl sets the SamplePayloadUrl field's value.
 func (s *CreateModelPackageInput) SetSamplePayloadUrl(v string) *CreateModelPackageInput {
 	s.SamplePayloadUrl = &v
+	return s
+}
+
+// SetSecurityConfig sets the SecurityConfig field's value.
+func (s *CreateModelPackageInput) SetSecurityConfig(v *ModelPackageSecurityConfig) *CreateModelPackageInput {
+	s.SecurityConfig = v
 	return s
 }
 
@@ -47620,6 +49663,267 @@ func (s *CreateNotebookInstanceOutput) SetNotebookInstanceArn(v string) *CreateN
 	return s
 }
 
+type CreateOptimizationJobInput struct {
+	_ struct{} `type:"structure"`
+
+	// The type of instance that hosts the optimized model that you create with
+	// the optimization job.
+	//
+	// DeploymentInstanceType is a required field
+	DeploymentInstanceType *string `type:"string" required:"true" enum:"OptimizationJobDeploymentInstanceType"`
+
+	// The location of the source model to optimize with an optimization job.
+	//
+	// ModelSource is a required field
+	ModelSource *OptimizationJobModelSource `type:"structure" required:"true"`
+
+	// Settings for each of the optimization techniques that the job applies.
+	//
+	// OptimizationConfigs is a required field
+	OptimizationConfigs []*OptimizationConfig `type:"list" required:"true"`
+
+	// The environment variables to set in the model container.
+	OptimizationEnvironment map[string]*string `type:"map"`
+
+	// A custom name for the new optimization job.
+	//
+	// OptimizationJobName is a required field
+	OptimizationJobName *string `min:"1" type:"string" required:"true"`
+
+	// Details for where to store the optimized model that you create with the optimization
+	// job.
+	//
+	// OutputConfig is a required field
+	OutputConfig *OptimizationJobOutputConfig `type:"structure" required:"true"`
+
+	// The Amazon Resource Name (ARN) of an IAM role that enables Amazon SageMaker
+	// to perform tasks on your behalf.
+	//
+	// During model optimization, Amazon SageMaker needs your permission to:
+	//
+	//    * Read input data from an S3 bucket
+	//
+	//    * Write model artifacts to an S3 bucket
+	//
+	//    * Write logs to Amazon CloudWatch Logs
+	//
+	//    * Publish metrics to Amazon CloudWatch
+	//
+	// You grant permissions for all of these tasks to an IAM role. To pass this
+	// role to Amazon SageMaker, the caller of this API must have the iam:PassRole
+	// permission. For more information, see Amazon SageMaker Roles. (https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-roles.html)
+	//
+	// RoleArn is a required field
+	RoleArn *string `min:"20" type:"string" required:"true"`
+
+	// Specifies a limit to how long a job can run. When the job reaches the time
+	// limit, SageMaker ends the job. Use this API to cap costs.
+	//
+	// To stop a training job, SageMaker sends the algorithm the SIGTERM signal,
+	// which delays job termination for 120 seconds. Algorithms can use this 120-second
+	// window to save the model artifacts, so the results of training are not lost.
+	//
+	// The training algorithms provided by SageMaker automatically save the intermediate
+	// results of a model training job when possible. This attempt to save artifacts
+	// is only a best effort case as model might not be in a state from which it
+	// can be saved. For example, if training has just started, the model might
+	// not be ready to save. When saved, this intermediate data is a valid model
+	// artifact. You can use it to create a model with CreateModel.
+	//
+	// The Neural Topic Model (NTM) currently does not support saving intermediate
+	// model artifacts. When training NTMs, make sure that the maximum runtime is
+	// sufficient for the training job to complete.
+	//
+	// StoppingCondition is a required field
+	StoppingCondition *StoppingCondition `type:"structure" required:"true"`
+
+	// A list of key-value pairs associated with the optimization job. For more
+	// information, see Tagging Amazon Web Services resources (https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html)
+	// in the Amazon Web Services General Reference Guide.
+	Tags []*Tag `type:"list"`
+
+	// A VPC in Amazon VPC that your optimized model has access to.
+	VpcConfig *OptimizationVpcConfig `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateOptimizationJobInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateOptimizationJobInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateOptimizationJobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateOptimizationJobInput"}
+	if s.DeploymentInstanceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("DeploymentInstanceType"))
+	}
+	if s.ModelSource == nil {
+		invalidParams.Add(request.NewErrParamRequired("ModelSource"))
+	}
+	if s.OptimizationConfigs == nil {
+		invalidParams.Add(request.NewErrParamRequired("OptimizationConfigs"))
+	}
+	if s.OptimizationJobName == nil {
+		invalidParams.Add(request.NewErrParamRequired("OptimizationJobName"))
+	}
+	if s.OptimizationJobName != nil && len(*s.OptimizationJobName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OptimizationJobName", 1))
+	}
+	if s.OutputConfig == nil {
+		invalidParams.Add(request.NewErrParamRequired("OutputConfig"))
+	}
+	if s.RoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleArn"))
+	}
+	if s.RoleArn != nil && len(*s.RoleArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 20))
+	}
+	if s.StoppingCondition == nil {
+		invalidParams.Add(request.NewErrParamRequired("StoppingCondition"))
+	}
+	if s.ModelSource != nil {
+		if err := s.ModelSource.Validate(); err != nil {
+			invalidParams.AddNested("ModelSource", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.OutputConfig != nil {
+		if err := s.OutputConfig.Validate(); err != nil {
+			invalidParams.AddNested("OutputConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.StoppingCondition != nil {
+		if err := s.StoppingCondition.Validate(); err != nil {
+			invalidParams.AddNested("StoppingCondition", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.VpcConfig != nil {
+		if err := s.VpcConfig.Validate(); err != nil {
+			invalidParams.AddNested("VpcConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDeploymentInstanceType sets the DeploymentInstanceType field's value.
+func (s *CreateOptimizationJobInput) SetDeploymentInstanceType(v string) *CreateOptimizationJobInput {
+	s.DeploymentInstanceType = &v
+	return s
+}
+
+// SetModelSource sets the ModelSource field's value.
+func (s *CreateOptimizationJobInput) SetModelSource(v *OptimizationJobModelSource) *CreateOptimizationJobInput {
+	s.ModelSource = v
+	return s
+}
+
+// SetOptimizationConfigs sets the OptimizationConfigs field's value.
+func (s *CreateOptimizationJobInput) SetOptimizationConfigs(v []*OptimizationConfig) *CreateOptimizationJobInput {
+	s.OptimizationConfigs = v
+	return s
+}
+
+// SetOptimizationEnvironment sets the OptimizationEnvironment field's value.
+func (s *CreateOptimizationJobInput) SetOptimizationEnvironment(v map[string]*string) *CreateOptimizationJobInput {
+	s.OptimizationEnvironment = v
+	return s
+}
+
+// SetOptimizationJobName sets the OptimizationJobName field's value.
+func (s *CreateOptimizationJobInput) SetOptimizationJobName(v string) *CreateOptimizationJobInput {
+	s.OptimizationJobName = &v
+	return s
+}
+
+// SetOutputConfig sets the OutputConfig field's value.
+func (s *CreateOptimizationJobInput) SetOutputConfig(v *OptimizationJobOutputConfig) *CreateOptimizationJobInput {
+	s.OutputConfig = v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *CreateOptimizationJobInput) SetRoleArn(v string) *CreateOptimizationJobInput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetStoppingCondition sets the StoppingCondition field's value.
+func (s *CreateOptimizationJobInput) SetStoppingCondition(v *StoppingCondition) *CreateOptimizationJobInput {
+	s.StoppingCondition = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateOptimizationJobInput) SetTags(v []*Tag) *CreateOptimizationJobInput {
+	s.Tags = v
+	return s
+}
+
+// SetVpcConfig sets the VpcConfig field's value.
+func (s *CreateOptimizationJobInput) SetVpcConfig(v *OptimizationVpcConfig) *CreateOptimizationJobInput {
+	s.VpcConfig = v
+	return s
+}
+
+type CreateOptimizationJobOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the optimization job.
+	//
+	// OptimizationJobArn is a required field
+	OptimizationJobArn *string `type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateOptimizationJobOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateOptimizationJobOutput) GoString() string {
+	return s.String()
+}
+
+// SetOptimizationJobArn sets the OptimizationJobArn field's value.
+func (s *CreateOptimizationJobOutput) SetOptimizationJobArn(v string) *CreateOptimizationJobOutput {
+	s.OptimizationJobArn = &v
+	return s
+}
+
 type CreatePipelineInput struct {
 	_ struct{} `type:"structure"`
 
@@ -47963,6 +50267,111 @@ func (s CreatePresignedDomainUrlOutput) GoString() string {
 
 // SetAuthorizedUrl sets the AuthorizedUrl field's value.
 func (s *CreatePresignedDomainUrlOutput) SetAuthorizedUrl(v string) *CreatePresignedDomainUrlOutput {
+	s.AuthorizedUrl = &v
+	return s
+}
+
+type CreatePresignedMlflowTrackingServerUrlInput struct {
+	_ struct{} `type:"structure"`
+
+	// The duration in seconds that your presigned URL is valid. The presigned URL
+	// can be used only once.
+	ExpiresInSeconds *int64 `min:"5" type:"integer"`
+
+	// The duration in seconds that your MLflow UI session is valid.
+	SessionExpirationDurationInSeconds *int64 `min:"1800" type:"integer"`
+
+	// The name of the tracking server to connect to your MLflow UI.
+	//
+	// TrackingServerName is a required field
+	TrackingServerName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreatePresignedMlflowTrackingServerUrlInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreatePresignedMlflowTrackingServerUrlInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreatePresignedMlflowTrackingServerUrlInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreatePresignedMlflowTrackingServerUrlInput"}
+	if s.ExpiresInSeconds != nil && *s.ExpiresInSeconds < 5 {
+		invalidParams.Add(request.NewErrParamMinValue("ExpiresInSeconds", 5))
+	}
+	if s.SessionExpirationDurationInSeconds != nil && *s.SessionExpirationDurationInSeconds < 1800 {
+		invalidParams.Add(request.NewErrParamMinValue("SessionExpirationDurationInSeconds", 1800))
+	}
+	if s.TrackingServerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrackingServerName"))
+	}
+	if s.TrackingServerName != nil && len(*s.TrackingServerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrackingServerName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetExpiresInSeconds sets the ExpiresInSeconds field's value.
+func (s *CreatePresignedMlflowTrackingServerUrlInput) SetExpiresInSeconds(v int64) *CreatePresignedMlflowTrackingServerUrlInput {
+	s.ExpiresInSeconds = &v
+	return s
+}
+
+// SetSessionExpirationDurationInSeconds sets the SessionExpirationDurationInSeconds field's value.
+func (s *CreatePresignedMlflowTrackingServerUrlInput) SetSessionExpirationDurationInSeconds(v int64) *CreatePresignedMlflowTrackingServerUrlInput {
+	s.SessionExpirationDurationInSeconds = &v
+	return s
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *CreatePresignedMlflowTrackingServerUrlInput) SetTrackingServerName(v string) *CreatePresignedMlflowTrackingServerUrlInput {
+	s.TrackingServerName = &v
+	return s
+}
+
+type CreatePresignedMlflowTrackingServerUrlOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A presigned URL with an authorization token.
+	AuthorizedUrl *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreatePresignedMlflowTrackingServerUrlOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreatePresignedMlflowTrackingServerUrlOutput) GoString() string {
+	return s.String()
+}
+
+// SetAuthorizedUrl sets the AuthorizedUrl field's value.
+func (s *CreatePresignedMlflowTrackingServerUrlOutput) SetAuthorizedUrl(v string) *CreatePresignedMlflowTrackingServerUrlOutput {
 	s.AuthorizedUrl = &v
 	return s
 }
@@ -48908,6 +51317,10 @@ type CreateTrainingJobInput struct {
 	// RoleArn is a required field
 	RoleArn *string `min:"20" type:"string" required:"true"`
 
+	// Contains information about attribute-based access control (ABAC) for the
+	// training job.
+	SessionChainingConfig *SessionChainingConfig `type:"structure"`
+
 	// Specifies a limit to how long a model training job can run. It also specifies
 	// how long a managed Spot training job has to complete. When the job reaches
 	// the time limit, SageMaker ends the training job. Use this API to cap model
@@ -49200,6 +51613,12 @@ func (s *CreateTrainingJobInput) SetRetryStrategy(v *RetryStrategy) *CreateTrain
 // SetRoleArn sets the RoleArn field's value.
 func (s *CreateTrainingJobInput) SetRoleArn(v string) *CreateTrainingJobInput {
 	s.RoleArn = &v
+	return s
+}
+
+// SetSessionChainingConfig sets the SessionChainingConfig field's value.
+func (s *CreateTrainingJobInput) SetSessionChainingConfig(v *SessionChainingConfig) *CreateTrainingJobInput {
+	s.SessionChainingConfig = v
 	return s
 }
 
@@ -50093,7 +52512,7 @@ type CreateWorkforceInput struct {
 
 	// A list of IP address ranges (CIDRs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html)).
 	// Used to create an allow list of IP addresses for a private workforce. Workers
-	// will only be able to login to their worker portal from an IP address within
+	// will only be able to log in to their worker portal from an IP address within
 	// this range. By default, a workforce isn't restricted to specific IP addresses.
 	SourceIpConfig *SourceIpConfig `type:"structure"`
 
@@ -50284,6 +52703,12 @@ type CreateWorkteamInput struct {
 	// in the Amazon Web Services Billing and Cost Management User Guide.
 	Tags []*Tag `type:"list"`
 
+	// Use this optional parameter to constrain access to an Amazon S3 resource
+	// based on the IP address using supported IAM global condition keys. The Amazon
+	// S3 resource is accessed in the worker portal using a Amazon S3 presigned
+	// URL.
+	WorkerAccessConfiguration *WorkerAccessConfiguration `type:"structure"`
+
 	// The name of the workforce.
 	WorkforceName *string `min:"1" type:"string"`
 
@@ -50383,6 +52808,12 @@ func (s *CreateWorkteamInput) SetNotificationConfiguration(v *NotificationConfig
 // SetTags sets the Tags field's value.
 func (s *CreateWorkteamInput) SetTags(v []*Tag) *CreateWorkteamInput {
 	s.Tags = v
+	return s
+}
+
+// SetWorkerAccessConfiguration sets the WorkerAccessConfiguration field's value.
+func (s *CreateWorkteamInput) SetWorkerAccessConfiguration(v *WorkerAccessConfiguration) *CreateWorkteamInput {
+	s.WorkerAccessConfiguration = v
 	return s
 }
 
@@ -51764,17 +54195,17 @@ func (s *DebugRuleEvaluationStatus) SetStatusDetails(v string) *DebugRuleEvaluat
 	return s
 }
 
-// A collection of default EBS storage settings that applies to private spaces
-// created within a domain or user profile.
+// A collection of default EBS storage settings that apply to spaces created
+// within a domain or user profile.
 type DefaultEbsStorageSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The default size of the EBS storage volume for a private space.
+	// The default size of the EBS storage volume for a space.
 	//
 	// DefaultEbsVolumeSizeInGb is a required field
 	DefaultEbsVolumeSizeInGb *int64 `min:"5" type:"integer" required:"true"`
 
-	// The maximum size of the EBS storage volume for a private space.
+	// The maximum size of the EBS storage volume for a space.
 	//
 	// MaximumEbsVolumeSizeInGb is a required field
 	MaximumEbsVolumeSizeInGb *int64 `min:"5" type:"integer" required:"true"`
@@ -51836,8 +54267,18 @@ func (s *DefaultEbsStorageSettings) SetMaximumEbsVolumeSizeInGb(v int64) *Defaul
 type DefaultSpaceSettings struct {
 	_ struct{} `type:"structure"`
 
+	// The settings for assigning a custom file system to a domain. Permitted users
+	// can access this file system in Amazon SageMaker Studio.
+	CustomFileSystemConfigs []*CustomFileSystemConfig `type:"list"`
+
+	// Details about the POSIX identity that is used for file system operations.
+	CustomPosixUserConfig *CustomPosixUserConfig `type:"structure"`
+
 	// The ARN of the execution role for the space.
 	ExecutionRole *string `min:"20" type:"string"`
+
+	// The settings for the JupyterLab application.
+	JupyterLabAppSettings *JupyterLabAppSettings `type:"structure"`
 
 	// The JupyterServer app settings.
 	JupyterServerAppSettings *JupyterServerAppSettings `type:"structure"`
@@ -51847,6 +54288,9 @@ type DefaultSpaceSettings struct {
 
 	// The security group IDs for the Amazon VPC that the space uses for communication.
 	SecurityGroups []*string `type:"list"`
+
+	// The default storage settings for a space.
+	SpaceStorageSettings *DefaultSpaceStorageSettings `type:"structure"`
 }
 
 // String returns the string representation.
@@ -51873,6 +54317,26 @@ func (s *DefaultSpaceSettings) Validate() error {
 	if s.ExecutionRole != nil && len(*s.ExecutionRole) < 20 {
 		invalidParams.Add(request.NewErrParamMinLen("ExecutionRole", 20))
 	}
+	if s.CustomFileSystemConfigs != nil {
+		for i, v := range s.CustomFileSystemConfigs {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CustomFileSystemConfigs", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.CustomPosixUserConfig != nil {
+		if err := s.CustomPosixUserConfig.Validate(); err != nil {
+			invalidParams.AddNested("CustomPosixUserConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.JupyterLabAppSettings != nil {
+		if err := s.JupyterLabAppSettings.Validate(); err != nil {
+			invalidParams.AddNested("JupyterLabAppSettings", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.JupyterServerAppSettings != nil {
 		if err := s.JupyterServerAppSettings.Validate(); err != nil {
 			invalidParams.AddNested("JupyterServerAppSettings", err.(request.ErrInvalidParams))
@@ -51883,6 +54347,11 @@ func (s *DefaultSpaceSettings) Validate() error {
 			invalidParams.AddNested("KernelGatewayAppSettings", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.SpaceStorageSettings != nil {
+		if err := s.SpaceStorageSettings.Validate(); err != nil {
+			invalidParams.AddNested("SpaceStorageSettings", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -51890,9 +54359,27 @@ func (s *DefaultSpaceSettings) Validate() error {
 	return nil
 }
 
+// SetCustomFileSystemConfigs sets the CustomFileSystemConfigs field's value.
+func (s *DefaultSpaceSettings) SetCustomFileSystemConfigs(v []*CustomFileSystemConfig) *DefaultSpaceSettings {
+	s.CustomFileSystemConfigs = v
+	return s
+}
+
+// SetCustomPosixUserConfig sets the CustomPosixUserConfig field's value.
+func (s *DefaultSpaceSettings) SetCustomPosixUserConfig(v *CustomPosixUserConfig) *DefaultSpaceSettings {
+	s.CustomPosixUserConfig = v
+	return s
+}
+
 // SetExecutionRole sets the ExecutionRole field's value.
 func (s *DefaultSpaceSettings) SetExecutionRole(v string) *DefaultSpaceSettings {
 	s.ExecutionRole = &v
+	return s
+}
+
+// SetJupyterLabAppSettings sets the JupyterLabAppSettings field's value.
+func (s *DefaultSpaceSettings) SetJupyterLabAppSettings(v *JupyterLabAppSettings) *DefaultSpaceSettings {
+	s.JupyterLabAppSettings = v
 	return s
 }
 
@@ -51914,11 +54401,17 @@ func (s *DefaultSpaceSettings) SetSecurityGroups(v []*string) *DefaultSpaceSetti
 	return s
 }
 
-// The default storage settings for a private space.
+// SetSpaceStorageSettings sets the SpaceStorageSettings field's value.
+func (s *DefaultSpaceSettings) SetSpaceStorageSettings(v *DefaultSpaceStorageSettings) *DefaultSpaceSettings {
+	s.SpaceStorageSettings = v
+	return s
+}
+
+// The default storage settings for a space.
 type DefaultSpaceStorageSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The default EBS storage settings for a private space.
+	// The default EBS storage settings for a space.
 	DefaultEbsStorageSettings *DefaultEbsStorageSettings `type:"structure"`
 }
 
@@ -53635,6 +56128,103 @@ func (s DeleteHubContentOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteHubContentReferenceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the hub content to delete.
+	//
+	// HubContentName is a required field
+	HubContentName *string `type:"string" required:"true"`
+
+	// The type of hub content reference to delete. The only supported type of hub
+	// content reference to delete is ModelReference.
+	//
+	// HubContentType is a required field
+	HubContentType *string `type:"string" required:"true" enum:"HubContentType"`
+
+	// The name of the hub to delete the hub content reference from.
+	//
+	// HubName is a required field
+	HubName *string `type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteHubContentReferenceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteHubContentReferenceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteHubContentReferenceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteHubContentReferenceInput"}
+	if s.HubContentName == nil {
+		invalidParams.Add(request.NewErrParamRequired("HubContentName"))
+	}
+	if s.HubContentType == nil {
+		invalidParams.Add(request.NewErrParamRequired("HubContentType"))
+	}
+	if s.HubName == nil {
+		invalidParams.Add(request.NewErrParamRequired("HubName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetHubContentName sets the HubContentName field's value.
+func (s *DeleteHubContentReferenceInput) SetHubContentName(v string) *DeleteHubContentReferenceInput {
+	s.HubContentName = &v
+	return s
+}
+
+// SetHubContentType sets the HubContentType field's value.
+func (s *DeleteHubContentReferenceInput) SetHubContentType(v string) *DeleteHubContentReferenceInput {
+	s.HubContentType = &v
+	return s
+}
+
+// SetHubName sets the HubName field's value.
+func (s *DeleteHubContentReferenceInput) SetHubName(v string) *DeleteHubContentReferenceInput {
+	s.HubName = &v
+	return s
+}
+
+type DeleteHubContentReferenceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteHubContentReferenceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteHubContentReferenceOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteHubInput struct {
 	_ struct{} `type:"structure"`
 
@@ -54156,6 +56746,87 @@ func (s DeleteInferenceExperimentOutput) GoString() string {
 // SetInferenceExperimentArn sets the InferenceExperimentArn field's value.
 func (s *DeleteInferenceExperimentOutput) SetInferenceExperimentArn(v string) *DeleteInferenceExperimentOutput {
 	s.InferenceExperimentArn = &v
+	return s
+}
+
+type DeleteMlflowTrackingServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the the tracking server to delete.
+	//
+	// TrackingServerName is a required field
+	TrackingServerName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteMlflowTrackingServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteMlflowTrackingServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteMlflowTrackingServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteMlflowTrackingServerInput"}
+	if s.TrackingServerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrackingServerName"))
+	}
+	if s.TrackingServerName != nil && len(*s.TrackingServerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrackingServerName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *DeleteMlflowTrackingServerInput) SetTrackingServerName(v string) *DeleteMlflowTrackingServerInput {
+	s.TrackingServerName = &v
+	return s
+}
+
+type DeleteMlflowTrackingServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A TrackingServerArn object, the ARN of the tracking server that is deleted
+	// if successfully found.
+	TrackingServerArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteMlflowTrackingServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteMlflowTrackingServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetTrackingServerArn sets the TrackingServerArn field's value.
+func (s *DeleteMlflowTrackingServerOutput) SetTrackingServerArn(v string) *DeleteMlflowTrackingServerOutput {
+	s.TrackingServerArn = &v
 	return s
 }
 
@@ -54931,6 +57602,77 @@ func (s DeleteNotebookInstanceOutput) String() string {
 // be included in the string output. The member name will be present, but the
 // value will be replaced with "sensitive".
 func (s DeleteNotebookInstanceOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteOptimizationJobInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name that you assigned to the optimization job.
+	//
+	// OptimizationJobName is a required field
+	OptimizationJobName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteOptimizationJobInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteOptimizationJobInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteOptimizationJobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteOptimizationJobInput"}
+	if s.OptimizationJobName == nil {
+		invalidParams.Add(request.NewErrParamRequired("OptimizationJobName"))
+	}
+	if s.OptimizationJobName != nil && len(*s.OptimizationJobName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OptimizationJobName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetOptimizationJobName sets the OptimizationJobName field's value.
+func (s *DeleteOptimizationJobInput) SetOptimizationJobName(v string) *DeleteOptimizationJobInput {
+	s.OptimizationJobName = &v
+	return s
+}
+
+type DeleteOptimizationJobOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteOptimizationJobOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteOptimizationJobOutput) GoString() string {
 	return s.String()
 }
 
@@ -57720,12 +60462,12 @@ type DescribeClusterNodeInput struct {
 	_ struct{} `type:"structure"`
 
 	// The string name or the Amazon Resource Name (ARN) of the SageMaker HyperPod
-	// cluster in which the instance is.
+	// cluster in which the node is.
 	//
 	// ClusterName is a required field
 	ClusterName *string `type:"string" required:"true"`
 
-	// The ID of the instance.
+	// The ID of the SageMaker HyperPod cluster node.
 	//
 	// NodeId is a required field
 	NodeId *string `min:"1" type:"string" required:"true"`
@@ -57783,7 +60525,7 @@ func (s *DescribeClusterNodeInput) SetNodeId(v string) *DescribeClusterNodeInput
 type DescribeClusterNodeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The details of the instance.
+	// The details of the SageMaker HyperPod cluster node.
 	//
 	// NodeDetails is a required field
 	NodeDetails *ClusterNodeDetails `type:"structure" required:"true"`
@@ -61124,6 +63866,15 @@ type DescribeHubContentOutput struct {
 	//
 	// HubName is a required field
 	HubName *string `type:"string" required:"true"`
+
+	// The minimum version of the hub content.
+	ReferenceMinVersion *string `min:"5" type:"string"`
+
+	// The ARN of the public hub content.
+	SageMakerPublicHubContentArn *string `type:"string"`
+
+	// The support status of the hub content.
+	SupportStatus *string `type:"string" enum:"HubContentSupportStatus"`
 }
 
 // String returns the string representation.
@@ -61237,6 +63988,24 @@ func (s *DescribeHubContentOutput) SetHubContentVersion(v string) *DescribeHubCo
 // SetHubName sets the HubName field's value.
 func (s *DescribeHubContentOutput) SetHubName(v string) *DescribeHubContentOutput {
 	s.HubName = &v
+	return s
+}
+
+// SetReferenceMinVersion sets the ReferenceMinVersion field's value.
+func (s *DescribeHubContentOutput) SetReferenceMinVersion(v string) *DescribeHubContentOutput {
+	s.ReferenceMinVersion = &v
+	return s
+}
+
+// SetSageMakerPublicHubContentArn sets the SageMakerPublicHubContentArn field's value.
+func (s *DescribeHubContentOutput) SetSageMakerPublicHubContentArn(v string) *DescribeHubContentOutput {
+	s.SageMakerPublicHubContentArn = &v
+	return s
+}
+
+// SetSupportStatus sets the SupportStatus field's value.
+func (s *DescribeHubContentOutput) SetSupportStatus(v string) *DescribeHubContentOutput {
+	s.SupportStatus = &v
 	return s
 }
 
@@ -63325,6 +66094,219 @@ func (s *DescribeLineageGroupOutput) SetLineageGroupName(v string) *DescribeLine
 	return s
 }
 
+type DescribeMlflowTrackingServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the MLflow Tracking Server to describe.
+	//
+	// TrackingServerName is a required field
+	TrackingServerName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeMlflowTrackingServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeMlflowTrackingServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeMlflowTrackingServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeMlflowTrackingServerInput"}
+	if s.TrackingServerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrackingServerName"))
+	}
+	if s.TrackingServerName != nil && len(*s.TrackingServerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrackingServerName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *DescribeMlflowTrackingServerInput) SetTrackingServerName(v string) *DescribeMlflowTrackingServerInput {
+	s.TrackingServerName = &v
+	return s
+}
+
+type DescribeMlflowTrackingServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The S3 URI of the general purpose bucket used as the MLflow Tracking Server
+	// artifact store.
+	ArtifactStoreUri *string `type:"string"`
+
+	// Whether automatic registration of new MLflow models to the SageMaker Model
+	// Registry is enabled.
+	AutomaticModelRegistration *bool `type:"boolean"`
+
+	// Information about the user who created or modified an experiment, trial,
+	// trial component, lineage group, project, or model card.
+	CreatedBy *UserContext `type:"structure"`
+
+	// The timestamp of when the described MLflow Tracking Server was created.
+	CreationTime *time.Time `type:"timestamp"`
+
+	// Whether the described MLflow Tracking Server is currently active.
+	IsActive *string `type:"string" enum:"IsTrackingServerActive"`
+
+	// Information about the user who created or modified an experiment, trial,
+	// trial component, lineage group, project, or model card.
+	LastModifiedBy *UserContext `type:"structure"`
+
+	// The timestamp of when the described MLflow Tracking Server was last modified.
+	LastModifiedTime *time.Time `type:"timestamp"`
+
+	// The MLflow version used for the described tracking server.
+	MlflowVersion *string `type:"string"`
+
+	// The Amazon Resource Name (ARN) for an IAM role in your account that the described
+	// MLflow Tracking Server uses to access the artifact store in Amazon S3.
+	RoleArn *string `min:"20" type:"string"`
+
+	// The ARN of the described tracking server.
+	TrackingServerArn *string `type:"string"`
+
+	// The name of the described tracking server.
+	TrackingServerName *string `min:"1" type:"string"`
+
+	// The size of the described tracking server.
+	TrackingServerSize *string `type:"string" enum:"TrackingServerSize"`
+
+	// The current creation status of the described MLflow Tracking Server.
+	TrackingServerStatus *string `type:"string" enum:"TrackingServerStatus"`
+
+	// The URL to connect to the MLflow user interface for the described tracking
+	// server.
+	TrackingServerUrl *string `type:"string"`
+
+	// The day and time of the week when weekly maintenance occurs on the described
+	// tracking server.
+	WeeklyMaintenanceWindowStart *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeMlflowTrackingServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeMlflowTrackingServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetArtifactStoreUri sets the ArtifactStoreUri field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetArtifactStoreUri(v string) *DescribeMlflowTrackingServerOutput {
+	s.ArtifactStoreUri = &v
+	return s
+}
+
+// SetAutomaticModelRegistration sets the AutomaticModelRegistration field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetAutomaticModelRegistration(v bool) *DescribeMlflowTrackingServerOutput {
+	s.AutomaticModelRegistration = &v
+	return s
+}
+
+// SetCreatedBy sets the CreatedBy field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetCreatedBy(v *UserContext) *DescribeMlflowTrackingServerOutput {
+	s.CreatedBy = v
+	return s
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetCreationTime(v time.Time) *DescribeMlflowTrackingServerOutput {
+	s.CreationTime = &v
+	return s
+}
+
+// SetIsActive sets the IsActive field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetIsActive(v string) *DescribeMlflowTrackingServerOutput {
+	s.IsActive = &v
+	return s
+}
+
+// SetLastModifiedBy sets the LastModifiedBy field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetLastModifiedBy(v *UserContext) *DescribeMlflowTrackingServerOutput {
+	s.LastModifiedBy = v
+	return s
+}
+
+// SetLastModifiedTime sets the LastModifiedTime field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetLastModifiedTime(v time.Time) *DescribeMlflowTrackingServerOutput {
+	s.LastModifiedTime = &v
+	return s
+}
+
+// SetMlflowVersion sets the MlflowVersion field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetMlflowVersion(v string) *DescribeMlflowTrackingServerOutput {
+	s.MlflowVersion = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetRoleArn(v string) *DescribeMlflowTrackingServerOutput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetTrackingServerArn sets the TrackingServerArn field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetTrackingServerArn(v string) *DescribeMlflowTrackingServerOutput {
+	s.TrackingServerArn = &v
+	return s
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetTrackingServerName(v string) *DescribeMlflowTrackingServerOutput {
+	s.TrackingServerName = &v
+	return s
+}
+
+// SetTrackingServerSize sets the TrackingServerSize field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetTrackingServerSize(v string) *DescribeMlflowTrackingServerOutput {
+	s.TrackingServerSize = &v
+	return s
+}
+
+// SetTrackingServerStatus sets the TrackingServerStatus field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetTrackingServerStatus(v string) *DescribeMlflowTrackingServerOutput {
+	s.TrackingServerStatus = &v
+	return s
+}
+
+// SetTrackingServerUrl sets the TrackingServerUrl field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetTrackingServerUrl(v string) *DescribeMlflowTrackingServerOutput {
+	s.TrackingServerUrl = &v
+	return s
+}
+
+// SetWeeklyMaintenanceWindowStart sets the WeeklyMaintenanceWindowStart field's value.
+func (s *DescribeMlflowTrackingServerOutput) SetWeeklyMaintenanceWindowStart(v string) *DescribeMlflowTrackingServerOutput {
+	s.WeeklyMaintenanceWindowStart = &v
+	return s
+}
+
 type DescribeModelBiasJobDefinitionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -64525,6 +67507,17 @@ type DescribeModelPackageOutput struct {
 	// The approval status of the model package.
 	ModelApprovalStatus *string `type:"string" enum:"ModelApprovalStatus"`
 
+	// The model card associated with the model package. Since ModelPackageModelCard
+	// is tied to a model package, it is a specific usage of a model card and its
+	// schema is simplified compared to the schema of ModelCard. The ModelPackageModelCard
+	// schema does not include model_package_details, and model_overview is composed
+	// of the model_creator and model_artifact properties. For more information
+	// about the model package model card schema, see Model package model card schema
+	// (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema).
+	// For more information about the model card associated with the model package,
+	// see View the Details of a Model Version (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html).
+	ModelCard *ModelPackageModelCard `type:"structure"`
+
 	// Metrics for the model.
 	ModelMetrics *ModelMetrics `type:"structure"`
 
@@ -64562,6 +67555,9 @@ type DescribeModelPackageOutput struct {
 	// are stored. This path points to a single gzip compressed tar archive (.tar.gz
 	// suffix).
 	SamplePayloadUrl *string `type:"string"`
+
+	// The KMS Key ID (KMSKeyId) used for encryption of model package information.
+	SecurityConfig *ModelPackageSecurityConfig `type:"structure"`
 
 	// Indicates if you want to skip model validation.
 	SkipModelValidation *string `type:"string" enum:"SkipModelValidation"`
@@ -64677,6 +67673,12 @@ func (s *DescribeModelPackageOutput) SetModelApprovalStatus(v string) *DescribeM
 	return s
 }
 
+// SetModelCard sets the ModelCard field's value.
+func (s *DescribeModelPackageOutput) SetModelCard(v *ModelPackageModelCard) *DescribeModelPackageOutput {
+	s.ModelCard = v
+	return s
+}
+
 // SetModelMetrics sets the ModelMetrics field's value.
 func (s *DescribeModelPackageOutput) SetModelMetrics(v *ModelMetrics) *DescribeModelPackageOutput {
 	s.ModelMetrics = v
@@ -64728,6 +67730,12 @@ func (s *DescribeModelPackageOutput) SetModelPackageVersion(v int64) *DescribeMo
 // SetSamplePayloadUrl sets the SamplePayloadUrl field's value.
 func (s *DescribeModelPackageOutput) SetSamplePayloadUrl(v string) *DescribeModelPackageOutput {
 	s.SamplePayloadUrl = &v
+	return s
+}
+
+// SetSecurityConfig sets the SecurityConfig field's value.
+func (s *DescribeModelPackageOutput) SetSecurityConfig(v *ModelPackageSecurityConfig) *DescribeModelPackageOutput {
+	s.SecurityConfig = v
 	return s
 }
 
@@ -65554,6 +68562,270 @@ func (s *DescribeNotebookInstanceOutput) SetUrl(v string) *DescribeNotebookInsta
 // SetVolumeSizeInGB sets the VolumeSizeInGB field's value.
 func (s *DescribeNotebookInstanceOutput) SetVolumeSizeInGB(v int64) *DescribeNotebookInstanceOutput {
 	s.VolumeSizeInGB = &v
+	return s
+}
+
+type DescribeOptimizationJobInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name that you assigned to the optimization job.
+	//
+	// OptimizationJobName is a required field
+	OptimizationJobName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeOptimizationJobInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeOptimizationJobInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeOptimizationJobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeOptimizationJobInput"}
+	if s.OptimizationJobName == nil {
+		invalidParams.Add(request.NewErrParamRequired("OptimizationJobName"))
+	}
+	if s.OptimizationJobName != nil && len(*s.OptimizationJobName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OptimizationJobName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetOptimizationJobName sets the OptimizationJobName field's value.
+func (s *DescribeOptimizationJobInput) SetOptimizationJobName(v string) *DescribeOptimizationJobInput {
+	s.OptimizationJobName = &v
+	return s
+}
+
+type DescribeOptimizationJobOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The time when you created the optimization job.
+	//
+	// CreationTime is a required field
+	CreationTime *time.Time `type:"timestamp" required:"true"`
+
+	// The type of instance that hosts the optimized model that you create with
+	// the optimization job.
+	//
+	// DeploymentInstanceType is a required field
+	DeploymentInstanceType *string `type:"string" required:"true" enum:"OptimizationJobDeploymentInstanceType"`
+
+	// If the optimization job status is FAILED, the reason for the failure.
+	FailureReason *string `type:"string"`
+
+	// The time when the optimization job was last updated.
+	//
+	// LastModifiedTime is a required field
+	LastModifiedTime *time.Time `type:"timestamp" required:"true"`
+
+	// The location of the source model to optimize with an optimization job.
+	//
+	// ModelSource is a required field
+	ModelSource *OptimizationJobModelSource `type:"structure" required:"true"`
+
+	// Settings for each of the optimization techniques that the job applies.
+	//
+	// OptimizationConfigs is a required field
+	OptimizationConfigs []*OptimizationConfig `type:"list" required:"true"`
+
+	// The time when the optimization job finished processing.
+	OptimizationEndTime *time.Time `type:"timestamp"`
+
+	// The environment variables to set in the model container.
+	OptimizationEnvironment map[string]*string `type:"map"`
+
+	// The Amazon Resource Name (ARN) of the optimization job.
+	//
+	// OptimizationJobArn is a required field
+	OptimizationJobArn *string `type:"string" required:"true"`
+
+	// The name that you assigned to the optimization job.
+	//
+	// OptimizationJobName is a required field
+	OptimizationJobName *string `min:"1" type:"string" required:"true"`
+
+	// The current status of the optimization job.
+	//
+	// OptimizationJobStatus is a required field
+	OptimizationJobStatus *string `type:"string" required:"true" enum:"OptimizationJobStatus"`
+
+	// Output values produced by an optimization job.
+	OptimizationOutput *OptimizationOutput_ `type:"structure"`
+
+	// The time when the optimization job started.
+	OptimizationStartTime *time.Time `type:"timestamp"`
+
+	// Details for where to store the optimized model that you create with the optimization
+	// job.
+	//
+	// OutputConfig is a required field
+	OutputConfig *OptimizationJobOutputConfig `type:"structure" required:"true"`
+
+	// The ARN of the IAM role that you assigned to the optimization job.
+	//
+	// RoleArn is a required field
+	RoleArn *string `min:"20" type:"string" required:"true"`
+
+	// Specifies a limit to how long a job can run. When the job reaches the time
+	// limit, SageMaker ends the job. Use this API to cap costs.
+	//
+	// To stop a training job, SageMaker sends the algorithm the SIGTERM signal,
+	// which delays job termination for 120 seconds. Algorithms can use this 120-second
+	// window to save the model artifacts, so the results of training are not lost.
+	//
+	// The training algorithms provided by SageMaker automatically save the intermediate
+	// results of a model training job when possible. This attempt to save artifacts
+	// is only a best effort case as model might not be in a state from which it
+	// can be saved. For example, if training has just started, the model might
+	// not be ready to save. When saved, this intermediate data is a valid model
+	// artifact. You can use it to create a model with CreateModel.
+	//
+	// The Neural Topic Model (NTM) currently does not support saving intermediate
+	// model artifacts. When training NTMs, make sure that the maximum runtime is
+	// sufficient for the training job to complete.
+	//
+	// StoppingCondition is a required field
+	StoppingCondition *StoppingCondition `type:"structure" required:"true"`
+
+	// A VPC in Amazon VPC that your optimized model has access to.
+	VpcConfig *OptimizationVpcConfig `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeOptimizationJobOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DescribeOptimizationJobOutput) GoString() string {
+	return s.String()
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *DescribeOptimizationJobOutput) SetCreationTime(v time.Time) *DescribeOptimizationJobOutput {
+	s.CreationTime = &v
+	return s
+}
+
+// SetDeploymentInstanceType sets the DeploymentInstanceType field's value.
+func (s *DescribeOptimizationJobOutput) SetDeploymentInstanceType(v string) *DescribeOptimizationJobOutput {
+	s.DeploymentInstanceType = &v
+	return s
+}
+
+// SetFailureReason sets the FailureReason field's value.
+func (s *DescribeOptimizationJobOutput) SetFailureReason(v string) *DescribeOptimizationJobOutput {
+	s.FailureReason = &v
+	return s
+}
+
+// SetLastModifiedTime sets the LastModifiedTime field's value.
+func (s *DescribeOptimizationJobOutput) SetLastModifiedTime(v time.Time) *DescribeOptimizationJobOutput {
+	s.LastModifiedTime = &v
+	return s
+}
+
+// SetModelSource sets the ModelSource field's value.
+func (s *DescribeOptimizationJobOutput) SetModelSource(v *OptimizationJobModelSource) *DescribeOptimizationJobOutput {
+	s.ModelSource = v
+	return s
+}
+
+// SetOptimizationConfigs sets the OptimizationConfigs field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationConfigs(v []*OptimizationConfig) *DescribeOptimizationJobOutput {
+	s.OptimizationConfigs = v
+	return s
+}
+
+// SetOptimizationEndTime sets the OptimizationEndTime field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationEndTime(v time.Time) *DescribeOptimizationJobOutput {
+	s.OptimizationEndTime = &v
+	return s
+}
+
+// SetOptimizationEnvironment sets the OptimizationEnvironment field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationEnvironment(v map[string]*string) *DescribeOptimizationJobOutput {
+	s.OptimizationEnvironment = v
+	return s
+}
+
+// SetOptimizationJobArn sets the OptimizationJobArn field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationJobArn(v string) *DescribeOptimizationJobOutput {
+	s.OptimizationJobArn = &v
+	return s
+}
+
+// SetOptimizationJobName sets the OptimizationJobName field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationJobName(v string) *DescribeOptimizationJobOutput {
+	s.OptimizationJobName = &v
+	return s
+}
+
+// SetOptimizationJobStatus sets the OptimizationJobStatus field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationJobStatus(v string) *DescribeOptimizationJobOutput {
+	s.OptimizationJobStatus = &v
+	return s
+}
+
+// SetOptimizationOutput sets the OptimizationOutput field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationOutput(v *OptimizationOutput_) *DescribeOptimizationJobOutput {
+	s.OptimizationOutput = v
+	return s
+}
+
+// SetOptimizationStartTime sets the OptimizationStartTime field's value.
+func (s *DescribeOptimizationJobOutput) SetOptimizationStartTime(v time.Time) *DescribeOptimizationJobOutput {
+	s.OptimizationStartTime = &v
+	return s
+}
+
+// SetOutputConfig sets the OutputConfig field's value.
+func (s *DescribeOptimizationJobOutput) SetOutputConfig(v *OptimizationJobOutputConfig) *DescribeOptimizationJobOutput {
+	s.OutputConfig = v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *DescribeOptimizationJobOutput) SetRoleArn(v string) *DescribeOptimizationJobOutput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetStoppingCondition sets the StoppingCondition field's value.
+func (s *DescribeOptimizationJobOutput) SetStoppingCondition(v *StoppingCondition) *DescribeOptimizationJobOutput {
+	s.StoppingCondition = v
+	return s
+}
+
+// SetVpcConfig sets the VpcConfig field's value.
+func (s *DescribeOptimizationJobOutput) SetVpcConfig(v *OptimizationVpcConfig) *DescribeOptimizationJobOutput {
+	s.VpcConfig = v
 	return s
 }
 
@@ -69470,6 +72742,10 @@ func (s *DomainDetails) SetUrl(v string) *DomainDetails {
 type DomainSettings struct {
 	_ struct{} `type:"structure"`
 
+	// A collection of settings that configure the Amazon Q experience within the
+	// domain. The AuthMode that you use to create the domain must be SSO.
+	AmazonQSettings *AmazonQSettings `type:"structure"`
+
 	// A collection of settings that configure the domain's Docker interaction.
 	DockerSettings *DockerSettings `type:"structure"`
 
@@ -69519,6 +72795,12 @@ func (s *DomainSettings) Validate() error {
 	return nil
 }
 
+// SetAmazonQSettings sets the AmazonQSettings field's value.
+func (s *DomainSettings) SetAmazonQSettings(v *AmazonQSettings) *DomainSettings {
+	s.AmazonQSettings = v
+	return s
+}
+
 // SetDockerSettings sets the DockerSettings field's value.
 func (s *DomainSettings) SetDockerSettings(v *DockerSettings) *DomainSettings {
 	s.DockerSettings = v
@@ -69546,6 +72828,10 @@ func (s *DomainSettings) SetSecurityGroupIds(v []*string) *DomainSettings {
 // A collection of Domain configuration settings to update.
 type DomainSettingsForUpdate struct {
 	_ struct{} `type:"structure"`
+
+	// A collection of settings that configure the Amazon Q experience within the
+	// domain.
+	AmazonQSettings *AmazonQSettings `type:"structure"`
 
 	// A collection of settings that configure the domain's Docker interaction.
 	DockerSettings *DockerSettings `type:"structure"`
@@ -69596,6 +72882,12 @@ func (s *DomainSettingsForUpdate) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAmazonQSettings sets the AmazonQSettings field's value.
+func (s *DomainSettingsForUpdate) SetAmazonQSettings(v *AmazonQSettings) *DomainSettingsForUpdate {
+	s.AmazonQSettings = v
+	return s
 }
 
 // SetDockerSettings sets the DockerSettings field's value.
@@ -70222,11 +73514,12 @@ func (s *EMRStepMetadata) SetStepName(v string) *EMRStepMetadata {
 	return s
 }
 
-// A collection of EBS storage settings that applies to private spaces.
+// A collection of EBS storage settings that apply to both private and shared
+// spaces.
 type EbsStorageSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The size of an EBS storage volume for a private space.
+	// The size of an EBS storage volume for a space.
 	//
 	// EbsVolumeSizeInGb is a required field
 	EbsVolumeSizeInGb *int64 `min:"5" type:"integer" required:"true"`
@@ -72508,7 +75801,7 @@ type FeatureDefinition struct {
 	//
 	// The name:
 	//
-	//    * Must start and end with an alphanumeric character.
+	//    * Must start with an alphanumeric character.
 	//
 	//    * Can only include alphanumeric characters, underscores, and hyphens.
 	//    Spaces are not allowed.
@@ -74652,6 +77945,16 @@ type HubContentInfo struct {
 	//
 	// HubContentVersion is a required field
 	HubContentVersion *string `min:"5" type:"string" required:"true"`
+
+	// The date and time when the hub content was originally created, before any
+	// updates or revisions.
+	OriginalCreationTime *time.Time `type:"timestamp"`
+
+	// The ARN of the public hub content.
+	SageMakerPublicHubContentArn *string `type:"string"`
+
+	// The support status of the hub content.
+	SupportStatus *string `type:"string" enum:"HubContentSupportStatus"`
 }
 
 // String returns the string representation.
@@ -74729,6 +78032,24 @@ func (s *HubContentInfo) SetHubContentType(v string) *HubContentInfo {
 // SetHubContentVersion sets the HubContentVersion field's value.
 func (s *HubContentInfo) SetHubContentVersion(v string) *HubContentInfo {
 	s.HubContentVersion = &v
+	return s
+}
+
+// SetOriginalCreationTime sets the OriginalCreationTime field's value.
+func (s *HubContentInfo) SetOriginalCreationTime(v time.Time) *HubContentInfo {
+	s.OriginalCreationTime = &v
+	return s
+}
+
+// SetSageMakerPublicHubContentArn sets the SageMakerPublicHubContentArn field's value.
+func (s *HubContentInfo) SetSageMakerPublicHubContentArn(v string) *HubContentInfo {
+	s.SageMakerPublicHubContentArn = &v
+	return s
+}
+
+// SetSupportStatus sets the SupportStatus field's value.
+func (s *HubContentInfo) SetSupportStatus(v string) *HubContentInfo {
+	s.SupportStatus = &v
 	return s
 }
 
@@ -78290,6 +81611,58 @@ func (s *IamIdentity) SetSourceIdentity(v string) *IamIdentity {
 	return s
 }
 
+// Use this parameter to specify a supported global condition key that is added
+// to the IAM policy.
+type IamPolicyConstraints struct {
+	_ struct{} `type:"structure"`
+
+	// When SourceIp is Enabled the worker's IP address when a task is rendered
+	// in the worker portal is added to the IAM policy as a Condition used to generate
+	// the Amazon S3 presigned URL. This IP address is checked by Amazon S3 and
+	// must match in order for the Amazon S3 resource to be rendered in the worker
+	// portal.
+	SourceIp *string `type:"string" enum:"EnabledOrDisabled"`
+
+	// When VpcSourceIp is Enabled the worker's IP address when a task is rendered
+	// in private worker portal inside the VPC is added to the IAM policy as a Condition
+	// used to generate the Amazon S3 presigned URL. To render the task successfully
+	// Amazon S3 checks that the presigned URL is being accessed over an Amazon
+	// S3 VPC Endpoint, and that the worker's IP address matches the IP address
+	// in the IAM policy. To learn more about configuring private worker portal,
+	// see Use Amazon VPC mode from a private worker portal (https://docs.aws.amazon.com/sagemaker/latest/dg/samurai-vpc-worker-portal.html).
+	VpcSourceIp *string `type:"string" enum:"EnabledOrDisabled"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IamPolicyConstraints) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IamPolicyConstraints) GoString() string {
+	return s.String()
+}
+
+// SetSourceIp sets the SourceIp field's value.
+func (s *IamPolicyConstraints) SetSourceIp(v string) *IamPolicyConstraints {
+	s.SourceIp = &v
+	return s
+}
+
+// SetVpcSourceIp sets the VpcSourceIp field's value.
+func (s *IamPolicyConstraints) SetVpcSourceIp(v string) *IamPolicyConstraints {
+	s.VpcSourceIp = &v
+	return s
+}
+
 // The Amazon SageMaker Canvas application setting where you configure OAuth
 // for connecting to an external data source, such as Snowflake.
 type IdentityProviderOAuthSetting struct {
@@ -79816,6 +83189,54 @@ func (s *InferenceExperimentSummary) SetType(v string) *InferenceExperimentSumma
 	return s
 }
 
+// Configuration information specifying which hub contents have accessible deployment
+// options.
+type InferenceHubAccessConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the hub content for which deployment access is allowed.
+	//
+	// HubContentArn is a required field
+	HubContentArn *string `type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InferenceHubAccessConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InferenceHubAccessConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InferenceHubAccessConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InferenceHubAccessConfig"}
+	if s.HubContentArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("HubContentArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetHubContentArn sets the HubContentArn field's value.
+func (s *InferenceHubAccessConfig) SetHubContentArn(v string) *InferenceHubAccessConfig {
+	s.HubContentArn = &v
+	return s
+}
+
 // The metrics for an existing endpoint compared in an Inference Recommender
 // job.
 type InferenceMetrics struct {
@@ -79878,9 +83299,7 @@ type InferenceRecommendation struct {
 	InvocationStartTime *time.Time `type:"timestamp"`
 
 	// The metrics used to decide what recommendation to make.
-	//
-	// Metrics is a required field
-	Metrics *RecommendationMetrics `type:"structure" required:"true"`
+	Metrics *RecommendationMetrics `type:"structure"`
 
 	// Defines the model configuration.
 	//
@@ -83020,10 +86439,12 @@ type ListAppsInput struct {
 	// A parameter to search for the domain ID.
 	DomainIdEquals *string `type:"string"`
 
-	// The total number of items to return in the response. If the total number
-	// of items available is more than the value specified, a NextToken is provided
-	// in the response. To resume pagination, provide the NextToken value in the
-	// as part of a subsequent call. The default value is 10.
+	// This parameter defines the maximum number of results that can be return in
+	// a single response. The MaxResults parameter is an upper bound, not a target.
+	// If there are more results available than the value specified, a NextToken
+	// is provided in the response. The NextToken indicates that the user should
+	// get the next set of results by providing this token as a part of a subsequent
+	// call. The default value for MaxResults is 10.
 	MaxResults *int64 `min:"1" type:"integer"`
 
 	// If the previous response was truncated, you will receive this token. Use
@@ -85107,10 +88528,12 @@ func (s *ListDevicesOutput) SetNextToken(v string) *ListDevicesOutput {
 type ListDomainsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The total number of items to return in the response. If the total number
-	// of items available is more than the value specified, a NextToken is provided
-	// in the response. To resume pagination, provide the NextToken value in the
-	// as part of a subsequent call. The default value is 10.
+	// This parameter defines the maximum number of results that can be return in
+	// a single response. The MaxResults parameter is an upper bound, not a target.
+	// If there are more results available than the value specified, a NextToken
+	// is provided in the response. The NextToken indicates that the user should
+	// get the next set of results by providing this token as a part of a subsequent
+	// call. The default value for MaxResults is 10.
 	MaxResults *int64 `min:"1" type:"integer"`
 
 	// If the previous response was truncated, you will receive this token. Use
@@ -88617,6 +92040,166 @@ func (s *ListLineageGroupsOutput) SetNextToken(v string) *ListLineageGroupsOutpu
 	return s
 }
 
+type ListMlflowTrackingServersInput struct {
+	_ struct{} `type:"structure"`
+
+	// Use the CreatedAfter filter to only list tracking servers created after a
+	// specific date and time. Listed tracking servers are shown with a date and
+	// time such as "2024-03-16T01:46:56+00:00". The CreatedAfter parameter takes
+	// in a Unix timestamp. To convert a date and time into a Unix timestamp, see
+	// EpochConverter (https://www.epochconverter.com/).
+	CreatedAfter *time.Time `type:"timestamp"`
+
+	// Use the CreatedBefore filter to only list tracking servers created before
+	// a specific date and time. Listed tracking servers are shown with a date and
+	// time such as "2024-03-16T01:46:56+00:00". The CreatedBefore parameter takes
+	// in a Unix timestamp. To convert a date and time into a Unix timestamp, see
+	// EpochConverter (https://www.epochconverter.com/).
+	CreatedBefore *time.Time `type:"timestamp"`
+
+	// The maximum number of tracking servers to list.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// Filter for tracking servers using the specified MLflow version.
+	MlflowVersion *string `type:"string"`
+
+	// If the previous response was truncated, you will receive this token. Use
+	// it in your next request to receive the next set of results.
+	NextToken *string `type:"string"`
+
+	// Filter for trackings servers sorting by name, creation time, or creation
+	// status.
+	SortBy *string `type:"string" enum:"SortTrackingServerBy"`
+
+	// Change the order of the listed tracking servers. By default, tracking servers
+	// are listed in Descending order by creation time. To change the list order,
+	// you can specify SortOrder to be Ascending.
+	SortOrder *string `type:"string" enum:"SortOrder"`
+
+	// Filter for tracking servers with a specified creation status.
+	TrackingServerStatus *string `type:"string" enum:"TrackingServerStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListMlflowTrackingServersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListMlflowTrackingServersInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListMlflowTrackingServersInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListMlflowTrackingServersInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCreatedAfter sets the CreatedAfter field's value.
+func (s *ListMlflowTrackingServersInput) SetCreatedAfter(v time.Time) *ListMlflowTrackingServersInput {
+	s.CreatedAfter = &v
+	return s
+}
+
+// SetCreatedBefore sets the CreatedBefore field's value.
+func (s *ListMlflowTrackingServersInput) SetCreatedBefore(v time.Time) *ListMlflowTrackingServersInput {
+	s.CreatedBefore = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListMlflowTrackingServersInput) SetMaxResults(v int64) *ListMlflowTrackingServersInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetMlflowVersion sets the MlflowVersion field's value.
+func (s *ListMlflowTrackingServersInput) SetMlflowVersion(v string) *ListMlflowTrackingServersInput {
+	s.MlflowVersion = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListMlflowTrackingServersInput) SetNextToken(v string) *ListMlflowTrackingServersInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *ListMlflowTrackingServersInput) SetSortBy(v string) *ListMlflowTrackingServersInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListMlflowTrackingServersInput) SetSortOrder(v string) *ListMlflowTrackingServersInput {
+	s.SortOrder = &v
+	return s
+}
+
+// SetTrackingServerStatus sets the TrackingServerStatus field's value.
+func (s *ListMlflowTrackingServersInput) SetTrackingServerStatus(v string) *ListMlflowTrackingServersInput {
+	s.TrackingServerStatus = &v
+	return s
+}
+
+type ListMlflowTrackingServersOutput struct {
+	_ struct{} `type:"structure"`
+
+	// If the previous response was truncated, you will receive this token. Use
+	// it in your next request to receive the next set of results.
+	NextToken *string `type:"string"`
+
+	// A list of tracking servers according to chosen filters.
+	TrackingServerSummaries []*TrackingServerSummary `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListMlflowTrackingServersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListMlflowTrackingServersOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListMlflowTrackingServersOutput) SetNextToken(v string) *ListMlflowTrackingServersOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetTrackingServerSummaries sets the TrackingServerSummaries field's value.
+func (s *ListMlflowTrackingServersOutput) SetTrackingServerSummaries(v []*TrackingServerSummary) *ListMlflowTrackingServersOutput {
+	s.TrackingServerSummaries = v
+	return s
+}
+
 type ListModelBiasJobDefinitionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -89550,6 +93133,13 @@ type ListModelPackageGroupsInput struct {
 	// A filter that returns only model groups created before the specified time.
 	CreationTimeBefore *time.Time `type:"timestamp"`
 
+	// A filter that returns either model groups shared with you or model groups
+	// in your own account. When the value is CrossAccount, the results show the
+	// resources made discoverable to you from other accounts. When the value is
+	// SameAccount or null, the results show resources from your account. The default
+	// is SameAccount.
+	CrossAccountFilterOption *string `type:"string" enum:"CrossAccountFilterOption"`
+
 	// The maximum number of results to return in the response.
 	MaxResults *int64 `min:"1" type:"integer"`
 
@@ -89609,6 +93199,12 @@ func (s *ListModelPackageGroupsInput) SetCreationTimeAfter(v time.Time) *ListMod
 // SetCreationTimeBefore sets the CreationTimeBefore field's value.
 func (s *ListModelPackageGroupsInput) SetCreationTimeBefore(v time.Time) *ListModelPackageGroupsInput {
 	s.CreationTimeBefore = &v
+	return s
+}
+
+// SetCrossAccountFilterOption sets the CrossAccountFilterOption field's value.
+func (s *ListModelPackageGroupsInput) SetCrossAccountFilterOption(v string) *ListModelPackageGroupsInput {
+	s.CrossAccountFilterOption = &v
 	return s
 }
 
@@ -91265,6 +94861,194 @@ func (s *ListNotebookInstancesOutput) SetNotebookInstances(v []*NotebookInstance
 	return s
 }
 
+type ListOptimizationJobsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Filters the results to only those optimization jobs that were created after
+	// the specified time.
+	CreationTimeAfter *time.Time `type:"timestamp"`
+
+	// Filters the results to only those optimization jobs that were created before
+	// the specified time.
+	CreationTimeBefore *time.Time `type:"timestamp"`
+
+	// Filters the results to only those optimization jobs that were updated after
+	// the specified time.
+	LastModifiedTimeAfter *time.Time `type:"timestamp"`
+
+	// Filters the results to only those optimization jobs that were updated before
+	// the specified time.
+	LastModifiedTimeBefore *time.Time `type:"timestamp"`
+
+	// The maximum number of optimization jobs to return in the response. The default
+	// is 50.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// Filters the results to only those optimization jobs with a name that contains
+	// the specified string.
+	NameContains *string `type:"string"`
+
+	// A token that you use to get the next set of results following a truncated
+	// response. If the response to the previous request was truncated, that response
+	// provides the value for this token.
+	NextToken *string `type:"string"`
+
+	// Filters the results to only those optimization jobs that apply the specified
+	// optimization techniques. You can specify either Quantization or Compilation.
+	OptimizationContains *string `type:"string"`
+
+	// The field by which to sort the optimization jobs in the response. The default
+	// is CreationTime
+	SortBy *string `type:"string" enum:"ListOptimizationJobsSortBy"`
+
+	// The sort order for results. The default is Ascending
+	SortOrder *string `type:"string" enum:"SortOrder"`
+
+	// Filters the results to only those optimization jobs with the specified status.
+	StatusEquals *string `type:"string" enum:"OptimizationJobStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListOptimizationJobsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListOptimizationJobsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListOptimizationJobsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListOptimizationJobsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCreationTimeAfter sets the CreationTimeAfter field's value.
+func (s *ListOptimizationJobsInput) SetCreationTimeAfter(v time.Time) *ListOptimizationJobsInput {
+	s.CreationTimeAfter = &v
+	return s
+}
+
+// SetCreationTimeBefore sets the CreationTimeBefore field's value.
+func (s *ListOptimizationJobsInput) SetCreationTimeBefore(v time.Time) *ListOptimizationJobsInput {
+	s.CreationTimeBefore = &v
+	return s
+}
+
+// SetLastModifiedTimeAfter sets the LastModifiedTimeAfter field's value.
+func (s *ListOptimizationJobsInput) SetLastModifiedTimeAfter(v time.Time) *ListOptimizationJobsInput {
+	s.LastModifiedTimeAfter = &v
+	return s
+}
+
+// SetLastModifiedTimeBefore sets the LastModifiedTimeBefore field's value.
+func (s *ListOptimizationJobsInput) SetLastModifiedTimeBefore(v time.Time) *ListOptimizationJobsInput {
+	s.LastModifiedTimeBefore = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListOptimizationJobsInput) SetMaxResults(v int64) *ListOptimizationJobsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNameContains sets the NameContains field's value.
+func (s *ListOptimizationJobsInput) SetNameContains(v string) *ListOptimizationJobsInput {
+	s.NameContains = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListOptimizationJobsInput) SetNextToken(v string) *ListOptimizationJobsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetOptimizationContains sets the OptimizationContains field's value.
+func (s *ListOptimizationJobsInput) SetOptimizationContains(v string) *ListOptimizationJobsInput {
+	s.OptimizationContains = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *ListOptimizationJobsInput) SetSortBy(v string) *ListOptimizationJobsInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListOptimizationJobsInput) SetSortOrder(v string) *ListOptimizationJobsInput {
+	s.SortOrder = &v
+	return s
+}
+
+// SetStatusEquals sets the StatusEquals field's value.
+func (s *ListOptimizationJobsInput) SetStatusEquals(v string) *ListOptimizationJobsInput {
+	s.StatusEquals = &v
+	return s
+}
+
+type ListOptimizationJobsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token to use in a subsequent request to get the next set of results following
+	// a truncated response.
+	NextToken *string `type:"string"`
+
+	// A list of optimization jobs and their properties that matches any of the
+	// filters you specified in the request.
+	//
+	// OptimizationJobSummaries is a required field
+	OptimizationJobSummaries []*OptimizationJobSummary `type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListOptimizationJobsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListOptimizationJobsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListOptimizationJobsOutput) SetNextToken(v string) *ListOptimizationJobsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetOptimizationJobSummaries sets the OptimizationJobSummaries field's value.
+func (s *ListOptimizationJobsOutput) SetOptimizationJobSummaries(v []*OptimizationJobSummary) *ListOptimizationJobsOutput {
+	s.OptimizationJobSummaries = v
+	return s
+}
+
 type ListPipelineExecutionStepsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -92267,10 +96051,12 @@ type ListSpacesInput struct {
 	// A parameter to search for the domain ID.
 	DomainIdEquals *string `type:"string"`
 
-	// The total number of items to return in the response. If the total number
-	// of items available is more than the value specified, a NextToken is provided
-	// in the response. To resume pagination, provide the NextToken value in the
-	// as part of a subsequent call. The default value is 10.
+	// This parameter defines the maximum number of results that can be return in
+	// a single response. The MaxResults parameter is an upper bound, not a target.
+	// If there are more results available than the value specified, a NextToken
+	// is provided in the response. The NextToken indicates that the user should
+	// get the next set of results by providing this token as a part of a subsequent
+	// call. The default value for MaxResults is 10.
 	MaxResults *int64 `min:"1" type:"integer"`
 
 	// If the previous response was truncated, you will receive this token. Use
@@ -93763,10 +97549,12 @@ type ListUserProfilesInput struct {
 	// A parameter by which to filter the results.
 	DomainIdEquals *string `type:"string"`
 
-	// The total number of items to return in the response. If the total number
-	// of items available is more than the value specified, a NextToken is provided
-	// in the response. To resume pagination, provide the NextToken value in the
-	// as part of a subsequent call. The default value is 10.
+	// This parameter defines the maximum number of results that can be return in
+	// a single response. The MaxResults parameter is an upper bound, not a target.
+	// If there are more results available than the value specified, a NextToken
+	// is provided in the response. The NextToken indicates that the user should
+	// get the next set of results by providing this token as a part of a subsequent
+	// call. The default value for MaxResults is 10.
 	MaxResults *int64 `min:"1" type:"integer"`
 
 	// If the previous response was truncated, you will receive this token. Use
@@ -95628,6 +99416,49 @@ func (s *ModelClientConfig) SetInvocationsTimeoutInSeconds(v int64) *ModelClient
 	return s
 }
 
+// Settings for the model compilation technique that's applied by a model optimization
+// job.
+type ModelCompilationConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The URI of an LMI DLC in Amazon ECR. SageMaker uses this image to run the
+	// optimization.
+	Image *string `type:"string"`
+
+	// Environment variables that override the default ones in the model container.
+	OverrideEnvironment map[string]*string `type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelCompilationConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelCompilationConfig) GoString() string {
+	return s.String()
+}
+
+// SetImage sets the Image field's value.
+func (s *ModelCompilationConfig) SetImage(v string) *ModelCompilationConfig {
+	s.Image = &v
+	return s
+}
+
+// SetOverrideEnvironment sets the OverrideEnvironment field's value.
+func (s *ModelCompilationConfig) SetOverrideEnvironment(v map[string]*string) *ModelCompilationConfig {
+	s.OverrideEnvironment = v
+	return s
+}
+
 // Defines the model configuration. Includes the specification name and environment
 // parameters.
 type ModelConfiguration struct {
@@ -97042,6 +100873,17 @@ type ModelPackage struct {
 	//    * PENDING_MANUAL_APPROVAL - The model is waiting for manual approval.
 	ModelApprovalStatus *string `type:"string" enum:"ModelApprovalStatus"`
 
+	// The model card associated with the model package. Since ModelPackageModelCard
+	// is tied to a model package, it is a specific usage of a model card and its
+	// schema is simplified compared to the schema of ModelCard. The ModelPackageModelCard
+	// schema does not include model_package_details, and model_overview is composed
+	// of the model_creator and model_artifact properties. For more information
+	// about the model package model card schema, see Model package model card schema
+	// (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema).
+	// For more information about the model card associated with the model package,
+	// see View the Details of a Model Version (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html).
+	ModelCard *ModelPackageModelCard `type:"structure"`
+
 	// Metrics for the model.
 	ModelMetrics *ModelMetrics `type:"structure"`
 
@@ -97079,6 +100921,10 @@ type ModelPackage struct {
 	// The Amazon Simple Storage Service path where the sample payload are stored.
 	// This path must point to a single gzip compressed tar archive (.tar.gz suffix).
 	SamplePayloadUrl *string `type:"string"`
+
+	// An optional Key Management Service key to encrypt, decrypt, and re-encrypt
+	// model package information for regulated workloads with highly sensitive data.
+	SecurityConfig *ModelPackageSecurityConfig `type:"structure"`
 
 	// Indicates if you want to skip model validation.
 	SkipModelValidation *string `type:"string" enum:"SkipModelValidation"`
@@ -97199,6 +101045,12 @@ func (s *ModelPackage) SetModelApprovalStatus(v string) *ModelPackage {
 	return s
 }
 
+// SetModelCard sets the ModelCard field's value.
+func (s *ModelPackage) SetModelCard(v *ModelPackageModelCard) *ModelPackage {
+	s.ModelCard = v
+	return s
+}
+
 // SetModelMetrics sets the ModelMetrics field's value.
 func (s *ModelPackage) SetModelMetrics(v *ModelMetrics) *ModelPackage {
 	s.ModelMetrics = v
@@ -97250,6 +101102,12 @@ func (s *ModelPackage) SetModelPackageVersion(v int64) *ModelPackage {
 // SetSamplePayloadUrl sets the SamplePayloadUrl field's value.
 func (s *ModelPackage) SetSamplePayloadUrl(v string) *ModelPackage {
 	s.SamplePayloadUrl = &v
+	return s
+}
+
+// SetSecurityConfig sets the SecurityConfig field's value.
+func (s *ModelPackage) SetSecurityConfig(v *ModelPackageSecurityConfig) *ModelPackage {
+	s.SecurityConfig = v
 	return s
 }
 
@@ -97645,6 +101503,119 @@ func (s *ModelPackageGroupSummary) SetModelPackageGroupName(v string) *ModelPack
 // SetModelPackageGroupStatus sets the ModelPackageGroupStatus field's value.
 func (s *ModelPackageGroupSummary) SetModelPackageGroupStatus(v string) *ModelPackageGroupSummary {
 	s.ModelPackageGroupStatus = &v
+	return s
+}
+
+// The model card associated with the model package. Since ModelPackageModelCard
+// is tied to a model package, it is a specific usage of a model card and its
+// schema is simplified compared to the schema of ModelCard. The ModelPackageModelCard
+// schema does not include model_package_details, and model_overview is composed
+// of the model_creator and model_artifact properties. For more information
+// about the model package model card schema, see Model package model card schema
+// (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema).
+// For more information about the model card associated with the model package,
+// see View the Details of a Model Version (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html).
+type ModelPackageModelCard struct {
+	_ struct{} `type:"structure"`
+
+	// The content of the model card. The content must follow the schema described
+	// in Model Package Model Card Schema (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema).
+	//
+	// ModelCardContent is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by ModelPackageModelCard's
+	// String and GoString methods.
+	ModelCardContent *string `type:"string" sensitive:"true"`
+
+	// The approval status of the model card within your organization. Different
+	// organizations might have different criteria for model card review and approval.
+	//
+	//    * Draft: The model card is a work in progress.
+	//
+	//    * PendingReview: The model card is pending review.
+	//
+	//    * Approved: The model card is approved.
+	//
+	//    * Archived: The model card is archived. No more updates can be made to
+	//    the model card content. If you try to update the model card content, you
+	//    will receive the message Model Card is in Archived state.
+	ModelCardStatus *string `type:"string" enum:"ModelCardStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelPackageModelCard) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelPackageModelCard) GoString() string {
+	return s.String()
+}
+
+// SetModelCardContent sets the ModelCardContent field's value.
+func (s *ModelPackageModelCard) SetModelCardContent(v string) *ModelPackageModelCard {
+	s.ModelCardContent = &v
+	return s
+}
+
+// SetModelCardStatus sets the ModelCardStatus field's value.
+func (s *ModelPackageModelCard) SetModelCardStatus(v string) *ModelPackageModelCard {
+	s.ModelCardStatus = &v
+	return s
+}
+
+// An optional Key Management Service key to encrypt, decrypt, and re-encrypt
+// model package information for regulated workloads with highly sensitive data.
+type ModelPackageSecurityConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The KMS Key ID (KMSKeyId) used for encryption of model package information.
+	//
+	// KmsKeyId is a required field
+	KmsKeyId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelPackageSecurityConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelPackageSecurityConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ModelPackageSecurityConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ModelPackageSecurityConfig"}
+	if s.KmsKeyId == nil {
+		invalidParams.Add(request.NewErrParamRequired("KmsKeyId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *ModelPackageSecurityConfig) SetKmsKeyId(v string) *ModelPackageSecurityConfig {
+	s.KmsKeyId = &v
 	return s
 }
 
@@ -98304,6 +102275,49 @@ func (s *ModelQualityJobInput) SetEndpointInput(v *EndpointInput) *ModelQualityJ
 // SetGroundTruthS3Input sets the GroundTruthS3Input field's value.
 func (s *ModelQualityJobInput) SetGroundTruthS3Input(v *MonitoringGroundTruthS3Input) *ModelQualityJobInput {
 	s.GroundTruthS3Input = v
+	return s
+}
+
+// Settings for the model quantization technique that's applied by a model optimization
+// job.
+type ModelQuantizationConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The URI of an LMI DLC in Amazon ECR. SageMaker uses this image to run the
+	// optimization.
+	Image *string `type:"string"`
+
+	// Environment variables that override the default ones in the model container.
+	OverrideEnvironment map[string]*string `type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelQuantizationConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ModelQuantizationConfig) GoString() string {
+	return s.String()
+}
+
+// SetImage sets the Image field's value.
+func (s *ModelQuantizationConfig) SetImage(v string) *ModelQuantizationConfig {
+	s.Image = &v
+	return s
+}
+
+// SetOverrideEnvironment sets the OverrideEnvironment field's value.
+func (s *ModelQuantizationConfig) SetOverrideEnvironment(v map[string]*string) *ModelQuantizationConfig {
+	s.OverrideEnvironment = v
 	return s
 }
 
@@ -101215,6 +105229,10 @@ func (s *OfflineStoreStatus) SetStatus(v string) *OfflineStoreStatus {
 type OidcConfig struct {
 	_ struct{} `type:"structure"`
 
+	// A string to string map of identifiers specific to the custom identity provider
+	// (IdP) being used.
+	AuthenticationRequestExtraParams map[string]*string `type:"map"`
+
 	// The OIDC IdP authorization endpoint used to configure your private workforce.
 	//
 	// AuthorizationEndpoint is a required field
@@ -101248,6 +105266,10 @@ type OidcConfig struct {
 	//
 	// LogoutEndpoint is a required field
 	LogoutEndpoint *string `type:"string" required:"true"`
+
+	// An array of string identifiers used to refer to the specific pieces of user
+	// data or claims that the client application wants to access.
+	Scope *string `type:"string"`
 
 	// The OIDC IdP token endpoint used to configure your private workforce.
 	//
@@ -101318,6 +105340,12 @@ func (s *OidcConfig) Validate() error {
 	return nil
 }
 
+// SetAuthenticationRequestExtraParams sets the AuthenticationRequestExtraParams field's value.
+func (s *OidcConfig) SetAuthenticationRequestExtraParams(v map[string]*string) *OidcConfig {
+	s.AuthenticationRequestExtraParams = v
+	return s
+}
+
 // SetAuthorizationEndpoint sets the AuthorizationEndpoint field's value.
 func (s *OidcConfig) SetAuthorizationEndpoint(v string) *OidcConfig {
 	s.AuthorizationEndpoint = &v
@@ -101354,6 +105382,12 @@ func (s *OidcConfig) SetLogoutEndpoint(v string) *OidcConfig {
 	return s
 }
 
+// SetScope sets the Scope field's value.
+func (s *OidcConfig) SetScope(v string) *OidcConfig {
+	s.Scope = &v
+	return s
+}
+
 // SetTokenEndpoint sets the TokenEndpoint field's value.
 func (s *OidcConfig) SetTokenEndpoint(v string) *OidcConfig {
 	s.TokenEndpoint = &v
@@ -101370,6 +105404,10 @@ func (s *OidcConfig) SetUserInfoEndpoint(v string) *OidcConfig {
 type OidcConfigForResponse struct {
 	_ struct{} `type:"structure"`
 
+	// A string to string map of identifiers specific to the custom identity provider
+	// (IdP) being used.
+	AuthenticationRequestExtraParams map[string]*string `type:"map"`
+
 	// The OIDC IdP authorization endpoint used to configure your private workforce.
 	AuthorizationEndpoint *string `type:"string"`
 
@@ -101384,6 +105422,10 @@ type OidcConfigForResponse struct {
 
 	// The OIDC IdP logout endpoint used to configure your private workforce.
 	LogoutEndpoint *string `type:"string"`
+
+	// An array of string identifiers used to refer to the specific pieces of user
+	// data or claims that the client application wants to access.
+	Scope *string `type:"string"`
 
 	// The OIDC IdP token endpoint used to configure your private workforce.
 	TokenEndpoint *string `type:"string"`
@@ -101408,6 +105450,12 @@ func (s OidcConfigForResponse) String() string {
 // value will be replaced with "sensitive".
 func (s OidcConfigForResponse) GoString() string {
 	return s.String()
+}
+
+// SetAuthenticationRequestExtraParams sets the AuthenticationRequestExtraParams field's value.
+func (s *OidcConfigForResponse) SetAuthenticationRequestExtraParams(v map[string]*string) *OidcConfigForResponse {
+	s.AuthenticationRequestExtraParams = v
+	return s
 }
 
 // SetAuthorizationEndpoint sets the AuthorizationEndpoint field's value.
@@ -101437,6 +105485,12 @@ func (s *OidcConfigForResponse) SetJwksUri(v string) *OidcConfigForResponse {
 // SetLogoutEndpoint sets the LogoutEndpoint field's value.
 func (s *OidcConfigForResponse) SetLogoutEndpoint(v string) *OidcConfigForResponse {
 	s.LogoutEndpoint = &v
+	return s
+}
+
+// SetScope sets the Scope field's value.
+func (s *OidcConfigForResponse) SetScope(v string) *OidcConfigForResponse {
+	s.Scope = &v
 	return s
 }
 
@@ -101702,6 +105756,491 @@ func (s OnlineStoreSecurityConfig) GoString() string {
 // SetKmsKeyId sets the KmsKeyId field's value.
 func (s *OnlineStoreSecurityConfig) SetKmsKeyId(v string) *OnlineStoreSecurityConfig {
 	s.KmsKeyId = &v
+	return s
+}
+
+// Settings for an optimization technique that you apply with a model optimization
+// job.
+type OptimizationConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Settings for the model compilation technique that's applied by a model optimization
+	// job.
+	ModelCompilationConfig *ModelCompilationConfig `type:"structure"`
+
+	// Settings for the model quantization technique that's applied by a model optimization
+	// job.
+	ModelQuantizationConfig *ModelQuantizationConfig `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationConfig) GoString() string {
+	return s.String()
+}
+
+// SetModelCompilationConfig sets the ModelCompilationConfig field's value.
+func (s *OptimizationConfig) SetModelCompilationConfig(v *ModelCompilationConfig) *OptimizationConfig {
+	s.ModelCompilationConfig = v
+	return s
+}
+
+// SetModelQuantizationConfig sets the ModelQuantizationConfig field's value.
+func (s *OptimizationConfig) SetModelQuantizationConfig(v *ModelQuantizationConfig) *OptimizationConfig {
+	s.ModelQuantizationConfig = v
+	return s
+}
+
+// The location of the source model to optimize with an optimization job.
+type OptimizationJobModelSource struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon S3 location of a source model to optimize with an optimization
+	// job.
+	S3 *OptimizationJobModelSourceS3 `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobModelSource) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobModelSource) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OptimizationJobModelSource) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OptimizationJobModelSource"}
+	if s.S3 != nil {
+		if err := s.S3.Validate(); err != nil {
+			invalidParams.AddNested("S3", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetS3 sets the S3 field's value.
+func (s *OptimizationJobModelSource) SetS3(v *OptimizationJobModelSourceS3) *OptimizationJobModelSource {
+	s.S3 = v
+	return s
+}
+
+// The Amazon S3 location of a source model to optimize with an optimization
+// job.
+type OptimizationJobModelSourceS3 struct {
+	_ struct{} `type:"structure"`
+
+	// The access configuration settings for the source ML model for an optimization
+	// job, where you can accept the model end-user license agreement (EULA).
+	ModelAccessConfig *OptimizationModelAccessConfig `type:"structure"`
+
+	// An Amazon S3 URI that locates a source model to optimize with an optimization
+	// job.
+	S3Uri *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobModelSourceS3) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobModelSourceS3) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OptimizationJobModelSourceS3) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OptimizationJobModelSourceS3"}
+	if s.ModelAccessConfig != nil {
+		if err := s.ModelAccessConfig.Validate(); err != nil {
+			invalidParams.AddNested("ModelAccessConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetModelAccessConfig sets the ModelAccessConfig field's value.
+func (s *OptimizationJobModelSourceS3) SetModelAccessConfig(v *OptimizationModelAccessConfig) *OptimizationJobModelSourceS3 {
+	s.ModelAccessConfig = v
+	return s
+}
+
+// SetS3Uri sets the S3Uri field's value.
+func (s *OptimizationJobModelSourceS3) SetS3Uri(v string) *OptimizationJobModelSourceS3 {
+	s.S3Uri = &v
+	return s
+}
+
+// Details for where to store the optimized model that you create with the optimization
+// job.
+type OptimizationJobOutputConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of a key in Amazon Web Services KMS. SageMaker
+	// uses they key to encrypt the artifacts of the optimized model when SageMaker
+	// uploads the model to Amazon S3.
+	KmsKeyId *string `type:"string"`
+
+	// The Amazon S3 URI for where to store the optimized model that you create
+	// with an optimization job.
+	//
+	// S3OutputLocation is a required field
+	S3OutputLocation *string `type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobOutputConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobOutputConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OptimizationJobOutputConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OptimizationJobOutputConfig"}
+	if s.S3OutputLocation == nil {
+		invalidParams.Add(request.NewErrParamRequired("S3OutputLocation"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *OptimizationJobOutputConfig) SetKmsKeyId(v string) *OptimizationJobOutputConfig {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetS3OutputLocation sets the S3OutputLocation field's value.
+func (s *OptimizationJobOutputConfig) SetS3OutputLocation(v string) *OptimizationJobOutputConfig {
+	s.S3OutputLocation = &v
+	return s
+}
+
+// Summarizes an optimization job by providing some of its key properties.
+type OptimizationJobSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The time when you created the optimization job.
+	//
+	// CreationTime is a required field
+	CreationTime *time.Time `type:"timestamp" required:"true"`
+
+	// The type of instance that hosts the optimized model that you create with
+	// the optimization job.
+	//
+	// DeploymentInstanceType is a required field
+	DeploymentInstanceType *string `type:"string" required:"true" enum:"OptimizationJobDeploymentInstanceType"`
+
+	// The time when the optimization job was last updated.
+	LastModifiedTime *time.Time `type:"timestamp"`
+
+	// The time when the optimization job finished processing.
+	OptimizationEndTime *time.Time `type:"timestamp"`
+
+	// The Amazon Resource Name (ARN) of the optimization job.
+	//
+	// OptimizationJobArn is a required field
+	OptimizationJobArn *string `type:"string" required:"true"`
+
+	// The name that you assigned to the optimization job.
+	//
+	// OptimizationJobName is a required field
+	OptimizationJobName *string `min:"1" type:"string" required:"true"`
+
+	// The current status of the optimization job.
+	//
+	// OptimizationJobStatus is a required field
+	OptimizationJobStatus *string `type:"string" required:"true" enum:"OptimizationJobStatus"`
+
+	// The time when the optimization job started.
+	OptimizationStartTime *time.Time `type:"timestamp"`
+
+	// The optimization techniques that are applied by the optimization job.
+	//
+	// OptimizationTypes is a required field
+	OptimizationTypes []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationJobSummary) GoString() string {
+	return s.String()
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *OptimizationJobSummary) SetCreationTime(v time.Time) *OptimizationJobSummary {
+	s.CreationTime = &v
+	return s
+}
+
+// SetDeploymentInstanceType sets the DeploymentInstanceType field's value.
+func (s *OptimizationJobSummary) SetDeploymentInstanceType(v string) *OptimizationJobSummary {
+	s.DeploymentInstanceType = &v
+	return s
+}
+
+// SetLastModifiedTime sets the LastModifiedTime field's value.
+func (s *OptimizationJobSummary) SetLastModifiedTime(v time.Time) *OptimizationJobSummary {
+	s.LastModifiedTime = &v
+	return s
+}
+
+// SetOptimizationEndTime sets the OptimizationEndTime field's value.
+func (s *OptimizationJobSummary) SetOptimizationEndTime(v time.Time) *OptimizationJobSummary {
+	s.OptimizationEndTime = &v
+	return s
+}
+
+// SetOptimizationJobArn sets the OptimizationJobArn field's value.
+func (s *OptimizationJobSummary) SetOptimizationJobArn(v string) *OptimizationJobSummary {
+	s.OptimizationJobArn = &v
+	return s
+}
+
+// SetOptimizationJobName sets the OptimizationJobName field's value.
+func (s *OptimizationJobSummary) SetOptimizationJobName(v string) *OptimizationJobSummary {
+	s.OptimizationJobName = &v
+	return s
+}
+
+// SetOptimizationJobStatus sets the OptimizationJobStatus field's value.
+func (s *OptimizationJobSummary) SetOptimizationJobStatus(v string) *OptimizationJobSummary {
+	s.OptimizationJobStatus = &v
+	return s
+}
+
+// SetOptimizationStartTime sets the OptimizationStartTime field's value.
+func (s *OptimizationJobSummary) SetOptimizationStartTime(v time.Time) *OptimizationJobSummary {
+	s.OptimizationStartTime = &v
+	return s
+}
+
+// SetOptimizationTypes sets the OptimizationTypes field's value.
+func (s *OptimizationJobSummary) SetOptimizationTypes(v []*string) *OptimizationJobSummary {
+	s.OptimizationTypes = v
+	return s
+}
+
+// The access configuration settings for the source ML model for an optimization
+// job, where you can accept the model end-user license agreement (EULA).
+type OptimizationModelAccessConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies agreement to the model end-user license agreement (EULA). The AcceptEula
+	// value must be explicitly defined as True in order to accept the EULA that
+	// this model requires. You are responsible for reviewing and complying with
+	// any applicable license terms and making sure they are acceptable for your
+	// use case before downloading or using a model.
+	//
+	// AcceptEula is a required field
+	AcceptEula *bool `type:"boolean" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationModelAccessConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationModelAccessConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OptimizationModelAccessConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OptimizationModelAccessConfig"}
+	if s.AcceptEula == nil {
+		invalidParams.Add(request.NewErrParamRequired("AcceptEula"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAcceptEula sets the AcceptEula field's value.
+func (s *OptimizationModelAccessConfig) SetAcceptEula(v bool) *OptimizationModelAccessConfig {
+	s.AcceptEula = &v
+	return s
+}
+
+// Output values produced by an optimization job.
+type OptimizationOutput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The image that SageMaker recommends that you use to host the optimized model
+	// that you created with an optimization job.
+	RecommendedInferenceImage *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationOutput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationOutput_) GoString() string {
+	return s.String()
+}
+
+// SetRecommendedInferenceImage sets the RecommendedInferenceImage field's value.
+func (s *OptimizationOutput_) SetRecommendedInferenceImage(v string) *OptimizationOutput_ {
+	s.RecommendedInferenceImage = &v
+	return s
+}
+
+// A VPC in Amazon VPC that's accessible to an optimized that you create with
+// an optimization job. You can control access to and from your resources by
+// configuring a VPC. For more information, see Give SageMaker Access to Resources
+// in your Amazon VPC (https://docs.aws.amazon.com/sagemaker/latest/dg/infrastructure-give-access.html).
+type OptimizationVpcConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The VPC security group IDs, in the form sg-xxxxxxxx. Specify the security
+	// groups for the VPC that is specified in the Subnets field.
+	//
+	// SecurityGroupIds is a required field
+	SecurityGroupIds []*string `min:"1" type:"list" required:"true"`
+
+	// The ID of the subnets in the VPC to which you want to connect your optimized
+	// model.
+	//
+	// Subnets is a required field
+	Subnets []*string `min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationVpcConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s OptimizationVpcConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OptimizationVpcConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OptimizationVpcConfig"}
+	if s.SecurityGroupIds == nil {
+		invalidParams.Add(request.NewErrParamRequired("SecurityGroupIds"))
+	}
+	if s.SecurityGroupIds != nil && len(s.SecurityGroupIds) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SecurityGroupIds", 1))
+	}
+	if s.Subnets == nil {
+		invalidParams.Add(request.NewErrParamRequired("Subnets"))
+	}
+	if s.Subnets != nil && len(s.Subnets) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Subnets", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSecurityGroupIds sets the SecurityGroupIds field's value.
+func (s *OptimizationVpcConfig) SetSecurityGroupIds(v []*string) *OptimizationVpcConfig {
+	s.SecurityGroupIds = v
+	return s
+}
+
+// SetSubnets sets the Subnets field's value.
+func (s *OptimizationVpcConfig) SetSubnets(v []*string) *OptimizationVpcConfig {
+	s.Subnets = v
 	return s
 }
 
@@ -102055,7 +106594,7 @@ func (s *OutputParameter) SetValue(v string) *OutputParameter {
 type OwnershipSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The user profile who is the owner of the private space.
+	// The user profile who is the owner of the space.
 	//
 	// OwnerUserProfileName is a required field
 	OwnerUserProfileName *string `type:"string" required:"true"`
@@ -102102,7 +106641,7 @@ func (s *OwnershipSettings) SetOwnerUserProfileName(v string) *OwnershipSettings
 type OwnershipSettingsSummary struct {
 	_ struct{} `type:"structure"`
 
-	// The user profile who is the owner of the private space.
+	// The user profile who is the owner of the space.
 	OwnerUserProfileName *string `type:"string"`
 }
 
@@ -104896,6 +109435,16 @@ type ProductionVariant struct {
 	// endpoint by creating a new endpoint configuration and calling UpdateEndpoint.
 	EnableSSMAccess *bool `type:"boolean"`
 
+	// Specifies an option from a collection of preconfigured Amazon Machine Image
+	// (AMI) images. Each image is configured by Amazon Web Services with a set
+	// of software and driver versions. Amazon Web Services optimizes these configurations
+	// for different machine learning workloads.
+	//
+	// By selecting an AMI version, you can ensure that your inference environment
+	// is compatible with specific software requirements, such as CUDA driver versions,
+	// Linux kernel versions, or Amazon Web Services Neuron driver versions.
+	InferenceAmiVersion *string `type:"string" enum:"ProductionVariantInferenceAmiVersion"`
+
 	// Number of instances to launch initially.
 	InitialInstanceCount *int64 `min:"1" type:"integer"`
 
@@ -105024,6 +109573,12 @@ func (s *ProductionVariant) SetCoreDumpConfig(v *ProductionVariantCoreDumpConfig
 // SetEnableSSMAccess sets the EnableSSMAccess field's value.
 func (s *ProductionVariant) SetEnableSSMAccess(v bool) *ProductionVariant {
 	s.EnableSSMAccess = &v
+	return s
+}
+
+// SetInferenceAmiVersion sets the InferenceAmiVersion field's value.
+func (s *ProductionVariant) SetInferenceAmiVersion(v string) *ProductionVariant {
+	s.InferenceAmiVersion = &v
 	return s
 }
 
@@ -108182,14 +112737,10 @@ type RecommendationMetrics struct {
 	_ struct{} `type:"structure"`
 
 	// Defines the cost per hour for the instance.
-	//
-	// CostPerHour is a required field
-	CostPerHour *float64 `type:"float" required:"true"`
+	CostPerHour *float64 `type:"float"`
 
 	// Defines the cost per inference for the instance .
-	//
-	// CostPerInference is a required field
-	CostPerInference *float64 `type:"float" required:"true"`
+	CostPerInference *float64 `type:"float"`
 
 	// The expected CPU utilization at maximum invocations per minute for the instance.
 	//
@@ -108197,9 +112748,7 @@ type RecommendationMetrics struct {
 	CpuUtilization *float64 `type:"float"`
 
 	// The expected maximum number of requests per minute for the instance.
-	//
-	// MaxInvocations is a required field
-	MaxInvocations *int64 `type:"integer" required:"true"`
+	MaxInvocations *int64 `type:"integer"`
 
 	// The expected memory utilization at maximum invocations per minute for the
 	// instance.
@@ -108208,9 +112757,7 @@ type RecommendationMetrics struct {
 	MemoryUtilization *float64 `type:"float"`
 
 	// The expected model latency at maximum invocation per minute for the instance.
-	//
-	// ModelLatency is a required field
-	ModelLatency *int64 `type:"integer" required:"true"`
+	ModelLatency *int64 `type:"integer"`
 
 	// The time it takes to launch new compute resources for a serverless endpoint.
 	// The time can vary depending on the model size, how long it takes to download
@@ -110147,6 +114694,9 @@ type S3ModelDataSource struct {
 	// CompressionType is a required field
 	CompressionType *string `type:"string" required:"true" enum:"ModelCompressionType"`
 
+	// Configuration information for hub access.
+	HubAccessConfig *InferenceHubAccessConfig `type:"structure"`
+
 	// Specifies the access configuration file for the ML model. You can explicitly
 	// accept the model end-user license agreement (EULA) within the ModelAccessConfig.
 	// You are responsible for reviewing and complying with any applicable license
@@ -110203,6 +114753,11 @@ func (s *S3ModelDataSource) Validate() error {
 	if s.S3Uri == nil {
 		invalidParams.Add(request.NewErrParamRequired("S3Uri"))
 	}
+	if s.HubAccessConfig != nil {
+		if err := s.HubAccessConfig.Validate(); err != nil {
+			invalidParams.AddNested("HubAccessConfig", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.ModelAccessConfig != nil {
 		if err := s.ModelAccessConfig.Validate(); err != nil {
 			invalidParams.AddNested("ModelAccessConfig", err.(request.ErrInvalidParams))
@@ -110221,6 +114776,12 @@ func (s *S3ModelDataSource) SetCompressionType(v string) *S3ModelDataSource {
 	return s
 }
 
+// SetHubAccessConfig sets the HubAccessConfig field's value.
+func (s *S3ModelDataSource) SetHubAccessConfig(v *InferenceHubAccessConfig) *S3ModelDataSource {
+	s.HubAccessConfig = v
+	return s
+}
+
 // SetModelAccessConfig sets the ModelAccessConfig field's value.
 func (s *S3ModelDataSource) SetModelAccessConfig(v *ModelAccessConfig) *S3ModelDataSource {
 	s.ModelAccessConfig = v
@@ -110236,6 +114797,43 @@ func (s *S3ModelDataSource) SetS3DataType(v string) *S3ModelDataSource {
 // SetS3Uri sets the S3Uri field's value.
 func (s *S3ModelDataSource) SetS3Uri(v string) *S3ModelDataSource {
 	s.S3Uri = &v
+	return s
+}
+
+// This object defines the access restrictions to Amazon S3 resources that are
+// included in custom worker task templates using the Liquid filter, grant_read_access.
+//
+// To learn more about how custom templates are created, see Create custom worker
+// task templates (https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-custom-templates.html).
+type S3Presign struct {
+	_ struct{} `type:"structure"`
+
+	// Use this parameter to specify the allowed request source. Possible sources
+	// are either SourceIp or VpcSourceIp.
+	IamPolicyConstraints *IamPolicyConstraints `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s S3Presign) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s S3Presign) GoString() string {
+	return s.String()
+}
+
+// SetIamPolicyConstraints sets the IamPolicyConstraints field's value.
+func (s *S3Presign) SetIamPolicyConstraints(v *IamPolicyConstraints) *S3Presign {
+	s.IamPolicyConstraints = v
 	return s
 }
 
@@ -111781,6 +116379,44 @@ func (s *ServiceCatalogProvisioningUpdateDetails) SetProvisioningParameters(v []
 	return s
 }
 
+// Contains information about attribute-based access control (ABAC) for a training
+// job. The session chaining configuration uses Amazon Security Token Service
+// (STS) for your training job to request temporary, limited-privilege credentials
+// to tenants. For more information, see Attribute-based access control (ABAC)
+// for multi-tenancy training (https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html#model-access-training-data-abac).
+type SessionChainingConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Set to True to allow SageMaker to extract session tags from a training job
+	// creation role and reuse these tags when assuming the training job execution
+	// role.
+	EnableSessionTagChaining *bool `type:"boolean"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SessionChainingConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SessionChainingConfig) GoString() string {
+	return s.String()
+}
+
+// SetEnableSessionTagChaining sets the EnableSessionTagChaining field's value.
+func (s *SessionChainingConfig) SetEnableSessionTagChaining(v bool) *SessionChainingConfig {
+	s.EnableSessionTagChaining = &v
+	return s
+}
+
 // The configuration of ShadowMode inference experiment type, which specifies
 // a production variant to take all the inference requests, and a shadow variant
 // to which Amazon SageMaker replicates a percentage of the inference requests.
@@ -112182,7 +116818,7 @@ func (s *SourceAlgorithmSpecification) SetSourceAlgorithms(v []*SourceAlgorithm)
 
 // A list of IP address ranges (CIDRs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html)).
 // Used to create an allow list of IP addresses for a private workforce. Workers
-// will only be able to login to their worker portal from an IP address within
+// will only be able to log in to their worker portal from an IP address within
 // this range. By default, a workforce isn't restricted to specific IP addresses.
 type SourceIpConfig struct {
 	_ struct{} `type:"structure"`
@@ -112479,7 +117115,7 @@ type SpaceSettings struct {
 	// The KernelGateway app settings.
 	KernelGatewayAppSettings *KernelGatewayAppSettings `type:"structure"`
 
-	// The storage settings for a private space.
+	// The storage settings for a space.
 	SpaceStorageSettings *SpaceStorageSettings `type:"structure"`
 }
 
@@ -112595,7 +117231,7 @@ type SpaceSettingsSummary struct {
 	// The type of app created within the space.
 	AppType *string `type:"string" enum:"AppType"`
 
-	// The storage settings for a private space.
+	// The storage settings for a space.
 	SpaceStorageSettings *SpaceStorageSettings `type:"structure"`
 }
 
@@ -112708,11 +117344,11 @@ func (s *SpaceSharingSettingsSummary) SetSharingType(v string) *SpaceSharingSett
 	return s
 }
 
-// The storage settings for a private space.
+// The storage settings for a space.
 type SpaceStorageSettings struct {
 	_ struct{} `type:"structure"`
 
-	// A collection of EBS storage settings for a private space.
+	// A collection of EBS storage settings for a space.
 	EbsStorageSettings *EbsStorageSettings `type:"structure"`
 }
 
@@ -112995,6 +117631,86 @@ func (s StartInferenceExperimentOutput) GoString() string {
 // SetInferenceExperimentArn sets the InferenceExperimentArn field's value.
 func (s *StartInferenceExperimentOutput) SetInferenceExperimentArn(v string) *StartInferenceExperimentOutput {
 	s.InferenceExperimentArn = &v
+	return s
+}
+
+type StartMlflowTrackingServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the tracking server to start.
+	//
+	// TrackingServerName is a required field
+	TrackingServerName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StartMlflowTrackingServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StartMlflowTrackingServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StartMlflowTrackingServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StartMlflowTrackingServerInput"}
+	if s.TrackingServerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrackingServerName"))
+	}
+	if s.TrackingServerName != nil && len(*s.TrackingServerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrackingServerName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *StartMlflowTrackingServerInput) SetTrackingServerName(v string) *StartMlflowTrackingServerInput {
+	s.TrackingServerName = &v
+	return s
+}
+
+type StartMlflowTrackingServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the started tracking server.
+	TrackingServerArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StartMlflowTrackingServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StartMlflowTrackingServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetTrackingServerArn sets the TrackingServerArn field's value.
+func (s *StartMlflowTrackingServerOutput) SetTrackingServerArn(v string) *StartMlflowTrackingServerOutput {
+	s.TrackingServerArn = &v
 	return s
 }
 
@@ -113967,6 +118683,86 @@ func (s StopLabelingJobOutput) GoString() string {
 	return s.String()
 }
 
+type StopMlflowTrackingServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the tracking server to stop.
+	//
+	// TrackingServerName is a required field
+	TrackingServerName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopMlflowTrackingServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopMlflowTrackingServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopMlflowTrackingServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopMlflowTrackingServerInput"}
+	if s.TrackingServerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrackingServerName"))
+	}
+	if s.TrackingServerName != nil && len(*s.TrackingServerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrackingServerName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *StopMlflowTrackingServerInput) SetTrackingServerName(v string) *StopMlflowTrackingServerInput {
+	s.TrackingServerName = &v
+	return s
+}
+
+type StopMlflowTrackingServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the stopped tracking server.
+	TrackingServerArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopMlflowTrackingServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopMlflowTrackingServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetTrackingServerArn sets the TrackingServerArn field's value.
+func (s *StopMlflowTrackingServerOutput) SetTrackingServerArn(v string) *StopMlflowTrackingServerOutput {
+	s.TrackingServerArn = &v
+	return s
+}
+
 type StopMonitoringScheduleInput struct {
 	_ struct{} `type:"structure"`
 
@@ -114103,6 +118899,77 @@ func (s StopNotebookInstanceOutput) String() string {
 // be included in the string output. The member name will be present, but the
 // value will be replaced with "sensitive".
 func (s StopNotebookInstanceOutput) GoString() string {
+	return s.String()
+}
+
+type StopOptimizationJobInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name that you assigned to the optimization job.
+	//
+	// OptimizationJobName is a required field
+	OptimizationJobName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopOptimizationJobInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopOptimizationJobInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopOptimizationJobInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopOptimizationJobInput"}
+	if s.OptimizationJobName == nil {
+		invalidParams.Add(request.NewErrParamRequired("OptimizationJobName"))
+	}
+	if s.OptimizationJobName != nil && len(*s.OptimizationJobName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OptimizationJobName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetOptimizationJobName sets the OptimizationJobName field's value.
+func (s *StopOptimizationJobInput) SetOptimizationJobName(v string) *StopOptimizationJobInput {
+	s.OptimizationJobName = &v
+	return s
+}
+
+type StopOptimizationJobOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopOptimizationJobOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StopOptimizationJobOutput) GoString() string {
 	return s.String()
 }
 
@@ -114409,10 +119276,8 @@ func (s StopTransformJobOutput) GoString() string {
 	return s.String()
 }
 
-// Specifies a limit to how long a model training job or model compilation job
-// can run. It also specifies how long a managed spot training job has to complete.
-// When the job reaches the time limit, SageMaker ends the training or compilation
-// job. Use this API to cap model training costs.
+// Specifies a limit to how long a job can run. When the job reaches the time
+// limit, SageMaker ends the job. Use this API to cap costs.
 //
 // To stop a training job, SageMaker sends the algorithm the SIGTERM signal,
 // which delays job termination for 120 seconds. Algorithms can use this 120-second
@@ -114588,7 +119453,51 @@ func (s *StudioLifecycleConfigDetails) SetStudioLifecycleConfigName(v string) *S
 	return s
 }
 
-// Describes a work team of a vendor that does the a labelling job.
+// Studio settings. If these settings are applied on a user level, they take
+// priority over the settings applied on a domain level.
+type StudioWebPortalSettings struct {
+	_ struct{} `type:"structure"`
+
+	// The Applications supported in Studio (https://docs.aws.amazon.com/sagemaker/latest/dg/studio-updated-apps.html)
+	// that are hidden from the Studio left navigation pane.
+	HiddenAppTypes []*string `type:"list" enum:"AppType"`
+
+	// The machine learning tools that are hidden from the Studio left navigation
+	// pane.
+	HiddenMlTools []*string `type:"list" enum:"MlTools"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StudioWebPortalSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s StudioWebPortalSettings) GoString() string {
+	return s.String()
+}
+
+// SetHiddenAppTypes sets the HiddenAppTypes field's value.
+func (s *StudioWebPortalSettings) SetHiddenAppTypes(v []*string) *StudioWebPortalSettings {
+	s.HiddenAppTypes = v
+	return s
+}
+
+// SetHiddenMlTools sets the HiddenMlTools field's value.
+func (s *StudioWebPortalSettings) SetHiddenMlTools(v []*string) *StudioWebPortalSettings {
+	s.HiddenMlTools = v
+	return s
+}
+
+// Describes a work team of a vendor that does the labelling job.
 type SubscribedWorkteam struct {
 	_ struct{} `type:"structure"`
 
@@ -115818,6 +120727,10 @@ func (s *TimeSeriesConfig) SetTimestampAttributeName(v string) *TimeSeriesConfig
 type TimeSeriesForecastingJobConfig struct {
 	_ struct{} `type:"structure"`
 
+	// Stores the configuration information for how model candidates are generated
+	// using an AutoML job V2.
+	CandidateGenerationConfig *CandidateGenerationConfig `type:"structure"`
+
 	// How long a job is allowed to run, or how many candidates a job is allowed
 	// to generate.
 	CompletionCriteria *AutoMLJobCompletionCriteria `type:"structure"`
@@ -115938,6 +120851,11 @@ func (s *TimeSeriesForecastingJobConfig) Validate() error {
 	if s.TimeSeriesConfig == nil {
 		invalidParams.Add(request.NewErrParamRequired("TimeSeriesConfig"))
 	}
+	if s.CandidateGenerationConfig != nil {
+		if err := s.CandidateGenerationConfig.Validate(); err != nil {
+			invalidParams.AddNested("CandidateGenerationConfig", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.CompletionCriteria != nil {
 		if err := s.CompletionCriteria.Validate(); err != nil {
 			invalidParams.AddNested("CompletionCriteria", err.(request.ErrInvalidParams))
@@ -115968,6 +120886,12 @@ func (s *TimeSeriesForecastingJobConfig) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCandidateGenerationConfig sets the CandidateGenerationConfig field's value.
+func (s *TimeSeriesForecastingJobConfig) SetCandidateGenerationConfig(v *CandidateGenerationConfig) *TimeSeriesForecastingJobConfig {
+	s.CandidateGenerationConfig = v
+	return s
 }
 
 // SetCompletionCriteria sets the CompletionCriteria field's value.
@@ -116160,6 +121084,92 @@ func (s *TimeSeriesTransformations) SetAggregation(v map[string]*string) *TimeSe
 // SetFilling sets the Filling field's value.
 func (s *TimeSeriesTransformations) SetFilling(v map[string]map[string]*string) *TimeSeriesTransformations {
 	s.Filling = v
+	return s
+}
+
+// The summary of the tracking server to list.
+type TrackingServerSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The creation time of a listed tracking server.
+	CreationTime *time.Time `type:"timestamp"`
+
+	// The activity status of a listed tracking server.
+	IsActive *string `type:"string" enum:"IsTrackingServerActive"`
+
+	// The last modified time of a listed tracking server.
+	LastModifiedTime *time.Time `type:"timestamp"`
+
+	// The MLflow version used for a listed tracking server.
+	MlflowVersion *string `type:"string"`
+
+	// The ARN of a listed tracking server.
+	TrackingServerArn *string `type:"string"`
+
+	// The name of a listed tracking server.
+	TrackingServerName *string `min:"1" type:"string"`
+
+	// The creation status of a listed tracking server.
+	TrackingServerStatus *string `type:"string" enum:"TrackingServerStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TrackingServerSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TrackingServerSummary) GoString() string {
+	return s.String()
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *TrackingServerSummary) SetCreationTime(v time.Time) *TrackingServerSummary {
+	s.CreationTime = &v
+	return s
+}
+
+// SetIsActive sets the IsActive field's value.
+func (s *TrackingServerSummary) SetIsActive(v string) *TrackingServerSummary {
+	s.IsActive = &v
+	return s
+}
+
+// SetLastModifiedTime sets the LastModifiedTime field's value.
+func (s *TrackingServerSummary) SetLastModifiedTime(v time.Time) *TrackingServerSummary {
+	s.LastModifiedTime = &v
+	return s
+}
+
+// SetMlflowVersion sets the MlflowVersion field's value.
+func (s *TrackingServerSummary) SetMlflowVersion(v string) *TrackingServerSummary {
+	s.MlflowVersion = &v
+	return s
+}
+
+// SetTrackingServerArn sets the TrackingServerArn field's value.
+func (s *TrackingServerSummary) SetTrackingServerArn(v string) *TrackingServerSummary {
+	s.TrackingServerArn = &v
+	return s
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *TrackingServerSummary) SetTrackingServerName(v string) *TrackingServerSummary {
+	s.TrackingServerName = &v
+	return s
+}
+
+// SetTrackingServerStatus sets the TrackingServerStatus field's value.
+func (s *TrackingServerSummary) SetTrackingServerStatus(v string) *TrackingServerSummary {
+	s.TrackingServerStatus = &v
 	return s
 }
 
@@ -122502,6 +127512,129 @@ func (s *UpdateInferenceExperimentOutput) SetInferenceExperimentArn(v string) *U
 	return s
 }
 
+type UpdateMlflowTrackingServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The new S3 URI for the general purpose bucket to use as the artifact store
+	// for the MLflow Tracking Server.
+	ArtifactStoreUri *string `type:"string"`
+
+	// Whether to enable or disable automatic registration of new MLflow models
+	// to the SageMaker Model Registry. To enable automatic model registration,
+	// set this value to True. To disable automatic model registration, set this
+	// value to False. If not specified, AutomaticModelRegistration defaults to
+	// False
+	AutomaticModelRegistration *bool `type:"boolean"`
+
+	// The name of the MLflow Tracking Server to update.
+	//
+	// TrackingServerName is a required field
+	TrackingServerName *string `min:"1" type:"string" required:"true"`
+
+	// The new size for the MLflow Tracking Server.
+	TrackingServerSize *string `type:"string" enum:"TrackingServerSize"`
+
+	// The new weekly maintenance window start day and time to update. The maintenance
+	// window day and time should be in Coordinated Universal Time (UTC) 24-hour
+	// standard time. For example: TUE:03:30.
+	WeeklyMaintenanceWindowStart *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateMlflowTrackingServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateMlflowTrackingServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateMlflowTrackingServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateMlflowTrackingServerInput"}
+	if s.TrackingServerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrackingServerName"))
+	}
+	if s.TrackingServerName != nil && len(*s.TrackingServerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrackingServerName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArtifactStoreUri sets the ArtifactStoreUri field's value.
+func (s *UpdateMlflowTrackingServerInput) SetArtifactStoreUri(v string) *UpdateMlflowTrackingServerInput {
+	s.ArtifactStoreUri = &v
+	return s
+}
+
+// SetAutomaticModelRegistration sets the AutomaticModelRegistration field's value.
+func (s *UpdateMlflowTrackingServerInput) SetAutomaticModelRegistration(v bool) *UpdateMlflowTrackingServerInput {
+	s.AutomaticModelRegistration = &v
+	return s
+}
+
+// SetTrackingServerName sets the TrackingServerName field's value.
+func (s *UpdateMlflowTrackingServerInput) SetTrackingServerName(v string) *UpdateMlflowTrackingServerInput {
+	s.TrackingServerName = &v
+	return s
+}
+
+// SetTrackingServerSize sets the TrackingServerSize field's value.
+func (s *UpdateMlflowTrackingServerInput) SetTrackingServerSize(v string) *UpdateMlflowTrackingServerInput {
+	s.TrackingServerSize = &v
+	return s
+}
+
+// SetWeeklyMaintenanceWindowStart sets the WeeklyMaintenanceWindowStart field's value.
+func (s *UpdateMlflowTrackingServerInput) SetWeeklyMaintenanceWindowStart(v string) *UpdateMlflowTrackingServerInput {
+	s.WeeklyMaintenanceWindowStart = &v
+	return s
+}
+
+type UpdateMlflowTrackingServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the updated MLflow Tracking Server.
+	TrackingServerArn *string `type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateMlflowTrackingServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateMlflowTrackingServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetTrackingServerArn sets the TrackingServerArn field's value.
+func (s *UpdateMlflowTrackingServerOutput) SetTrackingServerArn(v string) *UpdateMlflowTrackingServerOutput {
+	s.TrackingServerArn = &v
+	return s
+}
+
 type UpdateModelCardInput struct {
 	_ struct{} `type:"structure"`
 
@@ -122656,6 +127789,17 @@ type UpdateModelPackageInput struct {
 	// The approval status of the model.
 	ModelApprovalStatus *string `type:"string" enum:"ModelApprovalStatus"`
 
+	// The model card associated with the model package. Since ModelPackageModelCard
+	// is tied to a model package, it is a specific usage of a model card and its
+	// schema is simplified compared to the schema of ModelCard. The ModelPackageModelCard
+	// schema does not include model_package_details, and model_overview is composed
+	// of the model_creator and model_artifact properties. For more information
+	// about the model package model card schema, see Model package model card schema
+	// (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema).
+	// For more information about the model card associated with the model package,
+	// see View the Details of a Model Version (https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html).
+	ModelCard *ModelPackageModelCard `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the model package.
 	//
 	// ModelPackageArn is a required field
@@ -122753,6 +127897,12 @@ func (s *UpdateModelPackageInput) SetInferenceSpecification(v *InferenceSpecific
 // SetModelApprovalStatus sets the ModelApprovalStatus field's value.
 func (s *UpdateModelPackageInput) SetModelApprovalStatus(v string) *UpdateModelPackageInput {
 	s.ModelApprovalStatus = &v
+	return s
+}
+
+// SetModelCard sets the ModelCard field's value.
+func (s *UpdateModelPackageInput) SetModelCard(v *ModelPackageModelCard) *UpdateModelPackageInput {
+	s.ModelCard = v
 	return s
 }
 
@@ -124616,6 +129766,12 @@ type UpdateWorkteamInput struct {
 	// Configures SNS topic notifications for available or expiring work items
 	NotificationConfiguration *NotificationConfiguration `type:"structure"`
 
+	// Use this optional parameter to constrain access to an Amazon S3 resource
+	// based on the IP address using supported IAM global condition keys. The Amazon
+	// S3 resource is accessed in the worker portal using a Amazon S3 presigned
+	// URL.
+	WorkerAccessConfiguration *WorkerAccessConfiguration `type:"structure"`
+
 	// The name of the work team to update.
 	//
 	// WorkteamName is a required field
@@ -124687,6 +129843,12 @@ func (s *UpdateWorkteamInput) SetMemberDefinitions(v []*MemberDefinition) *Updat
 // SetNotificationConfiguration sets the NotificationConfiguration field's value.
 func (s *UpdateWorkteamInput) SetNotificationConfiguration(v *NotificationConfiguration) *UpdateWorkteamInput {
 	s.NotificationConfiguration = v
+	return s
+}
+
+// SetWorkerAccessConfiguration sets the WorkerAccessConfiguration field's value.
+func (s *UpdateWorkteamInput) SetWorkerAccessConfiguration(v *WorkerAccessConfiguration) *UpdateWorkteamInput {
+	s.WorkerAccessConfiguration = v
 	return s
 }
 
@@ -124925,13 +130087,17 @@ type UserSettings struct {
 	// Specifies options for sharing Amazon SageMaker Studio notebooks.
 	SharingSettings *SharingSettings `type:"structure"`
 
-	// The storage settings for a private space.
+	// The storage settings for a space.
 	SpaceStorageSettings *DefaultSpaceStorageSettings `type:"structure"`
 
 	// Whether the user can access Studio. If this value is set to DISABLED, the
 	// user cannot access Studio, even if that is the default experience for the
 	// domain.
 	StudioWebPortal *string `type:"string" enum:"StudioWebPortal"`
+
+	// Studio settings. If these settings are applied on a user level, they take
+	// priority over the settings applied on a domain level.
+	StudioWebPortalSettings *StudioWebPortalSettings `type:"structure"`
 
 	// The TensorBoard app settings.
 	TensorBoardAppSettings *TensorBoardAppSettings `type:"structure"`
@@ -125110,6 +130276,12 @@ func (s *UserSettings) SetSpaceStorageSettings(v *DefaultSpaceStorageSettings) *
 // SetStudioWebPortal sets the StudioWebPortal field's value.
 func (s *UserSettings) SetStudioWebPortal(v string) *UserSettings {
 	s.StudioWebPortal = &v
+	return s
+}
+
+// SetStudioWebPortalSettings sets the StudioWebPortalSettings field's value.
+func (s *UserSettings) SetStudioWebPortalSettings(v *StudioWebPortalSettings) *UserSettings {
+	s.StudioWebPortalSettings = v
 	return s
 }
 
@@ -125484,6 +130656,41 @@ func (s *WarmPoolStatus) SetStatus(v string) *WarmPoolStatus {
 	return s
 }
 
+// Use this optional parameter to constrain access to an Amazon S3 resource
+// based on the IP address using supported IAM global condition keys. The Amazon
+// S3 resource is accessed in the worker portal using a Amazon S3 presigned
+// URL.
+type WorkerAccessConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Defines any Amazon S3 resource constraints.
+	S3Presign *S3Presign `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s WorkerAccessConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s WorkerAccessConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetS3Presign sets the S3Presign field's value.
+func (s *WorkerAccessConfiguration) SetS3Presign(v *S3Presign) *WorkerAccessConfiguration {
+	s.S3Presign = v
+	return s
+}
+
 // A single private workforce, which is automatically created when you create
 // your first private work team. You can create one private work force in each
 // Amazon Web Services Region. By default, any workforce-related API operation
@@ -125836,6 +131043,9 @@ type Workteam struct {
 	// labeling your data objects.
 	SubDomain *string `type:"string"`
 
+	// Describes any access constraints that have been defined for Amazon S3 resources.
+	WorkerAccessConfiguration *WorkerAccessConfiguration `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the workforce.
 	WorkforceArn *string `type:"string"`
 
@@ -125907,6 +131117,12 @@ func (s *Workteam) SetProductListingIds(v []*string) *Workteam {
 // SetSubDomain sets the SubDomain field's value.
 func (s *Workteam) SetSubDomain(v string) *Workteam {
 	s.SubDomain = &v
+	return s
+}
+
+// SetWorkerAccessConfiguration sets the WorkerAccessConfiguration field's value.
+func (s *Workteam) SetWorkerAccessConfiguration(v *WorkerAccessConfiguration) *Workteam {
+	s.WorkerAccessConfiguration = v
 	return s
 }
 
@@ -126240,6 +131456,30 @@ const (
 	// AppInstanceTypeMlG548xlarge is a AppInstanceType enum value
 	AppInstanceTypeMlG548xlarge = "ml.g5.48xlarge"
 
+	// AppInstanceTypeMlG6Xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG6Xlarge = "ml.g6.xlarge"
+
+	// AppInstanceTypeMlG62xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG62xlarge = "ml.g6.2xlarge"
+
+	// AppInstanceTypeMlG64xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG64xlarge = "ml.g6.4xlarge"
+
+	// AppInstanceTypeMlG68xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG68xlarge = "ml.g6.8xlarge"
+
+	// AppInstanceTypeMlG612xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG612xlarge = "ml.g6.12xlarge"
+
+	// AppInstanceTypeMlG616xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG616xlarge = "ml.g6.16xlarge"
+
+	// AppInstanceTypeMlG624xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG624xlarge = "ml.g6.24xlarge"
+
+	// AppInstanceTypeMlG648xlarge is a AppInstanceType enum value
+	AppInstanceTypeMlG648xlarge = "ml.g6.48xlarge"
+
 	// AppInstanceTypeMlGeospatialInteractive is a AppInstanceType enum value
 	AppInstanceTypeMlGeospatialInteractive = "ml.geospatial.interactive"
 
@@ -126565,6 +131805,14 @@ func AppInstanceType_Values() []string {
 		AppInstanceTypeMlG512xlarge,
 		AppInstanceTypeMlG524xlarge,
 		AppInstanceTypeMlG548xlarge,
+		AppInstanceTypeMlG6Xlarge,
+		AppInstanceTypeMlG62xlarge,
+		AppInstanceTypeMlG64xlarge,
+		AppInstanceTypeMlG68xlarge,
+		AppInstanceTypeMlG612xlarge,
+		AppInstanceTypeMlG616xlarge,
+		AppInstanceTypeMlG624xlarge,
+		AppInstanceTypeMlG648xlarge,
 		AppInstanceTypeMlGeospatialInteractive,
 		AppInstanceTypeMlP4d24xlarge,
 		AppInstanceTypeMlP4de24xlarge,
@@ -126949,6 +132197,24 @@ const (
 
 	// AutoMLAlgorithmFastai is a AutoMLAlgorithm enum value
 	AutoMLAlgorithmFastai = "fastai"
+
+	// AutoMLAlgorithmCnnQr is a AutoMLAlgorithm enum value
+	AutoMLAlgorithmCnnQr = "cnn-qr"
+
+	// AutoMLAlgorithmDeepar is a AutoMLAlgorithm enum value
+	AutoMLAlgorithmDeepar = "deepar"
+
+	// AutoMLAlgorithmProphet is a AutoMLAlgorithm enum value
+	AutoMLAlgorithmProphet = "prophet"
+
+	// AutoMLAlgorithmNpts is a AutoMLAlgorithm enum value
+	AutoMLAlgorithmNpts = "npts"
+
+	// AutoMLAlgorithmArima is a AutoMLAlgorithm enum value
+	AutoMLAlgorithmArima = "arima"
+
+	// AutoMLAlgorithmEts is a AutoMLAlgorithm enum value
+	AutoMLAlgorithmEts = "ets"
 )
 
 // AutoMLAlgorithm_Values returns all elements of the AutoMLAlgorithm enum
@@ -126963,6 +132229,12 @@ func AutoMLAlgorithm_Values() []string {
 		AutoMLAlgorithmExtraTrees,
 		AutoMLAlgorithmNnTorch,
 		AutoMLAlgorithmFastai,
+		AutoMLAlgorithmCnnQr,
+		AutoMLAlgorithmDeepar,
+		AutoMLAlgorithmProphet,
+		AutoMLAlgorithmNpts,
+		AutoMLAlgorithmArima,
+		AutoMLAlgorithmEts,
 	}
 }
 
@@ -127436,15 +132708,6 @@ const (
 
 	// AwsManagedHumanLoopRequestSourceAwsTextractAnalyzeDocumentFormsV1 is a AwsManagedHumanLoopRequestSource enum value
 	AwsManagedHumanLoopRequestSourceAwsTextractAnalyzeDocumentFormsV1 = "AWS/Textract/AnalyzeDocument/Forms/V1"
-
-	// AwsManagedHumanLoopRequestSourceAwsTextractAnalyzeExpense is a AwsManagedHumanLoopRequestSource enum value
-	AwsManagedHumanLoopRequestSourceAwsTextractAnalyzeExpense = "AWS/Textract/AnalyzeExpense"
-
-	// AwsManagedHumanLoopRequestSourceAwsHandshakeVerifyIdentity is a AwsManagedHumanLoopRequestSource enum value
-	AwsManagedHumanLoopRequestSourceAwsHandshakeVerifyIdentity = "AWS/Handshake/VerifyIdentity"
-
-	// AwsManagedHumanLoopRequestSourceAwsBedrockModelEvaluation is a AwsManagedHumanLoopRequestSource enum value
-	AwsManagedHumanLoopRequestSourceAwsBedrockModelEvaluation = "AWS/Bedrock/ModelEvaluation"
 )
 
 // AwsManagedHumanLoopRequestSource_Values returns all elements of the AwsManagedHumanLoopRequestSource enum
@@ -127452,9 +132715,6 @@ func AwsManagedHumanLoopRequestSource_Values() []string {
 	return []string{
 		AwsManagedHumanLoopRequestSourceAwsRekognitionDetectModerationLabelsImageV3,
 		AwsManagedHumanLoopRequestSourceAwsTextractAnalyzeDocumentFormsV1,
-		AwsManagedHumanLoopRequestSourceAwsTextractAnalyzeExpense,
-		AwsManagedHumanLoopRequestSourceAwsHandshakeVerifyIdentity,
-		AwsManagedHumanLoopRequestSourceAwsBedrockModelEvaluation,
 	}
 }
 
@@ -128587,6 +133847,22 @@ func EdgePresetDeploymentType_Values() []string {
 }
 
 const (
+	// EnabledOrDisabledEnabled is a EnabledOrDisabled enum value
+	EnabledOrDisabledEnabled = "Enabled"
+
+	// EnabledOrDisabledDisabled is a EnabledOrDisabled enum value
+	EnabledOrDisabledDisabled = "Disabled"
+)
+
+// EnabledOrDisabled_Values returns all elements of the EnabledOrDisabled enum
+func EnabledOrDisabled_Values() []string {
+	return []string{
+		EnabledOrDisabledEnabled,
+		EnabledOrDisabledDisabled,
+	}
+}
+
+const (
 	// EndpointConfigSortKeyName is a EndpointConfigSortKey enum value
 	EndpointConfigSortKeyName = "Name"
 
@@ -129043,11 +134319,30 @@ func HubContentStatus_Values() []string {
 }
 
 const (
+	// HubContentSupportStatusSupported is a HubContentSupportStatus enum value
+	HubContentSupportStatusSupported = "Supported"
+
+	// HubContentSupportStatusDeprecated is a HubContentSupportStatus enum value
+	HubContentSupportStatusDeprecated = "Deprecated"
+)
+
+// HubContentSupportStatus_Values returns all elements of the HubContentSupportStatus enum
+func HubContentSupportStatus_Values() []string {
+	return []string{
+		HubContentSupportStatusSupported,
+		HubContentSupportStatusDeprecated,
+	}
+}
+
+const (
 	// HubContentTypeModel is a HubContentType enum value
 	HubContentTypeModel = "Model"
 
 	// HubContentTypeNotebook is a HubContentType enum value
 	HubContentTypeNotebook = "Notebook"
+
+	// HubContentTypeModelReference is a HubContentType enum value
+	HubContentTypeModelReference = "ModelReference"
 )
 
 // HubContentType_Values returns all elements of the HubContentType enum
@@ -129055,6 +134350,7 @@ func HubContentType_Values() []string {
 	return []string{
 		HubContentTypeModel,
 		HubContentTypeNotebook,
+		HubContentTypeModelReference,
 	}
 }
 
@@ -130039,6 +135335,30 @@ const (
 
 	// InstanceTypeMlR6id32xlarge is a InstanceType enum value
 	InstanceTypeMlR6id32xlarge = "ml.r6id.32xlarge"
+
+	// InstanceTypeMlG6Xlarge is a InstanceType enum value
+	InstanceTypeMlG6Xlarge = "ml.g6.xlarge"
+
+	// InstanceTypeMlG62xlarge is a InstanceType enum value
+	InstanceTypeMlG62xlarge = "ml.g6.2xlarge"
+
+	// InstanceTypeMlG64xlarge is a InstanceType enum value
+	InstanceTypeMlG64xlarge = "ml.g6.4xlarge"
+
+	// InstanceTypeMlG68xlarge is a InstanceType enum value
+	InstanceTypeMlG68xlarge = "ml.g6.8xlarge"
+
+	// InstanceTypeMlG612xlarge is a InstanceType enum value
+	InstanceTypeMlG612xlarge = "ml.g6.12xlarge"
+
+	// InstanceTypeMlG616xlarge is a InstanceType enum value
+	InstanceTypeMlG616xlarge = "ml.g6.16xlarge"
+
+	// InstanceTypeMlG624xlarge is a InstanceType enum value
+	InstanceTypeMlG624xlarge = "ml.g6.24xlarge"
+
+	// InstanceTypeMlG648xlarge is a InstanceType enum value
+	InstanceTypeMlG648xlarge = "ml.g6.48xlarge"
 )
 
 // InstanceType_Values returns all elements of the InstanceType enum
@@ -130201,6 +135521,30 @@ func InstanceType_Values() []string {
 		InstanceTypeMlR6id16xlarge,
 		InstanceTypeMlR6id24xlarge,
 		InstanceTypeMlR6id32xlarge,
+		InstanceTypeMlG6Xlarge,
+		InstanceTypeMlG62xlarge,
+		InstanceTypeMlG64xlarge,
+		InstanceTypeMlG68xlarge,
+		InstanceTypeMlG612xlarge,
+		InstanceTypeMlG616xlarge,
+		InstanceTypeMlG624xlarge,
+		InstanceTypeMlG648xlarge,
+	}
+}
+
+const (
+	// IsTrackingServerActiveActive is a IsTrackingServerActive enum value
+	IsTrackingServerActiveActive = "Active"
+
+	// IsTrackingServerActiveInactive is a IsTrackingServerActive enum value
+	IsTrackingServerActiveInactive = "Inactive"
+)
+
+// IsTrackingServerActive_Values returns all elements of the IsTrackingServerActive enum
+func IsTrackingServerActive_Values() []string {
+	return []string{
+		IsTrackingServerActiveActive,
+		IsTrackingServerActiveInactive,
 	}
 }
 
@@ -130441,6 +135785,26 @@ func ListLabelingJobsForWorkteamSortByOptions_Values() []string {
 }
 
 const (
+	// ListOptimizationJobsSortByName is a ListOptimizationJobsSortBy enum value
+	ListOptimizationJobsSortByName = "Name"
+
+	// ListOptimizationJobsSortByCreationTime is a ListOptimizationJobsSortBy enum value
+	ListOptimizationJobsSortByCreationTime = "CreationTime"
+
+	// ListOptimizationJobsSortByStatus is a ListOptimizationJobsSortBy enum value
+	ListOptimizationJobsSortByStatus = "Status"
+)
+
+// ListOptimizationJobsSortBy_Values returns all elements of the ListOptimizationJobsSortBy enum
+func ListOptimizationJobsSortBy_Values() []string {
+	return []string{
+		ListOptimizationJobsSortByName,
+		ListOptimizationJobsSortByCreationTime,
+		ListOptimizationJobsSortByStatus,
+	}
+}
+
+const (
 	// ListWorkforcesSortByOptionsName is a ListWorkforcesSortByOptions enum value
 	ListWorkforcesSortByOptionsName = "Name"
 
@@ -130505,6 +135869,66 @@ func MetricSetSource_Values() []string {
 		MetricSetSourceTrain,
 		MetricSetSourceValidation,
 		MetricSetSourceTest,
+	}
+}
+
+const (
+	// MlToolsDataWrangler is a MlTools enum value
+	MlToolsDataWrangler = "DataWrangler"
+
+	// MlToolsFeatureStore is a MlTools enum value
+	MlToolsFeatureStore = "FeatureStore"
+
+	// MlToolsEmrClusters is a MlTools enum value
+	MlToolsEmrClusters = "EmrClusters"
+
+	// MlToolsAutoMl is a MlTools enum value
+	MlToolsAutoMl = "AutoMl"
+
+	// MlToolsExperiments is a MlTools enum value
+	MlToolsExperiments = "Experiments"
+
+	// MlToolsTraining is a MlTools enum value
+	MlToolsTraining = "Training"
+
+	// MlToolsModelEvaluation is a MlTools enum value
+	MlToolsModelEvaluation = "ModelEvaluation"
+
+	// MlToolsPipelines is a MlTools enum value
+	MlToolsPipelines = "Pipelines"
+
+	// MlToolsModels is a MlTools enum value
+	MlToolsModels = "Models"
+
+	// MlToolsJumpStart is a MlTools enum value
+	MlToolsJumpStart = "JumpStart"
+
+	// MlToolsInferenceRecommender is a MlTools enum value
+	MlToolsInferenceRecommender = "InferenceRecommender"
+
+	// MlToolsEndpoints is a MlTools enum value
+	MlToolsEndpoints = "Endpoints"
+
+	// MlToolsProjects is a MlTools enum value
+	MlToolsProjects = "Projects"
+)
+
+// MlTools_Values returns all elements of the MlTools enum
+func MlTools_Values() []string {
+	return []string{
+		MlToolsDataWrangler,
+		MlToolsFeatureStore,
+		MlToolsEmrClusters,
+		MlToolsAutoMl,
+		MlToolsExperiments,
+		MlToolsTraining,
+		MlToolsModelEvaluation,
+		MlToolsPipelines,
+		MlToolsModels,
+		MlToolsJumpStart,
+		MlToolsInferenceRecommender,
+		MlToolsEndpoints,
+		MlToolsProjects,
 	}
 }
 
@@ -131306,6 +136730,150 @@ func Operator_Values() []string {
 }
 
 const (
+	// OptimizationJobDeploymentInstanceTypeMlP4d24xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlP4d24xlarge = "ml.p4d.24xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlP4de24xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlP4de24xlarge = "ml.p4de.24xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlP548xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlP548xlarge = "ml.p5.48xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG5Xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG5Xlarge = "ml.g5.xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG52xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG52xlarge = "ml.g5.2xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG54xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG54xlarge = "ml.g5.4xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG58xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG58xlarge = "ml.g5.8xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG512xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG512xlarge = "ml.g5.12xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG516xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG516xlarge = "ml.g5.16xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG524xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG524xlarge = "ml.g5.24xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG548xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG548xlarge = "ml.g5.48xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG6Xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG6Xlarge = "ml.g6.xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG62xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG62xlarge = "ml.g6.2xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG64xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG64xlarge = "ml.g6.4xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG68xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG68xlarge = "ml.g6.8xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG612xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG612xlarge = "ml.g6.12xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG616xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG616xlarge = "ml.g6.16xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG624xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG624xlarge = "ml.g6.24xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlG648xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlG648xlarge = "ml.g6.48xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlInf2Xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlInf2Xlarge = "ml.inf2.xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlInf28xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlInf28xlarge = "ml.inf2.8xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlInf224xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlInf224xlarge = "ml.inf2.24xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlInf248xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlInf248xlarge = "ml.inf2.48xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlTrn12xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlTrn12xlarge = "ml.trn1.2xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlTrn132xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlTrn132xlarge = "ml.trn1.32xlarge"
+
+	// OptimizationJobDeploymentInstanceTypeMlTrn1n32xlarge is a OptimizationJobDeploymentInstanceType enum value
+	OptimizationJobDeploymentInstanceTypeMlTrn1n32xlarge = "ml.trn1n.32xlarge"
+)
+
+// OptimizationJobDeploymentInstanceType_Values returns all elements of the OptimizationJobDeploymentInstanceType enum
+func OptimizationJobDeploymentInstanceType_Values() []string {
+	return []string{
+		OptimizationJobDeploymentInstanceTypeMlP4d24xlarge,
+		OptimizationJobDeploymentInstanceTypeMlP4de24xlarge,
+		OptimizationJobDeploymentInstanceTypeMlP548xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG5Xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG52xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG54xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG58xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG512xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG516xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG524xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG548xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG6Xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG62xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG64xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG68xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG612xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG616xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG624xlarge,
+		OptimizationJobDeploymentInstanceTypeMlG648xlarge,
+		OptimizationJobDeploymentInstanceTypeMlInf2Xlarge,
+		OptimizationJobDeploymentInstanceTypeMlInf28xlarge,
+		OptimizationJobDeploymentInstanceTypeMlInf224xlarge,
+		OptimizationJobDeploymentInstanceTypeMlInf248xlarge,
+		OptimizationJobDeploymentInstanceTypeMlTrn12xlarge,
+		OptimizationJobDeploymentInstanceTypeMlTrn132xlarge,
+		OptimizationJobDeploymentInstanceTypeMlTrn1n32xlarge,
+	}
+}
+
+const (
+	// OptimizationJobStatusInprogress is a OptimizationJobStatus enum value
+	OptimizationJobStatusInprogress = "INPROGRESS"
+
+	// OptimizationJobStatusCompleted is a OptimizationJobStatus enum value
+	OptimizationJobStatusCompleted = "COMPLETED"
+
+	// OptimizationJobStatusFailed is a OptimizationJobStatus enum value
+	OptimizationJobStatusFailed = "FAILED"
+
+	// OptimizationJobStatusStarting is a OptimizationJobStatus enum value
+	OptimizationJobStatusStarting = "STARTING"
+
+	// OptimizationJobStatusStopping is a OptimizationJobStatus enum value
+	OptimizationJobStatusStopping = "STOPPING"
+
+	// OptimizationJobStatusStopped is a OptimizationJobStatus enum value
+	OptimizationJobStatusStopped = "STOPPED"
+)
+
+// OptimizationJobStatus_Values returns all elements of the OptimizationJobStatus enum
+func OptimizationJobStatus_Values() []string {
+	return []string{
+		OptimizationJobStatusInprogress,
+		OptimizationJobStatusCompleted,
+		OptimizationJobStatusFailed,
+		OptimizationJobStatusStarting,
+		OptimizationJobStatusStopping,
+		OptimizationJobStatusStopped,
+	}
+}
+
+const (
 	// OrderKeyAscending is a OrderKey enum value
 	OrderKeyAscending = "Ascending"
 
@@ -131557,6 +137125,54 @@ const (
 
 	// ProcessingInstanceTypeMlG4dn16xlarge is a ProcessingInstanceType enum value
 	ProcessingInstanceTypeMlG4dn16xlarge = "ml.g4dn.16xlarge"
+
+	// ProcessingInstanceTypeMlG5Xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG5Xlarge = "ml.g5.xlarge"
+
+	// ProcessingInstanceTypeMlG52xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG52xlarge = "ml.g5.2xlarge"
+
+	// ProcessingInstanceTypeMlG54xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG54xlarge = "ml.g5.4xlarge"
+
+	// ProcessingInstanceTypeMlG58xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG58xlarge = "ml.g5.8xlarge"
+
+	// ProcessingInstanceTypeMlG516xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG516xlarge = "ml.g5.16xlarge"
+
+	// ProcessingInstanceTypeMlG512xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG512xlarge = "ml.g5.12xlarge"
+
+	// ProcessingInstanceTypeMlG524xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG524xlarge = "ml.g5.24xlarge"
+
+	// ProcessingInstanceTypeMlG548xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlG548xlarge = "ml.g5.48xlarge"
+
+	// ProcessingInstanceTypeMlR5dLarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5dLarge = "ml.r5d.large"
+
+	// ProcessingInstanceTypeMlR5dXlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5dXlarge = "ml.r5d.xlarge"
+
+	// ProcessingInstanceTypeMlR5d2xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5d2xlarge = "ml.r5d.2xlarge"
+
+	// ProcessingInstanceTypeMlR5d4xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5d4xlarge = "ml.r5d.4xlarge"
+
+	// ProcessingInstanceTypeMlR5d8xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5d8xlarge = "ml.r5d.8xlarge"
+
+	// ProcessingInstanceTypeMlR5d12xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5d12xlarge = "ml.r5d.12xlarge"
+
+	// ProcessingInstanceTypeMlR5d16xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5d16xlarge = "ml.r5d.16xlarge"
+
+	// ProcessingInstanceTypeMlR5d24xlarge is a ProcessingInstanceType enum value
+	ProcessingInstanceTypeMlR5d24xlarge = "ml.r5d.24xlarge"
 )
 
 // ProcessingInstanceType_Values returns all elements of the ProcessingInstanceType enum
@@ -131606,6 +137222,22 @@ func ProcessingInstanceType_Values() []string {
 		ProcessingInstanceTypeMlG4dn8xlarge,
 		ProcessingInstanceTypeMlG4dn12xlarge,
 		ProcessingInstanceTypeMlG4dn16xlarge,
+		ProcessingInstanceTypeMlG5Xlarge,
+		ProcessingInstanceTypeMlG52xlarge,
+		ProcessingInstanceTypeMlG54xlarge,
+		ProcessingInstanceTypeMlG58xlarge,
+		ProcessingInstanceTypeMlG516xlarge,
+		ProcessingInstanceTypeMlG512xlarge,
+		ProcessingInstanceTypeMlG524xlarge,
+		ProcessingInstanceTypeMlG548xlarge,
+		ProcessingInstanceTypeMlR5dLarge,
+		ProcessingInstanceTypeMlR5dXlarge,
+		ProcessingInstanceTypeMlR5d2xlarge,
+		ProcessingInstanceTypeMlR5d4xlarge,
+		ProcessingInstanceTypeMlR5d8xlarge,
+		ProcessingInstanceTypeMlR5d12xlarge,
+		ProcessingInstanceTypeMlR5d16xlarge,
+		ProcessingInstanceTypeMlR5d24xlarge,
 	}
 }
 
@@ -131762,6 +137394,18 @@ func ProductionVariantAcceleratorType_Values() []string {
 		ProductionVariantAcceleratorTypeMlEia2Medium,
 		ProductionVariantAcceleratorTypeMlEia2Large,
 		ProductionVariantAcceleratorTypeMlEia2Xlarge,
+	}
+}
+
+const (
+	// ProductionVariantInferenceAmiVersionAl2AmiSagemakerInferenceGpu2 is a ProductionVariantInferenceAmiVersion enum value
+	ProductionVariantInferenceAmiVersionAl2AmiSagemakerInferenceGpu2 = "al2-ami-sagemaker-inference-gpu-2"
+)
+
+// ProductionVariantInferenceAmiVersion_Values returns all elements of the ProductionVariantInferenceAmiVersion enum
+func ProductionVariantInferenceAmiVersion_Values() []string {
+	return []string{
+		ProductionVariantInferenceAmiVersionAl2AmiSagemakerInferenceGpu2,
 	}
 }
 
@@ -132017,6 +137661,30 @@ const (
 
 	// ProductionVariantInstanceTypeMlG548xlarge is a ProductionVariantInstanceType enum value
 	ProductionVariantInstanceTypeMlG548xlarge = "ml.g5.48xlarge"
+
+	// ProductionVariantInstanceTypeMlG6Xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG6Xlarge = "ml.g6.xlarge"
+
+	// ProductionVariantInstanceTypeMlG62xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG62xlarge = "ml.g6.2xlarge"
+
+	// ProductionVariantInstanceTypeMlG64xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG64xlarge = "ml.g6.4xlarge"
+
+	// ProductionVariantInstanceTypeMlG68xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG68xlarge = "ml.g6.8xlarge"
+
+	// ProductionVariantInstanceTypeMlG612xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG612xlarge = "ml.g6.12xlarge"
+
+	// ProductionVariantInstanceTypeMlG616xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG616xlarge = "ml.g6.16xlarge"
+
+	// ProductionVariantInstanceTypeMlG624xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG624xlarge = "ml.g6.24xlarge"
+
+	// ProductionVariantInstanceTypeMlG648xlarge is a ProductionVariantInstanceType enum value
+	ProductionVariantInstanceTypeMlG648xlarge = "ml.g6.48xlarge"
 
 	// ProductionVariantInstanceTypeMlP4d24xlarge is a ProductionVariantInstanceType enum value
 	ProductionVariantInstanceTypeMlP4d24xlarge = "ml.p4d.24xlarge"
@@ -132385,6 +138053,14 @@ func ProductionVariantInstanceType_Values() []string {
 		ProductionVariantInstanceTypeMlG516xlarge,
 		ProductionVariantInstanceTypeMlG524xlarge,
 		ProductionVariantInstanceTypeMlG548xlarge,
+		ProductionVariantInstanceTypeMlG6Xlarge,
+		ProductionVariantInstanceTypeMlG62xlarge,
+		ProductionVariantInstanceTypeMlG64xlarge,
+		ProductionVariantInstanceTypeMlG68xlarge,
+		ProductionVariantInstanceTypeMlG612xlarge,
+		ProductionVariantInstanceTypeMlG616xlarge,
+		ProductionVariantInstanceTypeMlG624xlarge,
+		ProductionVariantInstanceTypeMlG648xlarge,
 		ProductionVariantInstanceTypeMlP4d24xlarge,
 		ProductionVariantInstanceTypeMlC7gLarge,
 		ProductionVariantInstanceTypeMlC7gXlarge,
@@ -133388,6 +139064,26 @@ func SortPipelinesBy_Values() []string {
 }
 
 const (
+	// SortTrackingServerByName is a SortTrackingServerBy enum value
+	SortTrackingServerByName = "Name"
+
+	// SortTrackingServerByCreationTime is a SortTrackingServerBy enum value
+	SortTrackingServerByCreationTime = "CreationTime"
+
+	// SortTrackingServerByStatus is a SortTrackingServerBy enum value
+	SortTrackingServerByStatus = "Status"
+)
+
+// SortTrackingServerBy_Values returns all elements of the SortTrackingServerBy enum
+func SortTrackingServerBy_Values() []string {
+	return []string{
+		SortTrackingServerByName,
+		SortTrackingServerByCreationTime,
+		SortTrackingServerByStatus,
+	}
+}
+
+const (
 	// SortTrialComponentsByName is a SortTrialComponentsBy enum value
 	SortTrialComponentsByName = "Name"
 
@@ -133932,6 +139628,102 @@ func ThroughputMode_Values() []string {
 }
 
 const (
+	// TrackingServerSizeSmall is a TrackingServerSize enum value
+	TrackingServerSizeSmall = "Small"
+
+	// TrackingServerSizeMedium is a TrackingServerSize enum value
+	TrackingServerSizeMedium = "Medium"
+
+	// TrackingServerSizeLarge is a TrackingServerSize enum value
+	TrackingServerSizeLarge = "Large"
+)
+
+// TrackingServerSize_Values returns all elements of the TrackingServerSize enum
+func TrackingServerSize_Values() []string {
+	return []string{
+		TrackingServerSizeSmall,
+		TrackingServerSizeMedium,
+		TrackingServerSizeLarge,
+	}
+}
+
+const (
+	// TrackingServerStatusCreating is a TrackingServerStatus enum value
+	TrackingServerStatusCreating = "Creating"
+
+	// TrackingServerStatusCreated is a TrackingServerStatus enum value
+	TrackingServerStatusCreated = "Created"
+
+	// TrackingServerStatusCreateFailed is a TrackingServerStatus enum value
+	TrackingServerStatusCreateFailed = "CreateFailed"
+
+	// TrackingServerStatusUpdating is a TrackingServerStatus enum value
+	TrackingServerStatusUpdating = "Updating"
+
+	// TrackingServerStatusUpdated is a TrackingServerStatus enum value
+	TrackingServerStatusUpdated = "Updated"
+
+	// TrackingServerStatusUpdateFailed is a TrackingServerStatus enum value
+	TrackingServerStatusUpdateFailed = "UpdateFailed"
+
+	// TrackingServerStatusDeleting is a TrackingServerStatus enum value
+	TrackingServerStatusDeleting = "Deleting"
+
+	// TrackingServerStatusDeleteFailed is a TrackingServerStatus enum value
+	TrackingServerStatusDeleteFailed = "DeleteFailed"
+
+	// TrackingServerStatusStopping is a TrackingServerStatus enum value
+	TrackingServerStatusStopping = "Stopping"
+
+	// TrackingServerStatusStopped is a TrackingServerStatus enum value
+	TrackingServerStatusStopped = "Stopped"
+
+	// TrackingServerStatusStopFailed is a TrackingServerStatus enum value
+	TrackingServerStatusStopFailed = "StopFailed"
+
+	// TrackingServerStatusStarting is a TrackingServerStatus enum value
+	TrackingServerStatusStarting = "Starting"
+
+	// TrackingServerStatusStarted is a TrackingServerStatus enum value
+	TrackingServerStatusStarted = "Started"
+
+	// TrackingServerStatusStartFailed is a TrackingServerStatus enum value
+	TrackingServerStatusStartFailed = "StartFailed"
+
+	// TrackingServerStatusMaintenanceInProgress is a TrackingServerStatus enum value
+	TrackingServerStatusMaintenanceInProgress = "MaintenanceInProgress"
+
+	// TrackingServerStatusMaintenanceComplete is a TrackingServerStatus enum value
+	TrackingServerStatusMaintenanceComplete = "MaintenanceComplete"
+
+	// TrackingServerStatusMaintenanceFailed is a TrackingServerStatus enum value
+	TrackingServerStatusMaintenanceFailed = "MaintenanceFailed"
+)
+
+// TrackingServerStatus_Values returns all elements of the TrackingServerStatus enum
+func TrackingServerStatus_Values() []string {
+	return []string{
+		TrackingServerStatusCreating,
+		TrackingServerStatusCreated,
+		TrackingServerStatusCreateFailed,
+		TrackingServerStatusUpdating,
+		TrackingServerStatusUpdated,
+		TrackingServerStatusUpdateFailed,
+		TrackingServerStatusDeleting,
+		TrackingServerStatusDeleteFailed,
+		TrackingServerStatusStopping,
+		TrackingServerStatusStopped,
+		TrackingServerStatusStopFailed,
+		TrackingServerStatusStarting,
+		TrackingServerStatusStarted,
+		TrackingServerStatusStartFailed,
+		TrackingServerStatusMaintenanceInProgress,
+		TrackingServerStatusMaintenanceComplete,
+		TrackingServerStatusMaintenanceFailed,
+	}
+}
+
+const (
 	// TrafficRoutingConfigTypeAllAtOnce is a TrafficRoutingConfigType enum value
 	TrafficRoutingConfigTypeAllAtOnce = "ALL_AT_ONCE"
 
@@ -134230,6 +140022,66 @@ const (
 
 	// TrainingInstanceTypeMlC6i32xlarge is a TrainingInstanceType enum value
 	TrainingInstanceTypeMlC6i32xlarge = "ml.c6i.32xlarge"
+
+	// TrainingInstanceTypeMlR5dLarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5dLarge = "ml.r5d.large"
+
+	// TrainingInstanceTypeMlR5dXlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5dXlarge = "ml.r5d.xlarge"
+
+	// TrainingInstanceTypeMlR5d2xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5d2xlarge = "ml.r5d.2xlarge"
+
+	// TrainingInstanceTypeMlR5d4xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5d4xlarge = "ml.r5d.4xlarge"
+
+	// TrainingInstanceTypeMlR5d8xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5d8xlarge = "ml.r5d.8xlarge"
+
+	// TrainingInstanceTypeMlR5d12xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5d12xlarge = "ml.r5d.12xlarge"
+
+	// TrainingInstanceTypeMlR5d16xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5d16xlarge = "ml.r5d.16xlarge"
+
+	// TrainingInstanceTypeMlR5d24xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5d24xlarge = "ml.r5d.24xlarge"
+
+	// TrainingInstanceTypeMlT3Medium is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlT3Medium = "ml.t3.medium"
+
+	// TrainingInstanceTypeMlT3Large is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlT3Large = "ml.t3.large"
+
+	// TrainingInstanceTypeMlT3Xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlT3Xlarge = "ml.t3.xlarge"
+
+	// TrainingInstanceTypeMlT32xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlT32xlarge = "ml.t3.2xlarge"
+
+	// TrainingInstanceTypeMlR5Large is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5Large = "ml.r5.large"
+
+	// TrainingInstanceTypeMlR5Xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR5Xlarge = "ml.r5.xlarge"
+
+	// TrainingInstanceTypeMlR52xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR52xlarge = "ml.r5.2xlarge"
+
+	// TrainingInstanceTypeMlR54xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR54xlarge = "ml.r5.4xlarge"
+
+	// TrainingInstanceTypeMlR58xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR58xlarge = "ml.r5.8xlarge"
+
+	// TrainingInstanceTypeMlR512xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR512xlarge = "ml.r5.12xlarge"
+
+	// TrainingInstanceTypeMlR516xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR516xlarge = "ml.r5.16xlarge"
+
+	// TrainingInstanceTypeMlR524xlarge is a TrainingInstanceType enum value
+	TrainingInstanceTypeMlR524xlarge = "ml.r5.24xlarge"
 )
 
 // TrainingInstanceType_Values returns all elements of the TrainingInstanceType enum
@@ -134304,6 +140156,26 @@ func TrainingInstanceType_Values() []string {
 		TrainingInstanceTypeMlC6i16xlarge,
 		TrainingInstanceTypeMlC6i24xlarge,
 		TrainingInstanceTypeMlC6i32xlarge,
+		TrainingInstanceTypeMlR5dLarge,
+		TrainingInstanceTypeMlR5dXlarge,
+		TrainingInstanceTypeMlR5d2xlarge,
+		TrainingInstanceTypeMlR5d4xlarge,
+		TrainingInstanceTypeMlR5d8xlarge,
+		TrainingInstanceTypeMlR5d12xlarge,
+		TrainingInstanceTypeMlR5d16xlarge,
+		TrainingInstanceTypeMlR5d24xlarge,
+		TrainingInstanceTypeMlT3Medium,
+		TrainingInstanceTypeMlT3Large,
+		TrainingInstanceTypeMlT3Xlarge,
+		TrainingInstanceTypeMlT32xlarge,
+		TrainingInstanceTypeMlR5Large,
+		TrainingInstanceTypeMlR5Xlarge,
+		TrainingInstanceTypeMlR52xlarge,
+		TrainingInstanceTypeMlR54xlarge,
+		TrainingInstanceTypeMlR58xlarge,
+		TrainingInstanceTypeMlR512xlarge,
+		TrainingInstanceTypeMlR516xlarge,
+		TrainingInstanceTypeMlR524xlarge,
 	}
 }
 
@@ -134470,6 +140342,168 @@ const (
 	// TransformInstanceTypeMlM524xlarge is a TransformInstanceType enum value
 	TransformInstanceTypeMlM524xlarge = "ml.m5.24xlarge"
 
+	// TransformInstanceTypeMlM6iLarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6iLarge = "ml.m6i.large"
+
+	// TransformInstanceTypeMlM6iXlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6iXlarge = "ml.m6i.xlarge"
+
+	// TransformInstanceTypeMlM6i2xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6i2xlarge = "ml.m6i.2xlarge"
+
+	// TransformInstanceTypeMlM6i4xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6i4xlarge = "ml.m6i.4xlarge"
+
+	// TransformInstanceTypeMlM6i8xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6i8xlarge = "ml.m6i.8xlarge"
+
+	// TransformInstanceTypeMlM6i12xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6i12xlarge = "ml.m6i.12xlarge"
+
+	// TransformInstanceTypeMlM6i16xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6i16xlarge = "ml.m6i.16xlarge"
+
+	// TransformInstanceTypeMlM6i24xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6i24xlarge = "ml.m6i.24xlarge"
+
+	// TransformInstanceTypeMlM6i32xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM6i32xlarge = "ml.m6i.32xlarge"
+
+	// TransformInstanceTypeMlC6iLarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6iLarge = "ml.c6i.large"
+
+	// TransformInstanceTypeMlC6iXlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6iXlarge = "ml.c6i.xlarge"
+
+	// TransformInstanceTypeMlC6i2xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6i2xlarge = "ml.c6i.2xlarge"
+
+	// TransformInstanceTypeMlC6i4xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6i4xlarge = "ml.c6i.4xlarge"
+
+	// TransformInstanceTypeMlC6i8xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6i8xlarge = "ml.c6i.8xlarge"
+
+	// TransformInstanceTypeMlC6i12xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6i12xlarge = "ml.c6i.12xlarge"
+
+	// TransformInstanceTypeMlC6i16xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6i16xlarge = "ml.c6i.16xlarge"
+
+	// TransformInstanceTypeMlC6i24xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6i24xlarge = "ml.c6i.24xlarge"
+
+	// TransformInstanceTypeMlC6i32xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC6i32xlarge = "ml.c6i.32xlarge"
+
+	// TransformInstanceTypeMlR6iLarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6iLarge = "ml.r6i.large"
+
+	// TransformInstanceTypeMlR6iXlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6iXlarge = "ml.r6i.xlarge"
+
+	// TransformInstanceTypeMlR6i2xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6i2xlarge = "ml.r6i.2xlarge"
+
+	// TransformInstanceTypeMlR6i4xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6i4xlarge = "ml.r6i.4xlarge"
+
+	// TransformInstanceTypeMlR6i8xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6i8xlarge = "ml.r6i.8xlarge"
+
+	// TransformInstanceTypeMlR6i12xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6i12xlarge = "ml.r6i.12xlarge"
+
+	// TransformInstanceTypeMlR6i16xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6i16xlarge = "ml.r6i.16xlarge"
+
+	// TransformInstanceTypeMlR6i24xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6i24xlarge = "ml.r6i.24xlarge"
+
+	// TransformInstanceTypeMlR6i32xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR6i32xlarge = "ml.r6i.32xlarge"
+
+	// TransformInstanceTypeMlM7iLarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7iLarge = "ml.m7i.large"
+
+	// TransformInstanceTypeMlM7iXlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7iXlarge = "ml.m7i.xlarge"
+
+	// TransformInstanceTypeMlM7i2xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7i2xlarge = "ml.m7i.2xlarge"
+
+	// TransformInstanceTypeMlM7i4xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7i4xlarge = "ml.m7i.4xlarge"
+
+	// TransformInstanceTypeMlM7i8xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7i8xlarge = "ml.m7i.8xlarge"
+
+	// TransformInstanceTypeMlM7i12xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7i12xlarge = "ml.m7i.12xlarge"
+
+	// TransformInstanceTypeMlM7i16xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7i16xlarge = "ml.m7i.16xlarge"
+
+	// TransformInstanceTypeMlM7i24xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7i24xlarge = "ml.m7i.24xlarge"
+
+	// TransformInstanceTypeMlM7i48xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlM7i48xlarge = "ml.m7i.48xlarge"
+
+	// TransformInstanceTypeMlC7iLarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7iLarge = "ml.c7i.large"
+
+	// TransformInstanceTypeMlC7iXlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7iXlarge = "ml.c7i.xlarge"
+
+	// TransformInstanceTypeMlC7i2xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7i2xlarge = "ml.c7i.2xlarge"
+
+	// TransformInstanceTypeMlC7i4xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7i4xlarge = "ml.c7i.4xlarge"
+
+	// TransformInstanceTypeMlC7i8xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7i8xlarge = "ml.c7i.8xlarge"
+
+	// TransformInstanceTypeMlC7i12xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7i12xlarge = "ml.c7i.12xlarge"
+
+	// TransformInstanceTypeMlC7i16xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7i16xlarge = "ml.c7i.16xlarge"
+
+	// TransformInstanceTypeMlC7i24xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7i24xlarge = "ml.c7i.24xlarge"
+
+	// TransformInstanceTypeMlC7i48xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlC7i48xlarge = "ml.c7i.48xlarge"
+
+	// TransformInstanceTypeMlR7iLarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7iLarge = "ml.r7i.large"
+
+	// TransformInstanceTypeMlR7iXlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7iXlarge = "ml.r7i.xlarge"
+
+	// TransformInstanceTypeMlR7i2xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7i2xlarge = "ml.r7i.2xlarge"
+
+	// TransformInstanceTypeMlR7i4xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7i4xlarge = "ml.r7i.4xlarge"
+
+	// TransformInstanceTypeMlR7i8xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7i8xlarge = "ml.r7i.8xlarge"
+
+	// TransformInstanceTypeMlR7i12xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7i12xlarge = "ml.r7i.12xlarge"
+
+	// TransformInstanceTypeMlR7i16xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7i16xlarge = "ml.r7i.16xlarge"
+
+	// TransformInstanceTypeMlR7i24xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7i24xlarge = "ml.r7i.24xlarge"
+
+	// TransformInstanceTypeMlR7i48xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlR7i48xlarge = "ml.r7i.48xlarge"
+
 	// TransformInstanceTypeMlG4dnXlarge is a TransformInstanceType enum value
 	TransformInstanceTypeMlG4dnXlarge = "ml.g4dn.xlarge"
 
@@ -134487,6 +140521,30 @@ const (
 
 	// TransformInstanceTypeMlG4dn16xlarge is a TransformInstanceType enum value
 	TransformInstanceTypeMlG4dn16xlarge = "ml.g4dn.16xlarge"
+
+	// TransformInstanceTypeMlG5Xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG5Xlarge = "ml.g5.xlarge"
+
+	// TransformInstanceTypeMlG52xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG52xlarge = "ml.g5.2xlarge"
+
+	// TransformInstanceTypeMlG54xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG54xlarge = "ml.g5.4xlarge"
+
+	// TransformInstanceTypeMlG58xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG58xlarge = "ml.g5.8xlarge"
+
+	// TransformInstanceTypeMlG512xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG512xlarge = "ml.g5.12xlarge"
+
+	// TransformInstanceTypeMlG516xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG516xlarge = "ml.g5.16xlarge"
+
+	// TransformInstanceTypeMlG524xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG524xlarge = "ml.g5.24xlarge"
+
+	// TransformInstanceTypeMlG548xlarge is a TransformInstanceType enum value
+	TransformInstanceTypeMlG548xlarge = "ml.g5.48xlarge"
 )
 
 // TransformInstanceType_Values returns all elements of the TransformInstanceType enum
@@ -134518,12 +140576,74 @@ func TransformInstanceType_Values() []string {
 		TransformInstanceTypeMlM54xlarge,
 		TransformInstanceTypeMlM512xlarge,
 		TransformInstanceTypeMlM524xlarge,
+		TransformInstanceTypeMlM6iLarge,
+		TransformInstanceTypeMlM6iXlarge,
+		TransformInstanceTypeMlM6i2xlarge,
+		TransformInstanceTypeMlM6i4xlarge,
+		TransformInstanceTypeMlM6i8xlarge,
+		TransformInstanceTypeMlM6i12xlarge,
+		TransformInstanceTypeMlM6i16xlarge,
+		TransformInstanceTypeMlM6i24xlarge,
+		TransformInstanceTypeMlM6i32xlarge,
+		TransformInstanceTypeMlC6iLarge,
+		TransformInstanceTypeMlC6iXlarge,
+		TransformInstanceTypeMlC6i2xlarge,
+		TransformInstanceTypeMlC6i4xlarge,
+		TransformInstanceTypeMlC6i8xlarge,
+		TransformInstanceTypeMlC6i12xlarge,
+		TransformInstanceTypeMlC6i16xlarge,
+		TransformInstanceTypeMlC6i24xlarge,
+		TransformInstanceTypeMlC6i32xlarge,
+		TransformInstanceTypeMlR6iLarge,
+		TransformInstanceTypeMlR6iXlarge,
+		TransformInstanceTypeMlR6i2xlarge,
+		TransformInstanceTypeMlR6i4xlarge,
+		TransformInstanceTypeMlR6i8xlarge,
+		TransformInstanceTypeMlR6i12xlarge,
+		TransformInstanceTypeMlR6i16xlarge,
+		TransformInstanceTypeMlR6i24xlarge,
+		TransformInstanceTypeMlR6i32xlarge,
+		TransformInstanceTypeMlM7iLarge,
+		TransformInstanceTypeMlM7iXlarge,
+		TransformInstanceTypeMlM7i2xlarge,
+		TransformInstanceTypeMlM7i4xlarge,
+		TransformInstanceTypeMlM7i8xlarge,
+		TransformInstanceTypeMlM7i12xlarge,
+		TransformInstanceTypeMlM7i16xlarge,
+		TransformInstanceTypeMlM7i24xlarge,
+		TransformInstanceTypeMlM7i48xlarge,
+		TransformInstanceTypeMlC7iLarge,
+		TransformInstanceTypeMlC7iXlarge,
+		TransformInstanceTypeMlC7i2xlarge,
+		TransformInstanceTypeMlC7i4xlarge,
+		TransformInstanceTypeMlC7i8xlarge,
+		TransformInstanceTypeMlC7i12xlarge,
+		TransformInstanceTypeMlC7i16xlarge,
+		TransformInstanceTypeMlC7i24xlarge,
+		TransformInstanceTypeMlC7i48xlarge,
+		TransformInstanceTypeMlR7iLarge,
+		TransformInstanceTypeMlR7iXlarge,
+		TransformInstanceTypeMlR7i2xlarge,
+		TransformInstanceTypeMlR7i4xlarge,
+		TransformInstanceTypeMlR7i8xlarge,
+		TransformInstanceTypeMlR7i12xlarge,
+		TransformInstanceTypeMlR7i16xlarge,
+		TransformInstanceTypeMlR7i24xlarge,
+		TransformInstanceTypeMlR7i48xlarge,
 		TransformInstanceTypeMlG4dnXlarge,
 		TransformInstanceTypeMlG4dn2xlarge,
 		TransformInstanceTypeMlG4dn4xlarge,
 		TransformInstanceTypeMlG4dn8xlarge,
 		TransformInstanceTypeMlG4dn12xlarge,
 		TransformInstanceTypeMlG4dn16xlarge,
+		TransformInstanceTypeMlG5Xlarge,
+		TransformInstanceTypeMlG52xlarge,
+		TransformInstanceTypeMlG54xlarge,
+		TransformInstanceTypeMlG58xlarge,
+		TransformInstanceTypeMlG512xlarge,
+		TransformInstanceTypeMlG516xlarge,
+		TransformInstanceTypeMlG524xlarge,
+		TransformInstanceTypeMlG548xlarge,
 	}
 }
 

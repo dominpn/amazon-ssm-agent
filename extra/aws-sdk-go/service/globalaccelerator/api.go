@@ -504,6 +504,12 @@ func (c *GlobalAccelerator) CreateAcceleratorRequest(input *CreateAcceleratorInp
 //   - LimitExceededException
 //     Processing your request would cause you to exceed an Global Accelerator limit.
 //
+//   - AccessDeniedException
+//     You don't have access permission.
+//
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/CreateAccelerator
 func (c *GlobalAccelerator) CreateAccelerator(input *CreateAcceleratorInput) (*CreateAcceleratorOutput, error) {
 	req, out := c.CreateAcceleratorRequest(input)
@@ -717,6 +723,9 @@ func (c *GlobalAccelerator) CreateCustomRoutingAcceleratorRequest(input *CreateC
 //
 //   - AccessDeniedException
 //     You don't have access permission.
+//
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/CreateCustomRoutingAccelerator
 func (c *GlobalAccelerator) CreateCustomRoutingAccelerator(input *CreateCustomRoutingAcceleratorInput) (*CreateCustomRoutingAcceleratorOutput, error) {
@@ -1224,6 +1233,9 @@ func (c *GlobalAccelerator) DeleteAcceleratorRequest(input *DeleteAcceleratorInp
 //   - InvalidArgumentException
 //     An argument that you specified is invalid.
 //
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/DeleteAccelerator
 func (c *GlobalAccelerator) DeleteAccelerator(input *DeleteAcceleratorInput) (*DeleteAcceleratorOutput, error) {
 	req, out := c.DeleteAcceleratorRequest(input)
@@ -1432,6 +1444,9 @@ func (c *GlobalAccelerator) DeleteCustomRoutingAcceleratorRequest(input *DeleteC
 //
 //   - InvalidArgumentException
 //     An argument that you specified is invalid.
+//
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/DeleteCustomRoutingAccelerator
 func (c *GlobalAccelerator) DeleteCustomRoutingAccelerator(input *DeleteCustomRoutingAcceleratorInput) (*DeleteCustomRoutingAcceleratorOutput, error) {
@@ -4535,6 +4550,15 @@ func (c *GlobalAccelerator) ListTagsForResourceRequest(input *ListTagsForResourc
 //   - AcceleratorNotFoundException
 //     The accelerator that you specified doesn't exist.
 //
+//   - AttachmentNotFoundException
+//     No cross-account attachment was found.
+//
+//   - EndpointGroupNotFoundException
+//     The endpoint group that you specified doesn't exist.
+//
+//   - ListenerNotFoundException
+//     The listener that you specified doesn't exist.
+//
 //   - InternalServiceErrorException
 //     There was an internal error for Global Accelerator.
 //
@@ -5131,6 +5155,12 @@ func (c *GlobalAccelerator) UpdateAcceleratorRequest(input *UpdateAcceleratorInp
 //   - InvalidArgumentException
 //     An argument that you specified is invalid.
 //
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
+//
+//   - ConflictException
+//     You can't use both of those options.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/UpdateAccelerator
 func (c *GlobalAccelerator) UpdateAccelerator(input *UpdateAcceleratorInput) (*UpdateAcceleratorOutput, error) {
 	req, out := c.UpdateAcceleratorRequest(input)
@@ -5218,6 +5248,9 @@ func (c *GlobalAccelerator) UpdateAcceleratorAttributesRequest(input *UpdateAcce
 //
 //   - AccessDeniedException
 //     You don't have access permission.
+//
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/UpdateAcceleratorAttributes
 func (c *GlobalAccelerator) UpdateAcceleratorAttributes(input *UpdateAcceleratorAttributesInput) (*UpdateAcceleratorAttributesOutput, error) {
@@ -5404,6 +5437,12 @@ func (c *GlobalAccelerator) UpdateCustomRoutingAcceleratorRequest(input *UpdateC
 //   - InvalidArgumentException
 //     An argument that you specified is invalid.
 //
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
+//
+//   - ConflictException
+//     You can't use both of those options.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/UpdateCustomRoutingAccelerator
 func (c *GlobalAccelerator) UpdateCustomRoutingAccelerator(input *UpdateCustomRoutingAcceleratorInput) (*UpdateCustomRoutingAcceleratorOutput, error) {
 	req, out := c.UpdateCustomRoutingAcceleratorRequest(input)
@@ -5491,6 +5530,9 @@ func (c *GlobalAccelerator) UpdateCustomRoutingAcceleratorAttributesRequest(inpu
 //
 //   - AccessDeniedException
 //     You don't have access permission.
+//
+//   - TransactionInProgressException
+//     There's already a transaction in progress. Another transaction can't be processed.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/UpdateCustomRoutingAcceleratorAttributes
 func (c *GlobalAccelerator) UpdateCustomRoutingAcceleratorAttributes(input *UpdateCustomRoutingAcceleratorAttributesInput) (*UpdateCustomRoutingAcceleratorAttributesOutput, error) {
@@ -14103,6 +14145,9 @@ type UpdateAcceleratorInput struct {
 	// the value can be IPV4 or DUAL_STACK.
 	IpAddressType *string `type:"string" enum:"IpAddressType"`
 
+	// The IP addresses for an accelerator.
+	IpAddresses []*string `type:"list"`
+
 	// The name of the accelerator. The name can have a maximum of 64 characters,
 	// must contain only alphanumeric characters, periods (.), or hyphens (-), and
 	// must not begin or end with a hyphen or period.
@@ -14155,6 +14200,12 @@ func (s *UpdateAcceleratorInput) SetEnabled(v bool) *UpdateAcceleratorInput {
 // SetIpAddressType sets the IpAddressType field's value.
 func (s *UpdateAcceleratorInput) SetIpAddressType(v string) *UpdateAcceleratorInput {
 	s.IpAddressType = &v
+	return s
+}
+
+// SetIpAddresses sets the IpAddresses field's value.
+func (s *UpdateAcceleratorInput) SetIpAddresses(v []*string) *UpdateAcceleratorInput {
+	s.IpAddresses = v
 	return s
 }
 
@@ -14474,6 +14525,9 @@ type UpdateCustomRoutingAcceleratorInput struct {
 	// the value must be IPV4.
 	IpAddressType *string `type:"string" enum:"IpAddressType"`
 
+	// The IP addresses for an accelerator.
+	IpAddresses []*string `type:"list"`
+
 	// The name of the accelerator. The name can have a maximum of 64 characters,
 	// must contain only alphanumeric characters, periods (.), or hyphens (-), and
 	// must not begin or end with a hyphen or period.
@@ -14526,6 +14580,12 @@ func (s *UpdateCustomRoutingAcceleratorInput) SetEnabled(v bool) *UpdateCustomRo
 // SetIpAddressType sets the IpAddressType field's value.
 func (s *UpdateCustomRoutingAcceleratorInput) SetIpAddressType(v string) *UpdateCustomRoutingAcceleratorInput {
 	s.IpAddressType = &v
+	return s
+}
+
+// SetIpAddresses sets the IpAddresses field's value.
+func (s *UpdateCustomRoutingAcceleratorInput) SetIpAddresses(v []*string) *UpdateCustomRoutingAcceleratorInput {
+	s.IpAddresses = v
 	return s
 }
 

@@ -651,7 +651,7 @@ type ActiveContext struct {
 	// values for slots in subsequent events.
 	//
 	// Parameters is a required field
-	Parameters map[string]*string `locationName:"parameters" type:"map" required:"true"`
+	Parameters map[string]*string `locationName:"parameters" type:"map" required:"true" sensitive:"true"`
 
 	// The length of time or number of turns that a context remains active.
 	//
@@ -3442,6 +3442,7 @@ type PutSessionOutput struct {
 	// Content type as specified in the Accept HTTP header in the request.
 	ContentType *string `location:"header" locationName:"Content-Type" type:"string"`
 
+	//
 	//    * ConfirmIntent - Amazon Lex is expecting a "yes" or "no" response to
 	//    confirm the intent before fulfilling an intent.
 	//

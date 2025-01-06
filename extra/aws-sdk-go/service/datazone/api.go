@@ -210,6 +210,105 @@ func (c *DataZone) AcceptSubscriptionRequestWithContext(ctx aws.Context, input *
 	return out, req.Send()
 }
 
+const opAssociateEnvironmentRole = "AssociateEnvironmentRole"
+
+// AssociateEnvironmentRoleRequest generates a "aws/request.Request" representing the
+// client's request for the AssociateEnvironmentRole operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AssociateEnvironmentRole for more information on using the AssociateEnvironmentRole
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the AssociateEnvironmentRoleRequest method.
+//	req, resp := client.AssociateEnvironmentRoleRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/AssociateEnvironmentRole
+func (c *DataZone) AssociateEnvironmentRoleRequest(input *AssociateEnvironmentRoleInput) (req *request.Request, output *AssociateEnvironmentRoleOutput) {
+	op := &request.Operation{
+		Name:       opAssociateEnvironmentRole,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/roles/{environmentRoleArn}",
+	}
+
+	if input == nil {
+		input = &AssociateEnvironmentRoleInput{}
+	}
+
+	output = &AssociateEnvironmentRoleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// AssociateEnvironmentRole API operation for Amazon DataZone.
+//
+// Associates the environment role in Amazon DataZone.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation AssociateEnvironmentRole for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/AssociateEnvironmentRole
+func (c *DataZone) AssociateEnvironmentRole(input *AssociateEnvironmentRoleInput) (*AssociateEnvironmentRoleOutput, error) {
+	req, out := c.AssociateEnvironmentRoleRequest(input)
+	return out, req.Send()
+}
+
+// AssociateEnvironmentRoleWithContext is the same as AssociateEnvironmentRole with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AssociateEnvironmentRole for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) AssociateEnvironmentRoleWithContext(ctx aws.Context, input *AssociateEnvironmentRoleInput, opts ...request.Option) (*AssociateEnvironmentRoleOutput, error) {
+	req, out := c.AssociateEnvironmentRoleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCancelMetadataGenerationRun = "CancelMetadataGenerationRun"
 
 // CancelMetadataGenerationRunRequest generates a "aws/request.Request" representing the
@@ -503,6 +602,107 @@ func (c *DataZone) CreateAsset(input *CreateAssetInput) (*CreateAssetOutput, err
 // for more information on using Contexts.
 func (c *DataZone) CreateAssetWithContext(ctx aws.Context, input *CreateAssetInput, opts ...request.Option) (*CreateAssetOutput, error) {
 	req, out := c.CreateAssetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateAssetFilter = "CreateAssetFilter"
+
+// CreateAssetFilterRequest generates a "aws/request.Request" representing the
+// client's request for the CreateAssetFilter operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateAssetFilter for more information on using the CreateAssetFilter
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the CreateAssetFilterRequest method.
+//	req, resp := client.CreateAssetFilterRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/CreateAssetFilter
+func (c *DataZone) CreateAssetFilterRequest(input *CreateAssetFilterInput) (req *request.Request, output *CreateAssetFilterOutput) {
+	op := &request.Operation{
+		Name:       opCreateAssetFilter,
+		HTTPMethod: "POST",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/assets/{assetIdentifier}/filters",
+	}
+
+	if input == nil {
+		input = &CreateAssetFilterInput{}
+	}
+
+	output = &CreateAssetFilterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateAssetFilter API operation for Amazon DataZone.
+//
+// Creates a data asset filter.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation CreateAssetFilter for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ServiceQuotaExceededException
+//     The request has exceeded the specified service quota.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/CreateAssetFilter
+func (c *DataZone) CreateAssetFilter(input *CreateAssetFilterInput) (*CreateAssetFilterOutput, error) {
+	req, out := c.CreateAssetFilterRequest(input)
+	return out, req.Send()
+}
+
+// CreateAssetFilterWithContext is the same as CreateAssetFilter with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateAssetFilter for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) CreateAssetFilterWithContext(ctx aws.Context, input *CreateAssetFilterInput, opts ...request.Option) (*CreateAssetFilterOutput, error) {
+	req, out := c.CreateAssetFilterRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -999,6 +1199,105 @@ func (c *DataZone) CreateEnvironment(input *CreateEnvironmentInput) (*CreateEnvi
 // for more information on using Contexts.
 func (c *DataZone) CreateEnvironmentWithContext(ctx aws.Context, input *CreateEnvironmentInput, opts ...request.Option) (*CreateEnvironmentOutput, error) {
 	req, out := c.CreateEnvironmentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateEnvironmentAction = "CreateEnvironmentAction"
+
+// CreateEnvironmentActionRequest generates a "aws/request.Request" representing the
+// client's request for the CreateEnvironmentAction operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateEnvironmentAction for more information on using the CreateEnvironmentAction
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the CreateEnvironmentActionRequest method.
+//	req, resp := client.CreateEnvironmentActionRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/CreateEnvironmentAction
+func (c *DataZone) CreateEnvironmentActionRequest(input *CreateEnvironmentActionInput) (req *request.Request, output *CreateEnvironmentActionOutput) {
+	op := &request.Operation{
+		Name:       opCreateEnvironmentAction,
+		HTTPMethod: "POST",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/actions",
+	}
+
+	if input == nil {
+		input = &CreateEnvironmentActionInput{}
+	}
+
+	output = &CreateEnvironmentActionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateEnvironmentAction API operation for Amazon DataZone.
+//
+// Creates an action for the environment, for example, creates a console link
+// for an analytics tool that is available in this environment.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation CreateEnvironmentAction for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/CreateEnvironmentAction
+func (c *DataZone) CreateEnvironmentAction(input *CreateEnvironmentActionInput) (*CreateEnvironmentActionOutput, error) {
+	req, out := c.CreateEnvironmentActionRequest(input)
+	return out, req.Send()
+}
+
+// CreateEnvironmentActionWithContext is the same as CreateEnvironmentAction with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateEnvironmentAction for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) CreateEnvironmentActionWithContext(ctx aws.Context, input *CreateEnvironmentActionInput, opts ...request.Option) (*CreateEnvironmentActionOutput, error) {
+	req, out := c.CreateEnvironmentActionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2281,6 +2580,105 @@ func (c *DataZone) DeleteAssetWithContext(ctx aws.Context, input *DeleteAssetInp
 	return out, req.Send()
 }
 
+const opDeleteAssetFilter = "DeleteAssetFilter"
+
+// DeleteAssetFilterRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteAssetFilter operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteAssetFilter for more information on using the DeleteAssetFilter
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DeleteAssetFilterRequest method.
+//	req, resp := client.DeleteAssetFilterRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/DeleteAssetFilter
+func (c *DataZone) DeleteAssetFilterRequest(input *DeleteAssetFilterInput) (req *request.Request, output *DeleteAssetFilterOutput) {
+	op := &request.Operation{
+		Name:       opDeleteAssetFilter,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/assets/{assetIdentifier}/filters/{identifier}",
+	}
+
+	if input == nil {
+		input = &DeleteAssetFilterInput{}
+	}
+
+	output = &DeleteAssetFilterOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteAssetFilter API operation for Amazon DataZone.
+//
+// Deletes an asset filter.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation DeleteAssetFilter for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/DeleteAssetFilter
+func (c *DataZone) DeleteAssetFilter(input *DeleteAssetFilterInput) (*DeleteAssetFilterOutput, error) {
+	req, out := c.DeleteAssetFilterRequest(input)
+	return out, req.Send()
+}
+
+// DeleteAssetFilterWithContext is the same as DeleteAssetFilter with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteAssetFilter for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) DeleteAssetFilterWithContext(ctx aws.Context, input *DeleteAssetFilterInput, opts ...request.Option) (*DeleteAssetFilterOutput, error) {
+	req, out := c.DeleteAssetFilterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteAssetType = "DeleteAssetType"
 
 // DeleteAssetTypeRequest generates a "aws/request.Request" representing the
@@ -2670,6 +3068,106 @@ func (c *DataZone) DeleteEnvironment(input *DeleteEnvironmentInput) (*DeleteEnvi
 // for more information on using Contexts.
 func (c *DataZone) DeleteEnvironmentWithContext(ctx aws.Context, input *DeleteEnvironmentInput, opts ...request.Option) (*DeleteEnvironmentOutput, error) {
 	req, out := c.DeleteEnvironmentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteEnvironmentAction = "DeleteEnvironmentAction"
+
+// DeleteEnvironmentActionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteEnvironmentAction operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteEnvironmentAction for more information on using the DeleteEnvironmentAction
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DeleteEnvironmentActionRequest method.
+//	req, resp := client.DeleteEnvironmentActionRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/DeleteEnvironmentAction
+func (c *DataZone) DeleteEnvironmentActionRequest(input *DeleteEnvironmentActionInput) (req *request.Request, output *DeleteEnvironmentActionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteEnvironmentAction,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/actions/{identifier}",
+	}
+
+	if input == nil {
+		input = &DeleteEnvironmentActionInput{}
+	}
+
+	output = &DeleteEnvironmentActionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteEnvironmentAction API operation for Amazon DataZone.
+//
+// Deletes an action for the environment, for example, deletes a console link
+// for an analytics tool that is available in this environment.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation DeleteEnvironmentAction for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/DeleteEnvironmentAction
+func (c *DataZone) DeleteEnvironmentAction(input *DeleteEnvironmentActionInput) (*DeleteEnvironmentActionOutput, error) {
+	req, out := c.DeleteEnvironmentActionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteEnvironmentActionWithContext is the same as DeleteEnvironmentAction with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteEnvironmentAction for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) DeleteEnvironmentActionWithContext(ctx aws.Context, input *DeleteEnvironmentActionInput, opts ...request.Option) (*DeleteEnvironmentActionOutput, error) {
+	req, out := c.DeleteEnvironmentActionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3847,6 +4345,105 @@ func (c *DataZone) DeleteTimeSeriesDataPointsWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+const opDisassociateEnvironmentRole = "DisassociateEnvironmentRole"
+
+// DisassociateEnvironmentRoleRequest generates a "aws/request.Request" representing the
+// client's request for the DisassociateEnvironmentRole operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisassociateEnvironmentRole for more information on using the DisassociateEnvironmentRole
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the DisassociateEnvironmentRoleRequest method.
+//	req, resp := client.DisassociateEnvironmentRoleRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/DisassociateEnvironmentRole
+func (c *DataZone) DisassociateEnvironmentRoleRequest(input *DisassociateEnvironmentRoleInput) (req *request.Request, output *DisassociateEnvironmentRoleOutput) {
+	op := &request.Operation{
+		Name:       opDisassociateEnvironmentRole,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/roles/{environmentRoleArn}",
+	}
+
+	if input == nil {
+		input = &DisassociateEnvironmentRoleInput{}
+	}
+
+	output = &DisassociateEnvironmentRoleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DisassociateEnvironmentRole API operation for Amazon DataZone.
+//
+// Disassociates the environment role in Amazon DataZone.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation DisassociateEnvironmentRole for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/DisassociateEnvironmentRole
+func (c *DataZone) DisassociateEnvironmentRole(input *DisassociateEnvironmentRoleInput) (*DisassociateEnvironmentRoleOutput, error) {
+	req, out := c.DisassociateEnvironmentRoleRequest(input)
+	return out, req.Send()
+}
+
+// DisassociateEnvironmentRoleWithContext is the same as DisassociateEnvironmentRole with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisassociateEnvironmentRole for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) DisassociateEnvironmentRoleWithContext(ctx aws.Context, input *DisassociateEnvironmentRoleInput, opts ...request.Option) (*DisassociateEnvironmentRoleOutput, error) {
+	req, out := c.DisassociateEnvironmentRoleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetAsset = "GetAsset"
 
 // GetAssetRequest generates a "aws/request.Request" representing the
@@ -3937,6 +4534,101 @@ func (c *DataZone) GetAsset(input *GetAssetInput) (*GetAssetOutput, error) {
 // for more information on using Contexts.
 func (c *DataZone) GetAssetWithContext(ctx aws.Context, input *GetAssetInput, opts ...request.Option) (*GetAssetOutput, error) {
 	req, out := c.GetAssetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetAssetFilter = "GetAssetFilter"
+
+// GetAssetFilterRequest generates a "aws/request.Request" representing the
+// client's request for the GetAssetFilter operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetAssetFilter for more information on using the GetAssetFilter
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the GetAssetFilterRequest method.
+//	req, resp := client.GetAssetFilterRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetAssetFilter
+func (c *DataZone) GetAssetFilterRequest(input *GetAssetFilterInput) (req *request.Request, output *GetAssetFilterOutput) {
+	op := &request.Operation{
+		Name:       opGetAssetFilter,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/assets/{assetIdentifier}/filters/{identifier}",
+	}
+
+	if input == nil {
+		input = &GetAssetFilterInput{}
+	}
+
+	output = &GetAssetFilterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetAssetFilter API operation for Amazon DataZone.
+//
+// Gets an asset filter.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation GetAssetFilter for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetAssetFilter
+func (c *DataZone) GetAssetFilter(input *GetAssetFilterInput) (*GetAssetFilterOutput, error) {
+	req, out := c.GetAssetFilterRequest(input)
+	return out, req.Send()
+}
+
+// GetAssetFilterWithContext is the same as GetAssetFilter with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetAssetFilter for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) GetAssetFilterWithContext(ctx aws.Context, input *GetAssetFilterInput, opts ...request.Option) (*GetAssetFilterOutput, error) {
+	req, out := c.GetAssetFilterRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4432,6 +5124,101 @@ func (c *DataZone) GetEnvironmentWithContext(ctx aws.Context, input *GetEnvironm
 	return out, req.Send()
 }
 
+const opGetEnvironmentAction = "GetEnvironmentAction"
+
+// GetEnvironmentActionRequest generates a "aws/request.Request" representing the
+// client's request for the GetEnvironmentAction operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetEnvironmentAction for more information on using the GetEnvironmentAction
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the GetEnvironmentActionRequest method.
+//	req, resp := client.GetEnvironmentActionRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetEnvironmentAction
+func (c *DataZone) GetEnvironmentActionRequest(input *GetEnvironmentActionInput) (req *request.Request, output *GetEnvironmentActionOutput) {
+	op := &request.Operation{
+		Name:       opGetEnvironmentAction,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/actions/{identifier}",
+	}
+
+	if input == nil {
+		input = &GetEnvironmentActionInput{}
+	}
+
+	output = &GetEnvironmentActionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetEnvironmentAction API operation for Amazon DataZone.
+//
+// Gets the specified environment action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation GetEnvironmentAction for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetEnvironmentAction
+func (c *DataZone) GetEnvironmentAction(input *GetEnvironmentActionInput) (*GetEnvironmentActionOutput, error) {
+	req, out := c.GetEnvironmentActionRequest(input)
+	return out, req.Send()
+}
+
+// GetEnvironmentActionWithContext is the same as GetEnvironmentAction with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetEnvironmentAction for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) GetEnvironmentActionWithContext(ctx aws.Context, input *GetEnvironmentActionInput, opts ...request.Option) (*GetEnvironmentActionOutput, error) {
+	req, out := c.GetEnvironmentActionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetEnvironmentBlueprint = "GetEnvironmentBlueprint"
 
 // GetEnvironmentBlueprintRequest generates a "aws/request.Request" representing the
@@ -4617,6 +5404,101 @@ func (c *DataZone) GetEnvironmentBlueprintConfiguration(input *GetEnvironmentBlu
 // for more information on using Contexts.
 func (c *DataZone) GetEnvironmentBlueprintConfigurationWithContext(ctx aws.Context, input *GetEnvironmentBlueprintConfigurationInput, opts ...request.Option) (*GetEnvironmentBlueprintConfigurationOutput, error) {
 	req, out := c.GetEnvironmentBlueprintConfigurationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetEnvironmentCredentials = "GetEnvironmentCredentials"
+
+// GetEnvironmentCredentialsRequest generates a "aws/request.Request" representing the
+// client's request for the GetEnvironmentCredentials operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetEnvironmentCredentials for more information on using the GetEnvironmentCredentials
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the GetEnvironmentCredentialsRequest method.
+//	req, resp := client.GetEnvironmentCredentialsRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetEnvironmentCredentials
+func (c *DataZone) GetEnvironmentCredentialsRequest(input *GetEnvironmentCredentialsInput) (req *request.Request, output *GetEnvironmentCredentialsOutput) {
+	op := &request.Operation{
+		Name:       opGetEnvironmentCredentials,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/credentials",
+	}
+
+	if input == nil {
+		input = &GetEnvironmentCredentialsInput{}
+	}
+
+	output = &GetEnvironmentCredentialsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetEnvironmentCredentials API operation for Amazon DataZone.
+//
+// Gets the credentials of an environment in Amazon DataZone.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation GetEnvironmentCredentials for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetEnvironmentCredentials
+func (c *DataZone) GetEnvironmentCredentials(input *GetEnvironmentCredentialsInput) (*GetEnvironmentCredentialsOutput, error) {
+	req, out := c.GetEnvironmentCredentialsRequest(input)
+	return out, req.Send()
+}
+
+// GetEnvironmentCredentialsWithContext is the same as GetEnvironmentCredentials with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetEnvironmentCredentials for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) GetEnvironmentCredentialsWithContext(ctx aws.Context, input *GetEnvironmentCredentialsInput, opts ...request.Option) (*GetEnvironmentCredentialsOutput, error) {
+	req, out := c.GetEnvironmentCredentialsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -5190,6 +6072,101 @@ func (c *DataZone) GetIamPortalLoginUrl(input *GetIamPortalLoginUrlInput) (*GetI
 // for more information on using Contexts.
 func (c *DataZone) GetIamPortalLoginUrlWithContext(ctx aws.Context, input *GetIamPortalLoginUrlInput, opts ...request.Option) (*GetIamPortalLoginUrlOutput, error) {
 	req, out := c.GetIamPortalLoginUrlRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetLineageNode = "GetLineageNode"
+
+// GetLineageNodeRequest generates a "aws/request.Request" representing the
+// client's request for the GetLineageNode operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetLineageNode for more information on using the GetLineageNode
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the GetLineageNodeRequest method.
+//	req, resp := client.GetLineageNodeRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetLineageNode
+func (c *DataZone) GetLineageNodeRequest(input *GetLineageNodeInput) (req *request.Request, output *GetLineageNodeOutput) {
+	op := &request.Operation{
+		Name:       opGetLineageNode,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/lineage/nodes/{identifier}",
+	}
+
+	if input == nil {
+		input = &GetLineageNodeInput{}
+	}
+
+	output = &GetLineageNodeOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetLineageNode API operation for Amazon DataZone.
+//
+// Gets the data lineage node.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation GetLineageNode for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/GetLineageNode
+func (c *DataZone) GetLineageNode(input *GetLineageNodeInput) (*GetLineageNodeOutput, error) {
+	req, out := c.GetLineageNodeRequest(input)
+	return out, req.Send()
+}
+
+// GetLineageNodeWithContext is the same as GetLineageNode with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetLineageNode for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) GetLineageNodeWithContext(ctx aws.Context, input *GetLineageNodeInput, opts ...request.Option) (*GetLineageNodeOutput, error) {
+	req, out := c.GetLineageNodeRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -6050,6 +7027,158 @@ func (c *DataZone) GetUserProfileWithContext(ctx aws.Context, input *GetUserProf
 	return out, req.Send()
 }
 
+const opListAssetFilters = "ListAssetFilters"
+
+// ListAssetFiltersRequest generates a "aws/request.Request" representing the
+// client's request for the ListAssetFilters operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListAssetFilters for more information on using the ListAssetFilters
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the ListAssetFiltersRequest method.
+//	req, resp := client.ListAssetFiltersRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/ListAssetFilters
+func (c *DataZone) ListAssetFiltersRequest(input *ListAssetFiltersInput) (req *request.Request, output *ListAssetFiltersOutput) {
+	op := &request.Operation{
+		Name:       opListAssetFilters,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/assets/{assetIdentifier}/filters",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListAssetFiltersInput{}
+	}
+
+	output = &ListAssetFiltersOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListAssetFilters API operation for Amazon DataZone.
+//
+// Lists asset filters.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation ListAssetFilters for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/ListAssetFilters
+func (c *DataZone) ListAssetFilters(input *ListAssetFiltersInput) (*ListAssetFiltersOutput, error) {
+	req, out := c.ListAssetFiltersRequest(input)
+	return out, req.Send()
+}
+
+// ListAssetFiltersWithContext is the same as ListAssetFilters with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListAssetFilters for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) ListAssetFiltersWithContext(ctx aws.Context, input *ListAssetFiltersInput, opts ...request.Option) (*ListAssetFiltersOutput, error) {
+	req, out := c.ListAssetFiltersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListAssetFiltersPages iterates over the pages of a ListAssetFilters operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAssetFilters method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//	// Example iterating over at most 3 pages of a ListAssetFilters operation.
+//	pageNum := 0
+//	err := client.ListAssetFiltersPages(params,
+//	    func(page *datazone.ListAssetFiltersOutput, lastPage bool) bool {
+//	        pageNum++
+//	        fmt.Println(page)
+//	        return pageNum <= 3
+//	    })
+func (c *DataZone) ListAssetFiltersPages(input *ListAssetFiltersInput, fn func(*ListAssetFiltersOutput, bool) bool) error {
+	return c.ListAssetFiltersPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAssetFiltersPagesWithContext same as ListAssetFiltersPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) ListAssetFiltersPagesWithContext(ctx aws.Context, input *ListAssetFiltersInput, fn func(*ListAssetFiltersOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAssetFiltersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAssetFiltersRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAssetFiltersOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListAssetRevisions = "ListAssetRevisions"
 
 // ListAssetRevisionsRequest generates a "aws/request.Request" representing the
@@ -6834,6 +7963,155 @@ func (c *DataZone) ListDomainsPagesWithContext(ctx aws.Context, input *ListDomai
 	return p.Err()
 }
 
+const opListEnvironmentActions = "ListEnvironmentActions"
+
+// ListEnvironmentActionsRequest generates a "aws/request.Request" representing the
+// client's request for the ListEnvironmentActions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListEnvironmentActions for more information on using the ListEnvironmentActions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the ListEnvironmentActionsRequest method.
+//	req, resp := client.ListEnvironmentActionsRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/ListEnvironmentActions
+func (c *DataZone) ListEnvironmentActionsRequest(input *ListEnvironmentActionsInput) (req *request.Request, output *ListEnvironmentActionsOutput) {
+	op := &request.Operation{
+		Name:       opListEnvironmentActions,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/actions",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListEnvironmentActionsInput{}
+	}
+
+	output = &ListEnvironmentActionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListEnvironmentActions API operation for Amazon DataZone.
+//
+// Lists existing environment actions.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation ListEnvironmentActions for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/ListEnvironmentActions
+func (c *DataZone) ListEnvironmentActions(input *ListEnvironmentActionsInput) (*ListEnvironmentActionsOutput, error) {
+	req, out := c.ListEnvironmentActionsRequest(input)
+	return out, req.Send()
+}
+
+// ListEnvironmentActionsWithContext is the same as ListEnvironmentActions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListEnvironmentActions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) ListEnvironmentActionsWithContext(ctx aws.Context, input *ListEnvironmentActionsInput, opts ...request.Option) (*ListEnvironmentActionsOutput, error) {
+	req, out := c.ListEnvironmentActionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListEnvironmentActionsPages iterates over the pages of a ListEnvironmentActions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListEnvironmentActions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//	// Example iterating over at most 3 pages of a ListEnvironmentActions operation.
+//	pageNum := 0
+//	err := client.ListEnvironmentActionsPages(params,
+//	    func(page *datazone.ListEnvironmentActionsOutput, lastPage bool) bool {
+//	        pageNum++
+//	        fmt.Println(page)
+//	        return pageNum <= 3
+//	    })
+func (c *DataZone) ListEnvironmentActionsPages(input *ListEnvironmentActionsInput, fn func(*ListEnvironmentActionsOutput, bool) bool) error {
+	return c.ListEnvironmentActionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListEnvironmentActionsPagesWithContext same as ListEnvironmentActionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) ListEnvironmentActionsPagesWithContext(ctx aws.Context, input *ListEnvironmentActionsInput, fn func(*ListEnvironmentActionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListEnvironmentActionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListEnvironmentActionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListEnvironmentActionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListEnvironmentBlueprintConfigurations = "ListEnvironmentBlueprintConfigurations"
 
 // ListEnvironmentBlueprintConfigurationsRequest generates a "aws/request.Request" representing the
@@ -7429,6 +8707,158 @@ func (c *DataZone) ListEnvironmentsPagesWithContext(ctx aws.Context, input *List
 
 	for p.Next() {
 		if !fn(p.Page().(*ListEnvironmentsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListLineageNodeHistory = "ListLineageNodeHistory"
+
+// ListLineageNodeHistoryRequest generates a "aws/request.Request" representing the
+// client's request for the ListLineageNodeHistory operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListLineageNodeHistory for more information on using the ListLineageNodeHistory
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the ListLineageNodeHistoryRequest method.
+//	req, resp := client.ListLineageNodeHistoryRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/ListLineageNodeHistory
+func (c *DataZone) ListLineageNodeHistoryRequest(input *ListLineageNodeHistoryInput) (req *request.Request, output *ListLineageNodeHistoryOutput) {
+	op := &request.Operation{
+		Name:       opListLineageNodeHistory,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/lineage/nodes/{identifier}/history",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListLineageNodeHistoryInput{}
+	}
+
+	output = &ListLineageNodeHistoryOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListLineageNodeHistory API operation for Amazon DataZone.
+//
+// Lists the history of the specified data lineage node.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation ListLineageNodeHistory for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/ListLineageNodeHistory
+func (c *DataZone) ListLineageNodeHistory(input *ListLineageNodeHistoryInput) (*ListLineageNodeHistoryOutput, error) {
+	req, out := c.ListLineageNodeHistoryRequest(input)
+	return out, req.Send()
+}
+
+// ListLineageNodeHistoryWithContext is the same as ListLineageNodeHistory with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListLineageNodeHistory for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) ListLineageNodeHistoryWithContext(ctx aws.Context, input *ListLineageNodeHistoryInput, opts ...request.Option) (*ListLineageNodeHistoryOutput, error) {
+	req, out := c.ListLineageNodeHistoryRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListLineageNodeHistoryPages iterates over the pages of a ListLineageNodeHistory operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListLineageNodeHistory method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//	// Example iterating over at most 3 pages of a ListLineageNodeHistory operation.
+//	pageNum := 0
+//	err := client.ListLineageNodeHistoryPages(params,
+//	    func(page *datazone.ListLineageNodeHistoryOutput, lastPage bool) bool {
+//	        pageNum++
+//	        fmt.Println(page)
+//	        return pageNum <= 3
+//	    })
+func (c *DataZone) ListLineageNodeHistoryPages(input *ListLineageNodeHistoryInput, fn func(*ListLineageNodeHistoryOutput, bool) bool) error {
+	return c.ListLineageNodeHistoryPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListLineageNodeHistoryPagesWithContext same as ListLineageNodeHistoryPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) ListLineageNodeHistoryPagesWithContext(ctx aws.Context, input *ListLineageNodeHistoryInput, fn func(*ListLineageNodeHistoryOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListLineageNodeHistoryInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListLineageNodeHistoryRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListLineageNodeHistoryOutput), !p.HasNextPage()) {
 			break
 		}
 	}
@@ -8894,6 +10324,108 @@ func (c *DataZone) ListTimeSeriesDataPointsPagesWithContext(ctx aws.Context, inp
 	}
 
 	return p.Err()
+}
+
+const opPostLineageEvent = "PostLineageEvent"
+
+// PostLineageEventRequest generates a "aws/request.Request" representing the
+// client's request for the PostLineageEvent operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PostLineageEvent for more information on using the PostLineageEvent
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the PostLineageEventRequest method.
+//	req, resp := client.PostLineageEventRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/PostLineageEvent
+func (c *DataZone) PostLineageEventRequest(input *PostLineageEventInput) (req *request.Request, output *PostLineageEventOutput) {
+	op := &request.Operation{
+		Name:       opPostLineageEvent,
+		HTTPMethod: "POST",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/lineage/events",
+	}
+
+	if input == nil {
+		input = &PostLineageEventInput{}
+	}
+
+	output = &PostLineageEventOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// PostLineageEvent API operation for Amazon DataZone.
+//
+// Posts a data lineage event.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation PostLineageEvent for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ServiceQuotaExceededException
+//     The request has exceeded the specified service quota.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/PostLineageEvent
+func (c *DataZone) PostLineageEvent(input *PostLineageEventInput) (*PostLineageEventOutput, error) {
+	req, out := c.PostLineageEventRequest(input)
+	return out, req.Send()
+}
+
+// PostLineageEventWithContext is the same as PostLineageEvent with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PostLineageEvent for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) PostLineageEventWithContext(ctx aws.Context, input *PostLineageEventInput, opts ...request.Option) (*PostLineageEventOutput, error) {
+	req, out := c.PostLineageEventRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opPostTimeSeriesDataPoints = "PostTimeSeriesDataPoints"
@@ -10532,6 +12064,104 @@ func (c *DataZone) UntagResourceWithContext(ctx aws.Context, input *UntagResourc
 	return out, req.Send()
 }
 
+const opUpdateAssetFilter = "UpdateAssetFilter"
+
+// UpdateAssetFilterRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateAssetFilter operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateAssetFilter for more information on using the UpdateAssetFilter
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the UpdateAssetFilterRequest method.
+//	req, resp := client.UpdateAssetFilterRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/UpdateAssetFilter
+func (c *DataZone) UpdateAssetFilterRequest(input *UpdateAssetFilterInput) (req *request.Request, output *UpdateAssetFilterOutput) {
+	op := &request.Operation{
+		Name:       opUpdateAssetFilter,
+		HTTPMethod: "PATCH",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/assets/{assetIdentifier}/filters/{identifier}",
+	}
+
+	if input == nil {
+		input = &UpdateAssetFilterInput{}
+	}
+
+	output = &UpdateAssetFilterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateAssetFilter API operation for Amazon DataZone.
+//
+// Updates an asset filter.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation UpdateAssetFilter for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/UpdateAssetFilter
+func (c *DataZone) UpdateAssetFilter(input *UpdateAssetFilterInput) (*UpdateAssetFilterOutput, error) {
+	req, out := c.UpdateAssetFilterRequest(input)
+	return out, req.Send()
+}
+
+// UpdateAssetFilterWithContext is the same as UpdateAssetFilter with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateAssetFilter for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) UpdateAssetFilterWithContext(ctx aws.Context, input *UpdateAssetFilterInput, opts ...request.Option) (*UpdateAssetFilterOutput, error) {
+	req, out := c.UpdateAssetFilterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateDataSource = "UpdateDataSource"
 
 // UpdateDataSourceRequest generates a "aws/request.Request" representing the
@@ -10827,6 +12457,104 @@ func (c *DataZone) UpdateEnvironment(input *UpdateEnvironmentInput) (*UpdateEnvi
 // for more information on using Contexts.
 func (c *DataZone) UpdateEnvironmentWithContext(ctx aws.Context, input *UpdateEnvironmentInput, opts ...request.Option) (*UpdateEnvironmentOutput, error) {
 	req, out := c.UpdateEnvironmentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateEnvironmentAction = "UpdateEnvironmentAction"
+
+// UpdateEnvironmentActionRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateEnvironmentAction operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateEnvironmentAction for more information on using the UpdateEnvironmentAction
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the UpdateEnvironmentActionRequest method.
+//	req, resp := client.UpdateEnvironmentActionRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/UpdateEnvironmentAction
+func (c *DataZone) UpdateEnvironmentActionRequest(input *UpdateEnvironmentActionInput) (req *request.Request, output *UpdateEnvironmentActionOutput) {
+	op := &request.Operation{
+		Name:       opUpdateEnvironmentAction,
+		HTTPMethod: "PATCH",
+		HTTPPath:   "/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/actions/{identifier}",
+	}
+
+	if input == nil {
+		input = &UpdateEnvironmentActionInput{}
+	}
+
+	output = &UpdateEnvironmentActionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateEnvironmentAction API operation for Amazon DataZone.
+//
+// Updates an environment action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon DataZone's
+// API operation UpdateEnvironmentAction for usage and error information.
+//
+// Returned Error Types:
+//
+//   - InternalServerException
+//     The request has failed because of an unknown error, exception or failure.
+//
+//   - ResourceNotFoundException
+//     The specified resource cannot be found.
+//
+//   - AccessDeniedException
+//     You do not have sufficient access to perform this action.
+//
+//   - ThrottlingException
+//     The request was denied due to request throttling.
+//
+//   - ConflictException
+//     There is a conflict while performing this action.
+//
+//   - ValidationException
+//     The input fails to satisfy the constraints specified by the Amazon Web Services
+//     service.
+//
+//   - UnauthorizedException
+//     You do not have permission to perform this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datazone-2018-05-10/UpdateEnvironmentAction
+func (c *DataZone) UpdateEnvironmentAction(input *UpdateEnvironmentActionInput) (*UpdateEnvironmentActionOutput, error) {
+	req, out := c.UpdateEnvironmentActionRequest(input)
+	return out, req.Send()
+}
+
+// UpdateEnvironmentActionWithContext is the same as UpdateEnvironmentAction with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateEnvironmentAction for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataZone) UpdateEnvironmentActionWithContext(ctx aws.Context, input *UpdateEnvironmentActionInput, opts ...request.Option) (*UpdateEnvironmentActionOutput, error) {
+	req, out := c.UpdateEnvironmentActionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -12315,6 +14043,223 @@ func (s *AccessDeniedException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// The parameters of the environment action.
+type ActionParameters struct {
+	_ struct{} `type:"structure"`
+
+	// The console link specified as part of the environment action.
+	AwsConsoleLink *AwsConsoleLinkParameters `locationName:"awsConsoleLink" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ActionParameters) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ActionParameters) GoString() string {
+	return s.String()
+}
+
+// SetAwsConsoleLink sets the AwsConsoleLink field's value.
+func (s *ActionParameters) SetAwsConsoleLink(v *AwsConsoleLinkParameters) *ActionParameters {
+	s.AwsConsoleLink = v
+	return s
+}
+
+// The configuration details of the asset filter.
+type AssetFilterConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The column configuration of the asset filter.
+	ColumnConfiguration *ColumnFilterConfiguration `locationName:"columnConfiguration" type:"structure"`
+
+	// The row configuration of the asset filter.
+	RowConfiguration *RowFilterConfiguration `locationName:"rowConfiguration" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssetFilterConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssetFilterConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssetFilterConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssetFilterConfiguration"}
+	if s.RowConfiguration != nil {
+		if err := s.RowConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("RowConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnConfiguration sets the ColumnConfiguration field's value.
+func (s *AssetFilterConfiguration) SetColumnConfiguration(v *ColumnFilterConfiguration) *AssetFilterConfiguration {
+	s.ColumnConfiguration = v
+	return s
+}
+
+// SetRowConfiguration sets the RowConfiguration field's value.
+func (s *AssetFilterConfiguration) SetRowConfiguration(v *RowFilterConfiguration) *AssetFilterConfiguration {
+	s.RowConfiguration = v
+	return s
+}
+
+// The summary of the asset filter.
+type AssetFilterSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the data asset.
+	//
+	// AssetId is a required field
+	AssetId *string `locationName:"assetId" type:"string" required:"true"`
+
+	// The timestamp at which the asset filter was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The description of the asset filter.
+	//
+	// Description is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by AssetFilterSummary's
+	// String and GoString methods.
+	Description *string `locationName:"description" type:"string" sensitive:"true"`
+
+	// The ID of the domain where the asset filter lives.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The effective column names of the asset filter.
+	EffectiveColumnNames []*string `locationName:"effectiveColumnNames" type:"list"`
+
+	// The effective row filter of the asset filter.
+	EffectiveRowFilter *string `locationName:"effectiveRowFilter" type:"string"`
+
+	// The error message that is displayed if the action does not succeed.
+	ErrorMessage *string `locationName:"errorMessage" type:"string"`
+
+	// The ID of the asset filter.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the asset filter.
+	//
+	// Name is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by AssetFilterSummary's
+	// String and GoString methods.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" min:"1" type:"string" required:"true" sensitive:"true"`
+
+	// The status of the asset filter.
+	Status *string `locationName:"status" type:"string" enum:"FilterStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssetFilterSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssetFilterSummary) GoString() string {
+	return s.String()
+}
+
+// SetAssetId sets the AssetId field's value.
+func (s *AssetFilterSummary) SetAssetId(v string) *AssetFilterSummary {
+	s.AssetId = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *AssetFilterSummary) SetCreatedAt(v time.Time) *AssetFilterSummary {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *AssetFilterSummary) SetDescription(v string) *AssetFilterSummary {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *AssetFilterSummary) SetDomainId(v string) *AssetFilterSummary {
+	s.DomainId = &v
+	return s
+}
+
+// SetEffectiveColumnNames sets the EffectiveColumnNames field's value.
+func (s *AssetFilterSummary) SetEffectiveColumnNames(v []*string) *AssetFilterSummary {
+	s.EffectiveColumnNames = v
+	return s
+}
+
+// SetEffectiveRowFilter sets the EffectiveRowFilter field's value.
+func (s *AssetFilterSummary) SetEffectiveRowFilter(v string) *AssetFilterSummary {
+	s.EffectiveRowFilter = &v
+	return s
+}
+
+// SetErrorMessage sets the ErrorMessage field's value.
+func (s *AssetFilterSummary) SetErrorMessage(v string) *AssetFilterSummary {
+	s.ErrorMessage = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *AssetFilterSummary) SetId(v string) *AssetFilterSummary {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *AssetFilterSummary) SetName(v string) *AssetFilterSummary {
+	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *AssetFilterSummary) SetStatus(v string) *AssetFilterSummary {
+	s.Status = &v
+	return s
+}
+
 // A Amazon DataZone inventory asset.
 type AssetItem struct {
 	_ struct{} `type:"structure"`
@@ -13152,6 +15097,143 @@ func (s *AssetTypeItem) SetUpdatedBy(v string) *AssetTypeItem {
 	return s
 }
 
+type AssociateEnvironmentRoleInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon DataZone domain in which the environment role is associated.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the Amazon DataZone environment.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+
+	// The ARN of the environment role.
+	//
+	// EnvironmentRoleArn is a required field
+	EnvironmentRoleArn *string `location:"uri" locationName:"environmentRoleArn" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssociateEnvironmentRoleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssociateEnvironmentRoleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssociateEnvironmentRoleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssociateEnvironmentRoleInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+	if s.EnvironmentRoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentRoleArn"))
+	}
+	if s.EnvironmentRoleArn != nil && len(*s.EnvironmentRoleArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentRoleArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *AssociateEnvironmentRoleInput) SetDomainIdentifier(v string) *AssociateEnvironmentRoleInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *AssociateEnvironmentRoleInput) SetEnvironmentIdentifier(v string) *AssociateEnvironmentRoleInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+// SetEnvironmentRoleArn sets the EnvironmentRoleArn field's value.
+func (s *AssociateEnvironmentRoleInput) SetEnvironmentRoleArn(v string) *AssociateEnvironmentRoleInput {
+	s.EnvironmentRoleArn = &v
+	return s
+}
+
+type AssociateEnvironmentRoleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssociateEnvironmentRoleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AssociateEnvironmentRoleOutput) GoString() string {
+	return s.String()
+}
+
+// The parameters of the console link specified as part of the environment action.
+type AwsConsoleLinkParameters struct {
+	_ struct{} `type:"structure"`
+
+	// The URI of the console link specified as part of the environment action.
+	Uri *string `locationName:"uri" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AwsConsoleLinkParameters) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s AwsConsoleLinkParameters) GoString() string {
+	return s.String()
+}
+
+// SetUri sets the Uri field's value.
+func (s *AwsConsoleLinkParameters) SetUri(v string) *AwsConsoleLinkParameters {
+	s.Uri = &v
+	return s
+}
+
 // The configuration of the business name generation.
 type BusinessNameGenerationConfiguration struct {
 	_ struct{} `type:"structure"`
@@ -13517,6 +15599,38 @@ func (s *CloudFormationProperties) SetTemplateUrl(v string) *CloudFormationPrope
 	return s
 }
 
+// The column configuration of the asset filter.
+type ColumnFilterConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether to include column names.
+	IncludedColumnNames []*string `locationName:"includedColumnNames" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ColumnFilterConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ColumnFilterConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetIncludedColumnNames sets the IncludedColumnNames field's value.
+func (s *ColumnFilterConfiguration) SetIncludedColumnNames(v []*string) *ColumnFilterConfiguration {
+	s.IncludedColumnNames = v
+	return s
+}
+
 // The details of the parameters for the configurable environment action.
 type ConfigurableActionParameter struct {
 	_ struct{} `type:"structure"`
@@ -13674,6 +15788,274 @@ func (s *ConflictException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *ConflictException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+type CreateAssetFilterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the data asset.
+	//
+	// AssetIdentifier is a required field
+	AssetIdentifier *string `location:"uri" locationName:"assetIdentifier" type:"string" required:"true"`
+
+	// A unique, case-sensitive identifier that is provided to ensure the idempotency
+	// of the request.
+	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
+
+	// The configuration of the asset filter.
+	//
+	// Configuration is a required field
+	Configuration *AssetFilterConfiguration `locationName:"configuration" type:"structure" required:"true"`
+
+	// The description of the asset filter.
+	//
+	// Description is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by CreateAssetFilterInput's
+	// String and GoString methods.
+	Description *string `locationName:"description" type:"string" sensitive:"true"`
+
+	// The ID of the domain in which you want to create an asset filter.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The name of the asset filter.
+	//
+	// Name is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by CreateAssetFilterInput's
+	// String and GoString methods.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" min:"1" type:"string" required:"true" sensitive:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateAssetFilterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateAssetFilterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateAssetFilterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateAssetFilterInput"}
+	if s.AssetIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("AssetIdentifier"))
+	}
+	if s.AssetIdentifier != nil && len(*s.AssetIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssetIdentifier", 1))
+	}
+	if s.Configuration == nil {
+		invalidParams.Add(request.NewErrParamRequired("Configuration"))
+	}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Configuration != nil {
+		if err := s.Configuration.Validate(); err != nil {
+			invalidParams.AddNested("Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAssetIdentifier sets the AssetIdentifier field's value.
+func (s *CreateAssetFilterInput) SetAssetIdentifier(v string) *CreateAssetFilterInput {
+	s.AssetIdentifier = &v
+	return s
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *CreateAssetFilterInput) SetClientToken(v string) *CreateAssetFilterInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *CreateAssetFilterInput) SetConfiguration(v *AssetFilterConfiguration) *CreateAssetFilterInput {
+	s.Configuration = v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateAssetFilterInput) SetDescription(v string) *CreateAssetFilterInput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *CreateAssetFilterInput) SetDomainIdentifier(v string) *CreateAssetFilterInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateAssetFilterInput) SetName(v string) *CreateAssetFilterInput {
+	s.Name = &v
+	return s
+}
+
+type CreateAssetFilterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the asset.
+	//
+	// AssetId is a required field
+	AssetId *string `locationName:"assetId" type:"string" required:"true"`
+
+	// The configuration of the asset filter.
+	//
+	// Configuration is a required field
+	Configuration *AssetFilterConfiguration `locationName:"configuration" type:"structure" required:"true"`
+
+	// The timestamp at which the asset filter was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The description of the asset filter.
+	//
+	// Description is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by CreateAssetFilterOutput's
+	// String and GoString methods.
+	Description *string `locationName:"description" type:"string" sensitive:"true"`
+
+	// The ID of the domain where the asset filter is created.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The column names in the asset filter.
+	EffectiveColumnNames []*string `locationName:"effectiveColumnNames" type:"list"`
+
+	// The row filter in the asset filter.
+	EffectiveRowFilter *string `locationName:"effectiveRowFilter" type:"string"`
+
+	// The error message that is displayed if the asset filter is not created successfully.
+	ErrorMessage *string `locationName:"errorMessage" type:"string"`
+
+	// The ID of the asset filter.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the asset filter.
+	//
+	// Name is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by CreateAssetFilterOutput's
+	// String and GoString methods.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" min:"1" type:"string" required:"true" sensitive:"true"`
+
+	// The status of the asset filter.
+	Status *string `locationName:"status" type:"string" enum:"FilterStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateAssetFilterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateAssetFilterOutput) GoString() string {
+	return s.String()
+}
+
+// SetAssetId sets the AssetId field's value.
+func (s *CreateAssetFilterOutput) SetAssetId(v string) *CreateAssetFilterOutput {
+	s.AssetId = &v
+	return s
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *CreateAssetFilterOutput) SetConfiguration(v *AssetFilterConfiguration) *CreateAssetFilterOutput {
+	s.Configuration = v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *CreateAssetFilterOutput) SetCreatedAt(v time.Time) *CreateAssetFilterOutput {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateAssetFilterOutput) SetDescription(v string) *CreateAssetFilterOutput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *CreateAssetFilterOutput) SetDomainId(v string) *CreateAssetFilterOutput {
+	s.DomainId = &v
+	return s
+}
+
+// SetEffectiveColumnNames sets the EffectiveColumnNames field's value.
+func (s *CreateAssetFilterOutput) SetEffectiveColumnNames(v []*string) *CreateAssetFilterOutput {
+	s.EffectiveColumnNames = v
+	return s
+}
+
+// SetEffectiveRowFilter sets the EffectiveRowFilter field's value.
+func (s *CreateAssetFilterOutput) SetEffectiveRowFilter(v string) *CreateAssetFilterOutput {
+	s.EffectiveRowFilter = &v
+	return s
+}
+
+// SetErrorMessage sets the ErrorMessage field's value.
+func (s *CreateAssetFilterOutput) SetErrorMessage(v string) *CreateAssetFilterOutput {
+	s.ErrorMessage = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *CreateAssetFilterOutput) SetId(v string) *CreateAssetFilterOutput {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateAssetFilterOutput) SetName(v string) *CreateAssetFilterOutput {
+	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *CreateAssetFilterOutput) SetStatus(v string) *CreateAssetFilterOutput {
+	s.Status = &v
+	return s
 }
 
 type CreateAssetInput struct {
@@ -15443,6 +17825,195 @@ func (s *CreateDomainOutput) SetTags(v map[string]*string) *CreateDomainOutput {
 	return s
 }
 
+type CreateEnvironmentActionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The description of the environment action that is being created in the environment.
+	Description *string `locationName:"description" type:"string"`
+
+	// The ID of the Amazon DataZone domain in which the environment action is created.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the environment in which the environment action is created.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+
+	// The name of the environment action.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The parameters of the environment action.
+	//
+	// Parameters is a required field
+	Parameters *ActionParameters `locationName:"parameters" type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateEnvironmentActionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateEnvironmentActionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateEnvironmentActionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateEnvironmentActionInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Parameters == nil {
+		invalidParams.Add(request.NewErrParamRequired("Parameters"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateEnvironmentActionInput) SetDescription(v string) *CreateEnvironmentActionInput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *CreateEnvironmentActionInput) SetDomainIdentifier(v string) *CreateEnvironmentActionInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *CreateEnvironmentActionInput) SetEnvironmentIdentifier(v string) *CreateEnvironmentActionInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateEnvironmentActionInput) SetName(v string) *CreateEnvironmentActionInput {
+	s.Name = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *CreateEnvironmentActionInput) SetParameters(v *ActionParameters) *CreateEnvironmentActionInput {
+	s.Parameters = v
+	return s
+}
+
+type CreateEnvironmentActionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The description of the environment action.
+	Description *string `locationName:"description" type:"string"`
+
+	// The ID of the domain in which the environment action is created.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The ID of the environment in which the environment is created.
+	//
+	// EnvironmentId is a required field
+	EnvironmentId *string `locationName:"environmentId" type:"string" required:"true"`
+
+	// The ID of the environment action.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the environment action.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The parameters of the environment action.
+	//
+	// Parameters is a required field
+	Parameters *ActionParameters `locationName:"parameters" type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateEnvironmentActionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CreateEnvironmentActionOutput) GoString() string {
+	return s.String()
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateEnvironmentActionOutput) SetDescription(v string) *CreateEnvironmentActionOutput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *CreateEnvironmentActionOutput) SetDomainId(v string) *CreateEnvironmentActionOutput {
+	s.DomainId = &v
+	return s
+}
+
+// SetEnvironmentId sets the EnvironmentId field's value.
+func (s *CreateEnvironmentActionOutput) SetEnvironmentId(v string) *CreateEnvironmentActionOutput {
+	s.EnvironmentId = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *CreateEnvironmentActionOutput) SetId(v string) *CreateEnvironmentActionOutput {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateEnvironmentActionOutput) SetName(v string) *CreateEnvironmentActionOutput {
+	s.Name = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *CreateEnvironmentActionOutput) SetParameters(v *ActionParameters) *CreateEnvironmentActionOutput {
+	s.Parameters = v
+	return s
+}
+
 type CreateEnvironmentInput struct {
 	_ struct{} `type:"structure"`
 
@@ -15454,6 +18025,15 @@ type CreateEnvironmentInput struct {
 	//
 	// DomainIdentifier is a required field
 	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the account in which the environment is being created.
+	EnvironmentAccountIdentifier *string `locationName:"environmentAccountIdentifier" type:"string"`
+
+	// The region of the account in which the environment is being created.
+	EnvironmentAccountRegion *string `locationName:"environmentAccountRegion" type:"string"`
+
+	// The ID of the blueprint with which the environment is being created.
+	EnvironmentBlueprintIdentifier *string `locationName:"environmentBlueprintIdentifier" type:"string"`
 
 	// The identifier of the environment profile that is used to create this Amazon
 	// DataZone environment.
@@ -15537,6 +18117,24 @@ func (s *CreateEnvironmentInput) SetDomainIdentifier(v string) *CreateEnvironmen
 	return s
 }
 
+// SetEnvironmentAccountIdentifier sets the EnvironmentAccountIdentifier field's value.
+func (s *CreateEnvironmentInput) SetEnvironmentAccountIdentifier(v string) *CreateEnvironmentInput {
+	s.EnvironmentAccountIdentifier = &v
+	return s
+}
+
+// SetEnvironmentAccountRegion sets the EnvironmentAccountRegion field's value.
+func (s *CreateEnvironmentInput) SetEnvironmentAccountRegion(v string) *CreateEnvironmentInput {
+	s.EnvironmentAccountRegion = &v
+	return s
+}
+
+// SetEnvironmentBlueprintIdentifier sets the EnvironmentBlueprintIdentifier field's value.
+func (s *CreateEnvironmentInput) SetEnvironmentBlueprintIdentifier(v string) *CreateEnvironmentInput {
+	s.EnvironmentBlueprintIdentifier = &v
+	return s
+}
+
 // SetEnvironmentProfileIdentifier sets the EnvironmentProfileIdentifier field's value.
 func (s *CreateEnvironmentInput) SetEnvironmentProfileIdentifier(v string) *CreateEnvironmentInput {
 	s.EnvironmentProfileIdentifier = &v
@@ -15610,9 +18208,7 @@ type CreateEnvironmentOutput struct {
 
 	// The ID of the environment profile with which this Amazon DataZone environment
 	// was created.
-	//
-	// EnvironmentProfileId is a required field
-	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string" required:"true"`
+	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string"`
 
 	// The glossary terms that can be used in this Amazon DataZone environment.
 	GlossaryTerms []*string `locationName:"glossaryTerms" min:"1" type:"list"`
@@ -18604,164 +21200,6 @@ func (s *CustomParameter) SetKeyName(v string) *CustomParameter {
 	return s
 }
 
-type DataProductItem struct {
-	_ struct{} `type:"structure"`
-
-	DomainId *string `locationName:"domainId" type:"string"`
-
-	ItemId *string `locationName:"itemId" type:"string"`
-}
-
-// String returns the string representation.
-//
-// API parameter values that are decorated as "sensitive" in the API will not
-// be included in the string output. The member name will be present, but the
-// value will be replaced with "sensitive".
-func (s DataProductItem) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation.
-//
-// API parameter values that are decorated as "sensitive" in the API will not
-// be included in the string output. The member name will be present, but the
-// value will be replaced with "sensitive".
-func (s DataProductItem) GoString() string {
-	return s.String()
-}
-
-// SetDomainId sets the DomainId field's value.
-func (s *DataProductItem) SetDomainId(v string) *DataProductItem {
-	s.DomainId = &v
-	return s
-}
-
-// SetItemId sets the ItemId field's value.
-func (s *DataProductItem) SetItemId(v string) *DataProductItem {
-	s.ItemId = &v
-	return s
-}
-
-type DataProductSummary struct {
-	_ struct{} `type:"structure"`
-
-	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
-
-	CreatedBy *string `locationName:"createdBy" type:"string"`
-
-	DataProductItems []*DataProductItem `locationName:"dataProductItems" type:"list"`
-
-	// Description is a sensitive parameter and its value will be
-	// replaced with "sensitive" in string returned by DataProductSummary's
-	// String and GoString methods.
-	Description *string `locationName:"description" min:"1" type:"string" sensitive:"true"`
-
-	// DomainId is a required field
-	DomainId *string `locationName:"domainId" type:"string" required:"true"`
-
-	GlossaryTerms []*string `locationName:"glossaryTerms" min:"1" type:"list"`
-
-	// Id is a required field
-	Id *string `locationName:"id" type:"string" required:"true"`
-
-	// Name is a sensitive parameter and its value will be
-	// replaced with "sensitive" in string returned by DataProductSummary's
-	// String and GoString methods.
-	// Name is a required field
-	Name *string `locationName:"name" min:"1" type:"string" required:"true" sensitive:"true"`
-
-	// OwningProjectId is a required field
-	OwningProjectId *string `locationName:"owningProjectId" type:"string" required:"true"`
-
-	UpdatedAt *time.Time `locationName:"updatedAt" type:"timestamp"`
-
-	UpdatedBy *string `locationName:"updatedBy" type:"string"`
-}
-
-// String returns the string representation.
-//
-// API parameter values that are decorated as "sensitive" in the API will not
-// be included in the string output. The member name will be present, but the
-// value will be replaced with "sensitive".
-func (s DataProductSummary) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation.
-//
-// API parameter values that are decorated as "sensitive" in the API will not
-// be included in the string output. The member name will be present, but the
-// value will be replaced with "sensitive".
-func (s DataProductSummary) GoString() string {
-	return s.String()
-}
-
-// SetCreatedAt sets the CreatedAt field's value.
-func (s *DataProductSummary) SetCreatedAt(v time.Time) *DataProductSummary {
-	s.CreatedAt = &v
-	return s
-}
-
-// SetCreatedBy sets the CreatedBy field's value.
-func (s *DataProductSummary) SetCreatedBy(v string) *DataProductSummary {
-	s.CreatedBy = &v
-	return s
-}
-
-// SetDataProductItems sets the DataProductItems field's value.
-func (s *DataProductSummary) SetDataProductItems(v []*DataProductItem) *DataProductSummary {
-	s.DataProductItems = v
-	return s
-}
-
-// SetDescription sets the Description field's value.
-func (s *DataProductSummary) SetDescription(v string) *DataProductSummary {
-	s.Description = &v
-	return s
-}
-
-// SetDomainId sets the DomainId field's value.
-func (s *DataProductSummary) SetDomainId(v string) *DataProductSummary {
-	s.DomainId = &v
-	return s
-}
-
-// SetGlossaryTerms sets the GlossaryTerms field's value.
-func (s *DataProductSummary) SetGlossaryTerms(v []*string) *DataProductSummary {
-	s.GlossaryTerms = v
-	return s
-}
-
-// SetId sets the Id field's value.
-func (s *DataProductSummary) SetId(v string) *DataProductSummary {
-	s.Id = &v
-	return s
-}
-
-// SetName sets the Name field's value.
-func (s *DataProductSummary) SetName(v string) *DataProductSummary {
-	s.Name = &v
-	return s
-}
-
-// SetOwningProjectId sets the OwningProjectId field's value.
-func (s *DataProductSummary) SetOwningProjectId(v string) *DataProductSummary {
-	s.OwningProjectId = &v
-	return s
-}
-
-// SetUpdatedAt sets the UpdatedAt field's value.
-func (s *DataProductSummary) SetUpdatedAt(v time.Time) *DataProductSummary {
-	s.UpdatedAt = &v
-	return s
-}
-
-// SetUpdatedBy sets the UpdatedBy field's value.
-func (s *DataProductSummary) SetUpdatedBy(v string) *DataProductSummary {
-	s.UpdatedBy = &v
-	return s
-}
-
 // The configuration of the data source.
 type DataSourceConfigurationInput_ struct {
 	_ struct{} `type:"structure"`
@@ -19357,6 +21795,111 @@ func (s *DataSourceSummary) SetUpdatedAt(v time.Time) *DataSourceSummary {
 	return s
 }
 
+type DeleteAssetFilterInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the data asset.
+	//
+	// AssetIdentifier is a required field
+	AssetIdentifier *string `location:"uri" locationName:"assetIdentifier" type:"string" required:"true"`
+
+	// The ID of the domain where you want to delete an asset filter.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the asset filter that you want to delete.
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteAssetFilterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteAssetFilterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteAssetFilterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteAssetFilterInput"}
+	if s.AssetIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("AssetIdentifier"))
+	}
+	if s.AssetIdentifier != nil && len(*s.AssetIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssetIdentifier", 1))
+	}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAssetIdentifier sets the AssetIdentifier field's value.
+func (s *DeleteAssetFilterInput) SetAssetIdentifier(v string) *DeleteAssetFilterInput {
+	s.AssetIdentifier = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *DeleteAssetFilterInput) SetDomainIdentifier(v string) *DeleteAssetFilterInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *DeleteAssetFilterInput) SetIdentifier(v string) *DeleteAssetFilterInput {
+	s.Identifier = &v
+	return s
+}
+
+type DeleteAssetFilterOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteAssetFilterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteAssetFilterOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteAssetInput struct {
 	_ struct{} `type:"structure" nopayload:"true"`
 
@@ -19549,6 +22092,10 @@ type DeleteDataSourceInput struct {
 	//
 	// Identifier is a required field
 	Identifier *string `location:"uri" locationName:"identifier" type:"string" required:"true"`
+
+	// Specifies that the granted permissions are retained in case of a self-subscribe
+	// functionality failure for a data source.
+	RetainPermissionsOnRevokeFailure *bool `location:"querystring" locationName:"retainPermissionsOnRevokeFailure" type:"boolean"`
 }
 
 // String returns the string representation.
@@ -19606,6 +22153,12 @@ func (s *DeleteDataSourceInput) SetDomainIdentifier(v string) *DeleteDataSourceI
 // SetIdentifier sets the Identifier field's value.
 func (s *DeleteDataSourceInput) SetIdentifier(v string) *DeleteDataSourceInput {
 	s.Identifier = &v
+	return s
+}
+
+// SetRetainPermissionsOnRevokeFailure sets the RetainPermissionsOnRevokeFailure field's value.
+func (s *DeleteDataSourceInput) SetRetainPermissionsOnRevokeFailure(v bool) *DeleteDataSourceInput {
+	s.RetainPermissionsOnRevokeFailure = &v
 	return s
 }
 
@@ -19680,12 +22233,19 @@ type DeleteDataSourceOutput struct {
 	// are to be also automatically published to the catalog.
 	PublishOnImport *bool `locationName:"publishOnImport" type:"boolean"`
 
+	// Specifies that the granted permissions are retained in case of a self-subscribe
+	// functionality failure for a data source.
+	RetainPermissionsOnRevokeFailure *bool `locationName:"retainPermissionsOnRevokeFailure" type:"boolean"`
+
 	// The schedule of runs for this data source.
 	//
 	// Schedule is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by DeleteDataSourceOutput's
 	// String and GoString methods.
 	Schedule *ScheduleConfiguration `locationName:"schedule" type:"structure" sensitive:"true"`
+
+	// Specifies the status of the self-granting functionality.
+	SelfGrantStatus *SelfGrantStatusOutput_ `locationName:"selfGrantStatus" type:"structure"`
 
 	// The status of this data source.
 	Status *string `locationName:"status" type:"string" enum:"DataSourceStatus"`
@@ -19805,9 +22365,21 @@ func (s *DeleteDataSourceOutput) SetPublishOnImport(v bool) *DeleteDataSourceOut
 	return s
 }
 
+// SetRetainPermissionsOnRevokeFailure sets the RetainPermissionsOnRevokeFailure field's value.
+func (s *DeleteDataSourceOutput) SetRetainPermissionsOnRevokeFailure(v bool) *DeleteDataSourceOutput {
+	s.RetainPermissionsOnRevokeFailure = &v
+	return s
+}
+
 // SetSchedule sets the Schedule field's value.
 func (s *DeleteDataSourceOutput) SetSchedule(v *ScheduleConfiguration) *DeleteDataSourceOutput {
 	s.Schedule = v
+	return s
+}
+
+// SetSelfGrantStatus sets the SelfGrantStatus field's value.
+func (s *DeleteDataSourceOutput) SetSelfGrantStatus(v *SelfGrantStatusOutput_) *DeleteDataSourceOutput {
+	s.SelfGrantStatus = v
 	return s
 }
 
@@ -19928,6 +22500,111 @@ func (s DeleteDomainOutput) GoString() string {
 func (s *DeleteDomainOutput) SetStatus(v string) *DeleteDomainOutput {
 	s.Status = &v
 	return s
+}
+
+type DeleteEnvironmentActionInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon DataZone domain in which an environment action is deleted.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the environment where an environment action is deleted.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+
+	// The ID of the environment action that is deleted.
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteEnvironmentActionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteEnvironmentActionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteEnvironmentActionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteEnvironmentActionInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *DeleteEnvironmentActionInput) SetDomainIdentifier(v string) *DeleteEnvironmentActionInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *DeleteEnvironmentActionInput) SetEnvironmentIdentifier(v string) *DeleteEnvironmentActionInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *DeleteEnvironmentActionInput) SetIdentifier(v string) *DeleteEnvironmentActionInput {
+	s.Identifier = &v
+	return s
+}
+
+type DeleteEnvironmentActionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteEnvironmentActionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DeleteEnvironmentActionOutput) GoString() string {
+	return s.String()
 }
 
 type DeleteEnvironmentBlueprintConfigurationInput struct {
@@ -21451,6 +24128,111 @@ func (s *DetailedGlossaryTerm) SetShortDescription(v string) *DetailedGlossaryTe
 	return s
 }
 
+type DisassociateEnvironmentRoleInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon DataZone domain in which an environment role is disassociated.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the environment.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+
+	// The ARN of the environment role.
+	//
+	// EnvironmentRoleArn is a required field
+	EnvironmentRoleArn *string `location:"uri" locationName:"environmentRoleArn" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DisassociateEnvironmentRoleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DisassociateEnvironmentRoleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DisassociateEnvironmentRoleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DisassociateEnvironmentRoleInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+	if s.EnvironmentRoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentRoleArn"))
+	}
+	if s.EnvironmentRoleArn != nil && len(*s.EnvironmentRoleArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentRoleArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *DisassociateEnvironmentRoleInput) SetDomainIdentifier(v string) *DisassociateEnvironmentRoleInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *DisassociateEnvironmentRoleInput) SetEnvironmentIdentifier(v string) *DisassociateEnvironmentRoleInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+// SetEnvironmentRoleArn sets the EnvironmentRoleArn field's value.
+func (s *DisassociateEnvironmentRoleInput) SetEnvironmentRoleArn(v string) *DisassociateEnvironmentRoleInput {
+	s.EnvironmentRoleArn = &v
+	return s
+}
+
+type DisassociateEnvironmentRoleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DisassociateEnvironmentRoleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DisassociateEnvironmentRoleOutput) GoString() string {
+	return s.String()
+}
+
 // A summary of a Amazon DataZone domain.
 type DomainSummary struct {
 	_ struct{} `type:"structure"`
@@ -21575,6 +24357,95 @@ func (s *DomainSummary) SetStatus(v string) *DomainSummary {
 	return s
 }
 
+// The details about the specified action configured for an environment. For
+// example, the details of the specified console links for an analytics tool
+// that is available in this environment.
+type EnvironmentActionSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The environment action description.
+	Description *string `locationName:"description" type:"string"`
+
+	// The Amazon DataZone domain ID of the environment action.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The environment ID of the environment action.
+	//
+	// EnvironmentId is a required field
+	EnvironmentId *string `locationName:"environmentId" type:"string" required:"true"`
+
+	// The ID of the environment action.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the environment action.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The parameters of the environment action.
+	//
+	// Parameters is a required field
+	Parameters *ActionParameters `locationName:"parameters" type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s EnvironmentActionSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s EnvironmentActionSummary) GoString() string {
+	return s.String()
+}
+
+// SetDescription sets the Description field's value.
+func (s *EnvironmentActionSummary) SetDescription(v string) *EnvironmentActionSummary {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *EnvironmentActionSummary) SetDomainId(v string) *EnvironmentActionSummary {
+	s.DomainId = &v
+	return s
+}
+
+// SetEnvironmentId sets the EnvironmentId field's value.
+func (s *EnvironmentActionSummary) SetEnvironmentId(v string) *EnvironmentActionSummary {
+	s.EnvironmentId = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *EnvironmentActionSummary) SetId(v string) *EnvironmentActionSummary {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *EnvironmentActionSummary) SetName(v string) *EnvironmentActionSummary {
+	s.Name = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *EnvironmentActionSummary) SetParameters(v *ActionParameters) *EnvironmentActionSummary {
+	s.Parameters = v
+	return s
+}
+
 // The configuration details of an environment blueprint.
 type EnvironmentBlueprintConfigurationItem struct {
 	_ struct{} `type:"structure"`
@@ -21599,6 +24470,9 @@ type EnvironmentBlueprintConfigurationItem struct {
 	// The ARN of the manage access role specified in the environment blueprint
 	// configuration.
 	ManageAccessRoleArn *string `locationName:"manageAccessRoleArn" type:"string"`
+
+	// The provisioning configuration of a blueprint.
+	ProvisioningConfigurations []*ProvisioningConfiguration `locationName:"provisioningConfigurations" type:"list"`
 
 	// The ARN of the provisioning role specified in the environment blueprint configuration.
 	ProvisioningRoleArn *string `locationName:"provisioningRoleArn" type:"string"`
@@ -21655,6 +24529,12 @@ func (s *EnvironmentBlueprintConfigurationItem) SetEnvironmentBlueprintId(v stri
 // SetManageAccessRoleArn sets the ManageAccessRoleArn field's value.
 func (s *EnvironmentBlueprintConfigurationItem) SetManageAccessRoleArn(v string) *EnvironmentBlueprintConfigurationItem {
 	s.ManageAccessRoleArn = &v
+	return s
+}
+
+// SetProvisioningConfigurations sets the ProvisioningConfigurations field's value.
+func (s *EnvironmentBlueprintConfigurationItem) SetProvisioningConfigurations(v []*ProvisioningConfiguration) *EnvironmentBlueprintConfigurationItem {
+	s.ProvisioningConfigurations = v
 	return s
 }
 
@@ -22033,9 +24913,7 @@ type EnvironmentSummary struct {
 
 	// The identifier of the environment profile with which the environment was
 	// created.
-	//
-	// EnvironmentProfileId is a required field
-	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string" required:"true"`
+	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string"`
 
 	// The identifier of the environment.
 	Id *string `locationName:"id" type:"string"`
@@ -22159,6 +25037,67 @@ func (s *EnvironmentSummary) SetStatus(v string) *EnvironmentSummary {
 // SetUpdatedAt sets the UpdatedAt field's value.
 func (s *EnvironmentSummary) SetUpdatedAt(v time.Time) *EnvironmentSummary {
 	s.UpdatedAt = &v
+	return s
+}
+
+// Specifies whether the value is equal to an expression.
+type EqualToExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might be equal to an expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s EqualToExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s EqualToExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *EqualToExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "EqualToExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *EqualToExpression) SetColumnName(v string) *EqualToExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *EqualToExpression) SetValue(v string) *EqualToExpression {
+	s.Value = &v
 	return s
 }
 
@@ -22849,6 +25788,228 @@ func (s *FormTypeData) SetStatus(v string) *FormTypeData {
 	return s
 }
 
+type GetAssetFilterInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the data asset.
+	//
+	// AssetIdentifier is a required field
+	AssetIdentifier *string `location:"uri" locationName:"assetIdentifier" type:"string" required:"true"`
+
+	// The ID of the domain where you want to get an asset filter.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the asset filter.
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetAssetFilterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetAssetFilterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetAssetFilterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetAssetFilterInput"}
+	if s.AssetIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("AssetIdentifier"))
+	}
+	if s.AssetIdentifier != nil && len(*s.AssetIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssetIdentifier", 1))
+	}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAssetIdentifier sets the AssetIdentifier field's value.
+func (s *GetAssetFilterInput) SetAssetIdentifier(v string) *GetAssetFilterInput {
+	s.AssetIdentifier = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *GetAssetFilterInput) SetDomainIdentifier(v string) *GetAssetFilterInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *GetAssetFilterInput) SetIdentifier(v string) *GetAssetFilterInput {
+	s.Identifier = &v
+	return s
+}
+
+type GetAssetFilterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the data asset.
+	//
+	// AssetId is a required field
+	AssetId *string `locationName:"assetId" type:"string" required:"true"`
+
+	// The configuration of the asset filter.
+	//
+	// Configuration is a required field
+	Configuration *AssetFilterConfiguration `locationName:"configuration" type:"structure" required:"true"`
+
+	// The timestamp at which the asset filter was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The description of the asset filter.
+	//
+	// Description is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by GetAssetFilterOutput's
+	// String and GoString methods.
+	Description *string `locationName:"description" type:"string" sensitive:"true"`
+
+	// The ID of the domain where you want to get an asset filter.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The column names of the asset filter.
+	EffectiveColumnNames []*string `locationName:"effectiveColumnNames" type:"list"`
+
+	// The row filter of the asset filter.
+	EffectiveRowFilter *string `locationName:"effectiveRowFilter" type:"string"`
+
+	// The error message that is displayed if the action does not complete successfully.
+	ErrorMessage *string `locationName:"errorMessage" type:"string"`
+
+	// The ID of the asset filter.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the asset filter.
+	//
+	// Name is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by GetAssetFilterOutput's
+	// String and GoString methods.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" min:"1" type:"string" required:"true" sensitive:"true"`
+
+	// The status of the asset filter.
+	Status *string `locationName:"status" type:"string" enum:"FilterStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetAssetFilterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetAssetFilterOutput) GoString() string {
+	return s.String()
+}
+
+// SetAssetId sets the AssetId field's value.
+func (s *GetAssetFilterOutput) SetAssetId(v string) *GetAssetFilterOutput {
+	s.AssetId = &v
+	return s
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *GetAssetFilterOutput) SetConfiguration(v *AssetFilterConfiguration) *GetAssetFilterOutput {
+	s.Configuration = v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *GetAssetFilterOutput) SetCreatedAt(v time.Time) *GetAssetFilterOutput {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *GetAssetFilterOutput) SetDescription(v string) *GetAssetFilterOutput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *GetAssetFilterOutput) SetDomainId(v string) *GetAssetFilterOutput {
+	s.DomainId = &v
+	return s
+}
+
+// SetEffectiveColumnNames sets the EffectiveColumnNames field's value.
+func (s *GetAssetFilterOutput) SetEffectiveColumnNames(v []*string) *GetAssetFilterOutput {
+	s.EffectiveColumnNames = v
+	return s
+}
+
+// SetEffectiveRowFilter sets the EffectiveRowFilter field's value.
+func (s *GetAssetFilterOutput) SetEffectiveRowFilter(v string) *GetAssetFilterOutput {
+	s.EffectiveRowFilter = &v
+	return s
+}
+
+// SetErrorMessage sets the ErrorMessage field's value.
+func (s *GetAssetFilterOutput) SetErrorMessage(v string) *GetAssetFilterOutput {
+	s.ErrorMessage = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *GetAssetFilterOutput) SetId(v string) *GetAssetFilterOutput {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *GetAssetFilterOutput) SetName(v string) *GetAssetFilterOutput {
+	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *GetAssetFilterOutput) SetStatus(v string) *GetAssetFilterOutput {
+	s.Status = &v
+	return s
+}
+
 type GetAssetInput struct {
 	_ struct{} `type:"structure" nopayload:"true"`
 
@@ -23512,6 +26673,9 @@ type GetDataSourceOutput struct {
 	// String and GoString methods.
 	Schedule *ScheduleConfiguration `locationName:"schedule" type:"structure" sensitive:"true"`
 
+	// Specifies the status of the self-granting functionality.
+	SelfGrantStatus *SelfGrantStatusOutput_ `locationName:"selfGrantStatus" type:"structure"`
+
 	// The status of the data source.
 	Status *string `locationName:"status" type:"string" enum:"DataSourceStatus"`
 
@@ -23645,6 +26809,12 @@ func (s *GetDataSourceOutput) SetRecommendation(v *RecommendationConfiguration) 
 // SetSchedule sets the Schedule field's value.
 func (s *GetDataSourceOutput) SetSchedule(v *ScheduleConfiguration) *GetDataSourceOutput {
 	s.Schedule = v
+	return s
+}
+
+// SetSelfGrantStatus sets the SelfGrantStatus field's value.
+func (s *GetDataSourceOutput) SetSelfGrantStatus(v *SelfGrantStatusOutput_) *GetDataSourceOutput {
+	s.SelfGrantStatus = v
 	return s
 }
 
@@ -24075,6 +27245,176 @@ func (s *GetDomainOutput) SetTags(v map[string]*string) *GetDomainOutput {
 	return s
 }
 
+type GetEnvironmentActionInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon DataZone domain in which the GetEnvironmentAction API
+	// is invoked.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The environment ID of the environment action.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+
+	// The ID of the environment action
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentActionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentActionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetEnvironmentActionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetEnvironmentActionInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *GetEnvironmentActionInput) SetDomainIdentifier(v string) *GetEnvironmentActionInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *GetEnvironmentActionInput) SetEnvironmentIdentifier(v string) *GetEnvironmentActionInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *GetEnvironmentActionInput) SetIdentifier(v string) *GetEnvironmentActionInput {
+	s.Identifier = &v
+	return s
+}
+
+type GetEnvironmentActionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The description of the environment action.
+	Description *string `locationName:"description" type:"string"`
+
+	// The ID of the Amazon DataZone domain in which the environment action lives.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The environment ID of the environment action.
+	//
+	// EnvironmentId is a required field
+	EnvironmentId *string `locationName:"environmentId" type:"string" required:"true"`
+
+	// The ID of the environment action.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the environment action.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The parameters of the environment action.
+	//
+	// Parameters is a required field
+	Parameters *ActionParameters `locationName:"parameters" type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentActionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentActionOutput) GoString() string {
+	return s.String()
+}
+
+// SetDescription sets the Description field's value.
+func (s *GetEnvironmentActionOutput) SetDescription(v string) *GetEnvironmentActionOutput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *GetEnvironmentActionOutput) SetDomainId(v string) *GetEnvironmentActionOutput {
+	s.DomainId = &v
+	return s
+}
+
+// SetEnvironmentId sets the EnvironmentId field's value.
+func (s *GetEnvironmentActionOutput) SetEnvironmentId(v string) *GetEnvironmentActionOutput {
+	s.EnvironmentId = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *GetEnvironmentActionOutput) SetId(v string) *GetEnvironmentActionOutput {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *GetEnvironmentActionOutput) SetName(v string) *GetEnvironmentActionOutput {
+	s.Name = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *GetEnvironmentActionOutput) SetParameters(v *ActionParameters) *GetEnvironmentActionOutput {
+	s.Parameters = v
+	return s
+}
+
 type GetEnvironmentBlueprintConfigurationInput struct {
 	_ struct{} `type:"structure" nopayload:"true"`
 
@@ -24163,6 +27503,9 @@ type GetEnvironmentBlueprintConfigurationOutput struct {
 	// The ARN of the manage access role with which this blueprint is created.
 	ManageAccessRoleArn *string `locationName:"manageAccessRoleArn" type:"string"`
 
+	// The provisioning configuration of a blueprint.
+	ProvisioningConfigurations []*ProvisioningConfiguration `locationName:"provisioningConfigurations" type:"list"`
+
 	// The ARN of the provisioning role with which this blueprint is created.
 	ProvisioningRoleArn *string `locationName:"provisioningRoleArn" type:"string"`
 
@@ -24218,6 +27561,12 @@ func (s *GetEnvironmentBlueprintConfigurationOutput) SetEnvironmentBlueprintId(v
 // SetManageAccessRoleArn sets the ManageAccessRoleArn field's value.
 func (s *GetEnvironmentBlueprintConfigurationOutput) SetManageAccessRoleArn(v string) *GetEnvironmentBlueprintConfigurationOutput {
 	s.ManageAccessRoleArn = &v
+	return s
+}
+
+// SetProvisioningConfigurations sets the ProvisioningConfigurations field's value.
+func (s *GetEnvironmentBlueprintConfigurationOutput) SetProvisioningConfigurations(v []*ProvisioningConfiguration) *GetEnvironmentBlueprintConfigurationOutput {
+	s.ProvisioningConfigurations = v
 	return s
 }
 
@@ -24429,6 +27778,131 @@ func (s *GetEnvironmentBlueprintOutput) SetUserParameters(v []*CustomParameter) 
 	return s
 }
 
+type GetEnvironmentCredentialsInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon DataZone domain in which this environment and its credentials
+	// exist.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the environment whose credentials this operation gets.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentCredentialsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentCredentialsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetEnvironmentCredentialsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetEnvironmentCredentialsInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *GetEnvironmentCredentialsInput) SetDomainIdentifier(v string) *GetEnvironmentCredentialsInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *GetEnvironmentCredentialsInput) SetEnvironmentIdentifier(v string) *GetEnvironmentCredentialsInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+type GetEnvironmentCredentialsOutput struct {
+	_ struct{} `type:"structure" sensitive:"true"`
+
+	// The access key ID of the environment.
+	AccessKeyId *string `locationName:"accessKeyId" type:"string"`
+
+	// The expiration timestamp of the environment credentials.
+	Expiration *time.Time `locationName:"expiration" type:"timestamp" timestampFormat:"iso8601"`
+
+	// The secret access key of the environment credentials.
+	SecretAccessKey *string `locationName:"secretAccessKey" type:"string"`
+
+	// The session token of the environment credentials.
+	SessionToken *string `locationName:"sessionToken" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentCredentialsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetEnvironmentCredentialsOutput) GoString() string {
+	return s.String()
+}
+
+// SetAccessKeyId sets the AccessKeyId field's value.
+func (s *GetEnvironmentCredentialsOutput) SetAccessKeyId(v string) *GetEnvironmentCredentialsOutput {
+	s.AccessKeyId = &v
+	return s
+}
+
+// SetExpiration sets the Expiration field's value.
+func (s *GetEnvironmentCredentialsOutput) SetExpiration(v time.Time) *GetEnvironmentCredentialsOutput {
+	s.Expiration = &v
+	return s
+}
+
+// SetSecretAccessKey sets the SecretAccessKey field's value.
+func (s *GetEnvironmentCredentialsOutput) SetSecretAccessKey(v string) *GetEnvironmentCredentialsOutput {
+	s.SecretAccessKey = &v
+	return s
+}
+
+// SetSessionToken sets the SessionToken field's value.
+func (s *GetEnvironmentCredentialsOutput) SetSessionToken(v string) *GetEnvironmentCredentialsOutput {
+	s.SessionToken = &v
+	return s
+}
+
 type GetEnvironmentInput struct {
 	_ struct{} `type:"structure" nopayload:"true"`
 
@@ -24534,9 +28008,7 @@ type GetEnvironmentOutput struct {
 	EnvironmentBlueprintId *string `locationName:"environmentBlueprintId" type:"string"`
 
 	// The ID of the environment profile with which the environment is created.
-	//
-	// EnvironmentProfileId is a required field
-	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string" required:"true"`
+	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string"`
 
 	// The business glossary terms that can be used in this environment.
 	GlossaryTerms []*string `locationName:"glossaryTerms" min:"1" type:"list"`
@@ -25804,6 +29276,249 @@ func (s *GetIamPortalLoginUrlOutput) SetAuthCodeUrl(v string) *GetIamPortalLogin
 // SetUserProfileId sets the UserProfileId field's value.
 func (s *GetIamPortalLoginUrlOutput) SetUserProfileId(v string) *GetIamPortalLoginUrlOutput {
 	s.UserProfileId = &v
+	return s
+}
+
+type GetLineageNodeInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the domain in which you want to get the data lineage node.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The event time stamp for which you want to get the data lineage node.
+	EventTimestamp *time.Time `location:"querystring" locationName:"timestamp" type:"timestamp"`
+
+	// The ID of the data lineage node that you want to get.
+	//
+	// Both, a lineage node identifier generated by Amazon DataZone and a sourceIdentifier
+	// of the lineage node are supported. If sourceIdentifier is greater than 1800
+	// characters, you can use lineage node identifier generated by Amazon DataZone
+	// to get the node details.
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetLineageNodeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetLineageNodeInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetLineageNodeInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetLineageNodeInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *GetLineageNodeInput) SetDomainIdentifier(v string) *GetLineageNodeInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEventTimestamp sets the EventTimestamp field's value.
+func (s *GetLineageNodeInput) SetEventTimestamp(v time.Time) *GetLineageNodeInput {
+	s.EventTimestamp = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *GetLineageNodeInput) SetIdentifier(v string) *GetLineageNodeInput {
+	s.Identifier = &v
+	return s
+}
+
+type GetLineageNodeOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The timestamp at which the data lineage node was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The user who created the data lineage node.
+	CreatedBy *string `locationName:"createdBy" type:"string"`
+
+	// The description of the data lineage node.
+	Description *string `locationName:"description" type:"string"`
+
+	// The ID of the domain where you're getting the data lineage node.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The downsteam nodes of the specified data lineage node.
+	DownstreamNodes []*LineageNodeReference `locationName:"downstreamNodes" type:"list"`
+
+	// The timestamp of the event described in the data lineage node.
+	EventTimestamp *time.Time `locationName:"eventTimestamp" type:"timestamp"`
+
+	// The metadata of the specified data lineage node.
+	FormsOutput []*FormOutput_ `locationName:"formsOutput" type:"list"`
+
+	// The ID of the data lineage node.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the data lineage node.
+	Name *string `locationName:"name" type:"string"`
+
+	// The source identifier of the data lineage node.
+	SourceIdentifier *string `locationName:"sourceIdentifier" type:"string"`
+
+	// The name of the type of the specified data lineage node.
+	//
+	// TypeName is a required field
+	TypeName *string `locationName:"typeName" type:"string" required:"true"`
+
+	// The revision type of the specified data lineage node.
+	TypeRevision *string `locationName:"typeRevision" min:"1" type:"string"`
+
+	// The timestamp at which the data lineage node was updated.
+	UpdatedAt *time.Time `locationName:"updatedAt" type:"timestamp"`
+
+	// The user who updated the data lineage node.
+	UpdatedBy *string `locationName:"updatedBy" type:"string"`
+
+	// The upstream nodes of the specified data lineage node.
+	UpstreamNodes []*LineageNodeReference `locationName:"upstreamNodes" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetLineageNodeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GetLineageNodeOutput) GoString() string {
+	return s.String()
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *GetLineageNodeOutput) SetCreatedAt(v time.Time) *GetLineageNodeOutput {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetCreatedBy sets the CreatedBy field's value.
+func (s *GetLineageNodeOutput) SetCreatedBy(v string) *GetLineageNodeOutput {
+	s.CreatedBy = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *GetLineageNodeOutput) SetDescription(v string) *GetLineageNodeOutput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *GetLineageNodeOutput) SetDomainId(v string) *GetLineageNodeOutput {
+	s.DomainId = &v
+	return s
+}
+
+// SetDownstreamNodes sets the DownstreamNodes field's value.
+func (s *GetLineageNodeOutput) SetDownstreamNodes(v []*LineageNodeReference) *GetLineageNodeOutput {
+	s.DownstreamNodes = v
+	return s
+}
+
+// SetEventTimestamp sets the EventTimestamp field's value.
+func (s *GetLineageNodeOutput) SetEventTimestamp(v time.Time) *GetLineageNodeOutput {
+	s.EventTimestamp = &v
+	return s
+}
+
+// SetFormsOutput sets the FormsOutput field's value.
+func (s *GetLineageNodeOutput) SetFormsOutput(v []*FormOutput_) *GetLineageNodeOutput {
+	s.FormsOutput = v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *GetLineageNodeOutput) SetId(v string) *GetLineageNodeOutput {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *GetLineageNodeOutput) SetName(v string) *GetLineageNodeOutput {
+	s.Name = &v
+	return s
+}
+
+// SetSourceIdentifier sets the SourceIdentifier field's value.
+func (s *GetLineageNodeOutput) SetSourceIdentifier(v string) *GetLineageNodeOutput {
+	s.SourceIdentifier = &v
+	return s
+}
+
+// SetTypeName sets the TypeName field's value.
+func (s *GetLineageNodeOutput) SetTypeName(v string) *GetLineageNodeOutput {
+	s.TypeName = &v
+	return s
+}
+
+// SetTypeRevision sets the TypeRevision field's value.
+func (s *GetLineageNodeOutput) SetTypeRevision(v string) *GetLineageNodeOutput {
+	s.TypeRevision = &v
+	return s
+}
+
+// SetUpdatedAt sets the UpdatedAt field's value.
+func (s *GetLineageNodeOutput) SetUpdatedAt(v time.Time) *GetLineageNodeOutput {
+	s.UpdatedAt = &v
+	return s
+}
+
+// SetUpdatedBy sets the UpdatedBy field's value.
+func (s *GetLineageNodeOutput) SetUpdatedBy(v string) *GetLineageNodeOutput {
+	s.UpdatedBy = &v
+	return s
+}
+
+// SetUpstreamNodes sets the UpstreamNodes field's value.
+func (s *GetLineageNodeOutput) SetUpstreamNodes(v []*LineageNodeReference) *GetLineageNodeOutput {
+	s.UpstreamNodes = v
 	return s
 }
 
@@ -28051,6 +31766,40 @@ func (s *GlueRunConfigurationOutput_) SetRelationalFilterConfigurations(v []*Rel
 	return s
 }
 
+// The details of the self granting status.
+type GlueSelfGrantStatusOutput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The details for the self granting status for a Glue data source.
+	//
+	// SelfGrantStatusDetails is a required field
+	SelfGrantStatusDetails []*SelfGrantStatusDetail `locationName:"selfGrantStatusDetails" type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GlueSelfGrantStatusOutput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GlueSelfGrantStatusOutput_) GoString() string {
+	return s.String()
+}
+
+// SetSelfGrantStatusDetails sets the SelfGrantStatusDetails field's value.
+func (s *GlueSelfGrantStatusOutput_) SetSelfGrantStatusDetails(v []*SelfGrantStatusDetail) *GlueSelfGrantStatusOutput_ {
+	s.SelfGrantStatusDetails = v
+	return s
+}
+
 // The details of a listing for which a subscription is granted.
 type GrantedEntity struct {
 	_ struct{} `type:"structure"`
@@ -28127,6 +31876,128 @@ func (s *GrantedEntityInput_) Validate() error {
 // SetListing sets the Listing field's value.
 func (s *GrantedEntityInput_) SetListing(v *ListingRevisionInput_) *GrantedEntityInput_ {
 	s.Listing = v
+	return s
+}
+
+// Specifies whether the value is greater than an expression.
+type GreaterThanExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might be greater than an expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GreaterThanExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GreaterThanExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GreaterThanExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GreaterThanExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *GreaterThanExpression) SetColumnName(v string) *GreaterThanExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *GreaterThanExpression) SetValue(v string) *GreaterThanExpression {
+	s.Value = &v
+	return s
+}
+
+// Specifies whether the value is greater than or equal to an expression.
+type GreaterThanOrEqualToExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might be greater than or equal to an expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GreaterThanOrEqualToExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s GreaterThanOrEqualToExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GreaterThanOrEqualToExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GreaterThanOrEqualToExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *GreaterThanOrEqualToExpression) SetColumnName(v string) *GreaterThanOrEqualToExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *GreaterThanOrEqualToExpression) SetValue(v string) *GreaterThanOrEqualToExpression {
+	s.Value = &v
 	return s
 }
 
@@ -28308,6 +32179,67 @@ func (s *Import) SetRevision(v string) *Import {
 	return s
 }
 
+// Specifies whether values are in the expression.
+type InExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The values that might be in the expression.
+	//
+	// Values is a required field
+	Values []*string `locationName:"values" type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s InExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Values == nil {
+		invalidParams.Add(request.NewErrParamRequired("Values"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *InExpression) SetColumnName(v string) *InExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValues sets the Values field's value.
+func (s *InExpression) SetValues(v []*string) *InExpression {
+	s.Values = v
+	return s
+}
+
 // The request has failed because of an unknown error, exception or failure.
 type InternalServerException struct {
 	_            struct{}                  `type:"structure"`
@@ -28370,6 +32302,766 @@ func (s *InternalServerException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *InternalServerException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+// Specifies that the expression is not null.
+type IsNotNullExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IsNotNullExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IsNotNullExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *IsNotNullExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "IsNotNullExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *IsNotNullExpression) SetColumnName(v string) *IsNotNullExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// Specifies that the expression is null.
+type IsNullExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IsNullExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IsNullExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *IsNullExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "IsNullExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *IsNullExpression) SetColumnName(v string) *IsNullExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// The Lake Formation configuration of the Data Lake blueprint.
+type LakeFormationConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies certain Amazon S3 locations if you do not want Amazon DataZone
+	// to automatically register them in hybrid mode.
+	LocationRegistrationExcludeS3Locations []*string `locationName:"locationRegistrationExcludeS3Locations" type:"list"`
+
+	// The role that is used to manage read/write access to the chosen Amazon S3
+	// bucket(s) for Data Lake using AWS Lake Formation hybrid access mode.
+	LocationRegistrationRole *string `locationName:"locationRegistrationRole" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LakeFormationConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LakeFormationConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetLocationRegistrationExcludeS3Locations sets the LocationRegistrationExcludeS3Locations field's value.
+func (s *LakeFormationConfiguration) SetLocationRegistrationExcludeS3Locations(v []*string) *LakeFormationConfiguration {
+	s.LocationRegistrationExcludeS3Locations = v
+	return s
+}
+
+// SetLocationRegistrationRole sets the LocationRegistrationRole field's value.
+func (s *LakeFormationConfiguration) SetLocationRegistrationRole(v string) *LakeFormationConfiguration {
+	s.LocationRegistrationRole = &v
+	return s
+}
+
+// Specifies that a value is less than an expression.
+type LessThanExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might be less than the expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LessThanExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LessThanExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *LessThanExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "LessThanExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *LessThanExpression) SetColumnName(v string) *LessThanExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *LessThanExpression) SetValue(v string) *LessThanExpression {
+	s.Value = &v
+	return s
+}
+
+// Specifies that a value is less than or equal to an expression.
+type LessThanOrEqualToExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might be less than or equal to an expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LessThanOrEqualToExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LessThanOrEqualToExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *LessThanOrEqualToExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "LessThanOrEqualToExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *LessThanOrEqualToExpression) SetColumnName(v string) *LessThanOrEqualToExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *LessThanOrEqualToExpression) SetValue(v string) *LessThanOrEqualToExpression {
+	s.Value = &v
+	return s
+}
+
+// Specifies that a value is like the expression.
+type LikeExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might be like the expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LikeExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LikeExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *LikeExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "LikeExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *LikeExpression) SetColumnName(v string) *LikeExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *LikeExpression) SetValue(v string) *LikeExpression {
+	s.Value = &v
+	return s
+}
+
+// The reference details for the data lineage node.
+type LineageNodeReference struct {
+	_ struct{} `type:"structure"`
+
+	// The event timestamp of the data lineage node.
+	EventTimestamp *time.Time `locationName:"eventTimestamp" type:"timestamp"`
+
+	// The ID of the data lineage node.
+	Id *string `locationName:"id" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LineageNodeReference) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LineageNodeReference) GoString() string {
+	return s.String()
+}
+
+// SetEventTimestamp sets the EventTimestamp field's value.
+func (s *LineageNodeReference) SetEventTimestamp(v time.Time) *LineageNodeReference {
+	s.EventTimestamp = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *LineageNodeReference) SetId(v string) *LineageNodeReference {
+	s.Id = &v
+	return s
+}
+
+// The summary of the data lineage node.
+type LineageNodeSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The timestamp at which the data lineage node was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The user who created the data lineage node.
+	CreatedBy *string `locationName:"createdBy" type:"string"`
+
+	// The description of the data lineage node.
+	Description *string `locationName:"description" type:"string"`
+
+	// The ID of the domain of the data lineage node.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The event timestamp of the data lineage node.
+	EventTimestamp *time.Time `locationName:"eventTimestamp" type:"timestamp"`
+
+	// The ID of the data lineage node.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the data lineage node.
+	Name *string `locationName:"name" type:"string"`
+
+	// The alternate ID of the data lineage node.
+	SourceIdentifier *string `locationName:"sourceIdentifier" type:"string"`
+
+	// The name of the type of the data lineage node.
+	//
+	// TypeName is a required field
+	TypeName *string `locationName:"typeName" type:"string" required:"true"`
+
+	// The type of the revision of the data lineage node.
+	TypeRevision *string `locationName:"typeRevision" min:"1" type:"string"`
+
+	// The timestamp at which the data lineage node was updated.
+	UpdatedAt *time.Time `locationName:"updatedAt" type:"timestamp"`
+
+	// The user who updated the data lineage node.
+	UpdatedBy *string `locationName:"updatedBy" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LineageNodeSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LineageNodeSummary) GoString() string {
+	return s.String()
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *LineageNodeSummary) SetCreatedAt(v time.Time) *LineageNodeSummary {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetCreatedBy sets the CreatedBy field's value.
+func (s *LineageNodeSummary) SetCreatedBy(v string) *LineageNodeSummary {
+	s.CreatedBy = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *LineageNodeSummary) SetDescription(v string) *LineageNodeSummary {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *LineageNodeSummary) SetDomainId(v string) *LineageNodeSummary {
+	s.DomainId = &v
+	return s
+}
+
+// SetEventTimestamp sets the EventTimestamp field's value.
+func (s *LineageNodeSummary) SetEventTimestamp(v time.Time) *LineageNodeSummary {
+	s.EventTimestamp = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *LineageNodeSummary) SetId(v string) *LineageNodeSummary {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *LineageNodeSummary) SetName(v string) *LineageNodeSummary {
+	s.Name = &v
+	return s
+}
+
+// SetSourceIdentifier sets the SourceIdentifier field's value.
+func (s *LineageNodeSummary) SetSourceIdentifier(v string) *LineageNodeSummary {
+	s.SourceIdentifier = &v
+	return s
+}
+
+// SetTypeName sets the TypeName field's value.
+func (s *LineageNodeSummary) SetTypeName(v string) *LineageNodeSummary {
+	s.TypeName = &v
+	return s
+}
+
+// SetTypeRevision sets the TypeRevision field's value.
+func (s *LineageNodeSummary) SetTypeRevision(v string) *LineageNodeSummary {
+	s.TypeRevision = &v
+	return s
+}
+
+// SetUpdatedAt sets the UpdatedAt field's value.
+func (s *LineageNodeSummary) SetUpdatedAt(v time.Time) *LineageNodeSummary {
+	s.UpdatedAt = &v
+	return s
+}
+
+// SetUpdatedBy sets the UpdatedBy field's value.
+func (s *LineageNodeSummary) SetUpdatedBy(v string) *LineageNodeSummary {
+	s.UpdatedBy = &v
+	return s
+}
+
+// The details of a data lineage node type.
+type LineageNodeTypeItem struct {
+	_ struct{} `type:"structure"`
+
+	// The timestamp at which the data lineage node type was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The user who created the data lineage node type.
+	CreatedBy *string `locationName:"createdBy" type:"string"`
+
+	// The description of the data lineage node type.
+	Description *string `locationName:"description" type:"string"`
+
+	// The ID of the domain where the data lineage node type lives.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The forms output of the data lineage node type.
+	//
+	// FormsOutput is a required field
+	FormsOutput map[string]*FormEntryOutput_ `locationName:"formsOutput" type:"map" required:"true"`
+
+	// The name of the data lineage node type.
+	Name *string `locationName:"name" type:"string"`
+
+	// The revision of the data lineage node type.
+	//
+	// Revision is a required field
+	Revision *string `locationName:"revision" min:"1" type:"string" required:"true"`
+
+	// The timestamp at which the data lineage node type was updated.
+	UpdatedAt *time.Time `locationName:"updatedAt" type:"timestamp"`
+
+	// The user who updated the data lineage node type.
+	UpdatedBy *string `locationName:"updatedBy" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LineageNodeTypeItem) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s LineageNodeTypeItem) GoString() string {
+	return s.String()
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *LineageNodeTypeItem) SetCreatedAt(v time.Time) *LineageNodeTypeItem {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetCreatedBy sets the CreatedBy field's value.
+func (s *LineageNodeTypeItem) SetCreatedBy(v string) *LineageNodeTypeItem {
+	s.CreatedBy = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *LineageNodeTypeItem) SetDescription(v string) *LineageNodeTypeItem {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *LineageNodeTypeItem) SetDomainId(v string) *LineageNodeTypeItem {
+	s.DomainId = &v
+	return s
+}
+
+// SetFormsOutput sets the FormsOutput field's value.
+func (s *LineageNodeTypeItem) SetFormsOutput(v map[string]*FormEntryOutput_) *LineageNodeTypeItem {
+	s.FormsOutput = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *LineageNodeTypeItem) SetName(v string) *LineageNodeTypeItem {
+	s.Name = &v
+	return s
+}
+
+// SetRevision sets the Revision field's value.
+func (s *LineageNodeTypeItem) SetRevision(v string) *LineageNodeTypeItem {
+	s.Revision = &v
+	return s
+}
+
+// SetUpdatedAt sets the UpdatedAt field's value.
+func (s *LineageNodeTypeItem) SetUpdatedAt(v time.Time) *LineageNodeTypeItem {
+	s.UpdatedAt = &v
+	return s
+}
+
+// SetUpdatedBy sets the UpdatedBy field's value.
+func (s *LineageNodeTypeItem) SetUpdatedBy(v string) *LineageNodeTypeItem {
+	s.UpdatedBy = &v
+	return s
+}
+
+type ListAssetFiltersInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the data asset.
+	//
+	// AssetIdentifier is a required field
+	AssetIdentifier *string `location:"uri" locationName:"assetIdentifier" type:"string" required:"true"`
+
+	// The ID of the domain where you want to list asset filters.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The maximum number of asset filters to return in a single call to ListAssetFilters.
+	// When the number of asset filters to be listed is greater than the value of
+	// MaxResults, the response contains a NextToken value that you can use in a
+	// subsequent call to ListAssetFilters to list the next set of asset filters.
+	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
+
+	// When the number of asset filters is greater than the default value for the
+	// MaxResults parameter, or if you explicitly specify a value for MaxResults
+	// that is less than the number of asset filters, the response includes a pagination
+	// token named NextToken. You can specify this NextToken value in a subsequent
+	// call to ListAssetFilters to list the next set of asset filters.
+	NextToken *string `location:"querystring" locationName:"nextToken" min:"1" type:"string"`
+
+	// The status of the asset filter.
+	Status *string `location:"querystring" locationName:"status" type:"string" enum:"FilterStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListAssetFiltersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListAssetFiltersInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListAssetFiltersInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListAssetFiltersInput"}
+	if s.AssetIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("AssetIdentifier"))
+	}
+	if s.AssetIdentifier != nil && len(*s.AssetIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssetIdentifier", 1))
+	}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAssetIdentifier sets the AssetIdentifier field's value.
+func (s *ListAssetFiltersInput) SetAssetIdentifier(v string) *ListAssetFiltersInput {
+	s.AssetIdentifier = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *ListAssetFiltersInput) SetDomainIdentifier(v string) *ListAssetFiltersInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListAssetFiltersInput) SetMaxResults(v int64) *ListAssetFiltersInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListAssetFiltersInput) SetNextToken(v string) *ListAssetFiltersInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ListAssetFiltersInput) SetStatus(v string) *ListAssetFiltersInput {
+	s.Status = &v
+	return s
+}
+
+type ListAssetFiltersOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The results of the ListAssetFilters action.
+	//
+	// Items is a required field
+	Items []*AssetFilterSummary `locationName:"items" type:"list" required:"true"`
+
+	// When the number of asset filters is greater than the default value for the
+	// MaxResults parameter, or if you explicitly specify a value for MaxResults
+	// that is less than the number of asset filters, the response includes a pagination
+	// token named NextToken. You can specify this NextToken value in a subsequent
+	// call to ListAssetFilters to list the next set of asset filters.
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListAssetFiltersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListAssetFiltersOutput) GoString() string {
+	return s.String()
+}
+
+// SetItems sets the Items field's value.
+func (s *ListAssetFiltersOutput) SetItems(v []*AssetFilterSummary) *ListAssetFiltersOutput {
+	s.Items = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListAssetFiltersOutput) SetNextToken(v string) *ListAssetFiltersOutput {
+	s.NextToken = &v
+	return s
 }
 
 type ListAssetRevisionsInput struct {
@@ -29123,6 +33815,151 @@ func (s *ListDomainsOutput) SetNextToken(v string) *ListDomainsOutput {
 	return s
 }
 
+type ListEnvironmentActionsInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The ID of the Amazon DataZone domain in which the environment actions are
+	// listed.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the envrironment whose environment actions are listed.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+
+	// The maximum number of environment actions to return in a single call to ListEnvironmentActions.
+	// When the number of environment actions to be listed is greater than the value
+	// of MaxResults, the response contains a NextToken value that you can use in
+	// a subsequent call to ListEnvironmentActions to list the next set of environment
+	// actions.
+	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
+
+	// When the number of environment actions is greater than the default value
+	// for the MaxResults parameter, or if you explicitly specify a value for MaxResults
+	// that is less than the number of environment actions, the response includes
+	// a pagination token named NextToken. You can specify this NextToken value
+	// in a subsequent call to ListEnvironmentActions to list the next set of environment
+	// actions.
+	NextToken *string `location:"querystring" locationName:"nextToken" min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListEnvironmentActionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListEnvironmentActionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListEnvironmentActionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListEnvironmentActionsInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *ListEnvironmentActionsInput) SetDomainIdentifier(v string) *ListEnvironmentActionsInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *ListEnvironmentActionsInput) SetEnvironmentIdentifier(v string) *ListEnvironmentActionsInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListEnvironmentActionsInput) SetMaxResults(v int64) *ListEnvironmentActionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListEnvironmentActionsInput) SetNextToken(v string) *ListEnvironmentActionsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListEnvironmentActionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The results of ListEnvironmentActions.
+	Items []*EnvironmentActionSummary `locationName:"items" type:"list"`
+
+	// When the number of environment actions is greater than the default value
+	// for the MaxResults parameter, or if you explicitly specify a value for MaxResults
+	// that is less than the number of environment actions, the response includes
+	// a pagination token named NextToken. You can specify this NextToken value
+	// in a subsequent call to ListEnvironmentActions to list the next set of environment
+	// actions.
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListEnvironmentActionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListEnvironmentActionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetItems sets the Items field's value.
+func (s *ListEnvironmentActionsOutput) SetItems(v []*EnvironmentActionSummary) *ListEnvironmentActionsOutput {
+	s.Items = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListEnvironmentActionsOutput) SetNextToken(v string) *ListEnvironmentActionsOutput {
+	s.NextToken = &v
+	return s
+}
+
 type ListEnvironmentBlueprintConfigurationsInput struct {
 	_ struct{} `type:"structure" nopayload:"true"`
 
@@ -29779,6 +34616,188 @@ func (s *ListEnvironmentsOutput) SetItems(v []*EnvironmentSummary) *ListEnvironm
 // SetNextToken sets the NextToken field's value.
 func (s *ListEnvironmentsOutput) SetNextToken(v string) *ListEnvironmentsOutput {
 	s.NextToken = &v
+	return s
+}
+
+type ListLineageNodeHistoryInput struct {
+	_ struct{} `type:"structure" nopayload:"true"`
+
+	// The direction of the data lineage node refers to the lineage node having
+	// neighbors in that direction. For example, if direction is UPSTREAM, the ListLineageNodeHistory
+	// API responds with historical versions with upstream neighbors only.
+	Direction *string `location:"querystring" locationName:"direction" type:"string" enum:"EdgeDirection"`
+
+	// The ID of the domain where you want to list the history of the specified
+	// data lineage node.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// Specifies whether the action is to return data lineage node history from
+	// the time after the event timestamp.
+	EventTimestampGTE *time.Time `location:"querystring" locationName:"timestampGTE" type:"timestamp"`
+
+	// Specifies whether the action is to return data lineage node history from
+	// the time prior of the event timestamp.
+	EventTimestampLTE *time.Time `location:"querystring" locationName:"timestampLTE" type:"timestamp"`
+
+	// The ID of the data lineage node whose history you want to list.
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" min:"1" type:"string" required:"true"`
+
+	// The maximum number of history items to return in a single call to ListLineageNodeHistory.
+	// When the number of memberships to be listed is greater than the value of
+	// MaxResults, the response contains a NextToken value that you can use in a
+	// subsequent call to ListLineageNodeHistory to list the next set of items.
+	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
+
+	// When the number of history items is greater than the default value for the
+	// MaxResults parameter, or if you explicitly specify a value for MaxResults
+	// that is less than the number of items, the response includes a pagination
+	// token named NextToken. You can specify this NextToken value in a subsequent
+	// call to ListLineageNodeHistory to list the next set of items.
+	NextToken *string `location:"querystring" locationName:"nextToken" min:"1" type:"string"`
+
+	// The order by which you want data lineage node history to be sorted.
+	SortOrder *string `location:"querystring" locationName:"sortOrder" type:"string" enum:"SortOrder"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListLineageNodeHistoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListLineageNodeHistoryInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListLineageNodeHistoryInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListLineageNodeHistoryInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDirection sets the Direction field's value.
+func (s *ListLineageNodeHistoryInput) SetDirection(v string) *ListLineageNodeHistoryInput {
+	s.Direction = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *ListLineageNodeHistoryInput) SetDomainIdentifier(v string) *ListLineageNodeHistoryInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEventTimestampGTE sets the EventTimestampGTE field's value.
+func (s *ListLineageNodeHistoryInput) SetEventTimestampGTE(v time.Time) *ListLineageNodeHistoryInput {
+	s.EventTimestampGTE = &v
+	return s
+}
+
+// SetEventTimestampLTE sets the EventTimestampLTE field's value.
+func (s *ListLineageNodeHistoryInput) SetEventTimestampLTE(v time.Time) *ListLineageNodeHistoryInput {
+	s.EventTimestampLTE = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *ListLineageNodeHistoryInput) SetIdentifier(v string) *ListLineageNodeHistoryInput {
+	s.Identifier = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListLineageNodeHistoryInput) SetMaxResults(v int64) *ListLineageNodeHistoryInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLineageNodeHistoryInput) SetNextToken(v string) *ListLineageNodeHistoryInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListLineageNodeHistoryInput) SetSortOrder(v string) *ListLineageNodeHistoryInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListLineageNodeHistoryOutput struct {
+	_ struct{} `type:"structure"`
+
+	// When the number of history items is greater than the default value for the
+	// MaxResults parameter, or if you explicitly specify a value for MaxResults
+	// that is less than the number of items, the response includes a pagination
+	// token named NextToken. You can specify this NextToken value in a subsequent
+	// call to ListLineageNodeHistory to list the next set of items.
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
+
+	// The nodes returned by the ListLineageNodeHistory action.
+	Nodes []*LineageNodeSummary `locationName:"nodes" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListLineageNodeHistoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ListLineageNodeHistoryOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLineageNodeHistoryOutput) SetNextToken(v string) *ListLineageNodeHistoryOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetNodes sets the Nodes field's value.
+func (s *ListLineageNodeHistoryOutput) SetNodes(v []*LineageNodeSummary) *ListLineageNodeHistoryOutput {
+	s.Nodes = v
 	return s
 }
 
@@ -31865,6 +36884,189 @@ func (s *Model) SetSmithy(v string) *Model {
 	return s
 }
 
+// Specifies that a value is not equal to the expression.
+type NotEqualToExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might not be equal to the expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NotEqualToExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NotEqualToExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *NotEqualToExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "NotEqualToExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *NotEqualToExpression) SetColumnName(v string) *NotEqualToExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *NotEqualToExpression) SetValue(v string) *NotEqualToExpression {
+	s.Value = &v
+	return s
+}
+
+// Specifies that a value is not in the expression.
+type NotInExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might not be in the expression.
+	//
+	// Values is a required field
+	Values []*string `locationName:"values" type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NotInExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NotInExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *NotInExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "NotInExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Values == nil {
+		invalidParams.Add(request.NewErrParamRequired("Values"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *NotInExpression) SetColumnName(v string) *NotInExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValues sets the Values field's value.
+func (s *NotInExpression) SetValues(v []*string) *NotInExpression {
+	s.Values = v
+	return s
+}
+
+// Specifies that a value might be not like the expression.
+type NotLikeExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `locationName:"columnName" type:"string" required:"true"`
+
+	// The value that might not be like the expression.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NotLikeExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NotLikeExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *NotLikeExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "NotLikeExpression"}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *NotLikeExpression) SetColumnName(v string) *NotLikeExpression {
+	s.ColumnName = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *NotLikeExpression) SetValue(v string) *NotLikeExpression {
+	s.Value = &v
+	return s
+}
+
 // The details of a notification generated in Amazon DataZone.
 type NotificationOutput_ struct {
 	_ struct{} `type:"structure"`
@@ -32069,6 +37271,109 @@ func (s *NotificationResource) SetName(v string) *NotificationResource {
 func (s *NotificationResource) SetType(v string) *NotificationResource {
 	s.Type = &v
 	return s
+}
+
+type PostLineageEventInput struct {
+	_ struct{} `type:"structure" payload:"Event"`
+
+	// A unique, case-sensitive identifier that is provided to ensure the idempotency
+	// of the request.
+	ClientToken *string `location:"querystring" locationName:"clientToken" min:"1" type:"string" idempotencyToken:"true"`
+
+	// The ID of the domain where you want to post a data lineage event.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The data lineage event that you want to post. Only open-lineage run event
+	// are supported as events.
+	//
+	// Event is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by PostLineageEventInput's
+	// String and GoString methods.
+	//
+	// Event is a required field
+	Event []byte `locationName:"event" type:"blob" required:"true" sensitive:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s PostLineageEventInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s PostLineageEventInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PostLineageEventInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PostLineageEventInput"}
+	if s.ClientToken != nil && len(*s.ClientToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ClientToken", 1))
+	}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.Event == nil {
+		invalidParams.Add(request.NewErrParamRequired("Event"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *PostLineageEventInput) SetClientToken(v string) *PostLineageEventInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *PostLineageEventInput) SetDomainIdentifier(v string) *PostLineageEventInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEvent sets the Event field's value.
+func (s *PostLineageEventInput) SetEvent(v []byte) *PostLineageEventInput {
+	s.Event = v
+	return s
+}
+
+type PostLineageEventOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s PostLineageEventOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s PostLineageEventOutput) GoString() string {
+	return s.String()
 }
 
 type PostTimeSeriesDataPointsInput struct {
@@ -32491,6 +37796,38 @@ func (s *ProjectSummary) SetUpdatedAt(v time.Time) *ProjectSummary {
 	return s
 }
 
+// The provisioning configuration of the blueprint.
+type ProvisioningConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The Lake Formation configuration of the Data Lake blueprint.
+	LakeFormationConfiguration *LakeFormationConfiguration `locationName:"lakeFormationConfiguration" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ProvisioningConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ProvisioningConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetLakeFormationConfiguration sets the LakeFormationConfiguration field's value.
+func (s *ProvisioningConfiguration) SetLakeFormationConfiguration(v *LakeFormationConfiguration) *ProvisioningConfiguration {
+	s.LakeFormationConfiguration = v
+	return s
+}
+
 // The provisioning properties of an environment blueprint.
 type ProvisioningProperties struct {
 	_ struct{} `type:"structure"`
@@ -32544,6 +37881,9 @@ type PutEnvironmentBlueprintConfigurationInput struct {
 
 	// The ARN of the manage access role.
 	ManageAccessRoleArn *string `locationName:"manageAccessRoleArn" type:"string"`
+
+	// The provisioning configuration of a blueprint.
+	ProvisioningConfigurations []*ProvisioningConfiguration `locationName:"provisioningConfigurations" type:"list"`
 
 	// The ARN of the provisioning role.
 	ProvisioningRoleArn *string `locationName:"provisioningRoleArn" type:"string"`
@@ -32619,6 +37959,12 @@ func (s *PutEnvironmentBlueprintConfigurationInput) SetManageAccessRoleArn(v str
 	return s
 }
 
+// SetProvisioningConfigurations sets the ProvisioningConfigurations field's value.
+func (s *PutEnvironmentBlueprintConfigurationInput) SetProvisioningConfigurations(v []*ProvisioningConfiguration) *PutEnvironmentBlueprintConfigurationInput {
+	s.ProvisioningConfigurations = v
+	return s
+}
+
 // SetProvisioningRoleArn sets the ProvisioningRoleArn field's value.
 func (s *PutEnvironmentBlueprintConfigurationInput) SetProvisioningRoleArn(v string) *PutEnvironmentBlueprintConfigurationInput {
 	s.ProvisioningRoleArn = &v
@@ -32652,6 +37998,9 @@ type PutEnvironmentBlueprintConfigurationOutput struct {
 
 	// The ARN of the manage access role.
 	ManageAccessRoleArn *string `locationName:"manageAccessRoleArn" type:"string"`
+
+	// The provisioning configuration of a blueprint.
+	ProvisioningConfigurations []*ProvisioningConfiguration `locationName:"provisioningConfigurations" type:"list"`
 
 	// The ARN of the provisioning role.
 	ProvisioningRoleArn *string `locationName:"provisioningRoleArn" type:"string"`
@@ -32708,6 +38057,12 @@ func (s *PutEnvironmentBlueprintConfigurationOutput) SetEnvironmentBlueprintId(v
 // SetManageAccessRoleArn sets the ManageAccessRoleArn field's value.
 func (s *PutEnvironmentBlueprintConfigurationOutput) SetManageAccessRoleArn(v string) *PutEnvironmentBlueprintConfigurationOutput {
 	s.ManageAccessRoleArn = &v
+	return s
+}
+
+// SetProvisioningConfigurations sets the ProvisioningConfigurations field's value.
+func (s *PutEnvironmentBlueprintConfigurationOutput) SetProvisioningConfigurations(v []*ProvisioningConfiguration) *PutEnvironmentBlueprintConfigurationOutput {
+	s.ProvisioningConfigurations = v
 	return s
 }
 
@@ -33051,6 +38406,40 @@ func (s *RedshiftRunConfigurationOutput_) SetRegion(v string) *RedshiftRunConfig
 // SetRelationalFilterConfigurations sets the RelationalFilterConfigurations field's value.
 func (s *RedshiftRunConfigurationOutput_) SetRelationalFilterConfigurations(v []*RelationalFilterConfiguration) *RedshiftRunConfigurationOutput_ {
 	s.RelationalFilterConfigurations = v
+	return s
+}
+
+// The details for the self granting status for an Amazon Redshift data source.
+type RedshiftSelfGrantStatusOutput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The details for the self granting status for an Amazon Redshift data source.
+	//
+	// SelfGrantStatusDetails is a required field
+	SelfGrantStatusDetails []*SelfGrantStatusDetail `locationName:"selfGrantStatusDetails" type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RedshiftSelfGrantStatusOutput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RedshiftSelfGrantStatusOutput_) GoString() string {
+	return s.String()
+}
+
+// SetSelfGrantStatusDetails sets the SelfGrantStatusDetails field's value.
+func (s *RedshiftSelfGrantStatusOutput_) SetSelfGrantStatusDetails(v []*SelfGrantStatusDetail) *RedshiftSelfGrantStatusOutput_ {
+	s.SelfGrantStatusDetails = v
 	return s
 }
 
@@ -34104,6 +39493,343 @@ func (s *RevokeSubscriptionOutput) SetUpdatedBy(v string) *RevokeSubscriptionOut
 	return s
 }
 
+// The row filter.
+type RowFilter struct {
+	_ struct{} `type:"structure"`
+
+	// The 'and' clause of the row filter.
+	And []*RowFilter `locationName:"and" type:"list"`
+
+	// The expression of the row filter.
+	Expression *RowFilterExpression `locationName:"expression" type:"structure"`
+
+	// The 'or' clause of the row filter.
+	Or []*RowFilter `locationName:"or" type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RowFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RowFilter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RowFilter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RowFilter"}
+	if s.Expression != nil {
+		if err := s.Expression.Validate(); err != nil {
+			invalidParams.AddNested("Expression", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Or != nil {
+		for i, v := range s.Or {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Or", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAnd sets the And field's value.
+func (s *RowFilter) SetAnd(v []*RowFilter) *RowFilter {
+	s.And = v
+	return s
+}
+
+// SetExpression sets the Expression field's value.
+func (s *RowFilter) SetExpression(v *RowFilterExpression) *RowFilter {
+	s.Expression = v
+	return s
+}
+
+// SetOr sets the Or field's value.
+func (s *RowFilter) SetOr(v []*RowFilter) *RowFilter {
+	s.Or = v
+	return s
+}
+
+// The row filter configuration details.
+type RowFilterConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The row filter.
+	//
+	// RowFilter is a required field
+	RowFilter *RowFilter `locationName:"rowFilter" type:"structure" required:"true"`
+
+	// Specifies whether the row filter is sensitive.
+	Sensitive *bool `locationName:"sensitive" type:"boolean"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RowFilterConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RowFilterConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RowFilterConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RowFilterConfiguration"}
+	if s.RowFilter == nil {
+		invalidParams.Add(request.NewErrParamRequired("RowFilter"))
+	}
+	if s.RowFilter != nil {
+		if err := s.RowFilter.Validate(); err != nil {
+			invalidParams.AddNested("RowFilter", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetRowFilter sets the RowFilter field's value.
+func (s *RowFilterConfiguration) SetRowFilter(v *RowFilter) *RowFilterConfiguration {
+	s.RowFilter = v
+	return s
+}
+
+// SetSensitive sets the Sensitive field's value.
+func (s *RowFilterConfiguration) SetSensitive(v bool) *RowFilterConfiguration {
+	s.Sensitive = &v
+	return s
+}
+
+// The row filter expression.
+type RowFilterExpression struct {
+	_ struct{} `type:"structure"`
+
+	// The 'equal to' clause of the row filter expression.
+	EqualTo *EqualToExpression `locationName:"equalTo" type:"structure"`
+
+	// The 'greater than' clause of the row filter expression.
+	GreaterThan *GreaterThanExpression `locationName:"greaterThan" type:"structure"`
+
+	// The 'greater than or equal to' clause of the filter expression.
+	GreaterThanOrEqualTo *GreaterThanOrEqualToExpression `locationName:"greaterThanOrEqualTo" type:"structure"`
+
+	// The 'in' clause of the row filter expression.
+	In *InExpression `locationName:"in" type:"structure"`
+
+	// The 'is not null' clause of the row filter expression.
+	IsNotNull *IsNotNullExpression `locationName:"isNotNull" type:"structure"`
+
+	// The 'is null' clause of the row filter expression.
+	IsNull *IsNullExpression `locationName:"isNull" type:"structure"`
+
+	// The 'less than' clause of the row filter expression.
+	LessThan *LessThanExpression `locationName:"lessThan" type:"structure"`
+
+	// The 'less than or equal to' clause of the row filter expression.
+	LessThanOrEqualTo *LessThanOrEqualToExpression `locationName:"lessThanOrEqualTo" type:"structure"`
+
+	// The 'like' clause of the row filter expression.
+	Like *LikeExpression `locationName:"like" type:"structure"`
+
+	// The 'no equal to' clause of the row filter expression.
+	NotEqualTo *NotEqualToExpression `locationName:"notEqualTo" type:"structure"`
+
+	// The 'not in' clause of the row filter expression.
+	NotIn *NotInExpression `locationName:"notIn" type:"structure"`
+
+	// The 'not like' clause of the row filter expression.
+	NotLike *NotLikeExpression `locationName:"notLike" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RowFilterExpression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RowFilterExpression) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RowFilterExpression) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RowFilterExpression"}
+	if s.EqualTo != nil {
+		if err := s.EqualTo.Validate(); err != nil {
+			invalidParams.AddNested("EqualTo", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.GreaterThan != nil {
+		if err := s.GreaterThan.Validate(); err != nil {
+			invalidParams.AddNested("GreaterThan", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.GreaterThanOrEqualTo != nil {
+		if err := s.GreaterThanOrEqualTo.Validate(); err != nil {
+			invalidParams.AddNested("GreaterThanOrEqualTo", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.In != nil {
+		if err := s.In.Validate(); err != nil {
+			invalidParams.AddNested("In", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.IsNotNull != nil {
+		if err := s.IsNotNull.Validate(); err != nil {
+			invalidParams.AddNested("IsNotNull", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.IsNull != nil {
+		if err := s.IsNull.Validate(); err != nil {
+			invalidParams.AddNested("IsNull", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.LessThan != nil {
+		if err := s.LessThan.Validate(); err != nil {
+			invalidParams.AddNested("LessThan", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.LessThanOrEqualTo != nil {
+		if err := s.LessThanOrEqualTo.Validate(); err != nil {
+			invalidParams.AddNested("LessThanOrEqualTo", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Like != nil {
+		if err := s.Like.Validate(); err != nil {
+			invalidParams.AddNested("Like", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.NotEqualTo != nil {
+		if err := s.NotEqualTo.Validate(); err != nil {
+			invalidParams.AddNested("NotEqualTo", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.NotIn != nil {
+		if err := s.NotIn.Validate(); err != nil {
+			invalidParams.AddNested("NotIn", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.NotLike != nil {
+		if err := s.NotLike.Validate(); err != nil {
+			invalidParams.AddNested("NotLike", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEqualTo sets the EqualTo field's value.
+func (s *RowFilterExpression) SetEqualTo(v *EqualToExpression) *RowFilterExpression {
+	s.EqualTo = v
+	return s
+}
+
+// SetGreaterThan sets the GreaterThan field's value.
+func (s *RowFilterExpression) SetGreaterThan(v *GreaterThanExpression) *RowFilterExpression {
+	s.GreaterThan = v
+	return s
+}
+
+// SetGreaterThanOrEqualTo sets the GreaterThanOrEqualTo field's value.
+func (s *RowFilterExpression) SetGreaterThanOrEqualTo(v *GreaterThanOrEqualToExpression) *RowFilterExpression {
+	s.GreaterThanOrEqualTo = v
+	return s
+}
+
+// SetIn sets the In field's value.
+func (s *RowFilterExpression) SetIn(v *InExpression) *RowFilterExpression {
+	s.In = v
+	return s
+}
+
+// SetIsNotNull sets the IsNotNull field's value.
+func (s *RowFilterExpression) SetIsNotNull(v *IsNotNullExpression) *RowFilterExpression {
+	s.IsNotNull = v
+	return s
+}
+
+// SetIsNull sets the IsNull field's value.
+func (s *RowFilterExpression) SetIsNull(v *IsNullExpression) *RowFilterExpression {
+	s.IsNull = v
+	return s
+}
+
+// SetLessThan sets the LessThan field's value.
+func (s *RowFilterExpression) SetLessThan(v *LessThanExpression) *RowFilterExpression {
+	s.LessThan = v
+	return s
+}
+
+// SetLessThanOrEqualTo sets the LessThanOrEqualTo field's value.
+func (s *RowFilterExpression) SetLessThanOrEqualTo(v *LessThanOrEqualToExpression) *RowFilterExpression {
+	s.LessThanOrEqualTo = v
+	return s
+}
+
+// SetLike sets the Like field's value.
+func (s *RowFilterExpression) SetLike(v *LikeExpression) *RowFilterExpression {
+	s.Like = v
+	return s
+}
+
+// SetNotEqualTo sets the NotEqualTo field's value.
+func (s *RowFilterExpression) SetNotEqualTo(v *NotEqualToExpression) *RowFilterExpression {
+	s.NotEqualTo = v
+	return s
+}
+
+// SetNotIn sets the NotIn field's value.
+func (s *RowFilterExpression) SetNotIn(v *NotInExpression) *RowFilterExpression {
+	s.NotIn = v
+	return s
+}
+
+// SetNotLike sets the NotLike field's value.
+func (s *RowFilterExpression) SetNotLike(v *NotLikeExpression) *RowFilterExpression {
+	s.NotLike = v
+	return s
+}
+
 // The asset statistics from the data source run.
 type RunStatisticsForAssets struct {
 	_ struct{} `type:"structure"`
@@ -34609,9 +40335,6 @@ type SearchInventoryResultItem struct {
 	// The asset item included in the search results.
 	AssetItem *AssetItem `locationName:"assetItem" type:"structure"`
 
-	// The data product item included in the search results.
-	DataProductItem *DataProductSummary `locationName:"dataProductItem" type:"structure"`
-
 	// The glossary item included in the search results.
 	GlossaryItem *GlossaryItem `locationName:"glossaryItem" type:"structure"`
 
@@ -34640,12 +40363,6 @@ func (s SearchInventoryResultItem) GoString() string {
 // SetAssetItem sets the AssetItem field's value.
 func (s *SearchInventoryResultItem) SetAssetItem(v *AssetItem) *SearchInventoryResultItem {
 	s.AssetItem = v
-	return s
-}
-
-// SetDataProductItem sets the DataProductItem field's value.
-func (s *SearchInventoryResultItem) SetDataProductItem(v *DataProductSummary) *SearchInventoryResultItem {
-	s.DataProductItem = v
 	return s
 }
 
@@ -35239,6 +40956,9 @@ type SearchTypesResultItem struct {
 
 	// The form type included in the results of the SearchTypes action.
 	FormTypeItem *FormTypeData `locationName:"formTypeItem" type:"structure"`
+
+	// The details of a data lineage node type.
+	LineageNodeTypeItem *LineageNodeTypeItem `locationName:"lineageNodeTypeItem" type:"structure"`
 }
 
 // String returns the string representation.
@@ -35268,6 +40988,12 @@ func (s *SearchTypesResultItem) SetAssetTypeItem(v *AssetTypeItem) *SearchTypesR
 // SetFormTypeItem sets the FormTypeItem field's value.
 func (s *SearchTypesResultItem) SetFormTypeItem(v *FormTypeData) *SearchTypesResultItem {
 	s.FormTypeItem = v
+	return s
+}
+
+// SetLineageNodeTypeItem sets the LineageNodeTypeItem field's value.
+func (s *SearchTypesResultItem) SetLineageNodeTypeItem(v *LineageNodeTypeItem) *SearchTypesResultItem {
+	s.LineageNodeTypeItem = v
 	return s
 }
 
@@ -35420,6 +41146,110 @@ func (s *SearchUserProfilesOutput) SetItems(v []*UserProfileSummary) *SearchUser
 // SetNextToken sets the NextToken field's value.
 func (s *SearchUserProfilesOutput) SetNextToken(v string) *SearchUserProfilesOutput {
 	s.NextToken = &v
+	return s
+}
+
+// The details for the self granting status.
+type SelfGrantStatusDetail struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the database used for the data source.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `locationName:"databaseName" min:"1" type:"string" required:"true"`
+
+	// The reason for why the operation failed.
+	FailureCause *string `locationName:"failureCause" type:"string"`
+
+	// The name of the schema used in the data source.
+	SchemaName *string `locationName:"schemaName" min:"1" type:"string"`
+
+	// The self granting status of the data source.
+	//
+	// Status is a required field
+	Status *string `locationName:"status" type:"string" required:"true" enum:"SelfGrantStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SelfGrantStatusDetail) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SelfGrantStatusDetail) GoString() string {
+	return s.String()
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *SelfGrantStatusDetail) SetDatabaseName(v string) *SelfGrantStatusDetail {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetFailureCause sets the FailureCause field's value.
+func (s *SelfGrantStatusDetail) SetFailureCause(v string) *SelfGrantStatusDetail {
+	s.FailureCause = &v
+	return s
+}
+
+// SetSchemaName sets the SchemaName field's value.
+func (s *SelfGrantStatusDetail) SetSchemaName(v string) *SelfGrantStatusDetail {
+	s.SchemaName = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *SelfGrantStatusDetail) SetStatus(v string) *SelfGrantStatusDetail {
+	s.Status = &v
+	return s
+}
+
+// The details for the self granting status for a data source.
+type SelfGrantStatusOutput_ struct {
+	_ struct{} `type:"structure"`
+
+	// The details for the self granting status for a Glue data source.
+	GlueSelfGrantStatus *GlueSelfGrantStatusOutput_ `locationName:"glueSelfGrantStatus" type:"structure"`
+
+	// The details for the self granting status for an Amazon Redshift data source.
+	RedshiftSelfGrantStatus *RedshiftSelfGrantStatusOutput_ `locationName:"redshiftSelfGrantStatus" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SelfGrantStatusOutput_) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SelfGrantStatusOutput_) GoString() string {
+	return s.String()
+}
+
+// SetGlueSelfGrantStatus sets the GlueSelfGrantStatus field's value.
+func (s *SelfGrantStatusOutput_) SetGlueSelfGrantStatus(v *GlueSelfGrantStatusOutput_) *SelfGrantStatusOutput_ {
+	s.GlueSelfGrantStatus = v
+	return s
+}
+
+// SetRedshiftSelfGrantStatus sets the RedshiftSelfGrantStatus field's value.
+func (s *SelfGrantStatusOutput_) SetRedshiftSelfGrantStatus(v *RedshiftSelfGrantStatusOutput_) *SelfGrantStatusOutput_ {
+	s.RedshiftSelfGrantStatus = v
 	return s
 }
 
@@ -37883,6 +43713,264 @@ func (s UntagResourceOutput) GoString() string {
 	return s.String()
 }
 
+type UpdateAssetFilterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the data asset.
+	//
+	// AssetIdentifier is a required field
+	AssetIdentifier *string `location:"uri" locationName:"assetIdentifier" type:"string" required:"true"`
+
+	// The configuration of the asset filter.
+	Configuration *AssetFilterConfiguration `locationName:"configuration" type:"structure"`
+
+	// The description of the asset filter.
+	//
+	// Description is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by UpdateAssetFilterInput's
+	// String and GoString methods.
+	Description *string `locationName:"description" type:"string" sensitive:"true"`
+
+	// The ID of the domain where you want to update an asset filter.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The ID of the asset filter.
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" type:"string" required:"true"`
+
+	// The name of the asset filter.
+	Name *string `locationName:"name" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateAssetFilterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateAssetFilterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateAssetFilterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateAssetFilterInput"}
+	if s.AssetIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("AssetIdentifier"))
+	}
+	if s.AssetIdentifier != nil && len(*s.AssetIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssetIdentifier", 1))
+	}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+	if s.Configuration != nil {
+		if err := s.Configuration.Validate(); err != nil {
+			invalidParams.AddNested("Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAssetIdentifier sets the AssetIdentifier field's value.
+func (s *UpdateAssetFilterInput) SetAssetIdentifier(v string) *UpdateAssetFilterInput {
+	s.AssetIdentifier = &v
+	return s
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *UpdateAssetFilterInput) SetConfiguration(v *AssetFilterConfiguration) *UpdateAssetFilterInput {
+	s.Configuration = v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateAssetFilterInput) SetDescription(v string) *UpdateAssetFilterInput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *UpdateAssetFilterInput) SetDomainIdentifier(v string) *UpdateAssetFilterInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *UpdateAssetFilterInput) SetIdentifier(v string) *UpdateAssetFilterInput {
+	s.Identifier = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateAssetFilterInput) SetName(v string) *UpdateAssetFilterInput {
+	s.Name = &v
+	return s
+}
+
+type UpdateAssetFilterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the data asset.
+	//
+	// AssetId is a required field
+	AssetId *string `locationName:"assetId" type:"string" required:"true"`
+
+	// The configuration of the asset filter.
+	//
+	// Configuration is a required field
+	Configuration *AssetFilterConfiguration `locationName:"configuration" type:"structure" required:"true"`
+
+	// The timestamp at which the asset filter was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The description of the asset filter.
+	//
+	// Description is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by UpdateAssetFilterOutput's
+	// String and GoString methods.
+	Description *string `locationName:"description" type:"string" sensitive:"true"`
+
+	// The ID of the domain where the asset filter was created.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The column names of the asset filter.
+	EffectiveColumnNames []*string `locationName:"effectiveColumnNames" type:"list"`
+
+	// The row filter of the asset filter.
+	EffectiveRowFilter *string `locationName:"effectiveRowFilter" type:"string"`
+
+	// The error message that is displayed if the action is not completed successfully.
+	ErrorMessage *string `locationName:"errorMessage" type:"string"`
+
+	// The ID of the asset filter.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the asset filter.
+	//
+	// Name is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by UpdateAssetFilterOutput's
+	// String and GoString methods.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" min:"1" type:"string" required:"true" sensitive:"true"`
+
+	// The status of the asset filter.
+	Status *string `locationName:"status" type:"string" enum:"FilterStatus"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateAssetFilterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateAssetFilterOutput) GoString() string {
+	return s.String()
+}
+
+// SetAssetId sets the AssetId field's value.
+func (s *UpdateAssetFilterOutput) SetAssetId(v string) *UpdateAssetFilterOutput {
+	s.AssetId = &v
+	return s
+}
+
+// SetConfiguration sets the Configuration field's value.
+func (s *UpdateAssetFilterOutput) SetConfiguration(v *AssetFilterConfiguration) *UpdateAssetFilterOutput {
+	s.Configuration = v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *UpdateAssetFilterOutput) SetCreatedAt(v time.Time) *UpdateAssetFilterOutput {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateAssetFilterOutput) SetDescription(v string) *UpdateAssetFilterOutput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *UpdateAssetFilterOutput) SetDomainId(v string) *UpdateAssetFilterOutput {
+	s.DomainId = &v
+	return s
+}
+
+// SetEffectiveColumnNames sets the EffectiveColumnNames field's value.
+func (s *UpdateAssetFilterOutput) SetEffectiveColumnNames(v []*string) *UpdateAssetFilterOutput {
+	s.EffectiveColumnNames = v
+	return s
+}
+
+// SetEffectiveRowFilter sets the EffectiveRowFilter field's value.
+func (s *UpdateAssetFilterOutput) SetEffectiveRowFilter(v string) *UpdateAssetFilterOutput {
+	s.EffectiveRowFilter = &v
+	return s
+}
+
+// SetErrorMessage sets the ErrorMessage field's value.
+func (s *UpdateAssetFilterOutput) SetErrorMessage(v string) *UpdateAssetFilterOutput {
+	s.ErrorMessage = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *UpdateAssetFilterOutput) SetId(v string) *UpdateAssetFilterOutput {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateAssetFilterOutput) SetName(v string) *UpdateAssetFilterOutput {
+	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *UpdateAssetFilterOutput) SetStatus(v string) *UpdateAssetFilterOutput {
+	s.Status = &v
+	return s
+}
+
 type UpdateDataSourceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -37929,6 +44017,10 @@ type UpdateDataSourceInput struct {
 
 	// The recommendation to be updated as part of the UpdateDataSource action.
 	Recommendation *RecommendationConfiguration `locationName:"recommendation" type:"structure"`
+
+	// Specifies that the granted permissions are retained in case of a self-subscribe
+	// functionality failure for a data source.
+	RetainPermissionsOnRevokeFailure *bool `locationName:"retainPermissionsOnRevokeFailure" type:"boolean"`
 
 	// The schedule to be updated as part of the UpdateDataSource action.
 	//
@@ -38055,6 +44147,12 @@ func (s *UpdateDataSourceInput) SetRecommendation(v *RecommendationConfiguration
 	return s
 }
 
+// SetRetainPermissionsOnRevokeFailure sets the RetainPermissionsOnRevokeFailure field's value.
+func (s *UpdateDataSourceInput) SetRetainPermissionsOnRevokeFailure(v bool) *UpdateDataSourceInput {
+	s.RetainPermissionsOnRevokeFailure = &v
+	return s
+}
+
 // SetSchedule sets the Schedule field's value.
 func (s *UpdateDataSourceInput) SetSchedule(v *ScheduleConfiguration) *UpdateDataSourceInput {
 	s.Schedule = v
@@ -38133,12 +44231,19 @@ type UpdateDataSourceOutput struct {
 	// The recommendation to be updated as part of the UpdateDataSource action.
 	Recommendation *RecommendationConfiguration `locationName:"recommendation" type:"structure"`
 
+	// Specifies that the granted permissions are retained in case of a self-subscribe
+	// functionality failure for a data source.
+	RetainPermissionsOnRevokeFailure *bool `locationName:"retainPermissionsOnRevokeFailure" type:"boolean"`
+
 	// The schedule to be updated as part of the UpdateDataSource action.
 	//
 	// Schedule is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by UpdateDataSourceOutput's
 	// String and GoString methods.
 	Schedule *ScheduleConfiguration `locationName:"schedule" type:"structure" sensitive:"true"`
+
+	// Specifies the status of the self-granting functionality.
+	SelfGrantStatus *SelfGrantStatusOutput_ `locationName:"selfGrantStatus" type:"structure"`
 
 	// The status to be updated as part of the UpdateDataSource action.
 	Status *string `locationName:"status" type:"string" enum:"DataSourceStatus"`
@@ -38264,9 +44369,21 @@ func (s *UpdateDataSourceOutput) SetRecommendation(v *RecommendationConfiguratio
 	return s
 }
 
+// SetRetainPermissionsOnRevokeFailure sets the RetainPermissionsOnRevokeFailure field's value.
+func (s *UpdateDataSourceOutput) SetRetainPermissionsOnRevokeFailure(v bool) *UpdateDataSourceOutput {
+	s.RetainPermissionsOnRevokeFailure = &v
+	return s
+}
+
 // SetSchedule sets the Schedule field's value.
 func (s *UpdateDataSourceOutput) SetSchedule(v *ScheduleConfiguration) *UpdateDataSourceOutput {
 	s.Schedule = v
+	return s
+}
+
+// SetSelfGrantStatus sets the SelfGrantStatus field's value.
+func (s *UpdateDataSourceOutput) SetSelfGrantStatus(v *SelfGrantStatusOutput_) *UpdateDataSourceOutput {
+	s.SelfGrantStatus = v
 	return s
 }
 
@@ -38461,6 +44578,202 @@ func (s *UpdateDomainOutput) SetSingleSignOn(v *SingleSignOn) *UpdateDomainOutpu
 	return s
 }
 
+type UpdateEnvironmentActionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The description of the environment action.
+	Description *string `locationName:"description" type:"string"`
+
+	// The domain ID of the environment action.
+	//
+	// DomainIdentifier is a required field
+	DomainIdentifier *string `location:"uri" locationName:"domainIdentifier" type:"string" required:"true"`
+
+	// The environment ID of the environment action.
+	//
+	// EnvironmentIdentifier is a required field
+	EnvironmentIdentifier *string `location:"uri" locationName:"environmentIdentifier" type:"string" required:"true"`
+
+	// The ID of the environment action.
+	//
+	// Identifier is a required field
+	Identifier *string `location:"uri" locationName:"identifier" type:"string" required:"true"`
+
+	// The name of the environment action.
+	Name *string `locationName:"name" type:"string"`
+
+	// The parameters of the environment action.
+	Parameters *ActionParameters `locationName:"parameters" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateEnvironmentActionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateEnvironmentActionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateEnvironmentActionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateEnvironmentActionInput"}
+	if s.DomainIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainIdentifier"))
+	}
+	if s.DomainIdentifier != nil && len(*s.DomainIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainIdentifier", 1))
+	}
+	if s.EnvironmentIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentIdentifier"))
+	}
+	if s.EnvironmentIdentifier != nil && len(*s.EnvironmentIdentifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentIdentifier", 1))
+	}
+	if s.Identifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifier"))
+	}
+	if s.Identifier != nil && len(*s.Identifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Identifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateEnvironmentActionInput) SetDescription(v string) *UpdateEnvironmentActionInput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainIdentifier sets the DomainIdentifier field's value.
+func (s *UpdateEnvironmentActionInput) SetDomainIdentifier(v string) *UpdateEnvironmentActionInput {
+	s.DomainIdentifier = &v
+	return s
+}
+
+// SetEnvironmentIdentifier sets the EnvironmentIdentifier field's value.
+func (s *UpdateEnvironmentActionInput) SetEnvironmentIdentifier(v string) *UpdateEnvironmentActionInput {
+	s.EnvironmentIdentifier = &v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *UpdateEnvironmentActionInput) SetIdentifier(v string) *UpdateEnvironmentActionInput {
+	s.Identifier = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateEnvironmentActionInput) SetName(v string) *UpdateEnvironmentActionInput {
+	s.Name = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *UpdateEnvironmentActionInput) SetParameters(v *ActionParameters) *UpdateEnvironmentActionInput {
+	s.Parameters = v
+	return s
+}
+
+type UpdateEnvironmentActionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The description of the environment action.
+	Description *string `locationName:"description" type:"string"`
+
+	// The domain ID of the environment action.
+	//
+	// DomainId is a required field
+	DomainId *string `locationName:"domainId" type:"string" required:"true"`
+
+	// The environment ID of the environment action.
+	//
+	// EnvironmentId is a required field
+	EnvironmentId *string `locationName:"environmentId" type:"string" required:"true"`
+
+	// The ID of the environment action.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" type:"string" required:"true"`
+
+	// The name of the environment action.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The parameters of the environment action.
+	//
+	// Parameters is a required field
+	Parameters *ActionParameters `locationName:"parameters" type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateEnvironmentActionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s UpdateEnvironmentActionOutput) GoString() string {
+	return s.String()
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateEnvironmentActionOutput) SetDescription(v string) *UpdateEnvironmentActionOutput {
+	s.Description = &v
+	return s
+}
+
+// SetDomainId sets the DomainId field's value.
+func (s *UpdateEnvironmentActionOutput) SetDomainId(v string) *UpdateEnvironmentActionOutput {
+	s.DomainId = &v
+	return s
+}
+
+// SetEnvironmentId sets the EnvironmentId field's value.
+func (s *UpdateEnvironmentActionOutput) SetEnvironmentId(v string) *UpdateEnvironmentActionOutput {
+	s.EnvironmentId = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *UpdateEnvironmentActionOutput) SetId(v string) *UpdateEnvironmentActionOutput {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateEnvironmentActionOutput) SetName(v string) *UpdateEnvironmentActionOutput {
+	s.Name = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *UpdateEnvironmentActionOutput) SetParameters(v *ActionParameters) *UpdateEnvironmentActionOutput {
+	s.Parameters = v
+	return s
+}
+
 type UpdateEnvironmentInput struct {
 	_ struct{} `type:"structure"`
 
@@ -38598,9 +44911,7 @@ type UpdateEnvironmentOutput struct {
 	EnvironmentBlueprintId *string `locationName:"environmentBlueprintId" type:"string"`
 
 	// The profile identifier of the environment.
-	//
-	// EnvironmentProfileId is a required field
-	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string" required:"true"`
+	EnvironmentProfileId *string `locationName:"environmentProfileId" type:"string"`
 
 	// The glossary terms to be updated as part of the UpdateEnvironment action.
 	GlossaryTerms []*string `locationName:"glossaryTerms" min:"1" type:"list"`
@@ -41440,6 +47751,22 @@ func DomainStatus_Values() []string {
 }
 
 const (
+	// EdgeDirectionUpstream is a EdgeDirection enum value
+	EdgeDirectionUpstream = "UPSTREAM"
+
+	// EdgeDirectionDownstream is a EdgeDirection enum value
+	EdgeDirectionDownstream = "DOWNSTREAM"
+)
+
+// EdgeDirection_Values returns all elements of the EdgeDirection enum
+func EdgeDirection_Values() []string {
+	return []string{
+		EdgeDirectionUpstream,
+		EdgeDirectionDownstream,
+	}
+}
+
+const (
 	// EnableSettingEnabled is a EnableSetting enum value
 	EnableSettingEnabled = "ENABLED"
 
@@ -41540,6 +47867,22 @@ func FilterExpressionType_Values() []string {
 	return []string{
 		FilterExpressionTypeInclude,
 		FilterExpressionTypeExclude,
+	}
+}
+
+const (
+	// FilterStatusValid is a FilterStatus enum value
+	FilterStatusValid = "VALID"
+
+	// FilterStatusInvalid is a FilterStatus enum value
+	FilterStatusInvalid = "INVALID"
+)
+
+// FilterStatus_Values returns all elements of the FilterStatus enum
+func FilterStatus_Values() []string {
+	return []string{
+		FilterStatusValid,
+		FilterStatusInvalid,
 	}
 }
 
@@ -41820,6 +48163,42 @@ func SearchOutputAdditionalAttribute_Values() []string {
 	return []string{
 		SearchOutputAdditionalAttributeForms,
 		SearchOutputAdditionalAttributeTimeSeriesDataPointForms,
+	}
+}
+
+const (
+	// SelfGrantStatusGrantPending is a SelfGrantStatus enum value
+	SelfGrantStatusGrantPending = "GRANT_PENDING"
+
+	// SelfGrantStatusRevokePending is a SelfGrantStatus enum value
+	SelfGrantStatusRevokePending = "REVOKE_PENDING"
+
+	// SelfGrantStatusGrantInProgress is a SelfGrantStatus enum value
+	SelfGrantStatusGrantInProgress = "GRANT_IN_PROGRESS"
+
+	// SelfGrantStatusRevokeInProgress is a SelfGrantStatus enum value
+	SelfGrantStatusRevokeInProgress = "REVOKE_IN_PROGRESS"
+
+	// SelfGrantStatusGranted is a SelfGrantStatus enum value
+	SelfGrantStatusGranted = "GRANTED"
+
+	// SelfGrantStatusGrantFailed is a SelfGrantStatus enum value
+	SelfGrantStatusGrantFailed = "GRANT_FAILED"
+
+	// SelfGrantStatusRevokeFailed is a SelfGrantStatus enum value
+	SelfGrantStatusRevokeFailed = "REVOKE_FAILED"
+)
+
+// SelfGrantStatus_Values returns all elements of the SelfGrantStatus enum
+func SelfGrantStatus_Values() []string {
+	return []string{
+		SelfGrantStatusGrantPending,
+		SelfGrantStatusRevokePending,
+		SelfGrantStatusGrantInProgress,
+		SelfGrantStatusRevokeInProgress,
+		SelfGrantStatusGranted,
+		SelfGrantStatusGrantFailed,
+		SelfGrantStatusRevokeFailed,
 	}
 }
 
@@ -42285,6 +48664,9 @@ const (
 
 	// TypesSearchScopeFormType is a TypesSearchScope enum value
 	TypesSearchScopeFormType = "FORM_TYPE"
+
+	// TypesSearchScopeLineageNodeType is a TypesSearchScope enum value
+	TypesSearchScopeLineageNodeType = "LINEAGE_NODE_TYPE"
 )
 
 // TypesSearchScope_Values returns all elements of the TypesSearchScope enum
@@ -42292,6 +48674,7 @@ func TypesSearchScope_Values() []string {
 	return []string{
 		TypesSearchScopeAssetType,
 		TypesSearchScopeFormType,
+		TypesSearchScopeLineageNodeType,
 	}
 }
 

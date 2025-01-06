@@ -5755,8 +5755,8 @@ type Build struct {
 	// When the build process started, expressed in Unix time format.
 	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
 
-	// How long, in minutes, for CodeBuild to wait before timing out this build
-	// if it does not get marked as completed.
+	// How long, in minutes, from 5 to 2160 (36 hours), for CodeBuild to wait before
+	// timing out this build if it does not get marked as completed.
 	TimeoutInMinutes *int64 `locationName:"timeoutInMinutes" type:"integer"`
 
 	// If your CodeBuild project accesses resources in an Amazon VPC, you provide
@@ -7399,6 +7399,11 @@ type CreateFleetInput struct {
 	// EnvironmentType is a required field
 	EnvironmentType *string `locationName:"environmentType" type:"string" required:"true" enum:"EnvironmentType"`
 
+	// The service role associated with the compute fleet. For more information,
+	// see Allow a user to add a permission policy for a fleet service role (https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html)
+	// in the CodeBuild User Guide.
+	FleetServiceRole *string `locationName:"fleetServiceRole" min:"1" type:"string"`
+
 	// The name of the compute fleet.
 	//
 	// Name is a required field
@@ -7410,7 +7415,11 @@ type CreateFleetInput struct {
 	//    existing fleet instance to become available.
 	//
 	//    * For overflow behavior ON_DEMAND, your overflow builds run on CodeBuild
-	//    on-demand.
+	//    on-demand. If you choose to set your overflow behavior to on-demand while
+	//    creating a VPC-connected fleet, make sure that you add the required VPC
+	//    permissions to your project service role. For more information, see Example
+	//    policy statement to allow CodeBuild access to Amazon Web Services services
+	//    required to create a VPC network interface (https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface).
 	OverflowBehavior *string `locationName:"overflowBehavior" type:"string" enum:"FleetOverflowBehavior"`
 
 	// The scaling configuration of the compute fleet.
@@ -7421,6 +7430,9 @@ type CreateFleetInput struct {
 	// These tags are available for use by Amazon Web Services services that support
 	// CodeBuild build project tags.
 	Tags []*Tag `locationName:"tags" type:"list"`
+
+	// Information about the VPC configuration that CodeBuild accesses.
+	VpcConfig *VpcConfig `locationName:"vpcConfig" type:"structure"`
 }
 
 // String returns the string representation.
@@ -7456,6 +7468,9 @@ func (s *CreateFleetInput) Validate() error {
 	if s.EnvironmentType == nil {
 		invalidParams.Add(request.NewErrParamRequired("EnvironmentType"))
 	}
+	if s.FleetServiceRole != nil && len(*s.FleetServiceRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FleetServiceRole", 1))
+	}
 	if s.Name == nil {
 		invalidParams.Add(request.NewErrParamRequired("Name"))
 	}
@@ -7475,6 +7490,11 @@ func (s *CreateFleetInput) Validate() error {
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
 			}
+		}
+	}
+	if s.VpcConfig != nil {
+		if err := s.VpcConfig.Validate(); err != nil {
+			invalidParams.AddNested("VpcConfig", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -7502,6 +7522,12 @@ func (s *CreateFleetInput) SetEnvironmentType(v string) *CreateFleetInput {
 	return s
 }
 
+// SetFleetServiceRole sets the FleetServiceRole field's value.
+func (s *CreateFleetInput) SetFleetServiceRole(v string) *CreateFleetInput {
+	s.FleetServiceRole = &v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *CreateFleetInput) SetName(v string) *CreateFleetInput {
 	s.Name = &v
@@ -7523,6 +7549,12 @@ func (s *CreateFleetInput) SetScalingConfiguration(v *ScalingConfigurationInput_
 // SetTags sets the Tags field's value.
 func (s *CreateFleetInput) SetTags(v []*Tag) *CreateFleetInput {
 	s.Tags = v
+	return s
+}
+
+// SetVpcConfig sets the VpcConfig field's value.
+func (s *CreateFleetInput) SetVpcConfig(v *VpcConfig) *CreateFleetInput {
+	s.VpcConfig = v
 	return s
 }
 
@@ -7653,6 +7685,8 @@ type CreateProjectInput struct {
 	//    commit ID is used. If not specified, the default branch's HEAD commit
 	//    ID is used.
 	//
+	//    * For GitLab: the commit ID, branch, or Git tag to use.
+	//
 	//    * For Bitbucket: the commit ID, branch name, or tag name that corresponds
 	//    to the version of the source code you want to build. If a branch name
 	//    is specified, the branch's HEAD commit ID is used. If not specified, the
@@ -7674,12 +7708,14 @@ type CreateProjectInput struct {
 	// CodeBuild build project tags.
 	Tags []*Tag `locationName:"tags" type:"list"`
 
-	// How long, in minutes, from 5 to 480 (8 hours), for CodeBuild to wait before
+	// How long, in minutes, from 5 to 2160 (36 hours), for CodeBuild to wait before
 	// it times out any build that has not been marked as completed. The default
 	// is 60 minutes.
 	TimeoutInMinutes *int64 `locationName:"timeoutInMinutes" min:"5" type:"integer"`
 
 	// VpcConfig enables CodeBuild to access resources in an Amazon VPC.
+	//
+	// If you're using compute fleets during project creation, do not provide vpcConfig.
 	VpcConfig *VpcConfig `locationName:"vpcConfig" type:"structure"`
 }
 
@@ -8131,10 +8167,24 @@ type CreateWebhookInput struct {
 	// array must pass. For a filter group to pass, each of its filters must pass.
 	FilterGroups [][]*WebhookFilter `locationName:"filterGroups" type:"list"`
 
+	// If manualCreation is true, CodeBuild doesn't create a webhook in GitHub and
+	// instead returns payloadUrl and secret values for the webhook. The payloadUrl
+	// and secret values in the output can be used to manually create a webhook
+	// within GitHub.
+	//
+	// manualCreation is only available for GitHub webhooks.
+	ManualCreation *bool `locationName:"manualCreation" type:"boolean"`
+
 	// The name of the CodeBuild project.
 	//
 	// ProjectName is a required field
 	ProjectName *string `locationName:"projectName" min:"2" type:"string" required:"true"`
+
+	// The scope configuration for global or organization webhooks.
+	//
+	// Global or organization webhooks are only available for GitHub and Github
+	// Enterprise webhooks.
+	ScopeConfiguration *ScopeConfiguration `locationName:"scopeConfiguration" type:"structure"`
 }
 
 // String returns the string representation.
@@ -8164,6 +8214,11 @@ func (s *CreateWebhookInput) Validate() error {
 	if s.ProjectName != nil && len(*s.ProjectName) < 2 {
 		invalidParams.Add(request.NewErrParamMinLen("ProjectName", 2))
 	}
+	if s.ScopeConfiguration != nil {
+		if err := s.ScopeConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("ScopeConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -8189,9 +8244,21 @@ func (s *CreateWebhookInput) SetFilterGroups(v [][]*WebhookFilter) *CreateWebhoo
 	return s
 }
 
+// SetManualCreation sets the ManualCreation field's value.
+func (s *CreateWebhookInput) SetManualCreation(v bool) *CreateWebhookInput {
+	s.ManualCreation = &v
+	return s
+}
+
 // SetProjectName sets the ProjectName field's value.
 func (s *CreateWebhookInput) SetProjectName(v string) *CreateWebhookInput {
 	s.ProjectName = &v
+	return s
+}
+
+// SetScopeConfiguration sets the ScopeConfiguration field's value.
+func (s *CreateWebhookInput) SetScopeConfiguration(v *ScopeConfiguration) *CreateWebhookInput {
+	s.ScopeConfiguration = v
 	return s
 }
 
@@ -9549,6 +9616,11 @@ type Fleet struct {
 	// in the CodeBuild user guide.
 	EnvironmentType *string `locationName:"environmentType" type:"string" enum:"EnvironmentType"`
 
+	// The service role associated with the compute fleet. For more information,
+	// see Allow a user to add a permission policy for a fleet service role (https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html)
+	// in the CodeBuild User Guide.
+	FleetServiceRole *string `locationName:"fleetServiceRole" min:"1" type:"string"`
+
 	// The ID of the compute fleet.
 	Id *string `locationName:"id" min:"1" type:"string"`
 
@@ -9564,7 +9636,11 @@ type Fleet struct {
 	//    existing fleet instance to become available.
 	//
 	//    * For overflow behavior ON_DEMAND, your overflow builds run on CodeBuild
-	//    on-demand.
+	//    on-demand. If you choose to set your overflow behavior to on-demand while
+	//    creating a VPC-connected fleet, make sure that you add the required VPC
+	//    permissions to your project service role. For more information, see Example
+	//    policy statement to allow CodeBuild access to Amazon Web Services services
+	//    required to create a VPC network interface (https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface).
 	OverflowBehavior *string `locationName:"overflowBehavior" type:"string" enum:"FleetOverflowBehavior"`
 
 	// The scaling configuration of the compute fleet.
@@ -9578,6 +9654,9 @@ type Fleet struct {
 	// These tags are available for use by Amazon Web Services services that support
 	// CodeBuild build project tags.
 	Tags []*Tag `locationName:"tags" type:"list"`
+
+	// Information about the VPC configuration that CodeBuild accesses.
+	VpcConfig *VpcConfig `locationName:"vpcConfig" type:"structure"`
 }
 
 // String returns the string representation.
@@ -9628,6 +9707,12 @@ func (s *Fleet) SetEnvironmentType(v string) *Fleet {
 	return s
 }
 
+// SetFleetServiceRole sets the FleetServiceRole field's value.
+func (s *Fleet) SetFleetServiceRole(v string) *Fleet {
+	s.FleetServiceRole = &v
+	return s
+}
+
 // SetId sets the Id field's value.
 func (s *Fleet) SetId(v string) *Fleet {
 	s.Id = &v
@@ -9667,6 +9752,12 @@ func (s *Fleet) SetStatus(v *FleetStatus) *Fleet {
 // SetTags sets the Tags field's value.
 func (s *Fleet) SetTags(v []*Tag) *Fleet {
 	s.Tags = v
+	return s
+}
+
+// SetVpcConfig sets the VpcConfig field's value.
+func (s *Fleet) SetVpcConfig(v *VpcConfig) *Fleet {
+	s.VpcConfig = v
 	return s
 }
 
@@ -10031,8 +10122,9 @@ type ImportSourceCredentialsInput struct {
 	_ struct{} `type:"structure"`
 
 	// The type of authentication used to connect to a GitHub, GitHub Enterprise,
-	// or Bitbucket repository. An OAUTH connection is not supported by the API
-	// and must be created using the CodeBuild console.
+	// GitLab, GitLab Self Managed, or Bitbucket repository. An OAUTH connection
+	// is not supported by the API and must be created using the CodeBuild console.
+	// Note that CODECONNECTIONS is only valid for GitLab and GitLab Self Managed.
 	//
 	// AuthType is a required field
 	AuthType *string `locationName:"authType" type:"string" required:"true" enum:"AuthType"`
@@ -10048,7 +10140,8 @@ type ImportSourceCredentialsInput struct {
 	ShouldOverwrite *bool `locationName:"shouldOverwrite" type:"boolean"`
 
 	// For GitHub or GitHub Enterprise, this is the personal access token. For Bitbucket,
-	// this is either the access token or the app password.
+	// this is either the access token or the app password. For the authType CODECONNECTIONS,
+	// this is the connectionArn.
 	//
 	// Token is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by ImportSourceCredentialsInput's
@@ -12257,6 +12350,8 @@ type Project struct {
 	//    commit ID is used. If not specified, the default branch's HEAD commit
 	//    ID is used.
 	//
+	//    * For GitLab: the commit ID, branch, or Git tag to use.
+	//
 	//    * For Bitbucket: the commit ID, branch name, or tag name that corresponds
 	//    to the version of the source code you want to build. If a branch name
 	//    is specified, the branch's HEAD commit ID is used. If not specified, the
@@ -12278,7 +12373,7 @@ type Project struct {
 	// CodeBuild build project tags.
 	Tags []*Tag `locationName:"tags" type:"list"`
 
-	// How long, in minutes, from 5 to 480 (8 hours), for CodeBuild to wait before
+	// How long, in minutes, from 5 to 2160 (36 hours), for CodeBuild to wait before
 	// timing out any related build that did not get marked as completed. The default
 	// is 60 minutes.
 	TimeoutInMinutes *int64 `locationName:"timeoutInMinutes" min:"5" type:"integer"`
@@ -13645,12 +13740,14 @@ type ProjectSourceVersion struct {
 	//
 	//    * For CodeCommit: the commit ID, branch, or Git tag to use.
 	//
-	//    * For GitHub or GitLab: the commit ID, pull request ID, branch name, or
-	//    tag name that corresponds to the version of the source code you want to
-	//    build. If a pull request ID is specified, it must use the format pr/pull-request-ID
+	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
+	//    that corresponds to the version of the source code you want to build.
+	//    If a pull request ID is specified, it must use the format pr/pull-request-ID
 	//    (for example, pr/25). If a branch name is specified, the branch's HEAD
 	//    commit ID is used. If not specified, the default branch's HEAD commit
 	//    ID is used.
+	//
+	//    * For GitLab: the commit ID, branch, or Git tag to use.
 	//
 	//    * For Bitbucket: the commit ID, branch name, or tag name that corresponds
 	//    to the version of the source code you want to build. If a branch name
@@ -15045,6 +15142,79 @@ func (s *ScalingConfigurationOutput_) SetTargetTrackingScalingConfigs(v []*Targe
 	return s
 }
 
+// Contains configuration information about the scope for a webhook.
+type ScopeConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The domain of the GitHub Enterprise organization. Note that this parameter
+	// is only required if your project's source type is GITHUB_ENTERPRISE
+	Domain *string `locationName:"domain" type:"string"`
+
+	// The name of either the enterprise or organization that will send webhook
+	// events to CodeBuild, depending on if the webhook is a global or organization
+	// webhook respectively.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The type of scope for a GitHub webhook.
+	//
+	// Scope is a required field
+	Scope *string `locationName:"scope" type:"string" required:"true" enum:"WebhookScopeType"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ScopeConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ScopeConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ScopeConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ScopeConfiguration"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Scope == nil {
+		invalidParams.Add(request.NewErrParamRequired("Scope"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomain sets the Domain field's value.
+func (s *ScopeConfiguration) SetDomain(v string) *ScopeConfiguration {
+	s.Domain = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ScopeConfiguration) SetName(v string) *ScopeConfiguration {
+	s.Name = &v
+	return s
+}
+
+// SetScope sets the Scope field's value.
+func (s *ScopeConfiguration) SetScope(v string) *ScopeConfiguration {
+	s.Scope = &v
+	return s
+}
+
 // Information about the authorization settings for CodeBuild to access the
 // source code to be built.
 //
@@ -15868,7 +16038,7 @@ type StartBuildInput struct {
 
 	// An authorization type for this build that overrides the one defined in the
 	// build project. This override applies only if the build project's source is
-	// BitBucket or GitHub.
+	// BitBucket, GitHub, GitLab, or GitLab Self Managed.
 	SourceAuthOverride *SourceAuth `locationName:"sourceAuthOverride" type:"structure"`
 
 	// A location that overrides, for this build, the source location for the one
@@ -15895,6 +16065,10 @@ type StartBuildInput struct {
 	// If a branch name is specified, the branch's HEAD commit ID is used. If not
 	// specified, the default branch's HEAD commit ID is used.
 	//
+	// GitLab
+	//
+	// The commit ID, branch, or Git tag to use.
+	//
 	// Bitbucket
 	//
 	// The commit ID, branch name, or tag name that corresponds to the version of
@@ -15914,7 +16088,7 @@ type StartBuildInput struct {
 	// in the CodeBuild User Guide.
 	SourceVersion *string `locationName:"sourceVersion" type:"string"`
 
-	// The number of build timeout minutes, from 5 to 480 (8 hours), that overrides,
+	// The number of build timeout minutes, from 5 to 2160 (36 hours), that overrides,
 	// for this build only, the latest setting already defined in the build project.
 	TimeoutInMinutesOverride *int64 `locationName:"timeoutInMinutesOverride" min:"5" type:"integer"`
 }
@@ -16816,13 +16990,22 @@ type UpdateFleetInput struct {
 	// in the CodeBuild user guide.
 	EnvironmentType *string `locationName:"environmentType" type:"string" enum:"EnvironmentType"`
 
+	// The service role associated with the compute fleet. For more information,
+	// see Allow a user to add a permission policy for a fleet service role (https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html)
+	// in the CodeBuild User Guide.
+	FleetServiceRole *string `locationName:"fleetServiceRole" min:"1" type:"string"`
+
 	// The compute fleet overflow behavior.
 	//
 	//    * For overflow behavior QUEUE, your overflow builds need to wait on the
 	//    existing fleet instance to become available.
 	//
 	//    * For overflow behavior ON_DEMAND, your overflow builds run on CodeBuild
-	//    on-demand.
+	//    on-demand. If you choose to set your overflow behavior to on-demand while
+	//    creating a VPC-connected fleet, make sure that you add the required VPC
+	//    permissions to your project service role. For more information, see Example
+	//    policy statement to allow CodeBuild access to Amazon Web Services services
+	//    required to create a VPC network interface (https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface).
 	OverflowBehavior *string `locationName:"overflowBehavior" type:"string" enum:"FleetOverflowBehavior"`
 
 	// The scaling configuration of the compute fleet.
@@ -16833,6 +17016,9 @@ type UpdateFleetInput struct {
 	// These tags are available for use by Amazon Web Services services that support
 	// CodeBuild build project tags.
 	Tags []*Tag `locationName:"tags" type:"list"`
+
+	// Information about the VPC configuration that CodeBuild accesses.
+	VpcConfig *VpcConfig `locationName:"vpcConfig" type:"structure"`
 }
 
 // String returns the string representation.
@@ -16865,6 +17051,9 @@ func (s *UpdateFleetInput) Validate() error {
 	if s.BaseCapacity != nil && *s.BaseCapacity < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("BaseCapacity", 1))
 	}
+	if s.FleetServiceRole != nil && len(*s.FleetServiceRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FleetServiceRole", 1))
+	}
 	if s.ScalingConfiguration != nil {
 		if err := s.ScalingConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("ScalingConfiguration", err.(request.ErrInvalidParams))
@@ -16878,6 +17067,11 @@ func (s *UpdateFleetInput) Validate() error {
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
 			}
+		}
+	}
+	if s.VpcConfig != nil {
+		if err := s.VpcConfig.Validate(); err != nil {
+			invalidParams.AddNested("VpcConfig", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -16911,6 +17105,12 @@ func (s *UpdateFleetInput) SetEnvironmentType(v string) *UpdateFleetInput {
 	return s
 }
 
+// SetFleetServiceRole sets the FleetServiceRole field's value.
+func (s *UpdateFleetInput) SetFleetServiceRole(v string) *UpdateFleetInput {
+	s.FleetServiceRole = &v
+	return s
+}
+
 // SetOverflowBehavior sets the OverflowBehavior field's value.
 func (s *UpdateFleetInput) SetOverflowBehavior(v string) *UpdateFleetInput {
 	s.OverflowBehavior = &v
@@ -16926,6 +17126,12 @@ func (s *UpdateFleetInput) SetScalingConfiguration(v *ScalingConfigurationInput_
 // SetTags sets the Tags field's value.
 func (s *UpdateFleetInput) SetTags(v []*Tag) *UpdateFleetInput {
 	s.Tags = v
+	return s
+}
+
+// SetVpcConfig sets the VpcConfig field's value.
+func (s *UpdateFleetInput) SetVpcConfig(v *VpcConfig) *UpdateFleetInput {
+	s.VpcConfig = v
 	return s
 }
 
@@ -17054,6 +17260,8 @@ type UpdateProjectInput struct {
 	//    commit ID is used. If not specified, the default branch's HEAD commit
 	//    ID is used.
 	//
+	//    * For GitLab: the commit ID, branch, or Git tag to use.
+	//
 	//    * For Bitbucket: the commit ID, branch name, or tag name that corresponds
 	//    to the version of the source code you want to build. If a branch name
 	//    is specified, the branch's HEAD commit ID is used. If not specified, the
@@ -17075,7 +17283,7 @@ type UpdateProjectInput struct {
 	// CodeBuild build project tags.
 	Tags []*Tag `locationName:"tags" type:"list"`
 
-	// The replacement value in minutes, from 5 to 480 (8 hours), for CodeBuild
+	// The replacement value in minutes, from 5 to 2160 (36 hours), for CodeBuild
 	// to wait before timing out any related build that did not get marked as completed.
 	TimeoutInMinutes *int64 `locationName:"timeoutInMinutes" min:"5" type:"integer"`
 
@@ -17839,8 +18047,22 @@ type Webhook struct {
 	// modified.
 	LastModifiedSecret *time.Time `locationName:"lastModifiedSecret" type:"timestamp"`
 
+	// If manualCreation is true, CodeBuild doesn't create a webhook in GitHub and
+	// instead returns payloadUrl and secret values for the webhook. The payloadUrl
+	// and secret values in the output can be used to manually create a webhook
+	// within GitHub.
+	//
+	// manualCreation is only available for GitHub webhooks.
+	ManualCreation *bool `locationName:"manualCreation" type:"boolean"`
+
 	// The CodeBuild endpoint where webhook events are sent.
 	PayloadUrl *string `locationName:"payloadUrl" min:"1" type:"string"`
+
+	// The scope configuration for global or organization webhooks.
+	//
+	// Global or organization webhooks are only available for GitHub and Github
+	// Enterprise webhooks.
+	ScopeConfiguration *ScopeConfiguration `locationName:"scopeConfiguration" type:"structure"`
 
 	// The secret token of the associated repository.
 	//
@@ -17893,9 +18115,21 @@ func (s *Webhook) SetLastModifiedSecret(v time.Time) *Webhook {
 	return s
 }
 
+// SetManualCreation sets the ManualCreation field's value.
+func (s *Webhook) SetManualCreation(v bool) *Webhook {
+	s.ManualCreation = &v
+	return s
+}
+
 // SetPayloadUrl sets the PayloadUrl field's value.
 func (s *Webhook) SetPayloadUrl(v string) *Webhook {
 	s.PayloadUrl = &v
+	return s
+}
+
+// SetScopeConfiguration sets the ScopeConfiguration field's value.
+func (s *Webhook) SetScopeConfiguration(v *ScopeConfiguration) *Webhook {
+	s.ScopeConfiguration = v
 	return s
 }
 
@@ -17944,8 +18178,8 @@ type WebhookFilter struct {
 	//    PRERELEASED, and WORKFLOW_JOB_QUEUED. The EVENT patterns are specified
 	//    as a comma-separated string. For example, PUSH, PULL_REQUEST_CREATED,
 	//    PULL_REQUEST_UPDATED filters all push, pull request created, and pull
-	//    request updated events. The PULL_REQUEST_REOPENED works with GitHub and
-	//    GitHub Enterprise only. The RELEASED, PRERELEASED, and WORKFLOW_JOB_QUEUED
+	//    request updated events. Types PULL_REQUEST_REOPENED and WORKFLOW_JOB_QUEUED
+	//    work with GitHub and GitHub Enterprise only. Types RELEASED and PRERELEASED
 	//    work with GitHub only.
 	//
 	//    * ACTOR_ACCOUNT_ID A webhook event triggers a build when a GitHub, GitHub
@@ -17978,6 +18212,10 @@ type WebhookFilter struct {
 	//    * RELEASE_NAME A webhook triggers a build when the release name matches
 	//    the regular expression pattern. Works with RELEASED and PRERELEASED events
 	//    only.
+	//
+	//    * REPOSITORY_NAME A webhook triggers a build when the repository name
+	//    matches the regular expression pattern. Works with GitHub global or organization
+	//    webhooks only.
 	//
 	//    * WORKFLOW_NAME A webhook triggers a build when the workflow name matches
 	//    the regular expression pattern. Works with WORKFLOW_JOB_QUEUED events
@@ -18431,6 +18669,9 @@ const (
 
 	// FleetContextCodeUpdateFailed is a FleetContextCode enum value
 	FleetContextCodeUpdateFailed = "UPDATE_FAILED"
+
+	// FleetContextCodeActionRequired is a FleetContextCode enum value
+	FleetContextCodeActionRequired = "ACTION_REQUIRED"
 )
 
 // FleetContextCode_Values returns all elements of the FleetContextCode enum
@@ -18438,6 +18679,7 @@ func FleetContextCode_Values() []string {
 	return []string{
 		FleetContextCodeCreateFailed,
 		FleetContextCodeUpdateFailed,
+		FleetContextCodeActionRequired,
 	}
 }
 
@@ -19087,5 +19329,21 @@ func WebhookFilterType_Values() []string {
 		WebhookFilterTypeWorkflowName,
 		WebhookFilterTypeTagName,
 		WebhookFilterTypeReleaseName,
+	}
+}
+
+const (
+	// WebhookScopeTypeGithubOrganization is a WebhookScopeType enum value
+	WebhookScopeTypeGithubOrganization = "GITHUB_ORGANIZATION"
+
+	// WebhookScopeTypeGithubGlobal is a WebhookScopeType enum value
+	WebhookScopeTypeGithubGlobal = "GITHUB_GLOBAL"
+)
+
+// WebhookScopeType_Values returns all elements of the WebhookScopeType enum
+func WebhookScopeType_Values() []string {
+	return []string{
+		WebhookScopeTypeGithubOrganization,
+		WebhookScopeTypeGithubGlobal,
 	}
 }

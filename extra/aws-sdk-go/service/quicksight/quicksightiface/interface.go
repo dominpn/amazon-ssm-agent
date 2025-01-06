@@ -26,7 +26,7 @@ import (
 //	// myFunc uses an SDK service client to make a request to
 //	// Amazon QuickSight.
 //	func myFunc(svc quicksightiface.QuickSightAPI) bool {
-//	    // Make svc.CancelIngestion request
+//	    // Make svc.BatchCreateTopicReviewedAnswer request
 //	}
 //
 //	func main() {
@@ -42,7 +42,7 @@ import (
 //	type mockQuickSightClient struct {
 //	    quicksightiface.QuickSightAPI
 //	}
-//	func (m *mockQuickSightClient) CancelIngestion(input *quicksight.CancelIngestionInput) (*quicksight.CancelIngestionOutput, error) {
+//	func (m *mockQuickSightClient) BatchCreateTopicReviewedAnswer(input *quicksight.BatchCreateTopicReviewedAnswerInput) (*quicksight.BatchCreateTopicReviewedAnswerOutput, error) {
 //	    // mock response/functionality
 //	}
 //
@@ -60,6 +60,14 @@ import (
 // and waiters. Its suggested to use the pattern above for testing, or using
 // tooling to generate mocks to satisfy the interfaces.
 type QuickSightAPI interface {
+	BatchCreateTopicReviewedAnswer(*quicksight.BatchCreateTopicReviewedAnswerInput) (*quicksight.BatchCreateTopicReviewedAnswerOutput, error)
+	BatchCreateTopicReviewedAnswerWithContext(aws.Context, *quicksight.BatchCreateTopicReviewedAnswerInput, ...request.Option) (*quicksight.BatchCreateTopicReviewedAnswerOutput, error)
+	BatchCreateTopicReviewedAnswerRequest(*quicksight.BatchCreateTopicReviewedAnswerInput) (*request.Request, *quicksight.BatchCreateTopicReviewedAnswerOutput)
+
+	BatchDeleteTopicReviewedAnswer(*quicksight.BatchDeleteTopicReviewedAnswerInput) (*quicksight.BatchDeleteTopicReviewedAnswerOutput, error)
+	BatchDeleteTopicReviewedAnswerWithContext(aws.Context, *quicksight.BatchDeleteTopicReviewedAnswerInput, ...request.Option) (*quicksight.BatchDeleteTopicReviewedAnswerOutput, error)
+	BatchDeleteTopicReviewedAnswerRequest(*quicksight.BatchDeleteTopicReviewedAnswerInput) (*request.Request, *quicksight.BatchDeleteTopicReviewedAnswerOutput)
+
 	CancelIngestion(*quicksight.CancelIngestionInput) (*quicksight.CancelIngestionOutput, error)
 	CancelIngestionWithContext(aws.Context, *quicksight.CancelIngestionInput, ...request.Option) (*quicksight.CancelIngestionOutput, error)
 	CancelIngestionRequest(*quicksight.CancelIngestionInput) (*request.Request, *quicksight.CancelIngestionOutput)
@@ -366,6 +374,10 @@ type QuickSightAPI interface {
 	DescribeIpRestrictionWithContext(aws.Context, *quicksight.DescribeIpRestrictionInput, ...request.Option) (*quicksight.DescribeIpRestrictionOutput, error)
 	DescribeIpRestrictionRequest(*quicksight.DescribeIpRestrictionInput) (*request.Request, *quicksight.DescribeIpRestrictionOutput)
 
+	DescribeKeyRegistration(*quicksight.DescribeKeyRegistrationInput) (*quicksight.DescribeKeyRegistrationOutput, error)
+	DescribeKeyRegistrationWithContext(aws.Context, *quicksight.DescribeKeyRegistrationInput, ...request.Option) (*quicksight.DescribeKeyRegistrationOutput, error)
+	DescribeKeyRegistrationRequest(*quicksight.DescribeKeyRegistrationInput) (*request.Request, *quicksight.DescribeKeyRegistrationOutput)
+
 	DescribeNamespace(*quicksight.DescribeNamespaceInput) (*quicksight.DescribeNamespaceOutput, error)
 	DescribeNamespaceWithContext(aws.Context, *quicksight.DescribeNamespaceInput, ...request.Option) (*quicksight.DescribeNamespaceOutput, error)
 	DescribeNamespaceRequest(*quicksight.DescribeNamespaceInput) (*request.Request, *quicksight.DescribeNamespaceOutput)
@@ -613,6 +625,10 @@ type QuickSightAPI interface {
 	ListTopicRefreshSchedulesWithContext(aws.Context, *quicksight.ListTopicRefreshSchedulesInput, ...request.Option) (*quicksight.ListTopicRefreshSchedulesOutput, error)
 	ListTopicRefreshSchedulesRequest(*quicksight.ListTopicRefreshSchedulesInput) (*request.Request, *quicksight.ListTopicRefreshSchedulesOutput)
 
+	ListTopicReviewedAnswers(*quicksight.ListTopicReviewedAnswersInput) (*quicksight.ListTopicReviewedAnswersOutput, error)
+	ListTopicReviewedAnswersWithContext(aws.Context, *quicksight.ListTopicReviewedAnswersInput, ...request.Option) (*quicksight.ListTopicReviewedAnswersOutput, error)
+	ListTopicReviewedAnswersRequest(*quicksight.ListTopicReviewedAnswersInput) (*request.Request, *quicksight.ListTopicReviewedAnswersOutput)
+
 	ListTopics(*quicksight.ListTopicsInput) (*quicksight.ListTopicsOutput, error)
 	ListTopicsWithContext(aws.Context, *quicksight.ListTopicsInput, ...request.Option) (*quicksight.ListTopicsOutput, error)
 	ListTopicsRequest(*quicksight.ListTopicsInput) (*request.Request, *quicksight.ListTopicsOutput)
@@ -787,6 +803,10 @@ type QuickSightAPI interface {
 	UpdateIpRestrictionWithContext(aws.Context, *quicksight.UpdateIpRestrictionInput, ...request.Option) (*quicksight.UpdateIpRestrictionOutput, error)
 	UpdateIpRestrictionRequest(*quicksight.UpdateIpRestrictionInput) (*request.Request, *quicksight.UpdateIpRestrictionOutput)
 
+	UpdateKeyRegistration(*quicksight.UpdateKeyRegistrationInput) (*quicksight.UpdateKeyRegistrationOutput, error)
+	UpdateKeyRegistrationWithContext(aws.Context, *quicksight.UpdateKeyRegistrationInput, ...request.Option) (*quicksight.UpdateKeyRegistrationOutput, error)
+	UpdateKeyRegistrationRequest(*quicksight.UpdateKeyRegistrationInput) (*request.Request, *quicksight.UpdateKeyRegistrationOutput)
+
 	UpdatePublicSharingSettings(*quicksight.UpdatePublicSharingSettingsInput) (*quicksight.UpdatePublicSharingSettingsOutput, error)
 	UpdatePublicSharingSettingsWithContext(aws.Context, *quicksight.UpdatePublicSharingSettingsInput, ...request.Option) (*quicksight.UpdatePublicSharingSettingsOutput, error)
 	UpdatePublicSharingSettingsRequest(*quicksight.UpdatePublicSharingSettingsInput) (*request.Request, *quicksight.UpdatePublicSharingSettingsOutput)
@@ -798,6 +818,10 @@ type QuickSightAPI interface {
 	UpdateRoleCustomPermission(*quicksight.UpdateRoleCustomPermissionInput) (*quicksight.UpdateRoleCustomPermissionOutput, error)
 	UpdateRoleCustomPermissionWithContext(aws.Context, *quicksight.UpdateRoleCustomPermissionInput, ...request.Option) (*quicksight.UpdateRoleCustomPermissionOutput, error)
 	UpdateRoleCustomPermissionRequest(*quicksight.UpdateRoleCustomPermissionInput) (*request.Request, *quicksight.UpdateRoleCustomPermissionOutput)
+
+	UpdateSPICECapacityConfiguration(*quicksight.UpdateSPICECapacityConfigurationInput) (*quicksight.UpdateSPICECapacityConfigurationOutput, error)
+	UpdateSPICECapacityConfigurationWithContext(aws.Context, *quicksight.UpdateSPICECapacityConfigurationInput, ...request.Option) (*quicksight.UpdateSPICECapacityConfigurationOutput, error)
+	UpdateSPICECapacityConfigurationRequest(*quicksight.UpdateSPICECapacityConfigurationInput) (*request.Request, *quicksight.UpdateSPICECapacityConfigurationOutput)
 
 	UpdateTemplate(*quicksight.UpdateTemplateInput) (*quicksight.UpdateTemplateOutput, error)
 	UpdateTemplateWithContext(aws.Context, *quicksight.UpdateTemplateInput, ...request.Option) (*quicksight.UpdateTemplateOutput, error)

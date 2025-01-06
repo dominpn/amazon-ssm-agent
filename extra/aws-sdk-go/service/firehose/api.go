@@ -904,9 +904,9 @@ func (c *Firehose) StartDeliveryStreamEncryptionRequest(input *StartDeliveryStre
 // creates a grant that enables it to use the new CMK to encrypt and decrypt
 // data and to manage the grant.
 //
-// For the KMS grant creation to be successful, Firehose APIs StartDeliveryStreamEncryption
-// and CreateDeliveryStream should not be called with session credentials that
-// are more than 6 hours old.
+// For the KMS grant creation to be successful, the Firehose API operations
+// StartDeliveryStreamEncryption and CreateDeliveryStream should not be called
+// with session credentials that are more than 6 hours old.
 //
 // If a delivery stream already has encryption enabled and then you invoke this
 // operation to change the ARN of the CMK or both its type and ARN and you get
@@ -2735,6 +2735,57 @@ func (s *BufferingHints) SetSizeInMBs(v int64) *BufferingHints {
 	return s
 }
 
+// Describes the containers where the destination Apache Iceberg Tables are
+// persisted.
+//
+// Amazon Data Firehose is in preview release and is subject to change.
+type CatalogConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the Glue catalog ARN indentifier of the destination Apache Iceberg
+	// Tables. You must specify the ARN in the format arn:aws:glue:region:account-id:catalog.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	CatalogARN *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CatalogConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s CatalogConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CatalogConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CatalogConfiguration"}
+	if s.CatalogARN != nil && len(*s.CatalogARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogARN", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogARN sets the CatalogARN field's value.
+func (s *CatalogConfiguration) SetCatalogARN(v string) *CatalogConfiguration {
+	s.CatalogARN = &v
+	return s
+}
+
 // Describes the Amazon CloudWatch logging options for your delivery stream.
 type CloudWatchLoggingOptions struct {
 	_ struct{} `type:"structure"`
@@ -2980,6 +3031,11 @@ type CreateDeliveryStreamInput struct {
 	// destination. You can specify only one destination.
 	HttpEndpointDestinationConfiguration *HttpEndpointDestinationConfiguration `type:"structure"`
 
+	// Configure Apache Iceberg Tables destination.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	IcebergDestinationConfiguration *IcebergDestinationConfiguration `type:"structure"`
+
 	// When a Kinesis data stream is used as the source for the delivery stream,
 	// a KinesisStreamSourceConfiguration containing the Kinesis data stream Amazon
 	// Resource Name (ARN) and the role ARN for the source stream.
@@ -3088,6 +3144,11 @@ func (s *CreateDeliveryStreamInput) Validate() error {
 			invalidParams.AddNested("HttpEndpointDestinationConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.IcebergDestinationConfiguration != nil {
+		if err := s.IcebergDestinationConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("IcebergDestinationConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.KinesisStreamSourceConfiguration != nil {
 		if err := s.KinesisStreamSourceConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("KinesisStreamSourceConfiguration", err.(request.ErrInvalidParams))
@@ -3180,6 +3241,12 @@ func (s *CreateDeliveryStreamInput) SetExtendedS3DestinationConfiguration(v *Ext
 // SetHttpEndpointDestinationConfiguration sets the HttpEndpointDestinationConfiguration field's value.
 func (s *CreateDeliveryStreamInput) SetHttpEndpointDestinationConfiguration(v *HttpEndpointDestinationConfiguration) *CreateDeliveryStreamInput {
 	s.HttpEndpointDestinationConfiguration = v
+	return s
+}
+
+// SetIcebergDestinationConfiguration sets the IcebergDestinationConfiguration field's value.
+func (s *CreateDeliveryStreamInput) SetIcebergDestinationConfiguration(v *IcebergDestinationConfiguration) *CreateDeliveryStreamInput {
+	s.IcebergDestinationConfiguration = v
 	return s
 }
 
@@ -3933,6 +4000,11 @@ type DestinationDescription struct {
 	// Describes the specified HTTP endpoint destination.
 	HttpEndpointDestinationDescription *HttpEndpointDestinationDescription `type:"structure"`
 
+	// Describes a destination in Apache Iceberg Tables.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	IcebergDestinationDescription *IcebergDestinationDescription `type:"structure"`
+
 	// The destination in Amazon Redshift.
 	RedshiftDestinationDescription *RedshiftDestinationDescription `type:"structure"`
 
@@ -4000,6 +4072,12 @@ func (s *DestinationDescription) SetHttpEndpointDestinationDescription(v *HttpEn
 	return s
 }
 
+// SetIcebergDestinationDescription sets the IcebergDestinationDescription field's value.
+func (s *DestinationDescription) SetIcebergDestinationDescription(v *IcebergDestinationDescription) *DestinationDescription {
+	s.IcebergDestinationDescription = v
+	return s
+}
+
 // SetRedshiftDestinationDescription sets the RedshiftDestinationDescription field's value.
 func (s *DestinationDescription) SetRedshiftDestinationDescription(v *RedshiftDestinationDescription) *DestinationDescription {
 	s.RedshiftDestinationDescription = v
@@ -4021,6 +4099,103 @@ func (s *DestinationDescription) SetSnowflakeDestinationDescription(v *Snowflake
 // SetSplunkDestinationDescription sets the SplunkDestinationDescription field's value.
 func (s *DestinationDescription) SetSplunkDestinationDescription(v *SplunkDestinationDescription) *DestinationDescription {
 	s.SplunkDestinationDescription = v
+	return s
+}
+
+// Describes the configuration of a destination in Apache Iceberg Tables.
+//
+// Amazon Data Firehose is in preview release and is subject to change.
+type DestinationTableConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the Apache Iceberg database.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	//
+	// DestinationDatabaseName is a required field
+	DestinationDatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// Specifies the name of the Apache Iceberg Table.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	//
+	// DestinationTableName is a required field
+	DestinationTableName *string `min:"1" type:"string" required:"true"`
+
+	// The table specific S3 error output prefix. All the errors that occurred while
+	// delivering to this table will be prefixed with this value in S3 destination.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	S3ErrorOutputPrefix *string `type:"string"`
+
+	// A list of unique keys for a given Apache Iceberg table. Firehose will use
+	// these for running Create/Update/Delete operations on the given Iceberg table.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	UniqueKeys []*string `type:"list"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DestinationTableConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s DestinationTableConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DestinationTableConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DestinationTableConfiguration"}
+	if s.DestinationDatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationDatabaseName"))
+	}
+	if s.DestinationDatabaseName != nil && len(*s.DestinationDatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationDatabaseName", 1))
+	}
+	if s.DestinationTableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationTableName"))
+	}
+	if s.DestinationTableName != nil && len(*s.DestinationTableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationTableName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDestinationDatabaseName sets the DestinationDatabaseName field's value.
+func (s *DestinationTableConfiguration) SetDestinationDatabaseName(v string) *DestinationTableConfiguration {
+	s.DestinationDatabaseName = &v
+	return s
+}
+
+// SetDestinationTableName sets the DestinationTableName field's value.
+func (s *DestinationTableConfiguration) SetDestinationTableName(v string) *DestinationTableConfiguration {
+	s.DestinationTableName = &v
+	return s
+}
+
+// SetS3ErrorOutputPrefix sets the S3ErrorOutputPrefix field's value.
+func (s *DestinationTableConfiguration) SetS3ErrorOutputPrefix(v string) *DestinationTableConfiguration {
+	s.S3ErrorOutputPrefix = &v
+	return s
+}
+
+// SetUniqueKeys sets the UniqueKeys field's value.
+func (s *DestinationTableConfiguration) SetUniqueKeys(v []*string) *DestinationTableConfiguration {
+	s.UniqueKeys = v
 	return s
 }
 
@@ -5875,8 +6050,8 @@ type HttpEndpointDestinationConfiguration struct {
 	// Describes a data processing configuration.
 	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
 
-	// The configuration of the requeste sent to the HTTP endpoint specified as
-	// the destination.
+	// The configuration of the request sent to the HTTP endpoint that is specified
+	// as the destination.
 	RequestConfiguration *HttpEndpointRequestConfiguration `type:"structure"`
 
 	// Describes the retry behavior in case Firehose is unable to deliver data to
@@ -5898,6 +6073,9 @@ type HttpEndpointDestinationConfiguration struct {
 	//
 	// S3Configuration is a required field
 	S3Configuration *S3DestinationConfiguration `type:"structure" required:"true"`
+
+	// The configuration that defines how you access secrets for HTTP Endpoint destination.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
 }
 
 // String returns the string representation.
@@ -5953,6 +6131,11 @@ func (s *HttpEndpointDestinationConfiguration) Validate() error {
 	if s.S3Configuration != nil {
 		if err := s.S3Configuration.Validate(); err != nil {
 			invalidParams.AddNested("S3Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -6016,6 +6199,12 @@ func (s *HttpEndpointDestinationConfiguration) SetS3Configuration(v *S3Destinati
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *HttpEndpointDestinationConfiguration) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *HttpEndpointDestinationConfiguration {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // Describes the HTTP endpoint destination.
 type HttpEndpointDestinationDescription struct {
 	_ struct{} `type:"structure"`
@@ -6056,6 +6245,9 @@ type HttpEndpointDestinationDescription struct {
 
 	// Describes a destination in Amazon S3.
 	S3DestinationDescription *S3DestinationDescription `type:"structure"`
+
+	// The configuration that defines how you access secrets for HTTP Endpoint destination.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
 }
 
 // String returns the string representation.
@@ -6130,6 +6322,12 @@ func (s *HttpEndpointDestinationDescription) SetS3DestinationDescription(v *S3De
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *HttpEndpointDestinationDescription) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *HttpEndpointDestinationDescription {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // Updates the specified HTTP endpoint destination.
 type HttpEndpointDestinationUpdate struct {
 	_ struct{} `type:"structure"`
@@ -6171,6 +6369,9 @@ type HttpEndpointDestinationUpdate struct {
 
 	// Describes an update for a destination in Amazon S3.
 	S3Update *S3DestinationUpdate `type:"structure"`
+
+	// The configuration that defines how you access secrets for HTTP Endpoint destination.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
 }
 
 // String returns the string representation.
@@ -6220,6 +6421,11 @@ func (s *HttpEndpointDestinationUpdate) Validate() error {
 	if s.S3Update != nil {
 		if err := s.S3Update.Validate(); err != nil {
 			invalidParams.AddNested("S3Update", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -6280,6 +6486,12 @@ func (s *HttpEndpointDestinationUpdate) SetS3BackupMode(v string) *HttpEndpointD
 // SetS3Update sets the S3Update field's value.
 func (s *HttpEndpointDestinationUpdate) SetS3Update(v *S3DestinationUpdate) *HttpEndpointDestinationUpdate {
 	s.S3Update = v
+	return s
+}
+
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *HttpEndpointDestinationUpdate) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *HttpEndpointDestinationUpdate {
+	s.SecretsManagerConfiguration = v
 	return s
 }
 
@@ -6381,6 +6593,471 @@ func (s HttpEndpointRetryOptions) GoString() string {
 // SetDurationInSeconds sets the DurationInSeconds field's value.
 func (s *HttpEndpointRetryOptions) SetDurationInSeconds(v int64) *HttpEndpointRetryOptions {
 	s.DurationInSeconds = &v
+	return s
+}
+
+// Specifies the destination configure settings for Apache Iceberg Table.
+//
+// Amazon Data Firehose is in preview release and is subject to change.
+type IcebergDestinationConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Describes hints for the buffering to perform before delivering data to the
+	// destination. These options are treated as hints, and therefore Firehose might
+	// choose to use different values when it is optimal. The SizeInMBs and IntervalInSeconds
+	// parameters are optional. However, if specify a value for one of them, you
+	// must also provide a value for the other.
+	BufferingHints *BufferingHints `type:"structure"`
+
+	// Configuration describing where the destination Apache Iceberg Tables are
+	// persisted.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	//
+	// CatalogConfiguration is a required field
+	CatalogConfiguration *CatalogConfiguration `type:"structure" required:"true"`
+
+	// Describes the Amazon CloudWatch logging options for your delivery stream.
+	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
+
+	// Provides a list of DestinationTableConfigurations which Firehose uses to
+	// deliver data to Apache Iceberg tables.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	DestinationTableConfigurationList []*DestinationTableConfiguration `type:"list"`
+
+	// Describes a data processing configuration.
+	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
+
+	// The retry behavior in case Firehose is unable to deliver data to an Amazon
+	// S3 prefix.
+	RetryOptions *RetryOptions `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the Apache Iceberg tables role.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	//
+	// RoleARN is a required field
+	RoleARN *string `min:"1" type:"string" required:"true"`
+
+	// Describes how Firehose will backup records. Currently,Firehose only supports
+	// FailedDataOnly for preview.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	S3BackupMode *string `type:"string" enum:"IcebergS3BackupMode"`
+
+	// Describes the configuration of a destination in Amazon S3.
+	//
+	// S3Configuration is a required field
+	S3Configuration *S3DestinationConfiguration `type:"structure" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IcebergDestinationConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IcebergDestinationConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *IcebergDestinationConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "IcebergDestinationConfiguration"}
+	if s.CatalogConfiguration == nil {
+		invalidParams.Add(request.NewErrParamRequired("CatalogConfiguration"))
+	}
+	if s.RoleARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleARN"))
+	}
+	if s.RoleARN != nil && len(*s.RoleARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleARN", 1))
+	}
+	if s.S3Configuration == nil {
+		invalidParams.Add(request.NewErrParamRequired("S3Configuration"))
+	}
+	if s.BufferingHints != nil {
+		if err := s.BufferingHints.Validate(); err != nil {
+			invalidParams.AddNested("BufferingHints", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.CatalogConfiguration != nil {
+		if err := s.CatalogConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("CatalogConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DestinationTableConfigurationList != nil {
+		for i, v := range s.DestinationTableConfigurationList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "DestinationTableConfigurationList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.ProcessingConfiguration != nil {
+		if err := s.ProcessingConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("ProcessingConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.S3Configuration != nil {
+		if err := s.S3Configuration.Validate(); err != nil {
+			invalidParams.AddNested("S3Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *IcebergDestinationConfiguration) SetBufferingHints(v *BufferingHints) *IcebergDestinationConfiguration {
+	s.BufferingHints = v
+	return s
+}
+
+// SetCatalogConfiguration sets the CatalogConfiguration field's value.
+func (s *IcebergDestinationConfiguration) SetCatalogConfiguration(v *CatalogConfiguration) *IcebergDestinationConfiguration {
+	s.CatalogConfiguration = v
+	return s
+}
+
+// SetCloudWatchLoggingOptions sets the CloudWatchLoggingOptions field's value.
+func (s *IcebergDestinationConfiguration) SetCloudWatchLoggingOptions(v *CloudWatchLoggingOptions) *IcebergDestinationConfiguration {
+	s.CloudWatchLoggingOptions = v
+	return s
+}
+
+// SetDestinationTableConfigurationList sets the DestinationTableConfigurationList field's value.
+func (s *IcebergDestinationConfiguration) SetDestinationTableConfigurationList(v []*DestinationTableConfiguration) *IcebergDestinationConfiguration {
+	s.DestinationTableConfigurationList = v
+	return s
+}
+
+// SetProcessingConfiguration sets the ProcessingConfiguration field's value.
+func (s *IcebergDestinationConfiguration) SetProcessingConfiguration(v *ProcessingConfiguration) *IcebergDestinationConfiguration {
+	s.ProcessingConfiguration = v
+	return s
+}
+
+// SetRetryOptions sets the RetryOptions field's value.
+func (s *IcebergDestinationConfiguration) SetRetryOptions(v *RetryOptions) *IcebergDestinationConfiguration {
+	s.RetryOptions = v
+	return s
+}
+
+// SetRoleARN sets the RoleARN field's value.
+func (s *IcebergDestinationConfiguration) SetRoleARN(v string) *IcebergDestinationConfiguration {
+	s.RoleARN = &v
+	return s
+}
+
+// SetS3BackupMode sets the S3BackupMode field's value.
+func (s *IcebergDestinationConfiguration) SetS3BackupMode(v string) *IcebergDestinationConfiguration {
+	s.S3BackupMode = &v
+	return s
+}
+
+// SetS3Configuration sets the S3Configuration field's value.
+func (s *IcebergDestinationConfiguration) SetS3Configuration(v *S3DestinationConfiguration) *IcebergDestinationConfiguration {
+	s.S3Configuration = v
+	return s
+}
+
+// Describes a destination in Apache Iceberg Tables.
+//
+// Amazon Data Firehose is in preview release and is subject to change.
+type IcebergDestinationDescription struct {
+	_ struct{} `type:"structure"`
+
+	// Describes hints for the buffering to perform before delivering data to the
+	// destination. These options are treated as hints, and therefore Firehose might
+	// choose to use different values when it is optimal. The SizeInMBs and IntervalInSeconds
+	// parameters are optional. However, if specify a value for one of them, you
+	// must also provide a value for the other.
+	BufferingHints *BufferingHints `type:"structure"`
+
+	// Configuration describing where the destination Iceberg tables are persisted.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	CatalogConfiguration *CatalogConfiguration `type:"structure"`
+
+	// Describes the Amazon CloudWatch logging options for your delivery stream.
+	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
+
+	// Provides a list of DestinationTableConfigurations which Firehose uses to
+	// deliver data to Apache Iceberg tables.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	DestinationTableConfigurationList []*DestinationTableConfiguration `type:"list"`
+
+	// Describes a data processing configuration.
+	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
+
+	// The retry behavior in case Firehose is unable to deliver data to an Amazon
+	// S3 prefix.
+	RetryOptions *RetryOptions `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the Apache Iceberg Tables role.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	RoleARN *string `min:"1" type:"string"`
+
+	// Describes how Firehose will backup records. Currently,Firehose only supports
+	// FailedDataOnly for preview.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	S3BackupMode *string `type:"string" enum:"IcebergS3BackupMode"`
+
+	// Describes a destination in Amazon S3.
+	S3DestinationDescription *S3DestinationDescription `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IcebergDestinationDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IcebergDestinationDescription) GoString() string {
+	return s.String()
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *IcebergDestinationDescription) SetBufferingHints(v *BufferingHints) *IcebergDestinationDescription {
+	s.BufferingHints = v
+	return s
+}
+
+// SetCatalogConfiguration sets the CatalogConfiguration field's value.
+func (s *IcebergDestinationDescription) SetCatalogConfiguration(v *CatalogConfiguration) *IcebergDestinationDescription {
+	s.CatalogConfiguration = v
+	return s
+}
+
+// SetCloudWatchLoggingOptions sets the CloudWatchLoggingOptions field's value.
+func (s *IcebergDestinationDescription) SetCloudWatchLoggingOptions(v *CloudWatchLoggingOptions) *IcebergDestinationDescription {
+	s.CloudWatchLoggingOptions = v
+	return s
+}
+
+// SetDestinationTableConfigurationList sets the DestinationTableConfigurationList field's value.
+func (s *IcebergDestinationDescription) SetDestinationTableConfigurationList(v []*DestinationTableConfiguration) *IcebergDestinationDescription {
+	s.DestinationTableConfigurationList = v
+	return s
+}
+
+// SetProcessingConfiguration sets the ProcessingConfiguration field's value.
+func (s *IcebergDestinationDescription) SetProcessingConfiguration(v *ProcessingConfiguration) *IcebergDestinationDescription {
+	s.ProcessingConfiguration = v
+	return s
+}
+
+// SetRetryOptions sets the RetryOptions field's value.
+func (s *IcebergDestinationDescription) SetRetryOptions(v *RetryOptions) *IcebergDestinationDescription {
+	s.RetryOptions = v
+	return s
+}
+
+// SetRoleARN sets the RoleARN field's value.
+func (s *IcebergDestinationDescription) SetRoleARN(v string) *IcebergDestinationDescription {
+	s.RoleARN = &v
+	return s
+}
+
+// SetS3BackupMode sets the S3BackupMode field's value.
+func (s *IcebergDestinationDescription) SetS3BackupMode(v string) *IcebergDestinationDescription {
+	s.S3BackupMode = &v
+	return s
+}
+
+// SetS3DestinationDescription sets the S3DestinationDescription field's value.
+func (s *IcebergDestinationDescription) SetS3DestinationDescription(v *S3DestinationDescription) *IcebergDestinationDescription {
+	s.S3DestinationDescription = v
+	return s
+}
+
+// Describes an update for a destination in Apache Iceberg Tables.
+//
+// Amazon Data Firehose is in preview release and is subject to change.
+type IcebergDestinationUpdate struct {
+	_ struct{} `type:"structure"`
+
+	// Describes hints for the buffering to perform before delivering data to the
+	// destination. These options are treated as hints, and therefore Firehose might
+	// choose to use different values when it is optimal. The SizeInMBs and IntervalInSeconds
+	// parameters are optional. However, if specify a value for one of them, you
+	// must also provide a value for the other.
+	BufferingHints *BufferingHints `type:"structure"`
+
+	// Configuration describing where the destination Iceberg tables are persisted.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	CatalogConfiguration *CatalogConfiguration `type:"structure"`
+
+	// Describes the Amazon CloudWatch logging options for your delivery stream.
+	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
+
+	// Provides a list of DestinationTableConfigurations which Firehose uses to
+	// deliver data to Apache Iceberg tables.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	DestinationTableConfigurationList []*DestinationTableConfiguration `type:"list"`
+
+	// Describes a data processing configuration.
+	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
+
+	// The retry behavior in case Firehose is unable to deliver data to an Amazon
+	// S3 prefix.
+	RetryOptions *RetryOptions `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the Apache Iceberg Tables role.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	RoleARN *string `min:"1" type:"string"`
+
+	// Describes how Firehose will backup records. Currently,Firehose only supports
+	// FailedDataOnly for preview.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	S3BackupMode *string `type:"string" enum:"IcebergS3BackupMode"`
+
+	// Describes the configuration of a destination in Amazon S3.
+	S3Configuration *S3DestinationConfiguration `type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IcebergDestinationUpdate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s IcebergDestinationUpdate) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *IcebergDestinationUpdate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "IcebergDestinationUpdate"}
+	if s.RoleARN != nil && len(*s.RoleARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleARN", 1))
+	}
+	if s.BufferingHints != nil {
+		if err := s.BufferingHints.Validate(); err != nil {
+			invalidParams.AddNested("BufferingHints", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.CatalogConfiguration != nil {
+		if err := s.CatalogConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("CatalogConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DestinationTableConfigurationList != nil {
+		for i, v := range s.DestinationTableConfigurationList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "DestinationTableConfigurationList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.ProcessingConfiguration != nil {
+		if err := s.ProcessingConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("ProcessingConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.S3Configuration != nil {
+		if err := s.S3Configuration.Validate(); err != nil {
+			invalidParams.AddNested("S3Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *IcebergDestinationUpdate) SetBufferingHints(v *BufferingHints) *IcebergDestinationUpdate {
+	s.BufferingHints = v
+	return s
+}
+
+// SetCatalogConfiguration sets the CatalogConfiguration field's value.
+func (s *IcebergDestinationUpdate) SetCatalogConfiguration(v *CatalogConfiguration) *IcebergDestinationUpdate {
+	s.CatalogConfiguration = v
+	return s
+}
+
+// SetCloudWatchLoggingOptions sets the CloudWatchLoggingOptions field's value.
+func (s *IcebergDestinationUpdate) SetCloudWatchLoggingOptions(v *CloudWatchLoggingOptions) *IcebergDestinationUpdate {
+	s.CloudWatchLoggingOptions = v
+	return s
+}
+
+// SetDestinationTableConfigurationList sets the DestinationTableConfigurationList field's value.
+func (s *IcebergDestinationUpdate) SetDestinationTableConfigurationList(v []*DestinationTableConfiguration) *IcebergDestinationUpdate {
+	s.DestinationTableConfigurationList = v
+	return s
+}
+
+// SetProcessingConfiguration sets the ProcessingConfiguration field's value.
+func (s *IcebergDestinationUpdate) SetProcessingConfiguration(v *ProcessingConfiguration) *IcebergDestinationUpdate {
+	s.ProcessingConfiguration = v
+	return s
+}
+
+// SetRetryOptions sets the RetryOptions field's value.
+func (s *IcebergDestinationUpdate) SetRetryOptions(v *RetryOptions) *IcebergDestinationUpdate {
+	s.RetryOptions = v
+	return s
+}
+
+// SetRoleARN sets the RoleARN field's value.
+func (s *IcebergDestinationUpdate) SetRoleARN(v string) *IcebergDestinationUpdate {
+	s.RoleARN = &v
+	return s
+}
+
+// SetS3BackupMode sets the S3BackupMode field's value.
+func (s *IcebergDestinationUpdate) SetS3BackupMode(v string) *IcebergDestinationUpdate {
+	s.S3BackupMode = &v
+	return s
+}
+
+// SetS3Configuration sets the S3Configuration field's value.
+func (s *IcebergDestinationUpdate) SetS3Configuration(v *S3DestinationConfiguration) *IcebergDestinationUpdate {
+	s.S3Configuration = v
 	return s
 }
 
@@ -7121,6 +7798,14 @@ type MSKSourceConfiguration struct {
 	// MSKClusterARN is a required field
 	MSKClusterARN *string `min:"1" type:"string" required:"true"`
 
+	// The start date and time in UTC for the offset position within your MSK topic
+	// from where Firehose begins to read. By default, this is set to timestamp
+	// when Firehose becomes Active.
+	//
+	// If you want to create a Firehose stream with Earliest start position from
+	// SDK or CLI, you need to set the ReadFromTimestamp parameter to Epoch (1970-01-01T00:00:00Z).
+	ReadFromTimestamp *time.Time `type:"timestamp"`
+
 	// The topic name within the Amazon MSK cluster.
 	//
 	// TopicName is a required field
@@ -7187,6 +7872,12 @@ func (s *MSKSourceConfiguration) SetMSKClusterARN(v string) *MSKSourceConfigurat
 	return s
 }
 
+// SetReadFromTimestamp sets the ReadFromTimestamp field's value.
+func (s *MSKSourceConfiguration) SetReadFromTimestamp(v time.Time) *MSKSourceConfiguration {
+	s.ReadFromTimestamp = &v
+	return s
+}
+
 // SetTopicName sets the TopicName field's value.
 func (s *MSKSourceConfiguration) SetTopicName(v string) *MSKSourceConfiguration {
 	s.TopicName = &v
@@ -7207,6 +7898,14 @@ type MSKSourceDescription struct {
 
 	// The ARN of the Amazon MSK cluster.
 	MSKClusterARN *string `min:"1" type:"string"`
+
+	// The start date and time in UTC for the offset position within your MSK topic
+	// from where Firehose begins to read. By default, this is set to timestamp
+	// when Firehose becomes Active.
+	//
+	// If you want to create a Firehose stream with Earliest start position from
+	// SDK or CLI, you need to set the ReadFromTimestampUTC parameter to Epoch (1970-01-01T00:00:00Z).
+	ReadFromTimestamp *time.Time `type:"timestamp"`
 
 	// The topic name within the Amazon MSK cluster.
 	TopicName *string `min:"1" type:"string"`
@@ -7245,6 +7944,12 @@ func (s *MSKSourceDescription) SetDeliveryStartTimestamp(v time.Time) *MSKSource
 // SetMSKClusterARN sets the MSKClusterARN field's value.
 func (s *MSKSourceDescription) SetMSKClusterARN(v string) *MSKSourceDescription {
 	s.MSKClusterARN = &v
+	return s
+}
+
+// SetReadFromTimestamp sets the ReadFromTimestamp field's value.
+func (s *MSKSourceDescription) SetReadFromTimestamp(v time.Time) *MSKSourceDescription {
+	s.ReadFromTimestamp = &v
 	return s
 }
 
@@ -7527,7 +8232,7 @@ func (s *OutputFormatConfiguration) SetSerializer(v *Serializer) *OutputFormatCo
 }
 
 // A serializer to use for converting data to the Parquet format before storing
-// it in Amazon S3. For more information, see Apache Parquet (https://parquet.apache.org/documentation/latest/).
+// it in Amazon S3. For more information, see Apache Parquet (https://parquet.apache.org/docs/).
 type ParquetSerDe struct {
 	_ struct{} `type:"structure"`
 
@@ -8194,9 +8899,7 @@ type RedshiftDestinationConfiguration struct {
 	// Password is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by RedshiftDestinationConfiguration's
 	// String and GoString methods.
-	//
-	// Password is a required field
-	Password *string `min:"6" type:"string" required:"true" sensitive:"true"`
+	Password *string `min:"6" type:"string" sensitive:"true"`
 
 	// The data processing configuration.
 	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
@@ -8230,14 +8933,15 @@ type RedshiftDestinationConfiguration struct {
 	// S3Configuration is a required field
 	S3Configuration *S3DestinationConfiguration `type:"structure" required:"true"`
 
+	// The configuration that defines how you access secrets for Amazon Redshift.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
+
 	// The name of the user.
 	//
 	// Username is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by RedshiftDestinationConfiguration's
 	// String and GoString methods.
-	//
-	// Username is a required field
-	Username *string `min:"1" type:"string" required:"true" sensitive:"true"`
+	Username *string `min:"1" type:"string" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -8270,9 +8974,6 @@ func (s *RedshiftDestinationConfiguration) Validate() error {
 	if s.CopyCommand == nil {
 		invalidParams.Add(request.NewErrParamRequired("CopyCommand"))
 	}
-	if s.Password == nil {
-		invalidParams.Add(request.NewErrParamRequired("Password"))
-	}
 	if s.Password != nil && len(*s.Password) < 6 {
 		invalidParams.Add(request.NewErrParamMinLen("Password", 6))
 	}
@@ -8284,9 +8985,6 @@ func (s *RedshiftDestinationConfiguration) Validate() error {
 	}
 	if s.S3Configuration == nil {
 		invalidParams.Add(request.NewErrParamRequired("S3Configuration"))
-	}
-	if s.Username == nil {
-		invalidParams.Add(request.NewErrParamRequired("Username"))
 	}
 	if s.Username != nil && len(*s.Username) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Username", 1))
@@ -8309,6 +9007,11 @@ func (s *RedshiftDestinationConfiguration) Validate() error {
 	if s.S3Configuration != nil {
 		if err := s.S3Configuration.Validate(); err != nil {
 			invalidParams.AddNested("S3Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -8378,6 +9081,12 @@ func (s *RedshiftDestinationConfiguration) SetS3Configuration(v *S3DestinationCo
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *RedshiftDestinationConfiguration) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *RedshiftDestinationConfiguration {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // SetUsername sets the Username field's value.
 func (s *RedshiftDestinationConfiguration) SetUsername(v string) *RedshiftDestinationConfiguration {
 	s.Username = &v
@@ -8426,14 +9135,15 @@ type RedshiftDestinationDescription struct {
 	// S3DestinationDescription is a required field
 	S3DestinationDescription *S3DestinationDescription `type:"structure" required:"true"`
 
+	// The configuration that defines how you access secrets for Amazon Redshift.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
+
 	// The name of the user.
 	//
 	// Username is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by RedshiftDestinationDescription's
 	// String and GoString methods.
-	//
-	// Username is a required field
-	Username *string `min:"1" type:"string" required:"true" sensitive:"true"`
+	Username *string `min:"1" type:"string" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -8508,6 +9218,12 @@ func (s *RedshiftDestinationDescription) SetS3DestinationDescription(v *S3Destin
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *RedshiftDestinationDescription) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *RedshiftDestinationDescription {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // SetUsername sets the Username field's value.
 func (s *RedshiftDestinationDescription) SetUsername(v string) *RedshiftDestinationDescription {
 	s.Username = &v
@@ -8559,6 +9275,9 @@ type RedshiftDestinationUpdate struct {
 	// because the Amazon Redshift COPY operation that reads from the S3 bucket
 	// doesn't support these compression formats.
 	S3Update *S3DestinationUpdate `type:"structure"`
+
+	// The configuration that defines how you access secrets for Amazon Redshift.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
 
 	// The name of the user.
 	//
@@ -8619,6 +9338,11 @@ func (s *RedshiftDestinationUpdate) Validate() error {
 	if s.S3Update != nil {
 		if err := s.S3Update.Validate(); err != nil {
 			invalidParams.AddNested("S3Update", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -8685,6 +9409,12 @@ func (s *RedshiftDestinationUpdate) SetS3BackupUpdate(v *S3DestinationUpdate) *R
 // SetS3Update sets the S3Update field's value.
 func (s *RedshiftDestinationUpdate) SetS3Update(v *S3DestinationUpdate) *RedshiftDestinationUpdate {
 	s.S3Update = v
+	return s
+}
+
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *RedshiftDestinationUpdate) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *RedshiftDestinationUpdate {
+	s.SecretsManagerConfiguration = v
 	return s
 }
 
@@ -9418,6 +10148,88 @@ func (s *SchemaConfiguration) SetVersionId(v string) *SchemaConfiguration {
 	return s
 }
 
+// The structure that defines how Firehose accesses the secret.
+type SecretsManagerConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether you want to use the the secrets manager feature. When set
+	// as True the secrets manager configuration overwrites the existing secrets
+	// in the destination configuration. When it's set to False Firehose falls back
+	// to the credentials in the destination configuration.
+	//
+	// Enabled is a required field
+	Enabled *bool `type:"boolean" required:"true"`
+
+	// Specifies the role that Firehose assumes when calling the Secrets Manager
+	// API operation. When you provide the role, it overrides any destination specific
+	// role defined in the destination configuration. If you do not provide the
+	// then we use the destination specific role. This parameter is required for
+	// Splunk.
+	RoleARN *string `min:"1" type:"string"`
+
+	// The ARN of the secret that stores your credentials. It must be in the same
+	// region as the Firehose stream and the role. The secret ARN can reside in
+	// a different account than the delivery stream and role as Firehose supports
+	// cross-account secret access. This parameter is required when Enabled is set
+	// to True.
+	SecretARN *string `min:"1" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SecretsManagerConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SecretsManagerConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *SecretsManagerConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "SecretsManagerConfiguration"}
+	if s.Enabled == nil {
+		invalidParams.Add(request.NewErrParamRequired("Enabled"))
+	}
+	if s.RoleARN != nil && len(*s.RoleARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleARN", 1))
+	}
+	if s.SecretARN != nil && len(*s.SecretARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SecretARN", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *SecretsManagerConfiguration) SetEnabled(v bool) *SecretsManagerConfiguration {
+	s.Enabled = &v
+	return s
+}
+
+// SetRoleARN sets the RoleARN field's value.
+func (s *SecretsManagerConfiguration) SetRoleARN(v string) *SecretsManagerConfiguration {
+	s.RoleARN = &v
+	return s
+}
+
+// SetSecretARN sets the SecretARN field's value.
+func (s *SecretsManagerConfiguration) SetSecretARN(v string) *SecretsManagerConfiguration {
+	s.SecretARN = &v
+	return s
+}
+
 // The serializer that you want Firehose to use to convert data to the target
 // format before writing it to Amazon S3. Firehose supports two types of serializers:
 // the ORC SerDe (https://hive.apache.org/javadocs/r1.2.2/api/org/apache/hadoop/hive/ql/io/orc/OrcSerde.html)
@@ -9552,6 +10364,63 @@ func (s *ServiceUnavailableException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// Describes the buffering to perform before delivering data to the Snowflake
+// destination. If you do not specify any value, Firehose uses the default values.
+type SnowflakeBufferingHints struct {
+	_ struct{} `type:"structure"`
+
+	// Buffer incoming data for the specified period of time, in seconds, before
+	// delivering it to the destination. The default value is 0.
+	IntervalInSeconds *int64 `type:"integer"`
+
+	// Buffer incoming data to the specified size, in MBs, before delivering it
+	// to the destination. The default value is 1.
+	SizeInMBs *int64 `min:"1" type:"integer"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SnowflakeBufferingHints) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s SnowflakeBufferingHints) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *SnowflakeBufferingHints) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "SnowflakeBufferingHints"}
+	if s.SizeInMBs != nil && *s.SizeInMBs < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("SizeInMBs", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetIntervalInSeconds sets the IntervalInSeconds field's value.
+func (s *SnowflakeBufferingHints) SetIntervalInSeconds(v int64) *SnowflakeBufferingHints {
+	s.IntervalInSeconds = &v
+	return s
+}
+
+// SetSizeInMBs sets the SizeInMBs field's value.
+func (s *SnowflakeBufferingHints) SetSizeInMBs(v int64) *SnowflakeBufferingHints {
+	s.SizeInMBs = &v
+	return s
+}
+
 // Configure Snowflake destination
 type SnowflakeDestinationConfiguration struct {
 	_ struct{} `type:"structure"`
@@ -9566,6 +10435,10 @@ type SnowflakeDestinationConfiguration struct {
 	//
 	// AccountUrl is a required field
 	AccountUrl *string `min:"24" type:"string" required:"true" sensitive:"true"`
+
+	// Describes the buffering to perform before delivering data to the Snowflake
+	// destination. If you do not specify any value, Firehose uses the default values.
+	BufferingHints *SnowflakeBufferingHints `type:"structure"`
 
 	// Describes the Amazon CloudWatch logging options for your delivery stream.
 	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
@@ -9612,9 +10485,7 @@ type SnowflakeDestinationConfiguration struct {
 	// PrivateKey is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by SnowflakeDestinationConfiguration's
 	// String and GoString methods.
-	//
-	// PrivateKey is a required field
-	PrivateKey *string `min:"256" type:"string" required:"true" sensitive:"true"`
+	PrivateKey *string `min:"256" type:"string" sensitive:"true"`
 
 	// Describes a data processing configuration.
 	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
@@ -9646,6 +10517,9 @@ type SnowflakeDestinationConfiguration struct {
 	// Schema is a required field
 	Schema *string `min:"1" type:"string" required:"true" sensitive:"true"`
 
+	// The configuration that defines how you access secrets for Snowflake.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
+
 	// Optionally configure a Snowflake role. Otherwise the default user role will
 	// be used.
 	SnowflakeRoleConfiguration *SnowflakeRoleConfiguration `type:"structure"`
@@ -9670,9 +10544,7 @@ type SnowflakeDestinationConfiguration struct {
 	// User is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by SnowflakeDestinationConfiguration's
 	// String and GoString methods.
-	//
-	// User is a required field
-	User *string `min:"1" type:"string" required:"true" sensitive:"true"`
+	User *string `min:"1" type:"string" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -9717,9 +10589,6 @@ func (s *SnowflakeDestinationConfiguration) Validate() error {
 	if s.MetaDataColumnName != nil && len(*s.MetaDataColumnName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MetaDataColumnName", 1))
 	}
-	if s.PrivateKey == nil {
-		invalidParams.Add(request.NewErrParamRequired("PrivateKey"))
-	}
 	if s.PrivateKey != nil && len(*s.PrivateKey) < 256 {
 		invalidParams.Add(request.NewErrParamMinLen("PrivateKey", 256))
 	}
@@ -9744,11 +10613,13 @@ func (s *SnowflakeDestinationConfiguration) Validate() error {
 	if s.Table != nil && len(*s.Table) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Table", 1))
 	}
-	if s.User == nil {
-		invalidParams.Add(request.NewErrParamRequired("User"))
-	}
 	if s.User != nil && len(*s.User) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("User", 1))
+	}
+	if s.BufferingHints != nil {
+		if err := s.BufferingHints.Validate(); err != nil {
+			invalidParams.AddNested("BufferingHints", err.(request.ErrInvalidParams))
+		}
 	}
 	if s.ProcessingConfiguration != nil {
 		if err := s.ProcessingConfiguration.Validate(); err != nil {
@@ -9758,6 +10629,11 @@ func (s *SnowflakeDestinationConfiguration) Validate() error {
 	if s.S3Configuration != nil {
 		if err := s.S3Configuration.Validate(); err != nil {
 			invalidParams.AddNested("S3Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.SnowflakeRoleConfiguration != nil {
@@ -9780,6 +10656,12 @@ func (s *SnowflakeDestinationConfiguration) Validate() error {
 // SetAccountUrl sets the AccountUrl field's value.
 func (s *SnowflakeDestinationConfiguration) SetAccountUrl(v string) *SnowflakeDestinationConfiguration {
 	s.AccountUrl = &v
+	return s
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *SnowflakeDestinationConfiguration) SetBufferingHints(v *SnowflakeBufferingHints) *SnowflakeDestinationConfiguration {
+	s.BufferingHints = v
 	return s
 }
 
@@ -9861,6 +10743,12 @@ func (s *SnowflakeDestinationConfiguration) SetSchema(v string) *SnowflakeDestin
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *SnowflakeDestinationConfiguration) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *SnowflakeDestinationConfiguration {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // SetSnowflakeRoleConfiguration sets the SnowflakeRoleConfiguration field's value.
 func (s *SnowflakeDestinationConfiguration) SetSnowflakeRoleConfiguration(v *SnowflakeRoleConfiguration) *SnowflakeDestinationConfiguration {
 	s.SnowflakeRoleConfiguration = v
@@ -9897,6 +10785,10 @@ type SnowflakeDestinationDescription struct {
 	// replaced with "sensitive" in string returned by SnowflakeDestinationDescription's
 	// String and GoString methods.
 	AccountUrl *string `min:"24" type:"string" sensitive:"true"`
+
+	// Describes the buffering to perform before delivering data to the Snowflake
+	// destination. If you do not specify any value, Firehose uses the default values.
+	BufferingHints *SnowflakeBufferingHints `type:"structure"`
 
 	// Describes the Amazon CloudWatch logging options for your delivery stream.
 	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
@@ -9951,6 +10843,9 @@ type SnowflakeDestinationDescription struct {
 	// String and GoString methods.
 	Schema *string `min:"1" type:"string" sensitive:"true"`
 
+	// The configuration that defines how you access secrets for Snowflake.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
+
 	// Optionally configure a Snowflake role. Otherwise the default user role will
 	// be used.
 	SnowflakeRoleConfiguration *SnowflakeRoleConfiguration `type:"structure"`
@@ -9997,6 +10892,12 @@ func (s SnowflakeDestinationDescription) GoString() string {
 // SetAccountUrl sets the AccountUrl field's value.
 func (s *SnowflakeDestinationDescription) SetAccountUrl(v string) *SnowflakeDestinationDescription {
 	s.AccountUrl = &v
+	return s
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *SnowflakeDestinationDescription) SetBufferingHints(v *SnowflakeBufferingHints) *SnowflakeDestinationDescription {
+	s.BufferingHints = v
 	return s
 }
 
@@ -10066,6 +10967,12 @@ func (s *SnowflakeDestinationDescription) SetSchema(v string) *SnowflakeDestinat
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *SnowflakeDestinationDescription) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *SnowflakeDestinationDescription {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // SetSnowflakeRoleConfiguration sets the SnowflakeRoleConfiguration field's value.
 func (s *SnowflakeDestinationDescription) SetSnowflakeRoleConfiguration(v *SnowflakeRoleConfiguration) *SnowflakeDestinationDescription {
 	s.SnowflakeRoleConfiguration = v
@@ -10102,6 +11009,10 @@ type SnowflakeDestinationUpdate struct {
 	// replaced with "sensitive" in string returned by SnowflakeDestinationUpdate's
 	// String and GoString methods.
 	AccountUrl *string `min:"24" type:"string" sensitive:"true"`
+
+	// Describes the buffering to perform before delivering data to the Snowflake
+	// destination.
+	BufferingHints *SnowflakeBufferingHints `type:"structure"`
 
 	// Describes the Amazon CloudWatch logging options for your delivery stream.
 	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
@@ -10185,6 +11096,9 @@ type SnowflakeDestinationUpdate struct {
 	// String and GoString methods.
 	Schema *string `min:"1" type:"string" sensitive:"true"`
 
+	// Describes the Secrets Manager configuration in Snowflake.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
+
 	// Optionally configure a Snowflake role. Otherwise the default user role will
 	// be used.
 	SnowflakeRoleConfiguration *SnowflakeRoleConfiguration `type:"structure"`
@@ -10256,6 +11170,11 @@ func (s *SnowflakeDestinationUpdate) Validate() error {
 	if s.User != nil && len(*s.User) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("User", 1))
 	}
+	if s.BufferingHints != nil {
+		if err := s.BufferingHints.Validate(); err != nil {
+			invalidParams.AddNested("BufferingHints", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.ProcessingConfiguration != nil {
 		if err := s.ProcessingConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("ProcessingConfiguration", err.(request.ErrInvalidParams))
@@ -10264,6 +11183,11 @@ func (s *SnowflakeDestinationUpdate) Validate() error {
 	if s.S3Update != nil {
 		if err := s.S3Update.Validate(); err != nil {
 			invalidParams.AddNested("S3Update", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.SnowflakeRoleConfiguration != nil {
@@ -10281,6 +11205,12 @@ func (s *SnowflakeDestinationUpdate) Validate() error {
 // SetAccountUrl sets the AccountUrl field's value.
 func (s *SnowflakeDestinationUpdate) SetAccountUrl(v string) *SnowflakeDestinationUpdate {
 	s.AccountUrl = &v
+	return s
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *SnowflakeDestinationUpdate) SetBufferingHints(v *SnowflakeBufferingHints) *SnowflakeDestinationUpdate {
+	s.BufferingHints = v
 	return s
 }
 
@@ -10359,6 +11289,12 @@ func (s *SnowflakeDestinationUpdate) SetS3Update(v *S3DestinationUpdate) *Snowfl
 // SetSchema sets the Schema field's value.
 func (s *SnowflakeDestinationUpdate) SetSchema(v string) *SnowflakeDestinationUpdate {
 	s.Schema = &v
+	return s
+}
+
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *SnowflakeDestinationUpdate) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *SnowflakeDestinationUpdate {
+	s.SecretsManagerConfiguration = v
 	return s
 }
 
@@ -10671,9 +11607,7 @@ type SplunkDestinationConfiguration struct {
 
 	// This is a GUID that you obtain from your Splunk cluster when you create a
 	// new HEC endpoint.
-	//
-	// HECToken is a required field
-	HECToken *string `type:"string" required:"true"`
+	HECToken *string `type:"string"`
 
 	// The data processing configuration.
 	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
@@ -10696,6 +11630,9 @@ type SplunkDestinationConfiguration struct {
 	//
 	// S3Configuration is a required field
 	S3Configuration *S3DestinationConfiguration `type:"structure" required:"true"`
+
+	// The configuration that defines how you access secrets for Splunk.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
 }
 
 // String returns the string representation.
@@ -10728,9 +11665,6 @@ func (s *SplunkDestinationConfiguration) Validate() error {
 	if s.HECEndpointType == nil {
 		invalidParams.Add(request.NewErrParamRequired("HECEndpointType"))
 	}
-	if s.HECToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("HECToken"))
-	}
 	if s.S3Configuration == nil {
 		invalidParams.Add(request.NewErrParamRequired("S3Configuration"))
 	}
@@ -10747,6 +11681,11 @@ func (s *SplunkDestinationConfiguration) Validate() error {
 	if s.S3Configuration != nil {
 		if err := s.S3Configuration.Validate(); err != nil {
 			invalidParams.AddNested("S3Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -10816,6 +11755,12 @@ func (s *SplunkDestinationConfiguration) SetS3Configuration(v *S3DestinationConf
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *SplunkDestinationConfiguration) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *SplunkDestinationConfiguration {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // Describes a destination in Splunk.
 type SplunkDestinationDescription struct {
 	_ struct{} `type:"structure"`
@@ -10858,6 +11803,9 @@ type SplunkDestinationDescription struct {
 
 	// The Amazon S3 destination.>
 	S3DestinationDescription *S3DestinationDescription `type:"structure"`
+
+	// The configuration that defines how you access secrets for Splunk.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
 }
 
 // String returns the string representation.
@@ -10938,6 +11886,12 @@ func (s *SplunkDestinationDescription) SetS3DestinationDescription(v *S3Destinat
 	return s
 }
 
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *SplunkDestinationDescription) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *SplunkDestinationDescription {
+	s.SecretsManagerConfiguration = v
+	return s
+}
+
 // Describes an update for a destination in Splunk.
 type SplunkDestinationUpdate struct {
 	_ struct{} `type:"structure"`
@@ -10984,6 +11938,9 @@ type SplunkDestinationUpdate struct {
 
 	// Your update to the configuration of the backup Amazon S3 location.
 	S3Update *S3DestinationUpdate `type:"structure"`
+
+	// The configuration that defines how you access secrets for Splunk.
+	SecretsManagerConfiguration *SecretsManagerConfiguration `type:"structure"`
 }
 
 // String returns the string representation.
@@ -11023,6 +11980,11 @@ func (s *SplunkDestinationUpdate) Validate() error {
 	if s.S3Update != nil {
 		if err := s.S3Update.Validate(); err != nil {
 			invalidParams.AddNested("S3Update", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecretsManagerConfiguration != nil {
+		if err := s.SecretsManagerConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("SecretsManagerConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -11089,6 +12051,12 @@ func (s *SplunkDestinationUpdate) SetS3BackupMode(v string) *SplunkDestinationUp
 // SetS3Update sets the S3Update field's value.
 func (s *SplunkDestinationUpdate) SetS3Update(v *S3DestinationUpdate) *SplunkDestinationUpdate {
 	s.S3Update = v
+	return s
+}
+
+// SetSecretsManagerConfiguration sets the SecretsManagerConfiguration field's value.
+func (s *SplunkDestinationUpdate) SetSecretsManagerConfiguration(v *SecretsManagerConfiguration) *SplunkDestinationUpdate {
+	s.SecretsManagerConfiguration = v
 	return s
 }
 
@@ -11575,6 +12543,11 @@ type UpdateDestinationInput struct {
 	// Describes an update to the specified HTTP endpoint destination.
 	HttpEndpointDestinationUpdate *HttpEndpointDestinationUpdate `type:"structure"`
 
+	// Describes an update for a destination in Apache Iceberg Tables.
+	//
+	// Amazon Data Firehose is in preview release and is subject to change.
+	IcebergDestinationUpdate *IcebergDestinationUpdate `type:"structure"`
+
 	// Describes an update for a destination in Amazon Redshift.
 	RedshiftDestinationUpdate *RedshiftDestinationUpdate `type:"structure"`
 
@@ -11583,7 +12556,7 @@ type UpdateDestinationInput struct {
 	// Deprecated: S3DestinationUpdate has been deprecated
 	S3DestinationUpdate *S3DestinationUpdate `deprecated:"true" type:"structure"`
 
-	// Update to the Snowflake destination condiguration settings
+	// Update to the Snowflake destination configuration settings.
 	SnowflakeDestinationUpdate *SnowflakeDestinationUpdate `type:"structure"`
 
 	// Describes an update for a destination in Splunk.
@@ -11652,6 +12625,11 @@ func (s *UpdateDestinationInput) Validate() error {
 	if s.HttpEndpointDestinationUpdate != nil {
 		if err := s.HttpEndpointDestinationUpdate.Validate(); err != nil {
 			invalidParams.AddNested("HttpEndpointDestinationUpdate", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.IcebergDestinationUpdate != nil {
+		if err := s.IcebergDestinationUpdate.Validate(); err != nil {
+			invalidParams.AddNested("IcebergDestinationUpdate", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.RedshiftDestinationUpdate != nil {
@@ -11726,6 +12704,12 @@ func (s *UpdateDestinationInput) SetExtendedS3DestinationUpdate(v *ExtendedS3Des
 // SetHttpEndpointDestinationUpdate sets the HttpEndpointDestinationUpdate field's value.
 func (s *UpdateDestinationInput) SetHttpEndpointDestinationUpdate(v *HttpEndpointDestinationUpdate) *UpdateDestinationInput {
 	s.HttpEndpointDestinationUpdate = v
+	return s
+}
+
+// SetIcebergDestinationUpdate sets the IcebergDestinationUpdate field's value.
+func (s *UpdateDestinationInput) SetIcebergDestinationUpdate(v *IcebergDestinationUpdate) *UpdateDestinationInput {
+	s.IcebergDestinationUpdate = v
 	return s
 }
 
@@ -12380,6 +13364,22 @@ func HttpEndpointS3BackupMode_Values() []string {
 	return []string{
 		HttpEndpointS3BackupModeFailedDataOnly,
 		HttpEndpointS3BackupModeAllData,
+	}
+}
+
+const (
+	// IcebergS3BackupModeFailedDataOnly is a IcebergS3BackupMode enum value
+	IcebergS3BackupModeFailedDataOnly = "FailedDataOnly"
+
+	// IcebergS3BackupModeAllData is a IcebergS3BackupMode enum value
+	IcebergS3BackupModeAllData = "AllData"
+)
+
+// IcebergS3BackupMode_Values returns all elements of the IcebergS3BackupMode enum
+func IcebergS3BackupMode_Values() []string {
+	return []string{
+		IcebergS3BackupModeFailedDataOnly,
+		IcebergS3BackupModeAllData,
 	}
 }
 

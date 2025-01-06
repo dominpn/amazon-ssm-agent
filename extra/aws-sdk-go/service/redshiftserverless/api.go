@@ -837,6 +837,10 @@ func (c *RedshiftServerless) CreateWorkgroupRequest(input *CreateWorkgroupInput)
 //   - TooManyTagsException
 //     The request exceeded the number of tags allowed for a resource.
 //
+//   - Ipv6CidrBlockNotFoundException
+//     There are no subnets in your VPC with associated IPv6 CIDR blocks. To use
+//     dual-stack mode, associate an IPv6 CIDR block with each subnet in your VPC.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-serverless-2021-04-21/CreateWorkgroup
 func (c *RedshiftServerless) CreateWorkgroup(input *CreateWorkgroupInput) (*CreateWorkgroupOutput, error) {
 	req, out := c.CreateWorkgroupRequest(input)
@@ -5523,6 +5527,10 @@ func (c *RedshiftServerless) UpdateWorkgroupRequest(input *UpdateWorkgroupInput)
 //   - ValidationException
 //     The input failed to satisfy the constraints specified by an AWS service.
 //
+//   - Ipv6CidrBlockNotFoundException
+//     There are no subnets in your VPC with associated IPv6 CIDR blocks. To use
+//     dual-stack mode, associate an IPv6 CIDR block with each subnet in your VPC.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-serverless-2021-04-21/UpdateWorkgroup
 func (c *RedshiftServerless) UpdateWorkgroup(input *UpdateWorkgroupInput) (*UpdateWorkgroupOutput, error) {
 	req, out := c.UpdateWorkgroupRequest(input)
@@ -5676,10 +5684,10 @@ type ConfigParameter struct {
 	_ struct{} `type:"structure"`
 
 	// The key of the parameter. The options are auto_mv, datestyle, enable_case_sensitive_identifier,
-	// enable_user_activity_logging, query_group, search_path, require_ssl, and
-	// query monitoring metrics that let you define performance boundaries. For
-	// more information about query monitoring rules and available metrics, see
-	// Query monitoring metrics for Amazon Redshift Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
+	// enable_user_activity_logging, query_group, search_path, require_ssl, use_fips_ssl,
+	// and query monitoring metrics that let you define performance boundaries.
+	// For more information about query monitoring rules and available metrics,
+	// see Query monitoring metrics for Amazon Redshift Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
 	ParameterKey *string `locationName:"parameterKey" type:"string"`
 
 	// The value of the parameter to set.
@@ -6407,20 +6415,21 @@ type CreateScheduledActionInput struct {
 	// to assume permissions on your behalf. For more information about the IAM
 	// role to use with the Amazon Redshift scheduler, see Using Identity-Based
 	// Policies for Amazon Redshift (https://docs.aws.amazon.com/redshift/latest/mgmt/redshift-iam-access-control-identity-based.html)
-	// in the Amazon Redshift Cluster Management Guide
+	// in the Amazon Redshift Management Guide
 	//
 	// RoleArn is a required field
 	RoleArn *string `locationName:"roleArn" type:"string" required:"true"`
 
-	// The schedule for a one-time (at format) or recurring (cron format) scheduled
-	// action. Schedule invocations must be separated by at least one hour.
+	// The schedule for a one-time (at timestamp format) or recurring (cron format)
+	// scheduled action. Schedule invocations must be separated by at least one
+	// hour. Times are in UTC.
 	//
-	// Format of at expressions is "at(yyyy-mm-ddThh:mm:ss)". For example, "at(2016-03-04T17:27:00)".
+	//    * Format of at timestamp is yyyy-mm-ddThh:mm:ss. For example, 2016-03-04T17:27:00.
 	//
-	// Format of cron expressions is "cron(Minutes Hours Day-of-month Month Day-of-week
-	// Year)". For example, "cron(0 10 ? * MON *)". For more information, see Cron
-	// Expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
-	// in the Amazon CloudWatch Events User Guide.
+	//    * Format of cron expression is (Minutes Hours Day-of-month Month Day-of-week
+	//    Year). For example, "(0 10 ? * MON *)". For more information, see Cron
+	//    Expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
+	//    in the Amazon CloudWatch Events User Guide.
 	//
 	// Schedule is a required field
 	Schedule *Schedule `locationName:"schedule" type:"structure" required:"true"`
@@ -7063,16 +7072,20 @@ type CreateWorkgroupInput struct {
 
 	// An array of parameters to set for advanced control over a database. The options
 	// are auto_mv, datestyle, enable_case_sensitive_identifier, enable_user_activity_logging,
-	// query_group, search_path, require_ssl, and query monitoring metrics that
-	// let you define performance boundaries. For more information about query monitoring
-	// rules and available metrics, see Query monitoring metrics for Amazon Redshift
-	// Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
+	// query_group, search_path, require_ssl, use_fips_ssl, and query monitoring
+	// metrics that let you define performance boundaries. For more information
+	// about query monitoring rules and available metrics, see Query monitoring
+	// metrics for Amazon Redshift Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
 	ConfigParameters []*ConfigParameter `locationName:"configParameters" type:"list"`
 
 	// The value that specifies whether to turn on enhanced virtual private cloud
 	// (VPC) routing, which forces Amazon Redshift Serverless to route traffic through
 	// your VPC instead of over the internet.
 	EnhancedVpcRouting *bool `locationName:"enhancedVpcRouting" type:"boolean"`
+
+	// The IP address type that the workgroup supports. Possible values are ipv4
+	// and dualstack.
+	IpAddressType *string `locationName:"ipAddressType" type:"string"`
 
 	// The maximum data-warehouse capacity Amazon Redshift Serverless uses to serve
 	// queries. The max capacity is specified in RPUs.
@@ -7171,6 +7184,12 @@ func (s *CreateWorkgroupInput) SetConfigParameters(v []*ConfigParameter) *Create
 // SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
 func (s *CreateWorkgroupInput) SetEnhancedVpcRouting(v bool) *CreateWorkgroupInput {
 	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetIpAddressType sets the IpAddressType field's value.
+func (s *CreateWorkgroupInput) SetIpAddressType(v string) *CreateWorkgroupInput {
+	s.IpAddressType = &v
 	return s
 }
 
@@ -9333,6 +9352,71 @@ func (s *InvalidPaginationException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// There are no subnets in your VPC with associated IPv6 CIDR blocks. To use
+// dual-stack mode, associate an IPv6 CIDR block with each subnet in your VPC.
+type Ipv6CidrBlockNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ipv6CidrBlockNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s Ipv6CidrBlockNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorIpv6CidrBlockNotFoundException(v protocol.ResponseMetadata) error {
+	return &Ipv6CidrBlockNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *Ipv6CidrBlockNotFoundException) Code() string {
+	return "Ipv6CidrBlockNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *Ipv6CidrBlockNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *Ipv6CidrBlockNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *Ipv6CidrBlockNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *Ipv6CidrBlockNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *Ipv6CidrBlockNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type ListCustomDomainAssociationsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9907,8 +9991,8 @@ type ListScheduledActionsOutput struct {
 	// using the returned token to retrieve the next page.
 	NextToken *string `locationName:"nextToken" min:"8" type:"string"`
 
-	// All of the returned scheduled action objects.
-	ScheduledActions []*string `locationName:"scheduledActions" type:"list"`
+	// All of the returned scheduled action association objects.
+	ScheduledActions []*ScheduledActionAssociation `locationName:"scheduledActions" type:"list"`
 }
 
 // String returns the string representation.
@@ -9936,7 +10020,7 @@ func (s *ListScheduledActionsOutput) SetNextToken(v string) *ListScheduledAction
 }
 
 // SetScheduledActions sets the ScheduledActions field's value.
-func (s *ListScheduledActionsOutput) SetScheduledActions(v []*string) *ListScheduledActionsOutput {
+func (s *ListScheduledActionsOutput) SetScheduledActions(v []*ScheduledActionAssociation) *ListScheduledActionsOutput {
 	s.ScheduledActions = v
 	return s
 }
@@ -10793,6 +10877,9 @@ type NetworkInterface struct {
 	// The availability Zone.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
+	// The IPv6 address of the network interface within the subnet.
+	Ipv6Address *string `locationName:"ipv6Address" type:"string"`
+
 	// The unique identifier of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
 
@@ -10824,6 +10911,12 @@ func (s NetworkInterface) GoString() string {
 // SetAvailabilityZone sets the AvailabilityZone field's value.
 func (s *NetworkInterface) SetAvailabilityZone(v string) *NetworkInterface {
 	s.AvailabilityZone = &v
+	return s
+}
+
+// SetIpv6Address sets the Ipv6Address field's value.
+func (s *NetworkInterface) SetIpv6Address(v string) *NetworkInterface {
+	s.Ipv6Address = &v
 	return s
 }
 
@@ -11795,16 +11888,16 @@ type Schedule struct {
 	_ struct{} `type:"structure"`
 
 	// The timestamp of when Amazon Redshift Serverless should run the scheduled
-	// action. Format of at expressions is "at(yyyy-mm-ddThh:mm:ss)". For example,
-	// "at(2016-03-04T17:27:00)".
+	// action. Timestamp is in UTC. Format of at expression is yyyy-mm-ddThh:mm:ss.
+	// For example, 2016-03-04T17:27:00.
 	At *time.Time `locationName:"at" type:"timestamp"`
 
 	// The cron expression to use to schedule a recurring scheduled action. Schedule
-	// invocations must be separated by at least one hour.
+	// invocations must be separated by at least one hour. Times are in UTC.
 	//
-	// Format of cron expressions is "cron(Minutes Hours Day-of-month Month Day-of-week
-	// Year)". For example, "cron(0 10 ? * MON *)". For more information, see Cron
-	// Expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
+	// Format of cron expressions is (Minutes Hours Day-of-month Month Day-of-week
+	// Year). For example, "(0 10 ? * MON *)". For more information, see Cron Expressions
+	// (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
 	// in the Amazon CloudWatch Events User Guide.
 	Cron *string `locationName:"cron" type:"string"`
 }
@@ -11839,6 +11932,47 @@ func (s *Schedule) SetCron(v string) *Schedule {
 	return s
 }
 
+// Contains names of objects associated with a scheduled action.
+type ScheduledActionAssociation struct {
+	_ struct{} `type:"structure"`
+
+	// Name of associated Amazon Redshift Serverless namespace.
+	NamespaceName *string `locationName:"namespaceName" min:"3" type:"string"`
+
+	// Name of associated scheduled action.
+	ScheduledActionName *string `locationName:"scheduledActionName" min:"3" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ScheduledActionAssociation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s ScheduledActionAssociation) GoString() string {
+	return s.String()
+}
+
+// SetNamespaceName sets the NamespaceName field's value.
+func (s *ScheduledActionAssociation) SetNamespaceName(v string) *ScheduledActionAssociation {
+	s.NamespaceName = &v
+	return s
+}
+
+// SetScheduledActionName sets the ScheduledActionName field's value.
+func (s *ScheduledActionAssociation) SetScheduledActionName(v string) *ScheduledActionAssociation {
+	s.ScheduledActionName = &v
+	return s
+}
+
 // The returned scheduled action object.
 type ScheduledActionResponse struct {
 	_ struct{} `type:"structure"`
@@ -11860,18 +11994,19 @@ type ScheduledActionResponse struct {
 	// to assume permissions on your behalf. For more information about the IAM
 	// role to use with the Amazon Redshift scheduler, see Using Identity-Based
 	// Policies for Amazon Redshift (https://docs.aws.amazon.com/redshift/latest/mgmt/redshift-iam-access-control-identity-based.html)
-	// in the Amazon Redshift Cluster Management Guide
+	// in the Amazon Redshift Management Guide
 	RoleArn *string `locationName:"roleArn" type:"string"`
 
-	// The schedule for a one-time (at format) or recurring (cron format) scheduled
-	// action. Schedule invocations must be separated by at least one hour.
+	// The schedule for a one-time (at timestamp format) or recurring (cron format)
+	// scheduled action. Schedule invocations must be separated by at least one
+	// hour. Times are in UTC.
 	//
-	// Format of at expressions is "at(yyyy-mm-ddThh:mm:ss)". For example, "at(2016-03-04T17:27:00)".
+	//    * Format of at timestamp is yyyy-mm-ddThh:mm:ss. For example, 2016-03-04T17:27:00.
 	//
-	// Format of cron expressions is "cron(Minutes Hours Day-of-month Month Day-of-week
-	// Year)". For example, "cron(0 10 ? * MON *)". For more information, see Cron
-	// Expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
-	// in the Amazon CloudWatch Events User Guide.
+	//    * Format of cron expression is (Minutes Hours Day-of-month Month Day-of-week
+	//    Year). For example, "(0 10 ? * MON *)". For more information, see Cron
+	//    Expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
+	//    in the Amazon CloudWatch Events User Guide.
 	Schedule *Schedule `locationName:"schedule" type:"structure"`
 
 	// The description of the scheduled action.
@@ -13374,18 +13509,19 @@ type UpdateScheduledActionInput struct {
 	// to assume permissions on your behalf. For more information about the IAM
 	// role to use with the Amazon Redshift scheduler, see Using Identity-Based
 	// Policies for Amazon Redshift (https://docs.aws.amazon.com/redshift/latest/mgmt/redshift-iam-access-control-identity-based.html)
-	// in the Amazon Redshift Cluster Management Guide
+	// in the Amazon Redshift Management Guide
 	RoleArn *string `locationName:"roleArn" type:"string"`
 
-	// The schedule for a one-time (at format) or recurring (cron format) scheduled
-	// action. Schedule invocations must be separated by at least one hour.
+	// The schedule for a one-time (at timestamp format) or recurring (cron format)
+	// scheduled action. Schedule invocations must be separated by at least one
+	// hour. Times are in UTC.
 	//
-	// Format of at expressions is "at(yyyy-mm-ddThh:mm:ss)". For example, "at(2016-03-04T17:27:00)".
+	//    * Format of at timestamp is yyyy-mm-ddThh:mm:ss. For example, 2016-03-04T17:27:00.
 	//
-	// Format of cron expressions is "cron(Minutes Hours Day-of-month Month Day-of-week
-	// Year)". For example, "cron(0 10 ? * MON *)". For more information, see Cron
-	// Expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
-	// in the Amazon CloudWatch Events User Guide.
+	//    * Format of cron expression is (Minutes Hours Day-of-month Month Day-of-week
+	//    Year). For example, "(0 10 ? * MON *)". For more information, see Cron
+	//    Expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
+	//    in the Amazon CloudWatch Events User Guide.
 	Schedule *Schedule `locationName:"schedule" type:"structure"`
 
 	// The descripion of the scheduled action to update to.
@@ -13806,16 +13942,20 @@ type UpdateWorkgroupInput struct {
 
 	// An array of parameters to set for advanced control over a database. The options
 	// are auto_mv, datestyle, enable_case_sensitive_identifier, enable_user_activity_logging,
-	// query_group, search_path, require_ssl, and query monitoring metrics that
-	// let you define performance boundaries. For more information about query monitoring
-	// rules and available metrics, see Query monitoring metrics for Amazon Redshift
-	// Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
+	// query_group, search_path, require_ssl, use_fips_ssl, and query monitoring
+	// metrics that let you define performance boundaries. For more information
+	// about query monitoring rules and available metrics, see Query monitoring
+	// metrics for Amazon Redshift Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
 	ConfigParameters []*ConfigParameter `locationName:"configParameters" type:"list"`
 
 	// The value that specifies whether to turn on enhanced virtual private cloud
 	// (VPC) routing, which forces Amazon Redshift Serverless to route traffic through
 	// your VPC.
 	EnhancedVpcRouting *bool `locationName:"enhancedVpcRouting" type:"boolean"`
+
+	// The IP address type that the workgroup supports. Possible values are ipv4
+	// and dualstack.
+	IpAddressType *string `locationName:"ipAddressType" type:"string"`
 
 	// The maximum data-warehouse capacity Amazon Redshift Serverless uses to serve
 	// queries. The max capacity is specified in RPUs.
@@ -13891,6 +14031,12 @@ func (s *UpdateWorkgroupInput) SetConfigParameters(v []*ConfigParameter) *Update
 // SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
 func (s *UpdateWorkgroupInput) SetEnhancedVpcRouting(v bool) *UpdateWorkgroupInput {
 	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetIpAddressType sets the IpAddressType field's value.
+func (s *UpdateWorkgroupInput) SetIpAddressType(v string) *UpdateWorkgroupInput {
+	s.IpAddressType = &v
 	return s
 }
 
@@ -14221,10 +14367,10 @@ type Workgroup struct {
 
 	// An array of parameters to set for advanced control over a database. The options
 	// are auto_mv, datestyle, enable_case_sensitive_identifier, enable_user_activity_logging,
-	// query_group, search_path, require_ssl, and query monitoring metrics that
-	// let you define performance boundaries. For more information about query monitoring
-	// rules and available metrics, see Query monitoring metrics for Amazon Redshift
-	// Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
+	// query_group, search_path, require_ssl, use_fips_ssl, and query monitoring
+	// metrics that let you define performance boundaries. For more information
+	// about query monitoring rules and available metrics, see Query monitoring
+	// metrics for Amazon Redshift Serverless (https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless).
 	ConfigParameters []*ConfigParameter `locationName:"configParameters" type:"list"`
 
 	// The creation date of the workgroup.
@@ -14252,6 +14398,10 @@ type Workgroup struct {
 	// your VPC.
 	EnhancedVpcRouting *bool `locationName:"enhancedVpcRouting" type:"boolean"`
 
+	// The IP address type that the workgroup supports. Possible values are ipv4
+	// and dualstack.
+	IpAddressType *string `locationName:"ipAddressType" type:"string"`
+
 	// The maximum data-warehouse capacity Amazon Redshift Serverless uses to serve
 	// queries. The max capacity is specified in RPUs.
 	MaxCapacity *int64 `locationName:"maxCapacity" type:"integer"`
@@ -14269,7 +14419,7 @@ type Workgroup struct {
 	Port *int64 `locationName:"port" type:"integer"`
 
 	// A value that specifies whether the workgroup can be accessible from a public
-	// network
+	// network.
 	PubliclyAccessible *bool `locationName:"publiclyAccessible" type:"boolean"`
 
 	// An array of security group IDs to associate with the workgroup.
@@ -14365,6 +14515,12 @@ func (s *Workgroup) SetEndpoint(v *Endpoint) *Workgroup {
 // SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
 func (s *Workgroup) SetEnhancedVpcRouting(v bool) *Workgroup {
 	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetIpAddressType sets the IpAddressType field's value.
+func (s *Workgroup) SetIpAddressType(v string) *Workgroup {
+	s.IpAddressType = &v
 	return s
 }
 
