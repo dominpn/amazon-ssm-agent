@@ -14,13 +14,17 @@
 package telemetry
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"sync"
+	"time"
 
-	"github.com/aws/amazon-ssm-agent/agent/log"
+	logger "github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/context"
+	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
 
 var (
@@ -46,7 +50,7 @@ func getTelemetry() (*telemetry, error) {
 }
 
 // this is for mocking support
-var channelCreator = func(log log.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
+var channelCreator = func(log logger.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
 	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, mode, filename, false)
 }
 
@@ -85,4 +89,30 @@ func Shutdown() {
 
 func (t *telemetry) shutdown() {
 	t.fileChannel.Destroy()
+}
+
+// emitLog is the internal function which emits logs to the IPC channel
+func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetrylog.Severity, message string) (err error) {
+	entry := &telemetrylog.Entry{Time: time, Severity: severity, Body: message}
+
+	entryJson, err := json.Marshal(entry)
+	if err != nil {
+		return err
+	}
+
+	ipcMessage := &Message{
+		Namespace: namespace,
+		Type:      LOG,
+		Payload:   string(entryJson),
+	}
+
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	err = enc.Encode(ipcMessage)
+
+	if err != nil {
+		return err
+	}
+
+	return t.fileChannel.Send(buf.String())
 }
