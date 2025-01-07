@@ -82,6 +82,22 @@ func (_m *ICoreAgentContext) With(_a0 string) context.ICoreAgentContext {
 	return r0
 }
 
+// WithTelemetryNamespace provides a mock function with given fields: _a0
+func (_m *ICoreAgentContext) WithTelemetryNamespace(_a0 string) context.ICoreAgentContext {
+	ret := _m.Called(_a0)
+
+	var r0 context.ICoreAgentContext
+	if rf, ok := ret.Get(0).(func(string) context.ICoreAgentContext); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(context.ICoreAgentContext)
+		}
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewICoreAgentContext interface {
 	mock.TestingT
 	Cleanup(func())

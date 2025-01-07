@@ -18,9 +18,10 @@ import "time"
 type Severity string
 
 const (
-	DEBUG Severity = "DEBUG"
-	INFO  Severity = "INFO"
-	ERROR Severity = "ERROR"
+	DEBUG    Severity = "DEBUG"
+	INFO     Severity = "INFO"
+	ERROR    Severity = "ERROR"
+	CRITICAL Severity = "CRITICAL"
 )
 
 type Entry struct {

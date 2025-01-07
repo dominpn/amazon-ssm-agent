@@ -20,10 +20,10 @@ import (
 	"time"
 
 	logger "github.com/aws/amazon-ssm-agent/agent/log"
-	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	channelmock "github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc/mocks"
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -34,7 +34,7 @@ import (
 // returns the current testing context
 type TelemetryTestSuite struct {
 	suite.Suite
-	mockContext *context.Mock
+	mockContext *telemetryContext.Mock
 	mockIpc     *channelmock.MockedChannel
 }
 
@@ -47,7 +47,7 @@ func TestTelemetrySuite(t *testing.T) {
 // before each test
 func (suite *TelemetryTestSuite) SetupTest() {
 
-	suite.mockContext = context.NewMockDefault()
+	suite.mockContext = telemetryContext.NewMockDefault()
 	suite.mockIpc = new(channelmock.MockedChannel)
 	suite.mockIpc.On("Destroy").Return(nil)
 

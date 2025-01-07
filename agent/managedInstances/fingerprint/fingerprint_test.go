@@ -446,10 +446,18 @@ func (f *fakeLog) Error(v ...interface{}) error {
 	return errors.New("Error: " + message)
 }
 
+func (f *fakeLog) TelemetryError(v ...interface{}) error {
+	return f.Error(v...)
+}
+
 func (f *fakeLog) Errorf(format string, params ...interface{}) error {
 	message := fmt.Sprintf(format, params...)
 	f.errorMessages = append(f.errorMessages, message)
 	return errors.New("Error: " + message)
+}
+
+func (f *fakeLog) TelemetryErrorf(format string, params ...interface{}) error {
+	return f.Errorf(format, params...)
 }
 
 func (f *fakeLog) Critical(v ...interface{}) error {
@@ -458,10 +466,18 @@ func (f *fakeLog) Critical(v ...interface{}) error {
 	return errors.New("Critical: " + message)
 }
 
+func (f *fakeLog) TelemetryCritical(v ...interface{}) error {
+	return f.Critical(v...)
+}
+
 func (f *fakeLog) Criticalf(format string, params ...interface{}) error {
 	message := fmt.Sprintf(format, params...)
 	f.criticalMessages = append(f.criticalMessages, message)
 	return errors.New("Critical: " + message)
+}
+
+func (f *fakeLog) TelemetryCriticalf(format string, params ...interface{}) error {
+	return f.Criticalf(format, params...)
 }
 
 func (f fakeLog) Flush() {}
@@ -473,6 +489,10 @@ func (f fakeLog) Closed() bool {
 }
 
 func (f fakeLog) WithContext(_ ...string) log.T {
+	return nil
+}
+
+func (f fakeLog) WithTelemetryNamespace(_ string) log.T {
 	return nil
 }
 

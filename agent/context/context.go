@@ -28,6 +28,7 @@ type T interface {
 	Log() log.T
 	AppConfig() appconfig.SsmagentConfig
 	With(context string) T
+	WithTelemetryNamespace(namespace string) T
 	CurrentContext() []string
 	AppConstants() *appconfig.AppConstants
 	Identity() identity.IAgentIdentity
@@ -56,6 +57,17 @@ func (c *defaultContext) With(logContext string) T {
 	newContext := &defaultContext{
 		context:   contextSlice,
 		log:       c.log.WithContext(contextSlice...),
+		appconfig: c.appconfig,
+		appconst:  c.appconst,
+		identity:  c.identity,
+	}
+	return newContext
+}
+
+func (c *defaultContext) WithTelemetryNamespace(namespace string) T {
+	newContext := &defaultContext{
+		context:   c.context,
+		log:       c.log.WithTelemetryNamespace(namespace),
 		appconfig: c.appconfig,
 		appconst:  c.appconst,
 		identity:  c.identity,

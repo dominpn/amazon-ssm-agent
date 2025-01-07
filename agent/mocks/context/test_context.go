@@ -46,6 +46,7 @@ func NewMockDefault() *Mock {
 	ctx.On("Log").Return(log)
 	ctx.On("AppConfig").Return(config)
 	ctx.On("With", mock.AnythingOfType("string")).Return(ctx)
+	ctx.On("WithTelemetryNamespace", mock.AnythingOfType("string")).Return(ctx)
 	ctx.On("CurrentContext").Return([]string{})
 	ctx.On("Identity").Return(agentIdentity)
 	ctx.On("AppConstants").Return(&appconst)
@@ -138,6 +139,12 @@ func (m *Mock) Log() log.T {
 // With mocks the With function.
 func (m *Mock) With(ctx string) context.T {
 	args := m.Called(ctx)
+	return args.Get(0).(context.T)
+}
+
+// WithTelemetryContext mocks the WithTelemetryContext function.
+func (m *Mock) WithTelemetryNamespace(namespace string) context.T {
+	args := m.Called(namespace)
 	return args.Get(0).(context.T)
 }
 

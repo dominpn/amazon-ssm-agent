@@ -26,6 +26,7 @@ type ICoreAgentContext interface {
 	AppConfig() *appconfig.SsmagentConfig
 	Identity() identity.IAgentIdentity
 	With(context string) ICoreAgentContext
+	WithTelemetryNamespace(namespace string) ICoreAgentContext
 }
 
 // CoreAgentContext defines a type that carries context specific data such as the logger.
@@ -42,6 +43,16 @@ func (c *CoreAgentContext) With(logContext string) ICoreAgentContext {
 	newContext := &CoreAgentContext{
 		context:   contextSlice,
 		log:       c.log.WithContext(contextSlice...),
+		appConfig: c.appConfig,
+		identity:  c.identity,
+	}
+	return newContext
+}
+
+func (c *CoreAgentContext) WithTelemetryNamespace(telemetryNamespace string) ICoreAgentContext {
+	newContext := &CoreAgentContext{
+		context:   c.context,
+		log:       c.log.WithTelemetryNamespace(telemetryNamespace),
 		appConfig: c.appConfig,
 		identity:  c.identity,
 	}

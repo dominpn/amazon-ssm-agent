@@ -77,7 +77,25 @@ type BasicT interface {
 // T represents structs capable of logging messages, and context management.
 type T interface {
 	BasicT
+
+	// TelemetryError formats message using the default formats for its operands
+	// , emits log telemetry, and writes to log with level Error.
+	TelemetryError(v ...interface{}) error
+
+	// TelemetryErrorf formats message according to format specifier, emits log telemetry,
+	// and writes to log with level Error.
+	TelemetryErrorf(format string, params ...interface{}) error
+
+	// TelemetryCritical formats message using the default formats for its operands
+	// , emits log telemetry, and writes to log with level Critical.
+	TelemetryCritical(v ...interface{}) error
+
+	// TelemetryCriticalf formats message according to format specifier, emits log telemetry,
+	// and writes to log with level Critical.
+	TelemetryCriticalf(format string, params ...interface{}) error
+
 	Log(i ...interface{})
 	WithContext(context ...string) (contextLogger T)
+	WithTelemetryNamespace(namespace string) (contextLogger T)
 	WriteEvent(eventType string, agentVersion string, event string)
 }

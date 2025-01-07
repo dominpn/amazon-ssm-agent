@@ -57,3 +57,24 @@ func TestWithContext(t *testing.T) {
 	newContext := context.With("test context")
 	assert.Equal(t, newContext.Log(), loggerNew)
 }
+
+func TestWithTelemetryNamespace(t *testing.T) {
+	logger := &log.Mock{}
+	instanceId := "i-1234567890"
+	ssmAppconfig := &appconfig.SsmagentConfig{}
+
+	agentIdentity := &identityMock.IAgentIdentity{}
+	agentIdentity.On("InstanceID").Return(instanceId, nil).Once()
+
+	context, err := NewCoreAgentContext(logger, ssmAppconfig, agentIdentity)
+	assert.Nil(t, err)
+	assert.Equal(t, context.Log(), logger)
+	assert.Equal(t, context.AppConfig(), ssmAppconfig)
+	assert.Equal(t, context.Identity(), agentIdentity)
+
+	loggerNew := &log.Mock{}
+	logger.On("WithTelemetryNamespace", "testNamespace").Return(loggerNew)
+
+	newContext := context.WithTelemetryNamespace("testNamespace")
+	assert.Equal(t, newContext.Log(), loggerNew)
+}

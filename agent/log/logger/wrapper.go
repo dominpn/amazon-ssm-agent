@@ -17,6 +17,8 @@ import (
 	"sync"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
+	telemetryLog "github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
 
 // DelegateLogger holds the base logger for logging
@@ -24,12 +26,18 @@ type DelegateLogger struct {
 	BaseLoggerInstance log.BasicT
 }
 
+// TelemetryLogger holds the telemetry namespace
+type TelemetryLogger struct {
+	Log telemetryLog.Log
+}
+
 // Wrapper is a logger that can modify the format of a log message before delegating to another logger.
 type Wrapper struct {
-	Format      FormatFilter
-	M           *sync.RWMutex
-	Delegate    *DelegateLogger
-	EventLogger *EventLog
+	Format          FormatFilter
+	TelemetryLogger *TelemetryLogger
+	M               *sync.RWMutex
+	Delegate        *DelegateLogger
+	EventLogger     *EventLog
 }
 
 // FormatFilter can modify the format and or parameters to be passed to a logger.
@@ -46,6 +54,14 @@ type FormatFilter interface {
 func (w *Wrapper) WithContext(context ...string) (contextLogger log.T) {
 	formatFilter := &ContextFormatFilter{Context: context}
 	contextLogger = &Wrapper{Format: formatFilter, M: w.M, Delegate: w.Delegate, EventLogger: w.EventLogger}
+	return contextLogger
+}
+
+// WithTelemetryNamespace creates a wrapper logger with the specified telemetry namespace
+func (w *Wrapper) WithTelemetryNamespace(namespace string) (contextLogger log.T) {
+	telemetryLogger := telemetry.GetLogger(namespace)
+	telemetryNamespace := &TelemetryLogger{Log: telemetryLogger}
+	contextLogger = &Wrapper{TelemetryLogger: telemetryNamespace, Format: w.Format, M: w.M, Delegate: w.Delegate, EventLogger: w.EventLogger}
 	return contextLogger
 }
 
@@ -107,6 +123,19 @@ func (w *Wrapper) Errorf(format string, params ...interface{}) error {
 	return w.Delegate.BaseLoggerInstance.Errorf(format, params...)
 }
 
+// TelemetryErrorf emits log telemetry and formats message according to format specifier
+// and writes to log with level = Error.
+func (w *Wrapper) TelemetryErrorf(format string, params ...interface{}) error {
+	format, params = w.Format.Filterf(format, params...)
+
+	w.M.RLock()
+	defer w.M.RUnlock()
+
+	w.emitTelemetryLogf(telemetryLog.ERROR, format, params...)
+
+	return w.Delegate.BaseLoggerInstance.Errorf(format, params...)
+}
+
 // Criticalf formats message according to format specifier
 // and writes to log with level = Critical.
 func (w *Wrapper) Criticalf(format string, params ...interface{}) error {
@@ -114,6 +143,19 @@ func (w *Wrapper) Criticalf(format string, params ...interface{}) error {
 
 	w.M.RLock()
 	defer w.M.RUnlock()
+	return w.Delegate.BaseLoggerInstance.Criticalf(format, params...)
+}
+
+// TelemetryCriticalf emits log telemetry and formats message according to format specifier
+// and writes to log with level Critical.
+func (w *Wrapper) TelemetryCriticalf(format string, params ...interface{}) error {
+	format, params = w.Format.Filterf(format, params...)
+
+	w.M.RLock()
+	defer w.M.RUnlock()
+
+	w.emitTelemetryLogf(telemetryLog.CRITICAL, format, params...)
+
 	return w.Delegate.BaseLoggerInstance.Criticalf(format, params...)
 }
 
@@ -166,6 +208,19 @@ func (w *Wrapper) Error(v ...interface{}) error {
 	return w.Delegate.BaseLoggerInstance.Error(v...)
 }
 
+// TelemetryError emits log telemetry and formats message using the default formats for its operands
+// and writes to log with level Error.
+func (w *Wrapper) TelemetryError(v ...interface{}) error {
+	v = w.Format.Filter(v...)
+
+	w.M.RLock()
+	defer w.M.RUnlock()
+
+	w.emitTelemetryLog(telemetryLog.ERROR, v...)
+
+	return w.Delegate.BaseLoggerInstance.Error(v...)
+}
+
 // Critical formats message using the default formats for its operands
 // and writes to log with level = Critical
 func (w *Wrapper) Critical(v ...interface{}) error {
@@ -174,6 +229,41 @@ func (w *Wrapper) Critical(v ...interface{}) error {
 	w.M.RLock()
 	defer w.M.RUnlock()
 	return w.Delegate.BaseLoggerInstance.Critical(v...)
+}
+
+// TelemetryCritical emits log telemetry and formats message using the default formats for its operands
+// and writes to log with level Critical.
+func (w *Wrapper) TelemetryCritical(v ...interface{}) error {
+	v = w.Format.Filter(v...)
+
+	w.M.RLock()
+	defer w.M.RUnlock()
+
+	w.emitTelemetryLog(telemetryLog.CRITICAL, v...)
+
+	return w.Delegate.BaseLoggerInstance.Critical(v...)
+}
+
+// emitTelemetryLogf emits log telemetry and formats message according to format specifier
+func (w *Wrapper) emitTelemetryLogf(severity telemetryLog.Severity, format string, params ...interface{}) {
+	if w.TelemetryLogger != nil {
+		err := w.TelemetryLogger.Log.EmitLogf(severity, format, params...)
+		if err != nil {
+			format1, params1 := w.Format.Filterf("Error emitting log telemetry: %v", err)
+			w.Delegate.BaseLoggerInstance.Warnf(format1, params1...)
+		}
+	}
+}
+
+// emitTelemetryLogf emits log telemetry and formats message using the default formats for its operands
+func (w *Wrapper) emitTelemetryLog(severity telemetryLog.Severity, v ...interface{}) {
+	if w.TelemetryLogger != nil {
+		err := w.TelemetryLogger.Log.EmitLog(severity, v...)
+		if err != nil {
+			format, params := w.Format.Filterf("Error emitting log telemetry: %v", err)
+			w.Delegate.BaseLoggerInstance.Warnf(format, params...)
+		}
+	}
 }
 
 // Flush flushes all the messages in the logger.
