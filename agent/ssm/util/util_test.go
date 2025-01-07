@@ -15,10 +15,12 @@
 package util
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/aws/amazon-ssm-agent/agent/network"
+	"github.com/stretchr/testify/assert"
 )
 
 type MockClient struct {
@@ -51,7 +53,7 @@ func TestHTTPSRedirect(t *testing.T) {
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			//This function mocks a redirect. Do gets called and then gets sent to the CheckRedirect handler.
 			//via is requests already made and req is the upcoming request
-			err := disableHTTPDowngrade(req, origRequests)
+			err := network.DisableHTTPDowngrade(req, origRequests)
 			return &http.Response{
 				StatusCode: http.StatusOK,
 			}, err
@@ -81,7 +83,7 @@ func TestHTTPDowngrade(t *testing.T) {
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			//This function mocks a redirect. Do gets called and then gets sent to the CheckRedirect handler.
 			//via is requests already made and req is the upcoming request
-			err := disableHTTPDowngrade(req, origRequests)
+			err := network.DisableHTTPDowngrade(req, origRequests)
 			return &http.Response{
 				StatusCode: http.StatusPermanentRedirect,
 			}, err

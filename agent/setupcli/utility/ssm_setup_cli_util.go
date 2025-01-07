@@ -43,7 +43,6 @@ func HttpDownload(log log.T, fileURL string, destinationPath string) (string, er
 	}
 
 	download := func() (err error) {
-		var httpClient http.Client
 		var httpRequest *http.Request
 		httpRequest, err = http.NewRequest("GET", fileURL, nil)
 		if err != nil {
@@ -52,12 +51,9 @@ func HttpDownload(log log.T, fileURL string, destinationPath string) (string, er
 
 		customTransport := network.GetDefaultTransport(log, appconfig.SsmagentConfig{})
 		customTransport.TLSHandshakeTimeout = 20 * time.Second
-		httpClient = http.Client{
-			CheckRedirect: func(r *http.Request, via []*http.Request) error {
-				r.URL.Opaque = r.URL.Path
-				return nil
-			},
-			Transport: customTransport,
+		httpClient := http.Client{
+			CheckRedirect: network.DisableHTTPDowngrade,
+			Transport:     customTransport,
 		}
 
 		var resp *http.Response

@@ -29,6 +29,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
+	"github.com/aws/amazon-ssm-agent/agent/network"
 	"github.com/aws/amazon-ssm-agent/core/app/selfupdate/fileutil"
 )
 
@@ -93,17 +94,13 @@ func (artifact *Artifact) Download(input DownloadInput) (output DownloadOutput, 
 
 	// process if the url is local file or it has already been downloaded.
 	var isLocalFile = false
-	isLocalFile, err = artifact.fileutil.LocalFileExist(input.SourceURL)
-	if err != nil {
-		err = fmt.Errorf("check for local file exists returned %v", err)
-		err = nil
-	}
+	isLocalFile, _ = artifact.fileutil.LocalFileExist(input.SourceURL)
 
-	if isLocalFile == true {
+	if isLocalFile {
 		// if local file exist, remove the downloaded artifacts and re-download it again.
 		artifact.log.Debugf("source is a local file, start removing existing artifacts. %v", input.SourceURL)
 		if err := artifact.fileutil.DeleteFile(input.SourceURL); err != nil {
-			err = fmt.Errorf("source is a local file, failed to remove existing local file %v", input.SourceURL)
+			artifact.log.Warnf("source is a local file, failed to remove existing local file %v", input.SourceURL)
 		} else {
 			output.IsUpdated = false
 		}
@@ -120,13 +117,12 @@ func (artifact *Artifact) Download(input DownloadInput) (output DownloadOutput, 
 	artifact.log.Debugf("Try to download from http/https")
 	tempOutput, err = artifact.httpDownload(input.SourceURL, output.LocalFilePath)
 	output = tempOutput
-
 	if err != nil {
 		return
 	}
 
 	isLocalFile, err = artifact.fileutil.LocalFileExist(output.LocalFilePath)
-	if isLocalFile == true {
+	if isLocalFile {
 		output.IsHashMatched, err = artifact.VerifyHash(input, output)
 	}
 
@@ -137,14 +133,13 @@ func (artifact *Artifact) Download(input DownloadInput) (output DownloadOutput, 
 func (artifact *Artifact) httpDownload(fileURL string, destFile string) (output DownloadOutput, err error) {
 	artifact.log.Debugf("attempting to download as http/https download %v", destFile)
 	eTagFile := destFile + ".etag"
-	var check http.Client
 	var request *http.Request
 	request, err = http.NewRequest("GET", fileURL, nil)
 	if err != nil {
 		artifact.log.Errorf("Failed to create http request for artifact download %s", err)
 		return
 	}
-	if artifact.fileutil.Exists(destFile) == true && artifact.fileutil.Exists(eTagFile) == true {
+	if artifact.fileutil.Exists(destFile) && artifact.fileutil.Exists(eTagFile) {
 		var existingETag string
 		existingETag, err = artifact.fileutil.ReadAllText(eTagFile)
 		if err != nil {
@@ -152,12 +147,8 @@ func (artifact *Artifact) httpDownload(fileURL string, destFile string) (output 
 		}
 		request.Header.Add("If-None-Match", existingETag)
 	}
-
-	check = http.Client{
-		CheckRedirect: func(r *http.Request, via []*http.Request) error {
-			r.URL.Opaque = r.URL.Path
-			return nil
-		},
+	check := http.Client{
+		CheckRedirect: network.DisableHTTPDowngrade,
 	}
 
 	var resp *http.Response
@@ -273,7 +264,7 @@ func (artifact *Artifact) VerifyHash(input DownloadInput, output DownloadOutput)
 func (artifact *Artifact) sha256HashValue(filePath string) (hash string, err error) {
 	var exists = false
 	exists, err = artifact.fileutil.LocalFileExist(filePath)
-	if err != nil || exists == false {
+	if err != nil || !exists {
 		return
 	}
 
@@ -296,7 +287,7 @@ func (artifact *Artifact) sha256HashValue(filePath string) (hash string, err err
 func (artifact *Artifact) md5HashValue(filePath string) (hash string, err error) {
 	var exists = false
 	exists, err = artifact.fileutil.LocalFileExist(filePath)
-	if err != nil || exists == false {
+	if err != nil || !exists {
 		return
 	}
 
