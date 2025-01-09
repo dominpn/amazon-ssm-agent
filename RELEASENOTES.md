@@ -1,5 +1,13 @@
 Latest
 ===============
+- Update aws-sdk-go from 1.51.20 to 1.55.5
+- Update golang.org/x/crypto from 0.24.0 to 0.32.0
+- Update github.com/go-git/go-git/v5 from 5.12.0 to 5.13.1
+- Update golang.org/x/net from 0.26.0 to 0.34.0
+- Update golang.org/x/oauth2 from 0.0.0-20211005180243-6b3c2da341f1 to 0.24.0
+
+3.3.1345.0
+===============
 - Revert "Update configurePackage to use fixed download method"
 - Revert "Use a single syscall for route table for health check IP"
 
