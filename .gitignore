@@ -31,3 +31,5 @@ agent/managedInstances/sharedCredentials/example.ini
 build
 vendor/src/github.com/aws/amazon-ssm-agent
 empty/
+# exclude mmcloughlin/avo build package from the ignore list as it is used/referenced within the sha1cd lib
+!vendor/github.com/mmcloughlin/avo/build

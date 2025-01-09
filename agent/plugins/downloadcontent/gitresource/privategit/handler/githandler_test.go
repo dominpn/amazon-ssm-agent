@@ -22,6 +22,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
@@ -101,6 +102,7 @@ func TestNewGitHandlerURLParsing(t *testing.T) {
 			"",
 			&transport.Endpoint{
 				Protocol: "file",
+				Path:     getAbsolutePath(""),
 			},
 			nil,
 		},
@@ -158,6 +160,14 @@ func TestNewGitHandlerURLParsing(t *testing.T) {
 		}
 	}
 
+}
+
+func getAbsolutePath(path string) string {
+	if result, err := filepath.Abs(path); err != nil {
+		return ""
+	} else {
+		return result
+	}
 }
 
 func TestNewGitHandler_isGitTypeRepositoryURL(t *testing.T) {
