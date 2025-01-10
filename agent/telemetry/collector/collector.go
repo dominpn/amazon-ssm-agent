@@ -68,7 +68,8 @@ type collectorT struct {
 }
 
 func NewCollector(context context.T, aggregationPeriod time.Duration) (Collector, error) {
-	logCollector := newLogCollector(context)
+	// TODO : make the parameters configurable. Currently set to 10 max rolling files, 100 KB each
+	logCollector := newRollingLogCollector(context, 10, 100*1024, "logs")
 	metricCollector := newMetricCollector(context)
 
 	collector := &collectorT{

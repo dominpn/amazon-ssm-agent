@@ -106,4 +106,7 @@ var (
 	RuntimeConfigFolderPath = DefaultProgramFolder + "runtimeconfig"
 
 	DefaultEC2SharedCredentialsFilePath = DefaultDataStorePath + "credentials"
+
+	// TelemetryDataStorePath specifies the directory where telemetry data is collected before sending
+	TelemetryDataStorePath = DefaultDataStorePath + "telemetry"
 )
