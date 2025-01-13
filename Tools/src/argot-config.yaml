@@ -125,6 +125,19 @@ dataflow-problems:
 
 
 syntactic-problems:
+  cond-checks:
+    - tag: "resource-check-availability"
+      description: "Agent must check resource availability before performing changes"
+      targets:
+        - agent-worker-unix
+        - ssm-document-worker
+      call:
+        - method: DownloadUpdater
+        - method: DownloadManifest
+          context: .*plugins/updatessmagent.* # only check calls in this package
+      preconditions:
+      # disk space must be sufficient, and calling the function must not return an error
+        - precondition: [ "IsDiskSpaceSufficientForUpdate(...)#0", "!(IsDiskSpaceSufficientForUpdate(...)#1 != nil:error)"]
   # Check that the tls config field MinVersion is always set to TLS 1.2
   struct-inits:
     - tag: "init-tls-v12"
