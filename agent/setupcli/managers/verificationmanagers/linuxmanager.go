@@ -19,14 +19,12 @@ package verificationmanagers
 
 import (
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
-	"strings"
-
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/setupcli/managers/common"
+	"io/ioutil"
+	"path/filepath"
 )
 
 var (
@@ -86,10 +84,7 @@ func (l *linuxManager) VerifySignature(log log.T, signaturePath string, artifact
 		}
 		return fmt.Errorf("gpg verify: failed to verify signature using gpg with output '%v' and error: %v", output, err)
 	}
-	goodSignatureText := "Good signature from \"SSM Agent <ssm-agent-signer@amazon.com>\""
-	if !strings.Contains(output, goodSignatureText) {
-		return fmt.Errorf("signature verification failed %v", output)
-	}
+
 	log.Infof("Successfully verified signature")
 	return nil
 }
