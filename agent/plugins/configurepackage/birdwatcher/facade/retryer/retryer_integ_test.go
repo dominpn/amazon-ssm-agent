@@ -11,8 +11,8 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-//go:build integration
-// +build integration
+//go:build integration || fastinteg
+// +build integration fastinteg
 
 // Package retryer overrides the default ssm retryer delay logic to suit GetManifest, DescribeDocument and GetDocument
 package retryer

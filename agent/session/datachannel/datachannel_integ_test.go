@@ -11,8 +11,8 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-//go:build integration
-// +build integration
+//go:build integration || longinteg
+// +build integration longinteg
 
 // Package datachannel implements data channel which is used to interactively run commands.
 package datachannel

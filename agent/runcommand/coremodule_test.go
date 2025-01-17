@@ -13,8 +13,8 @@
 
 // Package runcommand implements runcommand core processing module
 
-//go:build integration
-// +build integration
+//go:build integration || longinteg
+// +build integration longinteg
 
 package runcommand
 
