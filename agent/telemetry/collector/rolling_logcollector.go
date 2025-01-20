@@ -71,7 +71,7 @@ func (c *namespacedRollingLogCollector) CollectLog(namespace string, entry telem
 	return err
 }
 
-func (c *namespacedRollingLogCollector) Fetch(namespace string, limit int) ([]telemetrylog.Entry, error) {
+func (c *namespacedRollingLogCollector) FetchAndDrop(namespace string, limit int) ([]telemetrylog.Entry, error) {
 	// TODO implement me
 	panic("implement me")
 }

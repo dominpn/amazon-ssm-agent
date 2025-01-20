@@ -37,5 +37,5 @@ func (i int64Counter) Add(incr int64) error {
 	pkgMutex.RLock()
 	defer pkgMutex.RUnlock()
 
-	return telemetry.emitIntegerMetric(i.namespace, i.name, i.unit, time.Now(), incr)
+	return telemetry.emitIntegerMetric(i.namespace, i.name, i.unit, metric.Sum, time.Now(), incr)
 }

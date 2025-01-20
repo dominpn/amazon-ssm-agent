@@ -14,50 +14,41 @@
 package collector
 
 import (
-	"sync"
-	"time"
+	"errors"
 
-	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 )
 
-type timeSpan struct {
-	startTime time.Time
-	endTime   time.Time
+// aggregateDataPoint holds an aggregated data point
+type aggregateDataPoint struct {
+	metric.DataPoint[float64]
+
+	// count of data points aggregated until now. Needed for calculating average for example
+	dataPointCounts int
 }
 
-// timeAggregatedMetric holds metrics aggregated by time spans
-type timeAggregatedMetric[N int64 | float64] struct {
-	Name string
-	Unit string
-
-	mtx   *sync.Mutex
-	spans map[timeSpan]*metric.DataPoint[N]
+// aggregatedMetric is an interface for metric aggregators
+type aggregatedMetric[N int64 | float64] interface {
+	aggregate(point metric.DataPoint[N]) error
 }
 
-type metricCollector struct {
-	mtx            *sync.Mutex
-	int64metrics   map[string]*map[string]*timeAggregatedMetric[int64]
-	float64metrics map[string]*map[string]*timeAggregatedMetric[int64]
+// kindAggregator is an interface which specifies how two metric points should be aggregated
+type kindAggregator[N int64 | float64] interface {
+	aggregate(previous aggregateDataPoint, newValue N) aggregateDataPoint
 }
 
-func newMetricCollector(context context.T) *metricCollector {
-	return &metricCollector{
-		mtx: &sync.Mutex{},
+func newMetricKindAggregator[N int64 | float64](kind metric.Kind) (kindAggregator[N], error) {
+	switch kind {
+	case metric.Sum:
+		m := newSumMetric[N]()
+
+		return m, nil
+
+	case metric.Gauge:
+		m := newGaugeMetric[N]()
+
+		return m, nil
+	default:
+		return nil, errors.New("unsupported metric kind")
 	}
-}
-
-func (c *metricCollector) Collect(namespace string, metric metric.Metric[float64]) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c *metricCollector) Fetch(namespace string, limit int) ([]metric.Metric[float64], error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c *metricCollector) Close() error {
-	//TODO implement me
-	panic("implement me")
 }

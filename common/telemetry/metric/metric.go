@@ -4,10 +4,20 @@ import (
 	"time"
 )
 
+type Kind string
+
+const (
+	Sum   Kind = "sum"
+	Gauge Kind = "gauge"
+)
+
+type NamespaceMetrics[N int64 | float64] map[string][]Metric[N]
+
 type Metric[N int64 | float64] struct {
 	// Name is the name of the Instrument that created this data.
 	Name       string
 	Unit       string
+	Kind       Kind
 	DataPoints []DataPoint[N]
 }
 

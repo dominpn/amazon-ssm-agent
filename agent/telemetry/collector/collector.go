@@ -11,6 +11,19 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+// Copyright 2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"). You may not
+// use this file except in compliance with the License. A copy of the
+// License is located at
+//
+// http://aws.amazon.com/apache2.0/
+//
+// or in the "license" file accompanying this file. This file is distributed
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+// either express or implied. See the License for the specific language governing
+// permissions and limitations under the License.
+
 package collector
 
 import (
@@ -30,8 +43,7 @@ var EOF = errors.New("EOF")
 type LogCollector interface {
 	CollectLog(namespace string, log telemetrylog.Entry) error
 
-	// Fetch
-	Fetch(namespace string, limit int) ([]telemetrylog.Entry, error)
+	FetchAndDrop(namespace string, limit int) ([]telemetrylog.Entry, error)
 
 	Close() error
 }
@@ -39,7 +51,7 @@ type LogCollector interface {
 type MetricsCollector interface {
 	Collect(namespace string, metric metric.Metric[float64]) error
 
-	Fetch(namespace string, limit int) ([]metric.Metric[float64], error)
+	FetchAndDrop(namespace string, limit int) ([]metric.Metric[float64], error)
 
 	Close() error
 }
@@ -70,7 +82,8 @@ type collectorT struct {
 func NewCollector(context context.T, aggregationPeriod time.Duration) (Collector, error) {
 	// TODO : make the parameters configurable. Currently set to 10 max rolling files, 100 KB each
 	logCollector := newRollingLogCollector(context, 10, 100*1024, "logs")
-	metricCollector := newMetricCollector(context)
+
+	metricCollector := NewInMemoryMetricCollector(context)
 
 	collector := &collectorT{
 		aggregationPeriod: aggregationPeriod,

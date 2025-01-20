@@ -113,10 +113,11 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 	return t.fileChannel.Send(string(ipcMessageJson))
 }
 
-func (t *telemetry) emitIntegerMetric(namespace string, name string, unit string, time time.Time, value int64) (err error) {
+func (t *telemetry) emitIntegerMetric(namespace string, name string, unit string, kind metric.Kind, time time.Time, value int64) (err error) {
 	entry := &metric.Metric[int64]{
 		Name:       name,
 		Unit:       unit,
+		Kind:       kind,
 		DataPoints: []metric.DataPoint[int64]{{StartTime: time, EndTime: time, Value: value}},
 	}
 

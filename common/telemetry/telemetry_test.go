@@ -209,12 +209,13 @@ func (suite *TelemetryTestSuite) Test_emitIntegerMetric() {
 
 	now := time.Now()
 
-	err := telemetryInstance.emitIntegerMetric("testNamespace", "testMetric", "event", now, 100)
+	err := telemetryInstance.emitIntegerMetric("testNamespace", "testMetric", "event", metric.Sum, now, 100)
 	assert.Nil(suite.T(), err)
 
 	expectedMetric := &metric.Metric[int64]{
 		Name:       "testMetric",
 		Unit:       "event",
+		Kind:       metric.Sum,
 		DataPoints: []metric.DataPoint[int64]{{StartTime: now, EndTime: now, Value: 100}},
 	}
 
