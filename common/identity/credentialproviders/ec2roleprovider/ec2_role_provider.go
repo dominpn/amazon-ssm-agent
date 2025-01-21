@@ -84,6 +84,14 @@ func (p *EC2RoleProvider) GetInnerProvider() IInnerProvider {
 	return p.InnerProviders.IPRProvider
 }
 
+// GetInstanceRegion gets the region of the instance for this provider.
+func (p *EC2RoleProvider) GetInstanceRegion() string {
+	if p.InstanceInfo == nil {
+		return "" // Should never happen with proper initialization
+	}
+	return p.InstanceInfo.Region
+}
+
 // RetrieveWithContext returns shared credentials if specified in runtime config
 // and returns instance profile role credentials otherwise.
 // If neither can be retrieved then empty credentials are returned
@@ -182,7 +190,7 @@ func (p *EC2RoleProvider) iprCredentials(ctx context.Context, ssmEndpoint string
 
 // updateEmptyInstanceInformation calls UpdateInstanceInformation with minimal parameters
 func (p *EC2RoleProvider) updateEmptyInstanceInformation(ctx context.Context, ssmEndpoint string, roleCredentials *credentials.Credentials) error {
-	ssmClient := newV4ServiceWithCreds(p.Log.WithContext("SSMService"), roleCredentials, p.InstanceInfo.Region, ssmEndpoint)
+	ssmClient := newV4ServiceWithCreds(p.Log.WithContext("SSMService"), roleCredentials, p.GetInstanceRegion(), ssmEndpoint)
 
 	p.Log.Debugf("Calling UpdateInstanceInformation")
 	// Call update instance information with instance profile role

@@ -79,6 +79,14 @@ func (p *SSMEC2RoleProvider) isEC2InstanceRegistered() bool {
 	return p.registrationInfo.PrivateKey != "" && p.registrationInfo.KeyType != ""
 }
 
+// GetInstanceRegion gets the region of the instance for this provider.
+func (p *SSMEC2RoleProvider) GetInstanceRegion() string {
+	if p.InstanceInfo == nil {
+		return "" // Should never happen with proper initialization
+	}
+	return p.InstanceInfo.Region
+}
+
 func (p *SSMEC2RoleProvider) RetrieveWithContext(ctx context.Context) (credentials.Value, error) {
 	var err error
 	var roleCreds *ssm.RequestManagedInstanceRoleTokenOutput
@@ -91,7 +99,7 @@ func (p *SSMEC2RoleProvider) RetrieveWithContext(ctx context.Context) (credentia
 		p.tokenRequestClient = newIirRsaAuth(p.Log.WithContext("[TokenRequestService]"),
 			p.Config,
 			p.IMDSClient,
-			p.InstanceInfo.Region,
+			p.GetInstanceRegion(),
 			p.registrationInfo.PrivateKey)
 	}
 

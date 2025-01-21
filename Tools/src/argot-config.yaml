@@ -53,6 +53,7 @@ dataflow-problems:
       description: "Checking that credentials don't get logged."
       targets:
         - agent-worker-unix
+        - amazon-ssm-agent-unix
         - ssm-document-worker
         - ssm-session-worker
         - ssm-setup-cli
@@ -73,6 +74,8 @@ dataflow-problems:
           method: "Sign"
         - package: ".*signer/v4"
           method: "signWithBody"
+        - package: ".*ec2roleprovider"
+          method: "^GetInstanceRegion$"
       filters:
         - type: "^error"
         - type: "^int"
