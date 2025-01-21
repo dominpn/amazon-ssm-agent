@@ -30,6 +30,8 @@ type Entry struct {
 	Body     string    `json:"Body"`
 }
 
+type NamespaceLogs map[string][]Entry
+
 type Log interface {
 	EmitLog(s Severity, v ...interface{}) error
 	EmitLogf(s Severity, format string, params ...interface{}) error

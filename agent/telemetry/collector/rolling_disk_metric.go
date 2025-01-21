@@ -16,8 +16,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
-	"strconv"
 	"sync"
 
 	"github.com/cihub/seelog"
@@ -25,17 +25,16 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
-	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 )
 
-// rollingLogCollector holds rolling log state of a single namespace
-type rollingLogCollector struct {
-	// log file name
+// rollingDiskMetricCollector holds a [seelog.LoggerInterface] instance
+type rollingDiskMetricCollector struct {
 	logger seelog.LoggerInterface
 }
 
-// namespacedRollingLogCollector holds a rollingLogCollector for each namespace
-type namespacedRollingLogCollector struct {
+// namespacedDiskMetricCollector holds namespace to [rollingDiskMetricCollector] mapping
+type namespacedDiskMetricCollector struct {
 	ctx context.T
 
 	// maximum number of rolled files
@@ -46,49 +45,49 @@ type namespacedRollingLogCollector struct {
 	// prefix of each log file
 	fileNamePrefix string
 	mtx            *sync.Mutex
-	collectorMap   map[string]*rollingLogCollector
+	collectorMap   map[string]*rollingDiskMetricCollector
 }
 
 // for mocking the write directory since TelemetryDataStorePath is a constant
-var getBaseLogStoreDir = func() string {
-	return filepath.Join(appconfig.TelemetryDataStorePath, "logs")
+var getBaseMetricsStoreDir = func() string {
+	return filepath.Join(appconfig.TelemetryDataStorePath, "metrics")
 }
 
-func newRollingLogCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedRollingLogCollector {
-	return &namespacedRollingLogCollector{
+func NewRollingDiskMetricCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedDiskMetricCollector {
+	return &namespacedDiskMetricCollector{
 		ctx:            context,
 		maxRolls:       maxRolls,
 		maxFileSize:    maxFileSize,
 		fileNamePrefix: fileNamePrefix,
 		mtx:            &sync.Mutex{},
-		collectorMap:   make(map[string]*rollingLogCollector),
+		collectorMap:   make(map[string]*rollingDiskMetricCollector),
 	}
 }
 
-func (c *namespacedRollingLogCollector) CollectLog(namespace string, entry telemetrylog.Entry) error {
-	entryBytes, err := json.Marshal(entry)
+func (c *namespacedDiskMetricCollector) Collect(namespace string, metric metric.Metric[float64]) error {
+	metricBytes, err := json.Marshal(metric)
 
 	if err != nil {
 		return err
 	}
 
-	rw, err := c.getLogCollector(namespace)
+	rw, err := c.getMetricCollector(namespace)
 
 	if err != nil {
 		return err
 	}
 
-	err = rw.write(entryBytes)
+	err = rw.write(metricBytes)
 
 	return err
 }
 
-func (c *namespacedRollingLogCollector) FetchAndDrop(limit int) (telemetrylog.NamespaceLogs, error) {
+func (c *namespacedDiskMetricCollector) FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (c *namespacedRollingLogCollector) Flush() error {
+func (c *namespacedDiskMetricCollector) Flush() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -98,7 +97,7 @@ func (c *namespacedRollingLogCollector) Flush() error {
 	// flush collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
 		wg.Add(1)
-		go func(collector *rollingLogCollector) {
+		go func(collector *rollingDiskMetricCollector) {
 			defer wg.Done()
 
 			errCh <- collector.flush()
@@ -117,7 +116,7 @@ func (c *namespacedRollingLogCollector) Flush() error {
 	return errors.Join(errs...)
 }
 
-func (c *namespacedRollingLogCollector) Close() error {
+func (c *namespacedDiskMetricCollector) Clean() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -127,7 +126,49 @@ func (c *namespacedRollingLogCollector) Close() error {
 	// close collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
 		wg.Add(1)
-		go func(collector *rollingLogCollector) {
+		go func(collector *rollingDiskMetricCollector) {
+			defer wg.Done()
+
+			errCh <- collector.flush()
+		}(innerCollector)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+	close(errCh)
+
+	// clean the directory
+	dir := getBaseMetricsStoreDir()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		path := filepath.Join(dir, entry.Name())
+		if err := os.RemoveAll(path); err != nil {
+			return err
+		}
+	}
+
+	errs := make([]error, 0)
+	for err := range errCh {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
+}
+
+func (c *namespacedDiskMetricCollector) Close() error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	var wg sync.WaitGroup
+	errCh := make(chan error, len(c.collectorMap))
+
+	// close collectors for each namespace in parallel
+	for _, innerCollector := range c.collectorMap {
+		wg.Add(1)
+		go func(collector *rollingDiskMetricCollector) {
 			defer wg.Done()
 
 			errCh <- collector.close()
@@ -150,7 +191,8 @@ func (c *namespacedRollingLogCollector) Close() error {
 	return errors.Join(errs...)
 }
 
-func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*rollingLogCollector, error) {
+// getMetricCollector returns a [rollingDiskMetricCollector] for the given namespace
+func (c *namespacedDiskMetricCollector) getMetricCollector(namespace string) (*rollingDiskMetricCollector, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -159,7 +201,7 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 	}
 
 	if c.collectorMap[namespace] == nil {
-		p := filepath.Join(getBaseLogStoreDir(), namespace)
+		p := filepath.Join(getBaseMetricsStoreDir(), namespace)
 		if err := fileutil.MakeDirs(p); err != nil {
 			return nil, err
 		}
@@ -170,7 +212,7 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 			return nil, err
 		}
 
-		rw := &rollingLogCollector{
+		rw := &rollingDiskMetricCollector{
 			logger: seelogger,
 		}
 
@@ -180,23 +222,7 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 	return c.collectorMap[namespace], nil
 }
 
-func getLoggerConfig(defaultLogDir string, logFile string, maxRolls int, maxFileSize int64) []byte {
-
-	logFilePath := filepath.Join(defaultLogDir, logFile)
-	logConfig := `
-<seelog type="adaptive" mininterval="2000000" maxinterval="100000000" critmsgcount="500" minlevel="trace">
-    <outputs formatid="common"> `
-	logConfig += `<rollingfile type="size" filename="` + logFilePath + `" maxsize="` + strconv.FormatInt(maxFileSize, 10) + `" maxrolls="` + strconv.Itoa(maxRolls) + `"/>
-    </outputs>
-    <formats>
-        <format id="common" format="%Msg%n"/>
-    </formats>
-</seelog>
-`
-	return []byte(logConfig)
-}
-
-func (c *rollingLogCollector) write(bytes []byte) (err error) {
+func (c *rollingDiskMetricCollector) write(bytes []byte) (err error) {
 	if c.logger == nil {
 		return errors.New("logger is not intialized")
 	}
@@ -205,12 +231,12 @@ func (c *rollingLogCollector) write(bytes []byte) (err error) {
 	return nil
 }
 
-func (rw *rollingLogCollector) flush() error {
+func (rw *rollingDiskMetricCollector) flush() error {
 	rw.logger.Flush()
 	return nil
 }
 
-func (rw *rollingLogCollector) close() error {
+func (rw *rollingDiskMetricCollector) close() error {
 	rw.logger.Close()
 	return nil
 }

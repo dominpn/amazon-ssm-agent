@@ -40,10 +40,19 @@ import (
 // EOF is returned as error in Fetch when no new log entries are present
 var EOF = errors.New("EOF")
 
+type Flushable interface {
+	Flush() error
+}
+
+// type Fetchable[N interface{}] interface {
+// 	// Fetch fetches all the available records, runs the function on them, and drops them
+
+// }
+
 type LogCollector interface {
 	CollectLog(namespace string, log telemetrylog.Entry) error
 
-	FetchAndDrop(namespace string, limit int) ([]telemetrylog.Entry, error)
+	FetchAndDrop(limit int) (telemetrylog.NamespaceLogs, error)
 
 	Close() error
 }
@@ -51,7 +60,9 @@ type LogCollector interface {
 type MetricsCollector interface {
 	Collect(namespace string, metric metric.Metric[float64]) error
 
-	FetchAndDrop(namespace string, limit int) ([]metric.Metric[float64], error)
+	FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error)
+
+	Clean() error
 
 	Close() error
 }

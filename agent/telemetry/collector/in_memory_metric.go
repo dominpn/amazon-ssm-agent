@@ -64,9 +64,35 @@ func (c *namespacedAggregatedMetric) Collect(namespace string, metric metric.Met
 	return errors.Join(errs...)
 }
 
-func (c *namespacedAggregatedMetric) FetchAndDrop(namespace string, limit int) ([]metric.Metric[float64], error) {
-	// TODO: Implement this
-	panic("not implemented")
+func (c *namespacedAggregatedMetric) FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (c *namespacedAggregatedMetric) FetchAllAndDrop() (metric.NamespaceMetrics[float64], error) {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	result := metric.NamespaceMetrics[float64]{}
+
+	for namespace, metrics := range c.metrics {
+		namespaceMetrics := make([]metric.Metric[float64], len(metrics))
+
+		for _, aggregatedMetric := range metrics {
+			namespaceMetrics = append(namespaceMetrics, metric.Metric[float64]{
+				Name:       aggregatedMetric.name,
+				Unit:       aggregatedMetric.unit,
+				Kind:       aggregatedMetric.kind,
+				DataPoints: aggregatedMetric.fetch(),
+			})
+		}
+
+		result[namespace] = namespaceMetrics
+	}
+
+	defer c.unlockedClean()
+
+	return result, nil
 }
 
 func (c *namespacedAggregatedMetric) Clean() error {
