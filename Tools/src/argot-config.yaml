@@ -145,7 +145,14 @@ syntactic-problems:
   struct-inits:
     - tag: "init-tls-v12"
       description: "Check that the tls.Config is initialized with TLS 1.2"
-      targets: [ "agent-worker-unix" ]
+      targets:
+        - agent-worker-unix
+        - amazon-ssm-agent-unix
+        - updater-unix
+        - ssm-cli
+        - ssm-document-worker
+        - ssm-session-worker
+        - ssm-setup-cli
       struct:
         type: "crypto/tls.Config"
       fields-set:
