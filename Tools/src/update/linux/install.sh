@@ -53,7 +53,7 @@ function install_agent
 
     echo "Package manager failed with exit code '$pmExit'"
     echo "Package manager output: $pmOutput"
-    exit 125
+    exit 121
   fi
 }
 

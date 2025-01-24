@@ -227,7 +227,7 @@ func TestUnInstallerFilePath(t *testing.T) {
 	}
 }
 
-func TestExeCommandSucceeded(t *testing.T) {
+func TestExeCommandStartSucceeded(t *testing.T) {
 	testCases := []struct {
 		cmd            string
 		workingDir     string
@@ -267,14 +267,127 @@ func TestExeCommandSucceeded(t *testing.T) {
 			StdErr:      test.stdErr,
 			IsAsync:     test.isAsync,
 		}
-		_, _, err := util.ExeCommand(&commandInput)
+		_, exitCode, err := util.ExeCommand(&commandInput)
 
 		if test.expectingError {
-			assert.Error(t, err)
+			assert.Equal(t, -1, int(exitCode))
+			assert.ErrorContains(t, err, "exec: not started")
 		} else {
+			assert.Equal(t, -1, int(exitCode))
 			assert.NoError(t, err)
 		}
 	}
+}
+
+func TestExeCommandStartFailed(t *testing.T) {
+	testCases := []struct {
+		cmd        string
+		workingDir string
+		stdOut     string
+		stdErr     string
+		isAsync    bool
+	}{
+		// test system with upstart
+		{"-update -target.version 5.0.0", "temp", "stdout", "stderr", true},
+		// test system with systemD
+		{"-update -target.version 5.0.0", "temp", "stdout", "stderr", false},
+	}
+
+	mkDirAll = func(path string, perm os.FileMode) error {
+		return nil
+	}
+	openFile = func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return &os.File{}, nil
+	}
+
+	// Stub exec.Command
+	execCommand = fakeExecCommand
+	cmdStart = func(*exec.Cmd) error { return fmt.Errorf("start command error") }
+
+	util := Utility{
+		Context: context.NewMockDefault(),
+	}
+
+	for _, test := range testCases {
+		commandInput := CommandExecutionSettings{
+			Log:         logger,
+			Cmd:         strings.Fields(test.cmd),
+			WorkingDir:  test.workingDir,
+			UpdaterRoot: appconfig.UpdaterArtifactsRoot,
+			StdOut:      test.stdOut,
+			StdErr:      test.stdErr,
+			IsAsync:     test.isAsync,
+		}
+		_, exitCode, err := util.ExeCommand(&commandInput)
+		assert.Equal(t, updateconstants.ExitCodeErrorPrepareUpdateCommand, exitCode)
+		assert.ErrorContains(t, err, "start command error")
+	}
+}
+
+func TestExecCommandWithOutputStartSucceeded(t *testing.T) {
+	mkDirAll = func(path string, perm os.FileMode) error {
+		return nil
+	}
+	openFile = func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return &os.File{}, nil
+	}
+
+	// Stub exec.Command
+	execCommand = fakeExecCommand
+	cmdStart = func(*exec.Cmd) error { return nil }
+
+	util := Utility{
+		Context: context.NewMockDefault(),
+	}
+
+	commandInput := CommandExecutionSettings{
+		Log:         logger,
+		Cmd:         strings.Fields("-update -target.version 5.0.0"),
+		WorkingDir:  "temp",
+		UpdaterRoot: appconfig.UpdaterArtifactsRoot,
+		StdOut:      "stdout",
+		StdErr:      "stderr",
+		IsAsync:     false,
+	}
+
+	_, exitCode, stdOut, stdErr, err := util.ExecCommandWithOutput(&commandInput)
+	assert.Equal(t, -1, int(exitCode))
+	assert.Empty(t, stdOut)
+	assert.Empty(t, stdErr)
+	assert.ErrorContains(t, err, "exec: not started")
+}
+
+func TestExecCommandWithOutputStartFailed(t *testing.T) {
+	mkDirAll = func(path string, perm os.FileMode) error {
+		return nil
+	}
+	openFile = func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return &os.File{}, nil
+	}
+
+	// Stub exec.Command
+	execCommand = fakeExecCommand
+	cmdStart = func(*exec.Cmd) error { return fmt.Errorf("start command error") }
+
+	util := Utility{
+		Context: context.NewMockDefault(),
+	}
+
+	commandInput := CommandExecutionSettings{
+		Log:         logger,
+		Cmd:         strings.Fields("-update -target.version 5.0.0"),
+		WorkingDir:  "temp",
+		UpdaterRoot: appconfig.UpdaterArtifactsRoot,
+		StdOut:      "stdout",
+		StdErr:      "stderr",
+		IsAsync:     false,
+	}
+
+	_, exitCode, stdOut, stdErr, err := util.ExecCommandWithOutput(&commandInput)
+	assert.Equal(t, updateconstants.ExitCodeErrorPrepareUpdateCommand, exitCode)
+	assert.Empty(t, stdOut)
+	assert.Empty(t, stdErr)
+	assert.ErrorContains(t, err, "start command error")
 }
 
 func TestKillProcess(t *testing.T) {
@@ -292,7 +405,33 @@ func TestSetExeOutErrCannotCreateFolder(t *testing.T) {
 		return fmt.Errorf("create folder error")
 	}
 	_, _, err := setExeOutErr(appconfig.UpdaterArtifactsRoot, "std", "err")
-	assert.Error(t, err, "create folder error")
+	assert.ErrorContains(t, err, "create folder error")
+
+	// Stub exec.Command
+	execCommand = fakeExecCommand
+
+	util := Utility{
+		Context: context.NewMockDefault(),
+	}
+
+	commandInput := CommandExecutionSettings{
+		Log:         logger,
+		Cmd:         strings.Fields("-update -target.version 5.0.0"),
+		WorkingDir:  "temp",
+		UpdaterRoot: appconfig.UpdaterArtifactsRoot,
+		StdOut:      "stdout",
+		StdErr:      "stderr",
+		IsAsync:     false,
+	}
+	_, exitCode, err := util.ExeCommand(&commandInput)
+	assert.Equal(t, updateconstants.ExitCodeErrorPrepareUpdateCommand, exitCode)
+	assert.ErrorContains(t, err, "create folder error")
+
+	_, exitCode, stdOut, stdErr, err := util.ExecCommandWithOutput(&commandInput)
+	assert.Equal(t, updateconstants.ExitCodeErrorPrepareUpdateCommand, exitCode)
+	assert.Nil(t, stdOut)
+	assert.Nil(t, stdErr)
+	assert.ErrorContains(t, err, "create folder error")
 }
 
 func TestSetExeOutErrCannotOpenFile(t *testing.T) {
@@ -304,7 +443,34 @@ func TestSetExeOutErrCannotOpenFile(t *testing.T) {
 		return &os.File{}, fmt.Errorf("create file error")
 	}
 	_, _, err := setExeOutErr(appconfig.UpdaterArtifactsRoot, "std", "err")
-	assert.Error(t, err, "create file error")
+	assert.ErrorContains(t, err, "create file error")
+
+	// Stub exec.Command
+	execCommand = fakeExecCommand
+
+	util := Utility{
+		Context: context.NewMockDefault(),
+	}
+
+	commandInput := CommandExecutionSettings{
+		Log:         logger,
+		Cmd:         strings.Fields("-update -target.version 5.0.0"),
+		WorkingDir:  "temp",
+		UpdaterRoot: appconfig.UpdaterArtifactsRoot,
+		StdOut:      "stdout",
+		StdErr:      "stderr",
+		IsAsync:     false,
+	}
+	_, exitCode, err := util.ExeCommand(&commandInput)
+	fmt.Println(err)
+	assert.Equal(t, updateconstants.ExitCodeErrorPrepareUpdateCommand, exitCode)
+	assert.ErrorContains(t, err, "create file error")
+
+	_, exitCode, stdOut, stdErr, err := util.ExecCommandWithOutput(&commandInput)
+	assert.Equal(t, updateconstants.ExitCodeErrorPrepareUpdateCommand, exitCode)
+	assert.Nil(t, stdOut)
+	assert.Nil(t, stdErr)
+	assert.ErrorContains(t, err, "create file error")
 }
 
 func fakeExecCommand(command string, args ...string) *exec.Cmd {

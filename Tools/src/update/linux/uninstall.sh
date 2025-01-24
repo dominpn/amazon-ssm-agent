@@ -31,6 +31,12 @@ function uninstall_agent()
     pmOutput=$(rpm --erase amazon-ssm-agent 2>&1)
     pmExit=$?
   fi
+
+  if [ "$pmExit" -ne 0 ]; then
+    echo "Package manager failed with exit code '$pmExit'"
+    echo "Package manager output: $pmOutput"
+    exit 121
+  fi
 }
 
 if [[ $(/sbin/init --version 2> /dev/null) =~ upstart ]]; then

@@ -53,6 +53,8 @@ const (
 	testFailed = "TestFailed"
 	// testPassed represents tests passed during update
 	testPassed = "TestPassed"
+	// updaterMetric represents intermediate metrics
+	updaterMetric = "UpdaterMetric"
 	// noAlarm represents suffix which will be added to unimportant error messages
 	noAlarm = "NoAlarm"
 )
@@ -153,6 +155,8 @@ func PrepareHealthStatus(updateDetail *UpdateDetail, errorCode string, additiona
 		} else if updateDetail.Result == contracts.ResultStatusTestPass {
 			result = testPassed
 		}
+	case UpdaterMetric:
+		result = updaterMetric
 	case Rollback:
 		result = rollingBack
 	case RolledBack:

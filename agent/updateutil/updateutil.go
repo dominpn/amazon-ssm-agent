@@ -148,7 +148,7 @@ func (util *Utility) ExecCommandWithOutput(input *CommandExecutionSettings) (pId
 
 	stdoutWriter, stderrWriter, err := setExeOutErr(input.UpdaterRoot, input.StdOut, input.StdErr)
 	if err != nil {
-		return pid, updateExitCode, nil, nil, err
+		return pid, updateconstants.ExitCodeErrorPrepareUpdateCommand, nil, nil, err
 	}
 	defer stdoutWriter.Close()
 	defer stderrWriter.Close()
@@ -158,7 +158,7 @@ func (util *Utility) ExecCommandWithOutput(input *CommandExecutionSettings) (pId
 
 	err = cmdStart(command)
 	if err != nil {
-		return pid, updateExitCode, &stdOutBytes, &errBytes, err
+		return pid, updateconstants.ExitCodeErrorPrepareUpdateCommand, &stdOutBytes, &errBytes, err
 	}
 
 	pid = GetCommandPid(command)
@@ -216,7 +216,7 @@ func (util *Utility) ExeCommandWithSlice(input *CommandExecutionSettings) (int, 
 		// Start command asynchronously
 		err := cmdStart(command)
 		if err != nil {
-			return pid, updateExitCode, err
+			return pid, updateconstants.ExitCodeErrorPrepareUpdateCommand, err
 		}
 		pid = GetCommandPid(command)
 	} else {
@@ -231,7 +231,7 @@ func (util *Utility) ExeCommandWithSlice(input *CommandExecutionSettings) (int, 
 		}
 		stdoutWriter, stderrWriter, err := setExeOutErr(input.UpdaterRoot, input.StdOut, input.StdErr)
 		if err != nil {
-			return pid, updateExitCode, err
+			return pid, updateconstants.ExitCodeErrorPrepareUpdateCommand, err
 		}
 		defer stdoutWriter.Close()
 		defer stderrWriter.Close()
@@ -241,7 +241,7 @@ func (util *Utility) ExeCommandWithSlice(input *CommandExecutionSettings) (int, 
 
 		err = cmdStart(command)
 		if err != nil {
-			return pid, updateExitCode, err
+			return pid, updateconstants.ExitCodeErrorPrepareUpdateCommand, err
 		}
 
 		pid = GetCommandPid(command)

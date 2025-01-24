@@ -49,6 +49,7 @@ type download func(mgr *updateManager, log log.T, downloadInput artifact.Downloa
 type clean func(log log.T, updateDetail *UpdateDetail)
 type runTests func(context context.T, reportResults func(contracts.ResultStatus, string))
 type finalize func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error)
+type reportMetric func(mgr *updateManager, updateDetail *UpdateDetail, errorCode updateconstants.ErrorCode) (err error)
 
 type updateManager struct {
 	Context             context.T
@@ -73,6 +74,7 @@ type updateManager struct {
 	clean               clean
 	runTests            runTests
 	finalize            finalize
+	reportMetric        reportMetric
 	subStatus           string // Values currently being used - downgrade, InstallRollback, VerificationRollback.
 }
 

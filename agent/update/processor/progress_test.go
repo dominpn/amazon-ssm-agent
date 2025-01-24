@@ -43,7 +43,22 @@ func TestUpdateStateChange(t *testing.T) {
 	assert.Equal(t, Initialized, detail.State)
 	assert.Equal(t, contracts.ResultStatusInProgress, detail.Result)
 
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
+}
+
+func TestReportIntermediateMetric(t *testing.T) {
+	updater := createDefaultUpdaterStub()
+	detail := generateTestCase().Detail
+	detail.State = "some state"
+	detail.Result = "some result"
+
+	err := reportIntermediateMetric(updater.mgr, detail, "some error code")
+
+	// state and result of the original UpdateDetail should not change
+	assert.EqualValues(t, "some state", detail.State)
+	assert.EqualValues(t, "some result", detail.Result)
+
+	assert.NoError(t, err)
 }
 
 func TestUpdateSucceed(t *testing.T) {
@@ -56,7 +71,7 @@ func TestUpdateSucceed(t *testing.T) {
 	assert.Equal(t, Completed, detail.State)
 	assert.Equal(t, contracts.ResultStatusSuccess, detail.Result)
 
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
 }
 
 func TestUpdateFailed(t *testing.T) {
@@ -69,7 +84,7 @@ func TestUpdateFailed(t *testing.T) {
 	assert.Equal(t, Completed, detail.State)
 	assert.Equal(t, contracts.ResultStatusFailed, detail.Result)
 
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
 }
 
 func TestUpdateInactive(t *testing.T) {
@@ -82,7 +97,7 @@ func TestUpdateInactive(t *testing.T) {
 	assert.Equal(t, Completed, detail.State)
 	assert.Equal(t, contracts.ResultStatusSuccess, detail.Result)
 
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
 }
 
 func generateTestCase() DetailTestCase {

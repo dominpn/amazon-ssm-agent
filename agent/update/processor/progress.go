@@ -78,9 +78,29 @@ func (u *updateManager) reportTestResultGenerator(updateDetail *UpdateDetail, lo
 		}
 
 		if err := u.svc.UpdateHealthCheck(log, updateStatus, testName); err != nil {
-			log.Errorf("error while sending test failure metric: %v", err.Error())
+			log.Errorf("Error while sending test failure metric: %v", err.Error())
 		}
 	}
+}
+
+// reportIntermediateMetric reports initial (un)installation ErrorCode without setting update to failed and continue to rollback
+func reportIntermediateMetric(u *updateManager, updateDetail *UpdateDetail, code updateconstants.ErrorCode) (err error) {
+	log := u.Context.Log()
+
+	updateStatus := &UpdateDetail{
+		State:         UpdaterMetric,
+		Result:        updateDetail.Result,
+		TargetVersion: updateDetail.TargetVersion,
+		SourceVersion: updateDetail.SourceVersion,
+	}
+
+	errorCode := u.subStatus + string(code)
+
+	if err := u.svc.UpdateHealthCheck(log, updateStatus, errorCode); err != nil {
+		log.Errorf("Error while reporting intermediate metric: %v", err.Error())
+	}
+
+	return nil
 }
 
 // succeeded sets update to completed

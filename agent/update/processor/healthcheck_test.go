@@ -39,22 +39,24 @@ type healthCheckTestCase struct {
 	InputState   UpdateState
 	IsSelfUpdate bool
 	InputResult  contracts.ResultStatus
+	ErrorCode    string
 	Output       string
 }
 
 func TestHealthCheck(t *testing.T) {
 	// generate test cases
 	testCases := []healthCheckTestCase{
-		{NotStarted, false, contracts.ResultStatusNotStarted, active},
-		{Initialized, false, contracts.ResultStatusInProgress, updateInitialized},
-		{Staged, false, contracts.ResultStatusInProgress, updateStaged},
-		{Installed, false, contracts.ResultStatusInProgress, updateInProgress},
-		{Completed, false, contracts.ResultStatusSuccess, updateSucceeded},
-		{Completed, true, contracts.ResultStatusSuccess, updateSucceeded + "_SelfUpdate"},
-		{Completed, false, contracts.ResultStatusFailed, updateFailed},
-		{Rollback, false, contracts.ResultStatusNotStarted, rollingBack},
-		{RolledBack, false, contracts.ResultStatusNotStarted, rollBackCompleted},
-		{TestExecution, false, contracts.ResultStatusTestFailure, testFailed},
+		{NotStarted, false, contracts.ResultStatusNotStarted, "", active},
+		{Initialized, false, contracts.ResultStatusInProgress, "", updateInitialized},
+		{Staged, false, contracts.ResultStatusInProgress, "", updateStaged},
+		{Installed, false, contracts.ResultStatusInProgress, "", updateInProgress},
+		{Completed, false, contracts.ResultStatusSuccess, "", updateSucceeded},
+		{Completed, true, contracts.ResultStatusSuccess, "", updateSucceeded + "_SelfUpdate"},
+		{Completed, false, contracts.ResultStatusFailed, "", updateFailed},
+		{Rollback, false, contracts.ResultStatusNotStarted, "", rollingBack},
+		{RolledBack, false, contracts.ResultStatusNotStarted, "", rollBackCompleted},
+		{TestExecution, false, contracts.ResultStatusTestFailure, "SomeTestName", fmt.Sprintf("%v_%v", testFailed, "SomeTestName")},
+		{UpdaterMetric, false, contracts.ResultStatus("some result"), "SomeMetric", fmt.Sprintf("%v_%v", updaterMetric, "SomeMetric")},
 	}
 
 	updateDetail := createUpdateDetail(Installed)
@@ -66,10 +68,10 @@ func TestHealthCheck(t *testing.T) {
 		updateDetail.SelfUpdate = tst.IsSelfUpdate
 
 		// call method
-		result := PrepareHealthStatus(updateDetail, "", "")
+		result := PrepareHealthStatus(updateDetail, tst.ErrorCode, "")
 
 		// check results
-		assert.Equal(t, result, tst.Output, "Output was %s but expected to be %s", result, tst.Output)
+		assert.Equal(t, tst.Output, result, "Output was %s but expected to be %s", result, tst.Output)
 	}
 }
 
@@ -108,14 +110,14 @@ func TestUpdateHealthStatusWithNonAlarmingErrorCodes(t *testing.T) {
 func TestHealthCheckWithUpdateFailed(t *testing.T) {
 	// generate test cases
 	testCases := []healthCheckTestCase{
-		{NotStarted, false, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v", updateFailed, NotStarted)},
-		{Initialized, false, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v", updateFailed, Initialized)},
-		{Staged, false, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v", updateFailed, Staged)},
-		{Installed, false, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v", updateFailed, Installed)},
-		{Completed, false, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v", updateFailed, Completed)},
-		{Rollback, false, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v", updateFailed, Rollback)},
-		{RolledBack, false, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v", updateFailed, RolledBack)},
-		{RolledBack, true, contracts.ResultStatusFailed, fmt.Sprintf("%v_%v_%v", updateFailed, "SelfUpdate", RolledBack)},
+		{NotStarted, false, contracts.ResultStatusFailed, "ErrorNotStarted", fmt.Sprintf("%v_%v", updateFailed, "ErrorNotStarted")},
+		{Initialized, false, contracts.ResultStatusFailed, "ErrorInitialized", fmt.Sprintf("%v_%v", updateFailed, "ErrorInitialized")},
+		{Staged, false, contracts.ResultStatusFailed, "ErrorStaged", fmt.Sprintf("%v_%v", updateFailed, "ErrorStaged")},
+		{Installed, false, contracts.ResultStatusFailed, "ErrorInstalled", fmt.Sprintf("%v_%v", updateFailed, "ErrorInstalled")},
+		{Completed, false, contracts.ResultStatusFailed, "ErrorCompleted", fmt.Sprintf("%v_%v", updateFailed, "ErrorCompleted")},
+		{Rollback, false, contracts.ResultStatusFailed, "ErrorRollback", fmt.Sprintf("%v_%v", updateFailed, "ErrorRollback")},
+		{RolledBack, false, contracts.ResultStatusFailed, "ErrorRolledBack", fmt.Sprintf("%v_%v", updateFailed, "ErrorRolledBack")},
+		{RolledBack, true, contracts.ResultStatusFailed, "ErrorRolledBack", fmt.Sprintf("%v_%v_%v", updateFailed, "SelfUpdate", "ErrorRolledBack")},
 	}
 
 	updateDetail := createUpdateDetail(Installed)
@@ -126,10 +128,10 @@ func TestHealthCheckWithUpdateFailed(t *testing.T) {
 		updateDetail.SelfUpdate = tst.IsSelfUpdate
 
 		// call method
-		result := PrepareHealthStatus(updateDetail, string(tst.InputState), "")
+		result := PrepareHealthStatus(updateDetail, tst.ErrorCode, "")
 
 		// check results
-		assert.Equal(t, result, tst.Output)
+		assert.Equal(t, tst.Output, result)
 	}
 }
 

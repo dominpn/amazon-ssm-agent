@@ -156,20 +156,45 @@ const (
 )
 
 // error status codes returned from the update scripts
+// Exit code should avoid using 1 - 2, 126 - 165, and 255
+// Exit code should be causious when using 3 - 7, 64 - 78, and 200 - 245
 type UpdateScriptExitCode int
 
 const (
+	// ExitCodeUpdateFailedDueToSnapd represents exit code from agent update install script
+	// due to snapd child process validation bug
+	ExitCodeUpdateFailedDueToSnapd UpdateScriptExitCode = 118
+
+	// ExitCodeInstallFailedDueToSigningIssue represents exit code when fail to install agent due to signing issue
+	ExitCodeInstallFailedDueToSigningIssue UpdateScriptExitCode = 119
+
+	// ExitCodeErrorPrepareUpdateCommand represents exit code when fail to prepare exec.Command to run agent update install script
+	ExitCodeErrorPrepareUpdateCommand UpdateScriptExitCode = 120
+
+	// ExitCodeUpdateErrorUsingYumAndRpm represents exit code from agent update install script yum and rpm command
+	ExitCodeUpdateErrorUsingYumAndRpm UpdateScriptExitCode = 121
+
+	// ExitCodeUpdateErrorUsingDpkg represents exit code from agent update install script dpkg command
+	ExitCodeUpdateErrorUsingDpkg UpdateScriptExitCode = 122
+
+	// ExitCodeUpdateErrorUsingSnap represents exit code from agent update install script snap command
+	ExitCodeUpdateErrorUsingSnap UpdateScriptExitCode = 123
+
 	// ExitCodeUnsupportedPlatform represents exit code when there is no service manager
 	// TODO: Move error to a update precondition
 	ExitCodeUnsupportedPlatform UpdateScriptExitCode = 124
 
-	// ExitCodeUpdateUsingPkgMgr represents exit code from agent update install script
-	ExitCodeUpdateUsingPkgMgr UpdateScriptExitCode = 125
-
-	// ExitCodeUpdateFailedDueToSnapd represents exit code from agent update install script
-	// due to snapd child process validation bug
-	ExitCodeUpdateFailedDueToSnapd UpdateScriptExitCode = 126
+	// ExitCodeUpdateErrorUsingPkgMgrLegacy represents exit code from agent update install script package manager command
+	// This was the exit code in legacy scripts before it was separated to yum/rpm/dpkg/snap
+	ExitCodeUpdateErrorUsingPkgMgrLegacy UpdateScriptExitCode = 125
 )
+
+var ExitCodesUpdateErrorUsingPkgMgr = []UpdateScriptExitCode{
+	ExitCodeUpdateErrorUsingYumAndRpm,
+	ExitCodeUpdateErrorUsingDpkg,
+	ExitCodeUpdateErrorUsingSnap,
+	ExitCodeUpdateErrorUsingPkgMgrLegacy,
+}
 
 // SUb status values
 const (
@@ -274,6 +299,9 @@ const (
 	// ErrorInstallFailureDueToSnapd represents snapd child process bug failure
 	ErrorInstallFailureDueToSnapd ErrorCode = "ErrorInstallFailedDueToSnapd"
 
+	// ErrorInstallFailedDueToSigningIssue represents failure to install agent due to signing issue
+	ErrorInstallFailedDueToSigningIssue ErrorCode = "ErrorInstallFailedDueToSigningIssue"
+
 	// ErrorInstallFailed represents Install failed
 	ErrorInstallFailed ErrorCode = "ErrorInstallFailed"
 
@@ -303,6 +331,22 @@ const (
 
 	// ErrorLoadingAgentVersion represents failed for loading agent version
 	ErrorLoadingAgentVersion ErrorCode = "ErrorLoadingAgentVersion"
+
+	// ErrorPrepareUpdateCommandSuffix represents exit code when fail to prepare exec.Command to run agent update install script
+	ErrorPrepareUpdateCommandSuffix = "PrepareUpdateCommand"
+
+	// ErrorUsingYumAndRpmSuffix represents exit code from agent update install script yum and rpm command
+	ErrorUsingYumAndRpmSuffix = "UsingYumAndRpm"
+
+	// ErrorUsingDpkgSuffix represents exit code from agent update install script dpkg command
+	ErrorUsingDpkgSuffix = "UsingDpkg"
+
+	// ErrorUsingSnapSuffix represents exit code from agent update install script snap command
+	ErrorUsingSnapSuffix = "UsingSnap"
+
+	// ErrorUsingPkgMgrLegacySuffix represents exit code from agent update install script package manager command
+	// This was the exit code in legacy scripts before it was separated to yum/rpm/dpkg/snap
+	ErrorUsingPkgMgrLegacySuffix = "UsingPkgMgr"
 
 	SelfUpdatePrefix = "SelfUpdate"
 

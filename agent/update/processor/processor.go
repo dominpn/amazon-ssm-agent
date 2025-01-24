@@ -21,6 +21,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -100,6 +101,7 @@ func NewUpdater(context context.T, info updateinfo.T, updateUtilRef *updateutil.
 			clean:               cleanAgentArtifacts,
 			runTests:            testerPkg.StartTests,
 			finalize:            finalizeUpdateAndSendReply,
+			reportMetric:        reportIntermediateMetric,
 		},
 	}
 
@@ -514,10 +516,18 @@ func proceedUpdate(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (e
 				updateDetail.PackageName,
 				updateDetail.SourceVersion)
 			mgr.subStatus = updateconstants.Downgrade
+
+			// Command never executes, no need to rollback
+			if exitCode == updateconstants.ExitCodeErrorPrepareUpdateCommand {
+				errorCode := updateconstants.ErrorUninstallFailed + updateconstants.ErrorCode(updateconstants.ErrorPrepareUpdateCommandSuffix)
+				return mgr.failed(updateDetail, log, errorCode, message, true)
+			}
+
 			if exitCode == updateconstants.ExitCodeUnsupportedPlatform {
 				return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, true)
 			}
-			return mgr.failed(updateDetail, log, updateconstants.ErrorUninstallFailed, message, true)
+
+			return mgr.failed(updateDetail, log, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode), message, true)
 		}
 	}
 
@@ -536,12 +546,28 @@ func proceedUpdate(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (e
 			updateDetail.TargetVersion)
 		updateDetail.AppendError(log, message)
 
+		// Command never executes, no need to rollback
+		if exitCode == updateconstants.ExitCodeErrorPrepareUpdateCommand {
+			errorCode := updateconstants.ErrorInstallFailed + updateconstants.ErrorCode(updateconstants.ErrorPrepareUpdateCommandSuffix)
+			return mgr.failed(updateDetail, log, errorCode, message, true)
+		}
+
 		if exitCode == updateconstants.ExitCodeUnsupportedPlatform {
 			return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, true)
 		}
+
 		if exitCode == updateconstants.ExitCodeUpdateFailedDueToSnapd {
 			return mgr.failed(updateDetail, log, updateconstants.ErrorInstallFailureDueToSnapd, message, true)
 		}
+
+		if exitCode == updateconstants.ExitCodeInstallFailedDueToSigningIssue {
+			mgr.reportMetric(mgr, updateDetail, updateconstants.ErrorInstallFailedDueToSigningIssue)
+		}
+
+		if slices.Contains(updateconstants.ExitCodesUpdateErrorUsingPkgMgr, exitCode) {
+			mgr.reportMetric(mgr, updateDetail, insertPkgMgrErrorCode(updateconstants.ErrorInstallFailed, exitCode))
+		}
+
 		updateDetail.AppendInfo(
 			log,
 			"Initiating rollback %v to %v",
@@ -633,12 +659,18 @@ func rollbackInstallation(mgr *updateManager, log log.T, updateDetail *UpdateDet
 			updateDetail.PackageName,
 			updateDetail.TargetVersion)
 
+		if exitCode == updateconstants.ExitCodeErrorPrepareUpdateCommand {
+			errorCode := updateconstants.ErrorUninstallFailed + updateconstants.ErrorCode(updateconstants.ErrorPrepareUpdateCommandSuffix)
+			return mgr.failed(updateDetail, log, errorCode, message, false)
+		}
+
 		// this case is not possible at all as we would have caught it in the earlier uninstall/install
 		// if this happens, something else is wrong so it is better to have this code for differentiation
 		if exitCode == updateconstants.ExitCodeUnsupportedPlatform {
 			return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, true)
 		}
-		return mgr.failed(updateDetail, log, updateconstants.ErrorUninstallFailed, message, false)
+
+		return mgr.failed(updateDetail, log, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode), message, false)
 	}
 
 	if exitCode, err := mgr.install(mgr, log, updateDetail.SourceVersion, updateDetail); err != nil {
@@ -649,12 +681,22 @@ func rollbackInstallation(mgr *updateManager, log log.T, updateDetail *UpdateDet
 			updateDetail.PackageName,
 			updateDetail.SourceVersion)
 
+		if exitCode == updateconstants.ExitCodeErrorPrepareUpdateCommand {
+			errorCode := updateconstants.ErrorInstallFailed + updateconstants.ErrorCode(updateconstants.ErrorPrepareUpdateCommandSuffix)
+			return mgr.failed(updateDetail, log, errorCode, message, false)
+		}
+
 		// this case is not possible at all as we would have caught it in the earlier uninstall/install
 		// if this happens, something else is wrong and it is better to have this code for differentiation
 		if exitCode == updateconstants.ExitCodeUnsupportedPlatform {
 			return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, true)
 		}
-		return mgr.failed(updateDetail, log, updateconstants.ErrorInstallFailed, message, false)
+
+		if exitCode == updateconstants.ExitCodeInstallFailedDueToSigningIssue {
+			return mgr.failed(updateDetail, log, updateconstants.ErrorInstallFailedDueToSigningIssue, message, false)
+		}
+
+		return mgr.failed(updateDetail, log, insertPkgMgrErrorCode(updateconstants.ErrorInstallFailed, exitCode), message, false)
 	}
 
 	if err = mgr.inProgress(updateDetail, log, RolledBack); err != nil {
@@ -745,16 +787,25 @@ func installAgent(mgr *updateManager, log log.T, version string, updateDetail *U
 	}
 	for retryCounter := 1; retryCounter <= installRetryCount; retryCounter++ {
 		updateExecutionTimeoutIfNeeded(retryCounter, defaultTimeOut, mgr.util)
-		if retryCounter == installRetryCount && strings.Contains(mgr.Info.GetInstallScriptName(), "snap") {
-			log.Info("execute command and fetch error output for agent install using snap")
-			var errBytes *bytes.Buffer
-			_, exitCode, _, errBytes, err = mgr.util.ExecCommandWithOutput(input)
-			if err != nil && errBytes != nil && errBytes.Len() != 0 {
-				if strings.Contains(errBytes.String(), "snap \"amazon-ssm-agent\" has running apps") {
-					log.Errorf("command failure for agent installed using snap: %v", err)
-					return updateconstants.ExitCodeUpdateFailedDueToSnapd, err
+		if retryCounter == installRetryCount {
+			log.Info("execute command and fetch error output for agent install")
+			var outBytes, errBytes *bytes.Buffer
+			_, exitCode, outBytes, errBytes, err = mgr.util.ExecCommandWithOutput(input)
+
+			if strings.Contains(mgr.Info.GetInstallScriptName(), "snap") {
+				if err != nil && errBytes != nil && errBytes.Len() != 0 {
+					if strings.Contains(errBytes.String(), "snap \"amazon-ssm-agent\" has running apps") {
+						log.Errorf("command failure for agent installed using snap: %v", err)
+						return updateconstants.ExitCodeUpdateFailedDueToSnapd, err
+					}
 				}
 			}
+
+			if outBytes != nil && outBytes.Len() != 0 && strings.Contains(outBytes.String(), "does not verify: no digest") {
+				log.Errorf("command failure for agent installed with no header: %v", err)
+				return updateconstants.ExitCodeInstallFailedDueToSigningIssue, err
+			}
+
 		} else {
 			_, exitCode, err = mgr.util.ExeCommand(input)
 		}
@@ -765,7 +816,7 @@ func installAgent(mgr *updateManager, log log.T, version string, updateDetail *U
 			backOff := getNextBackOff(retryCounter)
 
 			// Increase backoff by 30 seconds if package manager fails
-			if exitCode == updateconstants.ExitCodeUpdateUsingPkgMgr {
+			if slices.Contains(updateconstants.ExitCodesUpdateErrorUsingPkgMgr, exitCode) {
 				backOff += time.Duration(30) * time.Second // 30 seconds
 			}
 
@@ -903,4 +954,21 @@ func downloadAndUnzipArtifact(
 	}
 
 	return nil
+}
+
+// insertPkgMgrErrorCode inserts package manager error code suffix when applies
+func insertPkgMgrErrorCode(errorCode updateconstants.ErrorCode, exitCode updateconstants.UpdateScriptExitCode) (result updateconstants.ErrorCode) {
+	switch exitCode {
+	default:
+		result = errorCode
+	case updateconstants.ExitCodeUpdateErrorUsingYumAndRpm:
+		result = errorCode + updateconstants.ErrorCode(updateconstants.ErrorUsingYumAndRpmSuffix)
+	case updateconstants.ExitCodeUpdateErrorUsingDpkg:
+		result = errorCode + updateconstants.ErrorCode(updateconstants.ErrorUsingDpkgSuffix)
+	case updateconstants.ExitCodeUpdateErrorUsingSnap:
+		result = errorCode + updateconstants.ErrorCode(updateconstants.ErrorUsingSnapSuffix)
+	case updateconstants.ExitCodeUpdateErrorUsingPkgMgrLegacy:
+		result = errorCode + updateconstants.ErrorCode(updateconstants.ErrorUsingPkgMgrLegacySuffix)
+	}
+	return
 }

@@ -34,7 +34,7 @@ if [[ "$(cat /proc/1/comm)" == "systemd" ]]; then
 
   if [[ ! -f amazon-ssm-agent.snap || ! -f amazon-ssm-agent.assert ]]; then
     echo '[ERROR] Snap is not available for this version. Please uninstall the snap and install a debian if this agent version is required.'
-    exit 1
+    exit 123
   fi
 
   # acknowledge the signature pulled from the s3 distro
@@ -56,7 +56,7 @@ if [[ "$(cat /proc/1/comm)" == "systemd" ]]; then
 
   if [ "$pmExit" -ne 0 ]; then
     echo "Package manager failed with exit code '$pmExit'"
-    exit 125
+    exit 123
   fi
 
 else

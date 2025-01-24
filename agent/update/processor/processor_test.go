@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"fmt"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -1486,17 +1485,32 @@ func TestProceedUpdate(t *testing.T) {
 	var logger = logmocks.NewMockLog()
 	updater := createDefaultUpdaterStub()
 	updateDetail := createUpdateDetail(Staged)
-	isVerifyCalled := false
-	isWaitForCloudInitCalled := false
 
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+
+	// stub functions
 	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
 		isWaitForCloudInitCalled = true
 		return nil
 	}
 
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
 		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
 	}
 
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
@@ -1509,9 +1523,12 @@ func TestProceedUpdate(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
-	assert.Equal(t, updateDetail.State, Installed)
-	assert.True(t, isVerifyCalled)
+	assert.Equal(t, Installed, updateDetail.State)
 	assert.True(t, isWaitForCloudInitCalled)
+	assert.False(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.True(t, isVerifyCalled)
 }
 
 func TestProceedUpdateWithDowngrade(t *testing.T) {
@@ -1520,58 +1537,36 @@ func TestProceedUpdateWithDowngrade(t *testing.T) {
 	updater := createDefaultUpdaterStub()
 	updateDetail := createUpdateDetail(Staged)
 	updateDetail.RequiresUninstall = true
-	isVerifyCalled := false
+
+	isWaitForCloudInitCalled := false
 	isUninstallCalled := false
-	isWaitForCloudInitCalled := false
-
-	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
-		isWaitForCloudInitCalled = true
-		return nil
-	}
-
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		return exitCode, nil
-	}
-	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isUninstallCalled = true
-		return exitCode, nil
-	}
-	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
-		isVerifyCalled = true
-		return nil
-	}
-
-	// action
-	err := proceedUpdate(updater.mgr, logger, updateDetail)
-
-	// assert
-	assert.NoError(t, err)
-	assert.True(t, isWaitForCloudInitCalled)
-	assert.True(t, isVerifyCalled)
-	assert.True(t, isUninstallCalled)
-	assert.Equal(t, updateDetail.State, Installed)
-}
-
-func TestProceedUpdateWithUnsupportedServiceMgrForUpdateInstall(t *testing.T) {
-	// setup
-	var logger = logmocks.NewMockLog()
-	updater := createDefaultUpdaterStub()
-	updateDetail := createUpdateDetail(Staged)
 	isInstallCalled := false
-	invalidPlatform := "Invalid Platform"
-	isWaitForCloudInitCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
 
+	// stub functions
 	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
 		isWaitForCloudInitCalled = true
 		return nil
 	}
-	// stub install for updater
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(invalidPlatform)
+		return exitCode, nil
 	}
-	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
 		return nil
 	}
 
@@ -1580,132 +1575,12 @@ func TestProceedUpdateWithUnsupportedServiceMgrForUpdateInstall(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
+	assert.Equal(t, Installed, updateDetail.State)
 	assert.True(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
 	assert.True(t, isInstallCalled)
-	assert.Equal(t, updateDetail.State, Completed)
-	assert.Equal(t, updateDetail.Result, contracts.ResultStatusFailed)
-	assert.True(t, strings.Contains(updateDetail.StandardOut, invalidPlatform))
-}
-
-func TestProceedUpdateWithUnsupportedServiceMgrForUpdateUninstall(t *testing.T) {
-	// setup
-	var logger = logmocks.NewMockLog()
-	updater := createDefaultUpdaterStub()
-	updateDetail := createUpdateDetail(Staged)
-	updateDetail.RequiresUninstall = true
-	isUnInstallCalled := false
-	invalidPlatform := "Invalid Platform"
-	isWaitForCloudInitCalled := false
-
-	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
-		isWaitForCloudInitCalled = true
-		return nil
-	}
-
-	// stub install for updater
-	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isUnInstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(invalidPlatform)
-	}
-	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
-		return nil
-	}
-
-	// action
-	err := proceedUpdate(updater.mgr, logger, updateDetail)
-
-	// assert
-	assert.NoError(t, err)
-	assert.True(t, isWaitForCloudInitCalled)
-	assert.True(t, isUnInstallCalled)
-	assert.True(t, strings.Contains(updateDetail.StandardOut, invalidPlatform))
-}
-
-func TestProceedUpdateWithUnsupportedServiceMgrForRollbackUninstall(t *testing.T) {
-	// setup
-	var logger = logmocks.NewMockLog()
-	control := &stubControl{serviceIsRunning: false}
-	updater := createUpdaterStubs(control)
-	updateDetail := createUpdateDetail(Rollback)
-
-	isVerifyCalled, isInstallCalled, isUninstallCalled := false, false, false
-	invalidPlatform := "Invalid Platform"
-	isWaitForCloudInitCalled := false
-
-	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
-		isWaitForCloudInitCalled = true
-		return nil
-	}
-
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isInstallCalled = true
-		return exitCode, nil
-	}
-	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isUninstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(invalidPlatform)
-	}
-	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
-		isVerifyCalled = true
-		return nil
-	}
-	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
-		return nil
-	}
-
-	// action
-	err := rollbackInstallation(updater.mgr, logger, updateDetail)
-
-	// assert
-	assert.NoError(t, err)
-	assert.False(t, isWaitForCloudInitCalled, "Updater waited for cloud-init on rollback")
-	assert.True(t, isUninstallCalled, "Updater did not uninstall the agent on rollback")
-	assert.False(t, isInstallCalled, "Updater installed the agent on rollback")
-	assert.False(t, isVerifyCalled, "Updater verified agent installation on rollback")
-	assert.True(t, strings.Contains(updateDetail.StandardOut, invalidPlatform))
-}
-
-func TestProceedUpdateWithUnsupportedServiceMgrForRollbackInstall(t *testing.T) {
-	// setup
-	var logger = logmocks.NewMockLog()
-	control := &stubControl{serviceIsRunning: false}
-	updater := createUpdaterStubs(control)
-	updateDetail := createUpdateDetail(Rollback)
-	invalidPlatform := "Invalid Platform"
-
-	isVerifyCalled, isInstallCalled, isUninstallCalled, isWaitForCloudInitCalled := false, false, false, false
-
-	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
-		isWaitForCloudInitCalled = true
-		return nil
-	}
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isInstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(invalidPlatform)
-	}
-	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isUninstallCalled = true
-		return exitCode, nil
-	}
-	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
-		isVerifyCalled = true
-		return nil
-	}
-	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
-		return nil
-	}
-	// action
-	err := rollbackInstallation(updater.mgr, logger, updateDetail)
-
-	// assert
-	assert.NoError(t, err)
-	assert.False(t, isWaitForCloudInitCalled, "Updater waited for cloud-init on rollback")
-	assert.True(t, isUninstallCalled, "Updater did not uninstall the agent on rollback")
-	assert.True(t, isInstallCalled, "Updater did not install the agent on rollback")
-	assert.False(t, isVerifyCalled, "Updater verified agent installation on rollback")
-	assert.True(t, strings.Contains(updateDetail.StandardOut, invalidPlatform))
+	assert.False(t, isRollbackCalled)
+	assert.True(t, isVerifyCalled)
 }
 
 func TestProceedUpdateWithDowngradeFailUninstall(t *testing.T) {
@@ -1714,23 +1589,96 @@ func TestProceedUpdateWithDowngradeFailUninstall(t *testing.T) {
 	updater := createDefaultUpdaterStub()
 	updateDetail := createUpdateDetail(Staged)
 	updateDetail.RequiresUninstall = true
-	isVerifyCalled := false
-	isUninstallCalled := false
-	isWaitForCloudInitCalled := false
+	errMessage := "cannot uninstall"
 
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
 	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
 		isWaitForCloudInitCalled = true
 		return nil
 	}
 
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		return exitCode, nil
-	}
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return exitCode, fmt.Errorf("cannot uninstall")
+		return exitCode, fmt.Errorf(errMessage)
 	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUninstallFailed)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.False(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestProceedUpdateFailInstall(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	errMessage := "install failed"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
 		isVerifyCalled = true
 		return nil
@@ -1741,32 +1689,58 @@ func TestProceedUpdateWithDowngradeFailUninstall(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
-	assert.True(t, isWaitForCloudInitCalled, "Updater did not wait for cloud-init")
-	assert.True(t, isUninstallCalled, "Updater did not uninstall the agent")
-	assert.False(t, isVerifyCalled, "Updater verified agent installation")
-	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, Rollback, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusInProgress, updateDetail.Result)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.False(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.True(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
 }
 
-func TestProceedUpdateFailInstall(t *testing.T) {
+func TestProceedUpdateFailUninstallErrorPrepareUpdateCommand(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
 	updater := createDefaultUpdaterStub()
 	updateDetail := createUpdateDetail(Staged)
-	isRollbackCalled := false
-	isWaitForCloudInitCalled := false
+	updateDetail.RequiresUninstall = true
+	errMessage := "Error Prepare Update Command"
 
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
 	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
 		isWaitForCloudInitCalled = true
 		return nil
 	}
 
-	// stub install for updater
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+	}
+
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		return exitCode, fmt.Errorf("install failed")
+		isInstallCalled = true
+		return exitCode, nil
 	}
 
 	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
 		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
 		return nil
 	}
 
@@ -1775,9 +1749,382 @@ func TestProceedUpdateFailInstall(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
-	assert.True(t, isWaitForCloudInitCalled, "Updater did not wait for cloud-init")
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.False(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestProceedUpdateFailInstallErrorPrepareUpdateCommand(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	errMessage := "Error Prepare Update Command"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.False(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestProceedUpdateFailUninstallWithUnsupportedServiceMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	updateDetail.RequiresUninstall = true
+	errMessage := "Invalid Platform"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUnsupportedServiceManager)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.False(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestProceedUpdateFailInstallWithUnsupportedServiceMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	errMessage := "Invalid Platform"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUnsupportedServiceManager)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.False(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestProceedUpdateFailInstallWithFailureDueToSnapd(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	errMessage := "child process still running"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeUpdateFailedDueToSnapd, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorInstallFailureDueToSnapd)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.False(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestProceedUpdateInstallReportMetricDueToSigningIssue(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	errMessage := "does not verify: no digest"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	var intermediateMetric updateconstants.ErrorCode
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeInstallFailedDueToSigningIssue, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.reportMetric = func(mgr *updateManager, updateDetail *UpdateDetail, code updateconstants.ErrorCode) (err error) {
+		intermediateMetric = code
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Rollback, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusInProgress, updateDetail.Result)
+	assert.Contains(t, intermediateMetric, updateconstants.ErrorInstallFailedDueToSigningIssue)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.False(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
 	assert.True(t, isRollbackCalled)
-	assert.Equal(t, updateDetail.State, Rollback)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestProceedUpdateInstallReportMetricErrorUsingPkgMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	errMessage := "yum install error"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	var intermediateMetric updateconstants.ErrorCode
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeUpdateErrorUsingYumAndRpm, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.reportMetric = func(mgr *updateManager, updateDetail *UpdateDetail, code updateconstants.ErrorCode) (err error) {
+		intermediateMetric = code
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Rollback, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusInProgress, updateDetail.Result)
+	assert.Contains(t, intermediateMetric, updateconstants.ErrorUsingYumAndRpmSuffix)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.False(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.True(t, isRollbackCalled)
+	assert.False(t, isVerifyCalled)
 }
 
 func TestVerifyInstallation(t *testing.T) {
@@ -1932,30 +2279,42 @@ func TestRollbackInstallation(t *testing.T) {
 	updater := createUpdaterStubs(control)
 	updateDetail := createUpdateDetail(Rollback)
 
-	isVerifyCalled, isInstallCalled, isUninstallCalled := false, false, false
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
 
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isInstallCalled = true
-		return exitCode, nil
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
 	}
+
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
 		return exitCode, nil
 	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
 		isVerifyCalled = true
 		return nil
 	}
+
 	// action
 	err := rollbackInstallation(updater.mgr, logger, updateDetail)
 
 	// assert
 	assert.NoError(t, err)
-	assert.True(t, isVerifyCalled)
-	assert.True(t, isInstallCalled)
+	assert.Equal(t, RolledBack, updateDetail.State)
+	assert.False(t, isWaitForCloudInitCalled)
 	assert.True(t, isUninstallCalled)
-	assert.Equal(t, updateDetail.State, RolledBack)
+	assert.True(t, isInstallCalled)
+	assert.True(t, isVerifyCalled)
 }
 
 func TestRollbackInstallationFailUninstall(t *testing.T) {
@@ -1964,27 +2323,50 @@ func TestRollbackInstallationFailUninstall(t *testing.T) {
 	control := &stubControl{serviceIsRunning: false}
 	updater := createUpdaterStubs(control)
 	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "cannot uninstall"
 
-	isVerifyCalled, isInstallCalled, isUninstallCalled := false, false, false
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
 
-	// stub install for updater
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, fmt.Errorf(errMessage)
+	}
+
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
 		return exitCode, nil
 	}
-	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isUninstallCalled = true
-		return exitCode, fmt.Errorf("cannot uninstall")
-	}
+
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
 		isVerifyCalled = true
 		return nil
 	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
 	// action
 	err := rollbackInstallation(updater.mgr, logger, updateDetail)
 
 	// assert
 	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUninstallFailed)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
 	assert.True(t, isUninstallCalled)
 	assert.False(t, isInstallCalled)
 	assert.False(t, isVerifyCalled)
@@ -1996,27 +2378,435 @@ func TestRollbackInstallationFailInstall(t *testing.T) {
 	control := &stubControl{serviceIsRunning: false}
 	updater := createUpdaterStubs(control)
 	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "cannot install"
 
-	isVerifyCalled, isInstallCalled, isUninstallCalled := false, false, false
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
 
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isInstallCalled = true
-		return exitCode, fmt.Errorf("cannot uninstall")
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
 	}
+
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
 		return exitCode, nil
 	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, fmt.Errorf(errMessage)
+	}
+
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
 		isVerifyCalled = true
 		return nil
 	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
 	// action
 	err := rollbackInstallation(updater.mgr, logger, updateDetail)
 
 	// assert
 	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorInstallFailed)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestRollbackInstallationFailUninstallErrorPrepareUpdateCommand(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "Error Prepare Update Command"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.False(t, isInstallCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestRollbackInstallationFailInstallErrorPrepareUpdateCommand(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "Error Prepare Update Command"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestRollbackInstallationFailUninstallWithUnsupportedServiceMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "Invalid Platform"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUnsupportedServiceManager)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.False(t, isInstallCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestRollbackInstallationFailInstallWithUnsupportedServiceMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "Invalid Platform"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUnsupportedServiceManager)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestRollbackInstallationFailInstallWithFailureDueToSnapd(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "child process still running"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeUpdateFailedDueToSnapd, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.NotContains(t, finalize_error_code, updateconstants.ErrorInstallFailureDueToSnapd)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestRollbackInstallationFailInstallDueToSigningIssue(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "does not verify: no digest"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeInstallFailedDueToSigningIssue, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorInstallFailedDueToSigningIssue)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isVerifyCalled)
+}
+
+func TestRollbackInstallationFailInstallErrorUsingPkgMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "legacy package manager install error"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return updateconstants.ExitCodeUpdateErrorUsingPkgMgrLegacy, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, Completed, updateDetail.State)
+	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUsingPkgMgrLegacySuffix)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
 	assert.True(t, isUninstallCalled)
 	assert.True(t, isInstallCalled)
 	assert.False(t, isVerifyCalled)
@@ -2034,13 +2824,13 @@ func TestUninstallAgent(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
-	assert.Equal(t, 0, int(exitCode))
+	assert.Equal(t, -1, int(exitCode))
 }
 
 func TestUninstallAgentFailExeCommand(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
-	control := &stubControl{failExeCommand: true}
+	control := &stubControl{failExeCommand: true, failExeCommandExitCode: -1}
 	updater := createUpdaterStubs(control)
 	updateDetail := createUpdateDetail(Initialized)
 
@@ -2049,7 +2839,7 @@ func TestUninstallAgentFailExeCommand(t *testing.T) {
 
 	// assert
 	assert.Error(t, err)
-	assert.Equal(t, 0, int(exitCode))
+	assert.Equal(t, -1, int(exitCode))
 }
 
 func TestInstallAgent(t *testing.T) {
@@ -2063,37 +2853,37 @@ func TestInstallAgent(t *testing.T) {
 	// assert
 
 	assert.NoError(t, err)
-	assert.Equal(t, 0, int(exitCode))
+	assert.Equal(t, -1, int(exitCode))
 }
 
-func TestInstallAgentUsingSnap_Success(t *testing.T) {
+func TestInstallAgentFailExeCommand(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
-	control := &stubControl{failExeCommand: false}
-	updater := createUpdaterWithStubsForSnap(control)
+	control := &stubControl{failExeCommand: true, failExeCommandExitCode: -1}
+	updater := createUpdaterStubs(control)
 	updateDetail := createUpdateDetail(Initialized)
 
 	// action
 	exitCode, err := installAgent(updater.mgr, logger, updateDetail.TargetVersion, updateDetail)
 
 	// assert
-	assert.NoError(t, err)
-	assert.Equal(t, 0, int(exitCode))
+	assert.Error(t, err)
+	assert.Equal(t, -1, int(exitCode))
 }
 
-func TestInstallAgentUsingSnap_Failed(t *testing.T) {
+func TestInstallAgentFailedDueToSigningIssue(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
-	control := &stubControl{failExeCommand: true}
-	updater := createUpdaterWithStubsForSnap(control)
+	control := &stubControl{failExeCommand: true, failExeCommandExitCode: updateconstants.ExitCodeInstallFailedDueToSigningIssue}
+	updater := createUpdaterStubs(control)
 	updateDetail := createUpdateDetail(Initialized)
 
 	// action
 	exitCode, err := installAgent(updater.mgr, logger, updateDetail.TargetVersion, updateDetail)
 
 	// assert
-	assert.Contains(t, "test", err.Error())
-	assert.Equal(t, 126, int(exitCode))
+	assert.Contains(t, "failed to run script", err.Error())
+	assert.Equal(t, updateconstants.ExitCodeInstallFailedDueToSigningIssue, exitCode)
 }
 
 func createUpdaterWithStubsForSnap(control *stubControl) *Updater {
@@ -2114,56 +2904,34 @@ func createUpdaterWithStubsForSnap(control *stubControl) *Updater {
 	return updater
 }
 
-func TestInstallAgentFailExeCommand(t *testing.T) {
+func TestInstallAgentUsingSnap_Success(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
-	control := &stubControl{failExeCommand: true}
-	updater := createUpdaterStubs(control)
+	control := &stubControl{failExeCommand: false}
+	updater := createUpdaterWithStubsForSnap(control)
 	updateDetail := createUpdateDetail(Initialized)
 
 	// action
 	exitCode, err := installAgent(updater.mgr, logger, updateDetail.TargetVersion, updateDetail)
 
 	// assert
-	assert.Error(t, err)
-	assert.Equal(t, 0, int(exitCode))
+	assert.NoError(t, err)
+	assert.Equal(t, -1, int(exitCode))
 }
 
-func TestProceedUpdate_SnapdIssue_RollbackInstall(t *testing.T) {
+func TestInstallAgentUsingSnap_Failed(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
-	control := &stubControl{serviceIsRunning: false}
-	updater := createUpdaterStubs(control)
-	updateDetail := createUpdateDetail(Rollback)
-	snapdIssue := "child process still running"
+	control := &stubControl{failExeCommand: true, failExeCommandExitCode: updateconstants.ExitCodeUpdateFailedDueToSnapd}
+	updater := createUpdaterWithStubsForSnap(control)
+	updateDetail := createUpdateDetail(Initialized)
 
-	isVerifyCalled, isInstallCalled, isUninstallCalled := false, false, false
-
-	// stub install for updater
-	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isInstallCalled = true
-		return updateconstants.ExitCodeUpdateFailedDueToSnapd, fmt.Errorf(snapdIssue)
-	}
-	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
-		isUninstallCalled = true
-		return exitCode, nil
-	}
-	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
-		isVerifyCalled = true
-		return nil
-	}
-	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
-		return nil
-	}
 	// action
-	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+	exitCode, err := installAgent(updater.mgr, logger, updateDetail.TargetVersion, updateDetail)
 
 	// assert
-	assert.NoError(t, err)
-	assert.True(t, isUninstallCalled)
-	assert.True(t, isInstallCalled)
-	assert.False(t, isVerifyCalled)
-	assert.True(t, strings.Contains(updateDetail.StandardOut, snapdIssue))
+	assert.Contains(t, "failed to run script", err.Error())
+	assert.Equal(t, updateconstants.ExitCodeUpdateFailedDueToSnapd, exitCode)
 }
 
 func TestDownloadAndUnzipArtifact(t *testing.T) {
@@ -2263,6 +3031,7 @@ type stubControl struct {
 	failCreateUpdateDownloadFolder bool
 	serviceIsRunning               bool
 	failExeCommand                 bool
+	failExeCommandExitCode         updateconstants.UpdateScriptExitCode
 	waitForServiceVersion          string
 	versionErrorCode               updateconstants.ErrorCode
 }
@@ -2285,18 +3054,28 @@ func (u *utilityStub) CreateUpdateDownloadFolder() (folder string, err error) {
 
 func (u *utilityStub) ExeCommand(commandExecSettings *updateutil.CommandExecutionSettings) (pid int, exitCode updateconstants.UpdateScriptExitCode, err error) {
 	if u.controller.failExeCommand {
-		return -1, exitCode, fmt.Errorf("cannot run script")
+		return -1, u.controller.failExeCommandExitCode, fmt.Errorf("failed run script")
 	}
-	return 1, exitCode, nil
+	return 1, -1, nil
 }
 
 func (u *utilityStub) ExecCommandWithOutput(commandExecSettings *updateutil.CommandExecutionSettings) (pid int, exitCode updateconstants.UpdateScriptExitCode, stdoutBytes *bytes.Buffer, errorBytes *bytes.Buffer, cmdErr error) {
+	var outBytes bytes.Buffer
 	var errBytes bytes.Buffer
-	errBytes.WriteString("snap \"amazon-ssm-agent\" has running apps")
+
 	if u.controller.failExeCommand {
-		return -1, exitCode, nil, &errBytes, fmt.Errorf("test")
+		if u.controller.failExeCommandExitCode == updateconstants.ExitCodeUpdateFailedDueToSnapd {
+			errBytes.WriteString("snap \"amazon-ssm-agent\" has running apps")
+			return -1, -1, nil, &errBytes, fmt.Errorf("failed to run script")
+		}
+
+		if u.controller.failExeCommandExitCode == updateconstants.ExitCodeInstallFailedDueToSigningIssue {
+			outBytes.WriteString("does not verify: no digest")
+			return -1, -1, &outBytes, &errBytes, fmt.Errorf("failed to run script")
+		}
+		return -1, u.controller.failExeCommandExitCode, &outBytes, &errBytes, fmt.Errorf("failed to run script")
 	}
-	return 1, exitCode, nil, nil, nil
+	return 1, -1, &outBytes, nil, nil
 }
 
 func (u *utilityStub) SaveUpdatePluginResult(log log.T, updaterRoot string, updateResult *updateutil.UpdatePluginResult) (err error) {

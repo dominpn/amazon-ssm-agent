@@ -97,7 +97,7 @@ if [[ "$(cat /proc/1/comm)" == "init" ]]; then
       exit 0
     fi
 
-    exit 125
+    exit 122
   fi
 
 elif [[ "$(cat /proc/1/comm)" == "systemd" ]]; then
@@ -138,7 +138,7 @@ elif [[ "$(cat /proc/1/comm)" == "systemd" ]]; then
       exit 0
     fi
 
-    exit 125
+    exit 122
   fi
 
 else

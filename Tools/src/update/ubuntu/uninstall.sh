@@ -16,17 +16,22 @@ function error_exit
 if [[ "$(cat /proc/1/comm)" == "init" ]]; then
   if [ "$(dpkg -s amazon-ssm-agent | grep 'Status:')" == "Status: install ok installed" ]; then
     if [ "$(status amazon-ssm-agent)" != "amazon-ssm-agent stop/waiting" ]; then
-      echo "-> Agent is running in the instance"
-      # echo "Stopping the agent"
+      # echo "-> Agent is running in the instance"
+      echo "Stopping the agent"
       /sbin/stop amazon-ssm-agent
       sleep 1
     else
       echo "-> Agent is not running"
     fi
 
-    # echo "Uninstalling the agent"
+    echo "Uninstalling the agent"
     dpkg -r amazon-ssm-agent
-    sleep 1
+    pmExit=$?
+
+    if [ "$pmExit" -ne 0 ]; then
+      echo "Package manager failed with exit code '$pmExit'"
+      exit 122
+    fi
   else
     echo "-> Agent is not installed in this instance"
   fi
@@ -37,11 +42,17 @@ elif [[ "$(cat /proc/1/comm)" == "systemd" ]]; then
 		systemctl stop amazon-ssm-agent.service
 		systemctl daemon-reload
   else
-		echo "-> Agent is not running in the instance"
+		echo "-> Agent is not running"
   fi
 
-  echo "Uninstalling agent"
+  echo "Uninstalling the agent"
   dpkg -r amazon-ssm-agent
+  pmExit=$?
+
+  if [ "$pmExit" -ne 0 ]; then
+    echo "Package manager failed with exit code '$pmExit'"
+    exit 122
+  fi
 
 else
   echo "The amazon-ssm-agent is not supported on this platform. Please visit the documentation for the list of supported platforms" 1>&2

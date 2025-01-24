@@ -64,6 +64,9 @@ const (
 
 	// TestExecution represents state value denoting test execution on customer's instance
 	TestExecution UpdateState = "TestExecution"
+
+	// UpdaterMetric represents state value to report intermediate update metric
+	UpdaterMetric UpdateState = "UpdaterMetric"
 )
 
 const (
