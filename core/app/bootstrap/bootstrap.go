@@ -34,6 +34,8 @@ const (
 
 var newAgentIdentitySelector = identity.NewDefaultAgentIdentitySelector
 var newAgentIdentity = identity.NewAgentIdentity
+var appConfig = appconfig.Config
+var coreagentContext = context.NewCoreAgentContext
 
 // IBootstrap is the interface for initializing the system for core agent
 type IBootstrap interface {
@@ -64,7 +66,7 @@ func (bs *Bootstrap) Init() (context.ICoreAgentContext, error) {
 		}
 	}()
 
-	config, err := appconfig.Config(true)
+	config, err := appConfig(true)
 	if err != nil {
 		return nil, fmt.Errorf("app config could not be loaded - %v", err)
 	}
@@ -88,7 +90,7 @@ func (bs *Bootstrap) Init() (context.ICoreAgentContext, error) {
 
 	bs.updateSSMUserShellProperties(logger)
 	for i := 0; i < 3; i++ {
-		ctx, err := context.NewCoreAgentContext(logger, &config, agentIdentity)
+		ctx, err := coreagentContext(logger, &config, agentIdentity)
 		if err == nil {
 			return ctx, nil
 		}
