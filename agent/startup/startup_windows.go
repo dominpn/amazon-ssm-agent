@@ -66,15 +66,6 @@ const (
 	NitroEnclavesName            = "Name"
 	NitroEnclavesVersionProperty = "Version"
 
-	// PnpEntity Properties
-	deviceIDProperty = "DeviceID"
-	serviceProperty  = "Service"
-	nameProperty     = "Name"
-
-	// PnpSignedDriver Properties
-	descriptionProperty   = "Description"
-	driverVersionProperty = "DriverVersion"
-
 	// WindowsDriver Properties
 	originalFileNameProperty = "OriginalFileName"
 	versionProperty          = "Version"
@@ -97,19 +88,6 @@ const (
 	// PS command to get AWS Nitro Enclaves package entry from registry HKLM:\SOFTWARE\Amazon\AwsNitroEnclaves
 	getNitroEnclavesPackageVersionCmd = "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Amazon\\AwsNitroEnclaves'"
 
-	// PS command to get AWS PV Storage Host Adapter entry shown in Device Manager
-	getPvDriverPnpEntityCmd = "Get-CimInstance Win32_PnPEntity | Where-Object { $_.Service -eq 'xenvbd' }"
-
-	// PS command to get all AWS signed drivers
-	getPnpSignedDriversCmd = "Get-CimInstance Win32_PnPSignedDriver | Where-Object { " +
-		"$_.DeviceID -eq '%v' -or " +
-		"$_.DeviceClass -eq 'Net' -and ( " +
-		"$_.Manufacturer -like 'Intel*' -or " +
-		"$_.Manufacturer -eq 'Citrix Systems, Inc.' -or " +
-		"$_.Manufacturer -eq 'Amazon Inc.' -or " +
-		"$_.Manufacturer -eq 'Amazon Web Services, Inc.' )" +
-		"}"
-
 	// PS command to get all AWS drivers from Windows driver list.
 	getWindowsDriversCmd = "Get-WindowsDriver -Online | Where-Object { " +
 		"$_.OriginalFileName -like '*xenvbd*' -or " +
@@ -118,15 +96,6 @@ const (
 		"$_.ProviderName -eq 'Citrix Systems, Inc.' -or " +
 		"$_.ProviderName -eq 'Amazon Inc.' -or " +
 		"$_.ProviderName -eq 'Amazon Web Services, Inc.' ) " +
-		"}"
-
-	// PS command to get all AWS driver entries shown in Device Manager
-	getAllPnpEntitiesCmd = "Get-CimInstance Win32_PnPEntity | Where-Object { " +
-		"$_.Service -eq 'xenvbd' -or " +
-		"$_.Manufacturer -like 'Intel*' -or " +
-		"$_.Manufacturer -eq 'Citrix Systems, Inc.' -or " +
-		"$_.Manufacturer -eq 'Amazon Inc.' -or " +
-		"$_.Manufacturer -eq 'Amazon Web Services, Inc.' " +
 		"}"
 
 	// PS command to get all event logs for System
@@ -138,6 +107,14 @@ const (
 		") | Sort-Object " + timeCreatedProperty + " -Descending"
 
 	defaultComPort = "\\\\.\\COM1"
+
+	// WMI filter to get all AWS driver entries shown in Device Manager
+	getAllPnpEntitiesWhereClause = "Where Service='xenvbd' Or Manufacturer Like 'Intel%' Or Manufacturer='Citrix Systems, Inc.' " +
+		"Or Manufacturer='Amazon Inc.' Or Manufacturer='Amazon Web Services, Inc.'"
+
+	// WMI filter to get all AWS signed drivers
+	getPnpSignedDriversWhereClause = "Where DeviceID='%v' Or DeviceClass='Net' And (Manufacturer Like 'Intel%%' " +
+		"Or Manufacturer='Citrix Systems, Inc.' Or Manufacturer='Amazon Inc.' Or Manufacturer='Amazon Web Services, Inc.')"
 )
 
 // IsAllowed returns true if the current platform/instance allows startup processor.
@@ -358,29 +335,26 @@ func getAWSDriverInfo(log log.T) (driverInfo []model.DriverInfo, err error) {
 	return
 }
 
-// getAWSDriverInfoForFull runs powershell using Win32_PnPEntity and Win32_PnPSignedDriver
-// and collects and returns driver information.
+// getAWSDriverInfoForFull collects and returns driver information using Win32_PnPEntity and Win32_PnPSignedDriver.
 func getAWSDriverInfoForFull(log log.T) (driverInfo []model.DriverInfo, err error) {
-	var pnpSignedDrivers []model.PnpSignedDriver
-	var pnpEntities []model.PnpEntity
-	var deviceID string
-
-	// this queries xenvbd (AWS PV Storage Host Adapter) to get its DeviceId.
-	properties := []string{deviceIDProperty}
-	if err = runPowershell(&pnpEntities, getPvDriverPnpEntityCmd, properties, true); err != nil {
+	// query xenvbd (AWS PV Storage Host Adapter) to get its DeviceId.
+	var pnpEntities []platform.Win32_PnPEntity
+	if pnpEntities, err = platform.GetWMIData[platform.Win32_PnPEntity]("Where Service='xenvbd'"); err != nil {
 		log.Infof("Error occurred while querying DeviceID for AWS PV Storage Host Adapter: %v", err.Error())
 		return
 	}
 
-	// get the DeviceID if the previous query had a result.
-	if len(pnpEntities) != 0 {
+	var deviceID string
+	if len(pnpEntities) > 0 {
 		deviceID = pnpEntities[0].DeviceID
+	} else {
+		log.Infof("No data found for DeviceID for AWS PV Storage Host Adapter")
+		return
 	}
 
-	// this queries signed AWS drivers to get proper Name and Version.
-	command := fmt.Sprintf(getPnpSignedDriversCmd, deviceID)
-	properties = []string{descriptionProperty, driverVersionProperty}
-	if err = runPowershell(&pnpSignedDrivers, command, properties, true); err != nil {
+	// query signed AWS drivers to get proper Name and Version.
+	var pnpSignedDrivers []platform.Win32_PnPSignedDriver
+	if pnpSignedDrivers, err = platform.GetWMIData[platform.Win32_PnPSignedDriver](fmt.Sprintf(getPnpSignedDriversWhereClause, deviceID)); err != nil {
 		log.Infof("Error occurred while querying signed AWS drivers: %v", err.Error())
 		return
 	}
@@ -396,11 +370,9 @@ func getAWSDriverInfoForFull(log log.T) (driverInfo []model.DriverInfo, err erro
 	return
 }
 
-// getAWSDriverInfoForNano runs powershell using Win32_PnPEntity and Get-WindowsDriver command
-// and collects and returns the driver information.
+// getAWSDriverInfoForNano collects and returns the driver information using Win32_PnPEntity and Get-WindowsDriver command.
 func getAWSDriverInfoForNano(log log.T) (driverInfo []model.DriverInfo, err error) {
 	var windowsDrivers []model.WindowsDriver
-	var pnpEntities []model.PnpEntity
 
 	// this queries AWS drivers in current Windows image to get Version.
 	properties := []string{originalFileNameProperty, versionProperty}
@@ -409,9 +381,9 @@ func getAWSDriverInfoForNano(log log.T) (driverInfo []model.DriverInfo, err erro
 		return
 	}
 
-	// this queries AWS drivers to get proper Name.
-	properties = []string{serviceProperty, nameProperty}
-	if err = runPowershell(&pnpEntities, getAllPnpEntitiesCmd, properties, true); err != nil {
+	// query AWS drivers to get proper Name.
+	var pnpEntities []platform.Win32_PnPEntity
+	if pnpEntities, err = platform.GetWMIData[platform.Win32_PnPEntity](getAllPnpEntitiesWhereClause); err != nil {
 		log.Infof("Error occurred while querying AWS drivers: %v", err.Error())
 		return
 	}

@@ -73,8 +73,19 @@ type Win32_OperatingSystem struct {
 	Version            string
 }
 
-func GetSingleWMIObject[T interface{}](_ T) (wmiObject T, err error) {
-	if wmiData, err := GetWMIData(wmiObject); err != nil || len(wmiData) == 0 {
+type Win32_PnPEntity struct {
+	DeviceID string
+	Service  string
+	Name     string
+}
+
+type Win32_PnPSignedDriver struct {
+	Description   string
+	DriverVersion string
+}
+
+func GetSingleWMIObject[T interface{}](whereClause string) (wmiObject T, err error) {
+	if wmiData, err := GetWMIData[T](whereClause); err != nil || len(wmiData) == 0 {
 		return wmiObject, err
 	} else {
 		wmiObject = wmiData[0]
@@ -82,8 +93,8 @@ func GetSingleWMIObject[T interface{}](_ T) (wmiObject T, err error) {
 	}
 }
 
-func GetWMIData[T interface{}](_ T) (wmiData []T, err error) {
-	q := wmi.CreateQuery(&wmiData, "")
+func GetWMIData[T interface{}](whereClause string) (wmiData []T, err error) {
+	q := wmi.CreateQuery(&wmiData, whereClause)
 	err = wmi.Query(q, &wmiData)
 	return
 }

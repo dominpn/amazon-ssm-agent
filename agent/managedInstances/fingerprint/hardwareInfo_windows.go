@@ -141,7 +141,7 @@ func csproductUuid(logger log.T, wmiInterface WMIInterface) (encodedData string,
 		encodedData, uuid, err = commandOutputHash(wmicCommand, "csproduct", "get", "UUID")
 	case wql:
 		var csProductData platform.Win32_ComputerSystemProduct
-		encodedData, csProductData, err = getWMIObject(logger, csProductData)
+		encodedData, csProductData, err = getWMIObject[platform.Win32_ComputerSystemProduct](logger)
 		uuid = csProductData.UUID
 	default:
 		logger.Warnf("Unknown WMI interface: %v", wmiInterface)
@@ -156,7 +156,7 @@ func processorInfoHash(logger log.T, wmiInterface WMIInterface) (encodedData str
 	case wmic:
 		encodedData, _, err = commandOutputHash(wmicCommand, "cpu", "list", "brief")
 	case wql:
-		encodedData, _, err = getWMIObject(logger, platform.Win32_Processor{})
+		encodedData, _, err = getWMIObject[platform.Win32_Processor](logger)
 	default:
 		logger.Warnf("Unknown WMI interface: %v", wmiInterface)
 	}
@@ -169,7 +169,7 @@ func memoryInfoHash(logger log.T, wmiInterface WMIInterface) (encodedData string
 	case wmic:
 		encodedData, _, err = commandOutputHash(wmicCommand, "memorychip", "list", "brief")
 	case wql:
-		encodedData, _, err = getWMIObject(logger, platform.Win32_PhysicalMemory{})
+		encodedData, _, err = getWMIObject[platform.Win32_PhysicalMemory](logger)
 	default:
 		logger.Warnf("Unknown WMI interface: %v", wmiInterface)
 	}
@@ -182,7 +182,7 @@ func biosInfoHash(logger log.T, wmiInterface WMIInterface) (encodedData string, 
 	case wmic:
 		encodedData, _, err = commandOutputHash(wmicCommand, "bios", "list", "brief")
 	case wql:
-		encodedData, _, err = getWMIObject(logger, platform.Win32_BIOS{})
+		encodedData, _, err = getWMIObject[platform.Win32_BIOS](logger)
 	default:
 		logger.Warnf("Unknown WMI interface: %v", wmiInterface)
 	}
@@ -195,7 +195,7 @@ func systemInfoHash(logger log.T, wmiInterface WMIInterface) (encodedData string
 	case wmic:
 		encodedData, _, err = commandOutputHash(wmicCommand, "computersystem", "list", "brief")
 	case wql:
-		encodedData, _, err = getWMIObject(logger, platform.Win32_ComputerSystem{})
+		encodedData, _, err = getWMIObject[platform.Win32_ComputerSystem](logger)
 	default:
 		logger.Warnf("Unknown WMI interface: %v", wmiInterface)
 	}
@@ -208,7 +208,7 @@ func diskInfoHash(logger log.T, wmiInterface WMIInterface) (encodedData string, 
 	case wmic:
 		encodedData, _, err = commandOutputHash(wmicCommand, "diskdrive", "list", "brief")
 	case wql:
-		encodedData, _, err = getWMIObject(logger, platform.Win32_DiskDrive{})
+		encodedData, _, err = getWMIObject[platform.Win32_DiskDrive](logger)
 	default:
 		logger.Warnf("Unknown WMI interface: %v", wmiInterface)
 	}
@@ -216,8 +216,8 @@ func diskInfoHash(logger log.T, wmiInterface WMIInterface) (encodedData string, 
 	return
 }
 
-func getWMIObject[T interface{}](logger log.T, _ T) (encodedWmiObject string, wmiObject T, err error) {
-	if wmiObject, err = platform.GetSingleWMIObject(wmiObject); err != nil {
+func getWMIObject[T interface{}](logger log.T) (encodedWmiObject string, wmiObject T, err error) {
+	if wmiObject, err = platform.GetSingleWMIObject[T](""); err != nil {
 		logger.Errorf("Failed to fetch WMI object: %v", err)
 	} else {
 		var b bytes.Buffer

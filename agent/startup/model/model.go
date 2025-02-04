@@ -67,19 +67,6 @@ type NitroEnclavesPackageInfo struct {
 	Version string `json:"Version"`
 }
 
-// PnpEntity contains DeviceId, Service, Name from Win32_PnpEntity.
-type PnpEntity struct {
-	DeviceID string `json:"DeviceID"`
-	Service  string `json:"Service"`
-	Name     string `json:"Name"`
-}
-
-// PnpSignedDriver contains Description, DriverVersion from Win32_PnpSignedDriver.
-type PnpSignedDriver struct {
-	Description   string `json:"Description"`
-	DriverVersion string `json:"DriverVersion"`
-}
-
 // WindowsDriver contains OriginalFileName and Version from result of Get-WindowsDriver.
 type WindowsDriver struct {
 	OriginalFileName string `json:"OriginalFileName"`

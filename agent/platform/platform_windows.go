@@ -103,7 +103,7 @@ func isPlatformNanoServer(log log.T) (bool, error) {
 }
 
 func getPlatformData(log log.T) (PlatformData, error) {
-	if osData, err := getPlatformDetails(Win32_OperatingSystem{}); err == nil {
+	if osData, err := getPlatformDetails(""); err == nil {
 		return PlatformData{
 			Name:    osData.Caption,
 			Version: osData.Version,
@@ -122,7 +122,7 @@ func getPlatformData(log log.T) (PlatformData, error) {
 }
 
 func initSystemInfoCache(log log.T, paramKey string) (string, error) {
-	if biosData, err := getSystemDetails(Win32_BIOS{}); err == nil {
+	if biosData, err := getSystemDetails(""); err == nil {
 		cache.Put(BiosVersionParamKey, biosData.SMBIOSBIOSVersion)
 		cache.Put(BiosSerialNumberParamKey, biosData.SerialNumber)
 		cache.Put(BiosManufacturerParamKey, biosData.Manufacturer)
@@ -141,9 +141,8 @@ func initSystemInfoCache(log log.T, paramKey string) (string, error) {
 
 // fullyQualifiedDomainName returns the Fully Qualified Domain Name of the instance, otherwise the hostname
 func fullyQualifiedDomainName(log log.T) string {
-	var csData Win32_ComputerSystem
-	var err error
-	if csData, err = GetSingleWMIObject(csData); err != nil {
+	csData, err := GetSingleWMIObject[Win32_ComputerSystem]("")
+	if err != nil {
 		log.Errorf("Failed to fetch computer system details from WMI: %v", err)
 	}
 
