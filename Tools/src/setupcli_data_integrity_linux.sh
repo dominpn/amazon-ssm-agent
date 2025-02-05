@@ -7,23 +7,25 @@ echo "Starting data integrity check for linux setupcli binary"
 binary_path="$1"
 sig_path="$2"
 
-if [ -z "$1" ] ; then
+if [ -z "$1" ]; then
   echo "missing SSM Setup CLI path. Please pass valid agent binary path"
   exit 1
+fi
 
-if [ -z "$2" ] ; then
+if [ -z "$2" ]; then
   echo "missing sig file path. Please pass valid sig file path"
   exit 1
+fi
 
 echo "SSM Setup CLI binary path: $1"
 echo "Sig file path: $2"
 
 echo "Checking to see if gpg is installed"
-if [[ -x "$(command -v gpg)" ]] ; then
-    echo "gpg is installed"
+if [[ -x "$(command -v gpg)" ]]; then
+  echo "gpg is installed"
 else
-    echo "gpg not found. Please install gpg to validate setupcli binary"
-    exit 1
+  echo "gpg not found. Please install gpg to validate setupcli binary"
+  exit 1
 fi
 
 echo "Create public key file to validate ssm-setup-cli binary"
