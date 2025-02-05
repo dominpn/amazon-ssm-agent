@@ -527,7 +527,12 @@ func proceedUpdate(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (e
 				return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, true)
 			}
 
-			return mgr.failed(updateDetail, log, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode), message, true)
+			if slices.Contains(updateconstants.ExitCodesUpdateErrorUsingPkgMgr, exitCode) {
+				updateDetail.AppendError(log, message)
+				mgr.reportMetric(mgr, updateDetail, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode))
+			} else {
+				return mgr.failed(updateDetail, log, updateconstants.ErrorUninstallFailed, message, true)
+			}
 		}
 	}
 
@@ -667,10 +672,15 @@ func rollbackInstallation(mgr *updateManager, log log.T, updateDetail *UpdateDet
 		// this case is not possible at all as we would have caught it in the earlier uninstall/install
 		// if this happens, something else is wrong so it is better to have this code for differentiation
 		if exitCode == updateconstants.ExitCodeUnsupportedPlatform {
-			return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, true)
+			return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, false)
 		}
 
-		return mgr.failed(updateDetail, log, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode), message, false)
+		if slices.Contains(updateconstants.ExitCodesUpdateErrorUsingPkgMgr, exitCode) {
+			updateDetail.AppendError(log, message)
+			mgr.reportMetric(mgr, updateDetail, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode))
+		} else {
+			return mgr.failed(updateDetail, log, updateconstants.ErrorUninstallFailed, message, false)
+		}
 	}
 
 	if exitCode, err := mgr.install(mgr, log, updateDetail.SourceVersion, updateDetail); err != nil {
@@ -689,7 +699,7 @@ func rollbackInstallation(mgr *updateManager, log log.T, updateDetail *UpdateDet
 		// this case is not possible at all as we would have caught it in the earlier uninstall/install
 		// if this happens, something else is wrong and it is better to have this code for differentiation
 		if exitCode == updateconstants.ExitCodeUnsupportedPlatform {
-			return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, true)
+			return mgr.failed(updateDetail, log, updateconstants.ErrorUnsupportedServiceManager, message, false)
 		}
 
 		if exitCode == updateconstants.ExitCodeInstallFailedDueToSigningIssue {

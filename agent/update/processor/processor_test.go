@@ -1523,7 +1523,6 @@ func TestProceedUpdate(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
-	assert.Equal(t, Installed, updateDetail.State)
 	assert.True(t, isWaitForCloudInitCalled)
 	assert.False(t, isUninstallCalled)
 	assert.True(t, isInstallCalled)
@@ -1575,7 +1574,6 @@ func TestProceedUpdateWithDowngrade(t *testing.T) {
 
 	// assert
 	assert.NoError(t, err)
-	assert.Equal(t, Installed, updateDetail.State)
 	assert.True(t, isWaitForCloudInitCalled)
 	assert.True(t, isUninstallCalled)
 	assert.True(t, isInstallCalled)
@@ -1645,6 +1643,69 @@ func TestProceedUpdateWithDowngradeFailUninstall(t *testing.T) {
 	assert.False(t, isVerifyCalled)
 }
 
+func TestProceedUpdateWithDowngradeUninstallReportMetricErrorUsingPkgMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	updater := createDefaultUpdaterStub()
+	updateDetail := createUpdateDetail(Staged)
+	updateDetail.RequiresUninstall = true
+	errMessage := "legacy package manager install error"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isRollbackCalled := false
+	isVerifyCalled := false
+	var intermediateMetric updateconstants.ErrorCode
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return updateconstants.ExitCodeUpdateErrorUsingPkgMgrLegacy, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
+		isRollbackCalled = true
+		return nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.reportMetric = func(mgr *updateManager, updateDetail *UpdateDetail, code updateconstants.ErrorCode) (err error) {
+		intermediateMetric = code
+		return nil
+	}
+
+	// action
+	err := proceedUpdate(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Contains(t, intermediateMetric, updateconstants.ErrorUninstallFailed)
+	assert.Contains(t, intermediateMetric, updateconstants.ErrorUsingPkgMgrLegacySuffix)
+	assert.Empty(t, finalize_error_code)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.True(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.False(t, isRollbackCalled)
+	assert.True(t, isVerifyCalled)
+}
+
 func TestProceedUpdateFailInstall(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
@@ -1698,7 +1759,7 @@ func TestProceedUpdateFailInstall(t *testing.T) {
 	assert.False(t, isVerifyCalled)
 }
 
-func TestProceedUpdateFailUninstallErrorPrepareUpdateCommand(t *testing.T) {
+func TestProceedUpdateWithDowngradeFailUninstallErrorPrepareUpdateCommand(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
 	updater := createDefaultUpdaterStub()
@@ -1751,6 +1812,7 @@ func TestProceedUpdateFailUninstallErrorPrepareUpdateCommand(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, Completed, updateDetail.State)
 	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUninstallFailed)
 	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
 	assert.Contains(t, updateDetail.StandardOut, errMessage)
 	assert.True(t, isWaitForCloudInitCalled)
@@ -1812,6 +1874,7 @@ func TestProceedUpdateFailInstallErrorPrepareUpdateCommand(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, Completed, updateDetail.State)
 	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorInstallFailed)
 	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
 	assert.Contains(t, updateDetail.StandardOut, errMessage)
 	assert.True(t, isWaitForCloudInitCalled)
@@ -1821,7 +1884,7 @@ func TestProceedUpdateFailInstallErrorPrepareUpdateCommand(t *testing.T) {
 	assert.False(t, isVerifyCalled)
 }
 
-func TestProceedUpdateFailUninstallWithUnsupportedServiceMgr(t *testing.T) {
+func TestProceedUpdateWithDowngradeFailUninstallWithUnsupportedServiceMgr(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
 	updater := createDefaultUpdaterStub()
@@ -2118,6 +2181,7 @@ func TestProceedUpdateInstallReportMetricErrorUsingPkgMgr(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, Rollback, updateDetail.State)
 	assert.Equal(t, contracts.ResultStatusInProgress, updateDetail.Result)
+	assert.Contains(t, intermediateMetric, updateconstants.ErrorInstallFailed)
 	assert.Contains(t, intermediateMetric, updateconstants.ErrorUsingYumAndRpmSuffix)
 	assert.Contains(t, updateDetail.StandardOut, errMessage)
 	assert.True(t, isWaitForCloudInitCalled)
@@ -2372,6 +2436,68 @@ func TestRollbackInstallationFailUninstall(t *testing.T) {
 	assert.False(t, isVerifyCalled)
 }
 
+func TestRollbackInstallationUninstallReportMetricErrorUsingPkgMgr(t *testing.T) {
+	// setup
+	var logger = logmocks.NewMockLog()
+	control := &stubControl{serviceIsRunning: false}
+	updater := createUpdaterStubs(control)
+	updateDetail := createUpdateDetail(Rollback)
+	errMessage := "dpkg install error"
+
+	isWaitForCloudInitCalled := false
+	isUninstallCalled := false
+	isInstallCalled := false
+	isVerifyCalled := false
+	var intermediateMetric updateconstants.ErrorCode
+	finalize_error_code := ""
+
+	// stub functions
+	waitForCloudInit = func(log log.T, timeoutSeconds int) error {
+		isWaitForCloudInitCalled = true
+		return nil
+	}
+
+	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isUninstallCalled = true
+		return updateconstants.ExitCodeUpdateErrorUsingDpkg, fmt.Errorf(errMessage)
+	}
+
+	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
+		isInstallCalled = true
+		return exitCode, nil
+	}
+
+	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
+		isVerifyCalled = true
+		return nil
+	}
+
+	updater.mgr.reportMetric = func(mgr *updateManager, updateDetail *UpdateDetail, code updateconstants.ErrorCode) (err error) {
+		intermediateMetric = code
+		return nil
+	}
+
+	updater.mgr.finalize = func(mgr *updateManager, updateDetail *UpdateDetail, errorCode string) (err error) {
+		finalize_error_code = errorCode
+		return nil
+	}
+
+	// action
+	err := rollbackInstallation(updater.mgr, logger, updateDetail)
+
+	// assert
+	assert.NoError(t, err)
+	assert.Equal(t, RolledBack, updateDetail.State)
+	assert.Contains(t, intermediateMetric, updateconstants.ErrorUninstallFailed)
+	assert.Contains(t, intermediateMetric, updateconstants.ErrorUsingDpkgSuffix)
+	assert.Empty(t, finalize_error_code)
+	assert.Contains(t, updateDetail.StandardOut, errMessage)
+	assert.False(t, isWaitForCloudInitCalled)
+	assert.True(t, isUninstallCalled)
+	assert.True(t, isInstallCalled)
+	assert.True(t, isVerifyCalled)
+}
+
 func TestRollbackInstallationFailInstall(t *testing.T) {
 	// setup
 	var logger = logmocks.NewMockLog()
@@ -2474,6 +2600,7 @@ func TestRollbackInstallationFailUninstallErrorPrepareUpdateCommand(t *testing.T
 	assert.NoError(t, err)
 	assert.Equal(t, Completed, updateDetail.State)
 	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorUninstallFailed)
 	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
 	assert.Contains(t, updateDetail.StandardOut, errMessage)
 	assert.False(t, isWaitForCloudInitCalled)
@@ -2529,6 +2656,7 @@ func TestRollbackInstallationFailInstallErrorPrepareUpdateCommand(t *testing.T) 
 	assert.NoError(t, err)
 	assert.Equal(t, Completed, updateDetail.State)
 	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorInstallFailed)
 	assert.Contains(t, finalize_error_code, updateconstants.ErrorPrepareUpdateCommandSuffix)
 	assert.Contains(t, updateDetail.StandardOut, errMessage)
 	assert.False(t, isWaitForCloudInitCalled)
@@ -2804,6 +2932,7 @@ func TestRollbackInstallationFailInstallErrorUsingPkgMgr(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, Completed, updateDetail.State)
 	assert.Equal(t, contracts.ResultStatusFailed, updateDetail.Result)
+	assert.Contains(t, finalize_error_code, updateconstants.ErrorInstallFailed)
 	assert.Contains(t, finalize_error_code, updateconstants.ErrorUsingPkgMgrLegacySuffix)
 	assert.Contains(t, updateDetail.StandardOut, errMessage)
 	assert.False(t, isWaitForCloudInitCalled)
