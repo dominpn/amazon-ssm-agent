@@ -29,7 +29,7 @@ func TestVersion_Positive(t *testing.T) {
 	ClearCache()
 	logMock := logger.NewMockLog()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "6.2323.23"}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -41,7 +41,7 @@ func TestVersion_Positive(t *testing.T) {
 	assert.Nil(t, err)
 
 	ClearCache()
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "20.2323.23"}, nil
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -56,7 +56,7 @@ func TestVersion_Negative(t *testing.T) {
 	ClearCache()
 	logMock := logger.NewMockLog()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "0.022"}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -68,7 +68,7 @@ func TestVersion_Negative(t *testing.T) {
 	assert.Nil(t, err)
 
 	ClearCache()
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "dsdsds23323"}, nil
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -79,7 +79,7 @@ func TestVersion_Negative(t *testing.T) {
 	assert.NotNil(t, err)
 
 	ClearCache()
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: ""}, nil
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -90,7 +90,7 @@ func TestVersion_Negative(t *testing.T) {
 	assert.NotNil(t, err)
 
 	ClearCache()
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: ""}, fmt.Errorf("test1")
 	}
 	isWin2012, err = isPlatformWindowsServer2012OrEarlier(logMock)
@@ -106,7 +106,7 @@ func TestVersion_Negative(t *testing.T) {
 func TestPlatformName(t *testing.T) {
 	ClearCache()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Caption: "Windows 2025"}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -119,7 +119,7 @@ func TestPlatformName(t *testing.T) {
 func TestPlatformNameWithError(t *testing.T) {
 	ClearCache()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform name error")
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -132,7 +132,7 @@ func TestPlatformNameWithError(t *testing.T) {
 func TestPlatformVersion(t *testing.T) {
 	ClearCache()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{Version: "20.2323.23"}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -145,7 +145,7 @@ func TestPlatformVersion(t *testing.T) {
 func TestPlatformVersionWithError(t *testing.T) {
 	ClearCache()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform version error")
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -158,7 +158,7 @@ func TestPlatformVersionWithError(t *testing.T) {
 func TestPlatformSku(t *testing.T) {
 	ClearCache()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{OperatingSystemSKU: 123}, nil
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -171,7 +171,7 @@ func TestPlatformSku(t *testing.T) {
 func TestPlatformSkuWithError(t *testing.T) {
 	ClearCache()
 	temp := getPlatformDetails
-	getPlatformDetails = func(_ Win32_OperatingSystem) (Win32_OperatingSystem, error) {
+	getPlatformDetails = func(_ string) (Win32_OperatingSystem, error) {
 		return Win32_OperatingSystem{}, fmt.Errorf("platform sku error")
 	}
 	defer func() { getPlatformDetails = temp }()
@@ -184,7 +184,7 @@ func TestPlatformSkuWithError(t *testing.T) {
 func TestGetSystemInfo(t *testing.T) {
 	ClearCache()
 	temp := getSystemDetails
-	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+	getSystemDetails = func(_ string) (Win32_BIOS, error) {
 		return Win32_BIOS{
 			SMBIOSBIOSVersion: "version123",
 			SerialNumber:      "serialNumber123",
@@ -209,7 +209,7 @@ func TestGetSystemInfoCacheHit(t *testing.T) {
 	ClearCache()
 	cacheInitCount := 0
 	temp := getSystemDetails
-	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+	getSystemDetails = func(_ string) (Win32_BIOS, error) {
 		cacheInitCount++
 		return Win32_BIOS{
 			SMBIOSBIOSVersion: "version123",
@@ -229,7 +229,7 @@ func TestGetSystemInfoCacheMiss(t *testing.T) {
 	ClearCache()
 	cacheInitCount := 0
 	temp := getSystemDetails
-	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+	getSystemDetails = func(_ string) (Win32_BIOS, error) {
 		cacheInitCount++
 		return Win32_BIOS{
 			SMBIOSBIOSVersion: "version123",
@@ -249,7 +249,7 @@ func TestGetSystemInfoWithError(t *testing.T) {
 	ClearCache()
 	cacheInitCount := 0
 	temp := getSystemDetails
-	getSystemDetails = func(_ Win32_BIOS) (Win32_BIOS, error) {
+	getSystemDetails = func(_ string) (Win32_BIOS, error) {
 		cacheInitCount++
 		return Win32_BIOS{
 			SMBIOSBIOSVersion: "version123",
