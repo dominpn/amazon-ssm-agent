@@ -56,6 +56,7 @@ dataflow-problems:
         - amazon-ssm-agent-unix
         - ssm-document-worker
         - ssm-session-worker
+        - updater-unix
         - ssm-setup-cli
         - ssm-cli
       severity: "HIGH" # Credentials should never get logged.
@@ -88,6 +89,7 @@ dataflow-problems:
         - amazon-ssm-agent-unix
         - agent-worker-unix
         - ssm-session-worker
+        - updater-unix
         - ssm-setup-cli
         - ssm-cli
       unsafe-skip-bound-labels: true
