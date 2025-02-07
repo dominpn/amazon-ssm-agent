@@ -1,5 +1,20 @@
 Latest
 ===============
+- Fix TestDocumentWorkerCrash integration tests
+- Implement caching for platfrom data and refactor the code to use cached data if available
+- Replace Get-CimInstance commands with WMI alternatives for retrieving system info
+- Add configuration file and script to run the Argot static analyzer to check for dataflow and other security invariants
+- Updater to allow downgrade if current version is inactive
+- Allow Agent Updater to emit intermediate metrics during updates and add new Updater metrics
+- Agent setup cli verification to rely only on exit codes
+- Update SSM Agent public key to verify SSM-Setup-CLI binary signature
+- Update GPG keyring to verify SSM-Agent binary signature using SSM-Setup-CLI
+- Fix code branching within setupcli_data_integrity_linux.sh
+- Use powershell for simplified, updated and no prompt unzip in install.bat
+- Update build Golang version to 1.22.11
+
+3.3.1611.0
+===============
 - Update aws-sdk-go from 1.51.20 to 1.55.5
 - Update golang.org/x/crypto from 0.24.0 to 0.32.0
 - Update github.com/go-git/go-git/v5 from 5.12.0 to 5.13.1
