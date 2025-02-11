@@ -89,6 +89,7 @@ dataflow-problems:
         - amazon-ssm-agent-unix
         - agent-worker-unix
         - ssm-session-worker
+        - ssm-document-worker
         - updater-unix
         - ssm-setup-cli
         - ssm-cli

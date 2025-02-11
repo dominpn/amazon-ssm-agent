@@ -20,6 +20,17 @@
     }
   },
   {
+    "ObjectPath": "golang.org/x/crypto/ssh",
+    "Methods": {
+      "Unmarshal": {
+        "Args": [ [ 0, 1 ], [ 1 ] ],
+        "Rets": [ [ 0 ], [ 0 ] ],
+        "Comment": "Unmarshal uses reflection"
+      }
+    }
+
+  },
+  {
     "ObjectPath": "vendor/golang.org/x/net/http2/hpack",
     "Methods": {
       "init": {
