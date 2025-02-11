@@ -44,7 +44,7 @@ func NewRetryableRegistrar(agentCtx agentCtx.ICoreAgentContext) *RetryableRegist
 	log := agentCtx.Log().WithContext("[Registrar]")
 	log.Debug("initializing registrar")
 	// Cast to innerIdentityGetter interface that defined getInner
-	innerGetter, ok := agentCtx.Identity().(identity.IInnerIdentityGetter)
+	innerGetter, ok := castToIdentityInner(agentCtx)
 	if !ok {
 		log.Errorf("malformed identity")
 		return nil
@@ -66,6 +66,13 @@ func NewRetryableRegistrar(agentCtx agentCtx.ICoreAgentContext) *RetryableRegist
 		isRegistrarRunningLock:    &sync.RWMutex{},
 	}
 }
+
+var castToIdentityInner = func(agentCtx agentCtx.ICoreAgentContext) (identity.IInnerIdentityGetter, bool) {
+	innerGetter, ok := agentCtx.Identity().(identity.IInnerIdentityGetter)
+	return innerGetter, ok
+}
+
+var contextWithCancel = context.WithCancel
 
 func (r *RetryableRegistrar) Start() error {
 	r.log.Info("Starting registrar module")
@@ -92,7 +99,7 @@ func (r *RetryableRegistrar) RegisterWithRetry() {
 	}()
 
 	retryCount := 0
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := contextWithCancel(context.Background())
 	defer cancel()
 
 	for {
