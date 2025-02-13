@@ -33,11 +33,11 @@ type HostInfo struct {
 type Ec2DetectorTestCase struct {
 	context context.T
 
-	smbiosHostInfo HostInfo
-	smbiosErr      error
+	primaryInfo HostInfo
+	primaryErr  error
 
-	systemHostInfo HostInfo
-	systemErr      error
+	secondaryInfo HostInfo
+	secondaryErr  error
 }
 
 const (

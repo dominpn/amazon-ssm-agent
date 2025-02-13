@@ -17,39 +17,13 @@
 package testcases
 
 import (
-	"context"
 	"fmt"
-	"os/exec"
-	"strings"
-	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/platform"
-	testCommon "github.com/aws/amazon-ssm-agent/agent/update/tester/common"
 )
 
-const (
-	ec2DetectorTestCaseName = "WinEc2Detector"
-
-	commandExecTimeout = 3 * time.Second
-	commandMaxRetry    = 3
-)
-
-var execCommand = func(cmd string, params ...string) (string, error) {
-	var err error
-	var byteOutput []byte
-
-	ctx, cancel := context.WithTimeout(context.Background(), commandExecTimeout)
-	defer cancel()
-	for i := 0; i < commandMaxRetry; i++ {
-		byteOutput, err = exec.CommandContext(ctx, cmd, params...).Output()
-		if err == nil {
-			return strings.TrimSpace(string(byteOutput)), nil
-		}
-	}
-
-	return "", err
-}
+const ec2DetectorTestCaseName = "WinEc2Detector"
 
 func getSystemHostInfo(log log.T) (HostInfo, error) {
 	info := HostInfo{}
@@ -81,10 +55,6 @@ func getSystemHostInfo(log log.T) (HostInfo, error) {
 }
 
 func (l *Ec2DetectorTestCase) queryHostInfo() {
-	l.smbiosHostInfo, l.smbiosErr = getSmbiosHostInfo(l.context.Log())
-	l.systemHostInfo, l.systemErr = getSystemHostInfo(l.context.Log())
-}
-
-func (l *Ec2DetectorTestCase) generatePlatformTestResult() (testCommon.TestResult, string) {
-	return l.generateTestResult(l.smbiosHostInfo, l.smbiosErr, l.systemHostInfo, l.systemErr)
+	l.primaryInfo, l.primaryErr = getSmbiosHostInfo(l.context.Log())
+	l.secondaryInfo, l.secondaryErr = getSystemHostInfo(l.context.Log())
 }

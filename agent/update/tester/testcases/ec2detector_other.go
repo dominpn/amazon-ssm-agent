@@ -17,6 +17,7 @@
 package testcases
 
 import (
+	"errors"
 	"fmt"
 	"runtime/debug"
 	"strings"
@@ -58,15 +59,15 @@ func matchUuid(uuid string) bool {
 }
 
 func matchNitroEc2(info HostInfo) bool {
-	return matchUuid(info.Uuid) && info.Vendor == nitroVendorValue
+	return info.Vendor == nitroVendorValue
 }
 
 func matchXenEc2(info HostInfo) bool {
-	return matchUuid(info.Uuid) && strings.HasSuffix(info.Version, xenVersionSuffix)
+	return strings.HasSuffix(info.Version, xenVersionSuffix)
 }
 
 func isEc2Instance(info HostInfo) bool {
-	return matchXenEc2(info) || matchNitroEc2(info)
+	return matchUuid(info.Uuid) && (matchXenEc2(info) || matchNitroEc2(info))
 }
 
 // extractSmbiosHostInfo parses the list of smbios.Structure to a HostInfo based on SMBIOS spec
@@ -75,36 +76,34 @@ func extractSmbiosHostInfo(biosInfoList []*smbios.Structure) (HostInfo, error) {
 	// Parser created from SMBIOS spec: https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.1.1.pdf
 	for _, biosItem := range biosInfoList {
 		// Only parse System Information with type 1
-		if biosItem.Header.Type != 1 {
-			continue
-		}
-		if len(biosItem.Formatted) >= 4 {
-			manufacturerIndex := int(biosItem.Formatted[0])
-			if manufacturerIndex > 0 && len(biosItem.Strings) >= manufacturerIndex {
-				hostInfo.Vendor = cleanBiosString(biosItem.Strings[manufacturerIndex-1])
-			}
-
-			versionIndex := int(biosItem.Formatted[2])
-			if versionIndex > 0 && len(biosItem.Strings) >= versionIndex {
-				hostInfo.Version = cleanBiosString(biosItem.Strings[versionIndex-1])
-			}
-
-			serialNumberIndex := int(biosItem.Formatted[3])
-			if serialNumberIndex > 0 && len(biosItem.Strings) >= serialNumberIndex {
-				hostInfo.Uuid = cleanBiosString(biosItem.Strings[serialNumberIndex-1])
-			}
+		if biosItem.Header.Type == 1 && len(biosItem.Formatted) >= 4 {
+			// Manufacturer
+			hostInfo.Vendor = extractSmbiosData(biosItem, 0)
+			// Version
+			hostInfo.Version = extractSmbiosData(biosItem, 2)
+			// SerialNumber
+			hostInfo.Uuid = extractSmbiosData(biosItem, 3)
 		}
 	}
 
 	if hostInfo.Version == "" && hostInfo.Vendor == "" {
-		return hostInfo, fmt.Errorf(failedToGetVendorAndVersion)
+		return hostInfo, errors.New(failedToGetVendorAndVersion)
 	}
 
 	if hostInfo.Uuid == "" {
-		return hostInfo, fmt.Errorf(failedToGetUuid)
+		return hostInfo, errors.New(failedToGetUuid)
 	}
 
 	return hostInfo, nil
+}
+
+func extractSmbiosData(biosItem *smbios.Structure, index int) (dataValue string) {
+	dataIndex := int(biosItem.Formatted[index])
+	if dataIndex > 0 && len(biosItem.Strings) >= dataIndex {
+		dataValue = cleanBiosString(biosItem.Strings[dataIndex-1])
+	}
+
+	return dataValue
 }
 
 // streamAndDecode queries streamAndDecode with retries and sleep
@@ -178,23 +177,19 @@ func (l *Ec2DetectorTestCase) generateHostInfoResult(info HostInfo, queryErr err
 	return testPass, fmt.Sprintf("%sh%s_%se%d", approach, detectedHypervisor, approach, errDP)
 }
 
-func (l *Ec2DetectorTestCase) generateTestResult(primaryInfo HostInfo, primaryErr error, secondaryInfo HostInfo, secondaryErr error) (testCommon.TestResult, string) {
-	isPrimarySuccess, primaryAdditionalInfo := l.generateHostInfoResult(primaryInfo, primaryErr, primary)
-	isSecondarySuccess, secondaryAdditionalInfo := l.generateHostInfoResult(secondaryInfo, secondaryErr, secondary)
+func (l *Ec2DetectorTestCase) generateTestOutput() testCommon.TestOutput {
+	isPrimarySuccess, primaryAdditionalInfo := l.generateHostInfoResult(l.primaryInfo, l.primaryErr, primary)
+	isSecondarySuccess, secondaryAdditionalInfo := l.generateHostInfoResult(l.secondaryInfo, l.secondaryErr, secondary)
 
 	result := testCommon.TestCaseFail
 	if isPrimarySuccess || isSecondarySuccess {
 		result = testCommon.TestCasePass
 	}
 
-	return result, fmt.Sprintf("_p%d_s%d_%s_%s", btoi(isPrimarySuccess), btoi(isSecondarySuccess), primaryAdditionalInfo, secondaryAdditionalInfo)
-}
-
-// generateTestOutput constructs the TestOutput based on the state of Ec2DetectorTestCase attributes
-func (l *Ec2DetectorTestCase) generateTestOutput() testCommon.TestOutput {
-	var testOutput testCommon.TestOutput
-	testOutput.Result, testOutput.AdditionalInfo = l.generatePlatformTestResult()
-	return testOutput
+	return testCommon.TestOutput{
+		Result:         result,
+		AdditionalInfo: fmt.Sprintf("_p%d_s%d_%s_%s", btoi(isPrimarySuccess), btoi(isSecondarySuccess), primaryAdditionalInfo, secondaryAdditionalInfo),
+	}
 }
 
 // ExecuteTestCase executes the ec2 detector test case, test only runs when instance id starts with i-

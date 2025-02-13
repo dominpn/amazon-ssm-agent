@@ -21,12 +21,9 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/platform"
-	testCommon "github.com/aws/amazon-ssm-agent/agent/update/tester/common"
 )
 
-const (
-	ec2DetectorTestCaseName = "UnixEc2Detector"
-)
+const ec2DetectorTestCaseName = "UnixEc2Detector"
 
 func getSystemHostInfo(log log.T) (HostInfo, error) {
 	var hostInfo HostInfo
@@ -40,22 +37,21 @@ func getSystemHostInfo(log log.T) (HostInfo, error) {
 		return hostInfo, errors.New(failedToGetVendorAndVersion)
 	}
 
-	var uuid string
-	if uuid, _ = platform.GetSystemInfo(log, platform.XenUuidSystemInfoParamKey); uuid == "" {
-		if uuid, _ = platform.GetSystemInfo(log, platform.NitroUuidSystemInfoParamKey); uuid == "" {
-			return hostInfo, errors.New(failedToGetUuid)
-		}
-	}
+	uuid, _ := platform.GetSystemInfo(log, platform.XenUuidSystemInfoParamKey)
 	hostInfo.Uuid = cleanBiosString(uuid)
+	if hostInfo.Uuid == "" {
+		uuid, _ = platform.GetSystemInfo(log, platform.NitroUuidSystemInfoParamKey)
+		hostInfo.Uuid = cleanBiosString(uuid)
+	}
+
+	if hostInfo.Uuid == "" {
+		return hostInfo, errors.New(failedToGetUuid)
+	}
 
 	return hostInfo, nil
 }
 
 func (l *Ec2DetectorTestCase) queryHostInfo() {
-	l.systemHostInfo, l.systemErr = getSystemHostInfo(l.context.Log())
-	l.smbiosHostInfo, l.smbiosErr = getSmbiosHostInfo(l.context.Log())
-}
-
-func (l *Ec2DetectorTestCase) generatePlatformTestResult() (testCommon.TestResult, string) {
-	return l.generateTestResult(l.systemHostInfo, l.systemErr, l.smbiosHostInfo, l.smbiosErr)
+	l.primaryInfo, l.primaryErr = getSystemHostInfo(l.context.Log())
+	l.secondaryInfo, l.secondaryErr = getSmbiosHostInfo(l.context.Log())
 }
