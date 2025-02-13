@@ -648,7 +648,7 @@ func (p *ShellPlugin) initializeLogger(log log.T, config agentContracts.Configur
 	p.logger.ipcFilePath = filepath.Join(config.OrchestrationDirectory, mgsConfig.IpcFileName+mgsConfig.LogFileExtension)
 
 	// Generate final log file path
-	p.logger.logFileName = config.SessionId + mgsConfig.LogFileExtension
+	p.logger.logFileName = mgsConfig.LogFileName + mgsConfig.LogFileExtension
 	p.logger.logFilePath = filepath.Join(config.OrchestrationDirectory, p.logger.logFileName)
 }
 
@@ -950,7 +950,7 @@ func (p *ShellPlugin) finishLogging(
 
 		if config.OutputS3BucketName != "" {
 			log.Debug("Starting S3 logging")
-			s3KeyPrefix := fileutil.BuildS3Path(config.OutputS3KeyPrefix, p.logger.logFileName)
+			s3KeyPrefix := fileutil.BuildS3Path(config.OutputS3KeyPrefix, config.SessionId+mgsConfig.LogFileExtension)
 			p.uploadShellSessionLogsToS3(log, p.logger.s3Util, config, s3KeyPrefix)
 			sessionPluginResultOutput.S3Bucket = config.OutputS3BucketName
 			sessionPluginResultOutput.S3UrlSuffix = s3KeyPrefix

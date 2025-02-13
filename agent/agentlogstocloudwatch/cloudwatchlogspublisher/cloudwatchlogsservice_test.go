@@ -360,6 +360,21 @@ func TestCloudWatchLogsService_getNextMessage(t *testing.T) {
 	assert.Nil(t, message)
 }
 
+func TestCloudWatchLogsService_getNextMessage_fileExit(t *testing.T) {
+	service := CloudWatchLogsService{
+		context:              contextMock,
+		cloudWatchLogsClient: cwLogsClientMock,
+		stopPolicy:           sdkutil.NewStopPolicy("Test", 0),
+		isFileComplete:       true,
+	}
+	fileName := "file_do_not_exist"
+	var lkln int64 = 0
+	var acln int64 = 0
+	message, eof := service.getNextMessage(fileName, &lkln, &acln, false, false)
+	assert.True(t, eof)
+	assert.Equal(t, 0, len(message))
+}
+
 func TestCloudWatchLogsService_getNextMessage_largeline(t *testing.T) {
 	service := CloudWatchLogsService{
 		context:              contextMock,

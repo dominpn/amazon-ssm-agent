@@ -75,6 +75,7 @@ const (
 	SessionAlreadyTerminatedError = "Session is already terminated"
 
 	IpcFileName        = "ipcTempFile"
+	LogFileName        = "logTempFile"
 	ExecOutputFileName = "output"
 	LogFileExtension   = ".log"
 	ScreenBufferSize   = 30000

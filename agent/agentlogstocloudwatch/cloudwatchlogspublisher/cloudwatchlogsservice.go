@@ -624,6 +624,10 @@ func (service *CloudWatchLogsService) getNextMessage(
 	file, err := os.Open(absoluteFilePath)
 	if err != nil {
 		log.Warnf("Error opening file: %v", err)
+		if service.isFileComplete {
+			// End log update process if file complete to avoid file issue causing infinite loop.
+			eof = true
+		}
 		return
 	}
 	defer file.Close()
