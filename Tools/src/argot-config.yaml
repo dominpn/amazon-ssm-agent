@@ -21,10 +21,12 @@ targets:
     files: ["core/agent.go", "core/agent_unix.go", "core/agent_parser.go"]
   - name: "amazon-ssm-agent-windows"
     files: [ "core/agent.go", "core/agent_windows.go", "core/agent_parser.go" ]
+    platform: "windows"
   - name: "agent-worker-unix"
     files: ["agent/agent.go", "agent/agent_unix.go", "agent/agent_parser.go"]
   - name: "agent-worker-windows"
     files: [ "agent/agent.go", "agent/agent_windows.go", "agent/agent_parser.go" ]
+    platform: "windows"
   - name: "updater-unix"
     files: ["agent/update/updater/updater.go", "agent/update/updater/updater_unix.go"]
   - name: "ssm-cli"
@@ -54,6 +56,8 @@ dataflow-problems:
       targets:
         - agent-worker-unix
         - amazon-ssm-agent-unix
+        - amazon-ssm-agent-windows
+        - agent-worker-windows
         - ssm-document-worker
         - ssm-session-worker
         - updater-unix
@@ -88,6 +92,8 @@ dataflow-problems:
       targets:
         - amazon-ssm-agent-unix
         - agent-worker-unix
+        - amazon-ssm-agent-windows
+        - agent-worker-windows
         - ssm-session-worker
         - ssm-document-worker
         - updater-unix
@@ -120,6 +126,7 @@ dataflow-problems:
         - amazon-ssm-agent-unix
         # - agent-worker-unix TODO: there are some findings for the workers
         # - ssm-document-worker
+        - amazon-ssm-agent-windows
         - updater-unix
         - ssm-setup-cli
         - ssm-session-worker
@@ -136,6 +143,7 @@ syntactic-problems:
       description: "Agent must check resource availability before performing changes"
       targets:
         - agent-worker-unix
+        - agent-worker-windows
         - ssm-document-worker
       call:
         - method: DownloadUpdater
@@ -151,6 +159,8 @@ syntactic-problems:
       targets:
         - agent-worker-unix
         - amazon-ssm-agent-unix
+        - amazon-ssm-agent-windows
+        - agent-worker-windows
         - updater-unix
         - ssm-cli
         - ssm-document-worker
@@ -177,6 +187,8 @@ syntactic-problems:
       targets:
         - amazon-ssm-agent-unix
         - agent-worker-unix
+        - amazon-ssm-agent-windows
+        - agent-worker-windows
         - ssm-document-worker
         - updater-unix
         - ssm-setup-cli
