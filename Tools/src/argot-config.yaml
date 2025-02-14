@@ -54,15 +54,15 @@ dataflow-problems:
     - tag: "credential-logging"
       description: "Checking that credentials don't get logged."
       targets:
-        - agent-worker-unix
         - amazon-ssm-agent-unix
         - amazon-ssm-agent-windows
+        - agent-worker-unix
         - agent-worker-windows
+        - updater-unix
+        - ssm-cli
         - ssm-document-worker
         - ssm-session-worker
-        - updater-unix
         - ssm-setup-cli
-        - ssm-cli
       severity: "HIGH" # Credentials should never get logged.
       unsafe-skip-bound-labels: true
       sources:
@@ -91,14 +91,14 @@ dataflow-problems:
       description: "Checking that SSM parameters don't get logged."
       targets:
         - amazon-ssm-agent-unix
-        - agent-worker-unix
         - amazon-ssm-agent-windows
+        - agent-worker-unix
         - agent-worker-windows
-        - ssm-session-worker
-        - ssm-document-worker
         - updater-unix
-        - ssm-setup-cli
         - ssm-cli
+        - ssm-document-worker
+        - ssm-session-worker
+        - ssm-setup-cli
       unsafe-skip-bound-labels: true
       sources:
         - package: "github.com/aws/amazon-ssm-agent/agent/ssm/ssmparameterresolver"
@@ -128,9 +128,9 @@ dataflow-problems:
         # - ssm-document-worker
         - amazon-ssm-agent-windows
         - updater-unix
-        - ssm-setup-cli
-        - ssm-session-worker
         - ssm-cli
+        - ssm-session-worker
+        - ssm-setup-cli
       must-be-static: true
       backtracepoints:
         - package: "regexp"
@@ -144,7 +144,11 @@ syntactic-problems:
       targets:
         - agent-worker-unix
         - agent-worker-windows
+        - updater-unix
+        - ssm-cli
         - ssm-document-worker
+        - ssm-session-worker
+        - ssm-setup-cli
       call:
         - method: DownloadUpdater
         - method: DownloadManifest
@@ -157,9 +161,9 @@ syntactic-problems:
     - tag: "init-tls-v12"
       description: "Check that the tls.Config is initialized with TLS 1.2"
       targets:
-        - agent-worker-unix
         - amazon-ssm-agent-unix
         - amazon-ssm-agent-windows
+        - agent-worker-unix
         - agent-worker-windows
         - updater-unix
         - ssm-cli
@@ -186,14 +190,14 @@ syntactic-problems:
         type: "net/http.Client"
       targets:
         - amazon-ssm-agent-unix
-        - agent-worker-unix
         - amazon-ssm-agent-windows
+        - agent-worker-unix
         - agent-worker-windows
-        - ssm-document-worker
         - updater-unix
-        - ssm-setup-cli
-        - ssm-session-worker
         - ssm-cli
+        - ssm-document-worker
+        - ssm-session-worker
+        - ssm-setup-cli
       fields-set:
         - field: "CheckRedirect"
           value:
