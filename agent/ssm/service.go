@@ -16,12 +16,15 @@ package ssm
 import (
 	"fmt"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/platform"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
+	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
+	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -72,13 +75,16 @@ type Service interface {
 	GetDecryptedParameters(log log.T, paramNames []string) (response *ssm.GetParametersOutput, err error)
 }
 
-var ssmStopPolicy *sdkutil.StopPolicy
-
 // sdkService is an service wrapper that delegates to the ssm sdk.
 type sdkService struct {
 	context context.T
 	sdk     ssmiface.SSMAPI
 }
+
+var (
+	ssmStopPolicy           *sdkutil.StopPolicy
+	ec2DetectionResultsSent atomic.Bool
+)
 
 // NewService creates a new SSM service instance.
 func NewService(context context.T) Service {
@@ -100,7 +106,27 @@ func NewService(context context.T) Service {
 
 	sess := session.New(awsConfig)
 	sess.Handlers.Build.PushBack(request.MakeAddToUserAgentHandler(appConfig.Agent.Name, appConfig.Agent.Version))
+	sess.Handlers.Build.PushBackNamed(
+		request.NamedHandler{
+			Name: "EC2DetectionResultsHandler",
+			Fn: func(req *request.Request) {
+				// Send the EC2 detection results with the UpdateInstanceInformation request, as part of the User-Agent header
+				if req.Operation.Name == "UpdateInstanceInformation" && ec2DetectionResultsSent.CompareAndSwap(false, true) &&
+					context.Identity().IdentityType() == ec2.IdentityType {
+					ec2DetectorStatus := ec2detector.New(appConfig).IsEC2Instance(context.Log())
+					_, err := context.Identity().InstanceID()
+					imdsStatus := err == nil
 
+					uaHeaderValue := req.HTTPRequest.Header.Get("User-Agent")
+					if len(uaHeaderValue) > 0 {
+						uaHeaderValue = uaHeaderValue + " "
+					}
+					uaHeaderValue = uaHeaderValue + fmt.Sprintf("EC2DetectorStatus:%v|IMDSEC2DetectionStatus:%v", ec2DetectorStatus, imdsStatus)
+					req.HTTPRequest.Header.Set("User-Agent", uaHeaderValue)
+				}
+			},
+		},
+	)
 	ssmService := ssm.New(sess)
 	return NewSSMService(context, ssmService)
 }
