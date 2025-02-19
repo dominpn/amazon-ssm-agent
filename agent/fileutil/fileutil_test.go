@@ -113,8 +113,24 @@ func TestBuildPath(t *testing.T) {
 	name3_removed := "FixThisPath2"
 	name4_removed := "FixThisPath3"
 	res := BuildPath(orchestrationDirectory, name1, name2, name3, name4)
+	safepath := BuildSafePath(orchestrationDirectory, name1, name2, name3, name4)
 	exp := filepath.Join(orchestrationDirectory, name1_removed, name2, name3_removed, name4_removed)
 	assert.Equal(t, exp, res)
+	assert.Equal(t, exp, safepath)
+}
+
+func TestBuildSafePath(t *testing.T) {
+	orchestrationDirectory := "/C:Users/Orchestration/CommandId"
+	pathInjection1 := "../DDisk"
+	pathInjection2 := "disk1/disk2"
+	pathInjection3 := "../../../DDisk"
+	pathInjection4 := "../../../"
+	sp1 := BuildSafePath(orchestrationDirectory, pathInjection1)
+	sp2 := BuildSafePath(orchestrationDirectory, pathInjection2, pathInjection3)
+	sp3 := BuildSafePath(orchestrationDirectory, pathInjection4)
+	assert.Equal(t, orchestrationDirectory, sp1)
+	assert.Equal(t, orchestrationDirectory, sp2)
+	assert.Equal(t, orchestrationDirectory, sp3)
 }
 
 func TestMakeDirs(t *testing.T) {
@@ -282,7 +298,7 @@ func (a ioUtilStub) WriteFile(filename string, data []byte, perm os.FileMode) er
 
 func TestAppendToFile(t *testing.T) {
 	// Valid file
-	var file = "testdata/file.txt"
+	file := "testdata/file.txt"
 	// call method
 	filePath, err := AppendToFile("", file, " This is a sample text")
 	assert.NoError(t, err, "expected no error")

@@ -130,12 +130,8 @@ func (out *DefaultIOHandler) Init(filePath ...string) {
 	log := out.context.Log()
 	pluginConfig := DefaultOutputConfig()
 	// Create path to output location for file and s3
-	fullPath := out.ioConfig.OrchestrationDirectory
-	s3KeyPrefix := out.ioConfig.OutputS3KeyPrefix
-	for _, element := range filePath {
-		fullPath = fileutil.BuildPath(fullPath, element)
-		s3KeyPrefix = fileutil.BuildS3Path(s3KeyPrefix, element)
-	}
+	fullPath := fileutil.BuildSafePath(out.ioConfig.OrchestrationDirectory, filePath...)
+	s3KeyPrefix := fileutil.BuildS3Path(out.ioConfig.OutputS3KeyPrefix, filePath...)
 
 	stdOutLogStreamName := ""
 	stdErrLogStreamName := ""
