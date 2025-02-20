@@ -46,7 +46,7 @@
   {
     "ObjectPath": "(*github.com/aws/amazon-ssm-agent/agent/plugins/downloadcontent/httpresource/handler/auth/digest.Authorization)",
     "Methods": {
-      "String": { "Args": [[0]], "Rets":  [[0]] }
+      "String": { "Args": [ [ 0 ] ], "Rets": [ [ 0 ] ] }
     }
   }
 ]

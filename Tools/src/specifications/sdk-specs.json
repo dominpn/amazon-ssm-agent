@@ -74,6 +74,26 @@
     }
   },
   {
+    "ObjectPath": "github.com/aws/aws-sdk-go/private/protocol/rest",
+    "Methods": {
+      "Build": {
+        "Args": [ [ 0 ] ],
+        "Rets": [ [ ] ],
+        "Comment": "Build uses reflection but only moves data inside the struct. Summary can be more precise once we have support for field sensitivity in summaries."
+      },
+      "Unmarshal": {
+        "Args": [ [ 0 ] ],
+        "Rets": [ [ ] ],
+        "Comment": "Unmarshal uses reflection but only moves data inside the struct. Summary can be more precise once we have support for field sensitivity in summaries."
+      },
+      "UnmarshalMeta": {
+        "Args": [ [ 0 ] ],
+        "Rets": [ [ ] ],
+        "Comment": "uses reflection but only moves data inside the struct. Summary can be more precise once we have support for field sensitivity in summaries."
+      }
+    }
+  },
+  {
     "ObjectPath": "github.com/aws/aws-sdk-go/aws/awsutil/copy",
     "Methods": {
       "rcopy": { "Args": [ [ 0 ], [ 0, 1 ], [ 2 ] ], "Rets": [ [ ], [ ] ] }
@@ -119,6 +139,26 @@
     "Methods": {
       "getEndpointARN": { "Args": [ [ 0 ] ], "Rets": [ [ 0, 1 ] ] },
       "hasEndpointARN": { "Args": [ [ 0 ] ], "Rets": [ [ 0 ] ] }
+    }
+  },
+  {
+    "ObjectPath": "(*github.com/aws/aws-sdk-go/aws/csm.metric)",
+    "Methods": {
+      "TruncateFields": {
+        "Args": [ [ 0 ] ],
+        "Rets": [ [ ] ],
+        "Comment": "long to summarize but has no datafow impacting functionality"
+      },
+      "SetException": {
+        "Args": [ [ 0 ], [ 0, 1 ] ],
+        "Rets": [ [ ], [ ] ],
+        "Comment": "long to summarize but has no datafow impacting functionality"
+      },
+      "SetFinalException": {
+        "Args": [ [ 0 ], [ 0, 1 ] ],
+        "Rets": [ [ ], [ ] ],
+        "Comment": "long to summarize but has no datafow impacting functionality"
+      }
     }
   }
 ]

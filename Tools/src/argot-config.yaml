@@ -8,24 +8,22 @@ options:
   analysis-options:
     unsafe-max-depth: 15
     max-alarms: 30
-
 pointer-config:
   # The following function's effect on aliasing is ignored; it creates too many false positives.
   # Otherwise they may cause most error values to be aliased.
   unsafe-no-effect-functions:
     - fmt.Errorf
     - log.Errorf
-
 targets:
   - name: "amazon-ssm-agent-unix"
     files: ["core/agent.go", "core/agent_unix.go", "core/agent_parser.go"]
   - name: "amazon-ssm-agent-windows"
-    files: [ "core/agent.go", "core/agent_windows.go", "core/agent_parser.go" ]
+    files: ["core/agent.go", "core/agent_windows.go", "core/agent_parser.go"]
     platform: "windows"
   - name: "agent-worker-unix"
     files: ["agent/agent.go", "agent/agent_unix.go", "agent/agent_parser.go"]
   - name: "agent-worker-windows"
-    files: [ "agent/agent.go", "agent/agent_windows.go", "agent/agent_parser.go" ]
+    files: ["agent/agent.go", "agent/agent_windows.go", "agent/agent_parser.go"]
     platform: "windows"
   - name: "updater-unix"
     files: ["agent/update/updater/updater.go", "agent/update/updater/updater_unix.go"]
@@ -39,8 +37,6 @@ targets:
     files: ["agent/framework/processor/executer/outofproc/sessionworker/main.go"]
   - name: "ssm-setup-cli"
     files: ["agent/setupcli/setupcli.go"]
-
-
 dataflow-problems:
   summarize-on-demand: true
   field-sensitive-funcs: [".*"]
@@ -48,7 +44,6 @@ dataflow-problems:
     - "Tools/src/specifications/agent-specs.json"
     - "Tools/src/specifications/sdk-specs.json"
     - "Tools/src/specifications/std-specs.json"
-
   # The taint tracking problems
   taint-tracking:
     - tag: "credential-logging"
@@ -68,9 +63,11 @@ dataflow-problems:
       sources:
         - package: ".*"
           method: "RemoteRetrieve"
+        - package: "credentials"
+          method: "Get"
       sinks:
         - context: "amazon-ssm-agent"
-          method: "^(Log|Error|Warn|Debug|Info).*"
+          method: "^(Log|Error|Warn|Debug|Info|Print).*"
         - package: "github.com/aws/amazon-ssm-agent/agent/session/controlchannel"
           method: "SendMessage"
       sanitizers:
@@ -86,7 +83,6 @@ dataflow-problems:
         - type: "^int"
         - package: "log"
           type: "T"
-
     - tag: "ssm-parameter-logging"
       description: "Checking that SSM parameters don't get logged."
       targets:
@@ -109,7 +105,6 @@ dataflow-problems:
       sanitizers:
         - package: "ssmparameterresolver"
           method: "(GetName|GetType)" # Allow logging the type and name of the parameter
-
       filters:
         - type: "^error" # Error shouldn't contain data from parameter since fmt.Errorf is a sink
         - type: "^int" # Allow logging integers derived from data (counts. length,..)
@@ -135,13 +130,12 @@ dataflow-problems:
       backtracepoints:
         - package: "regexp"
           method: "^MustCompile$"
-
-
 syntactic-problems:
   cond-checks:
     - tag: "resource-check-availability"
       description: "Agent must check resource availability before performing changes"
       targets:
+        - amazon-ssm-agent-unix
         - agent-worker-unix
         - agent-worker-windows
         - updater-unix
@@ -150,12 +144,12 @@ syntactic-problems:
         - ssm-session-worker
         - ssm-setup-cli
       call:
-        - method: DownloadUpdater
+        - method: DownloadUpdater$
         - method: DownloadManifest
           context: .*plugins/updatessmagent.* # only check calls in this package
       preconditions:
-      # disk space must be sufficient, and calling the function must not return an error
-        - precondition: [ "IsDiskSpaceSufficientForUpdate(...)#0", "!(IsDiskSpaceSufficientForUpdate(...)#1 != nil:error)"]
+        # disk space must be sufficient, and calling the function must not return an error
+        - precondition: ["IsDiskSpaceSufficientForUpdate(...)#0", "!(IsDiskSpaceSufficientForUpdate(...)#1 != nil:error)"]
   # Check that the tls config field MinVersion is always set to TLS 1.2
   struct-inits:
     - tag: "init-tls-v12"
