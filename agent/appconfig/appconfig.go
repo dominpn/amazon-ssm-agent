@@ -39,13 +39,13 @@ func Config(reload bool) (SsmagentConfig, error) {
 	if reload || !isLoaded() {
 		var agentConfig SsmagentConfig
 		agentConfig = DefaultConfig()
+		agentConfig.Os.Name = runtime.GOOS
+		agentConfig.Agent.Version = version.Version
+
 		path, pathErr := retrieveAppConfigPath()
 		if pathErr != nil {
 			return agentConfig, nil
 		}
-		agentConfig.Os.Name = runtime.GOOS
-		agentConfig.Agent.Version = version.Version
-
 		// Process config override
 		fmt.Printf("Applying config override from %s.\n", path)
 
