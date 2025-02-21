@@ -38,6 +38,7 @@ type rollingLogCollector struct {
 type namespacedRollingLogCollector struct {
 	ctx context.T
 
+	baseDir string
 	// maximum number of rolled files
 	maxRolls int
 	// maximum size of one file
@@ -57,6 +58,7 @@ var getBaseLogStoreDir = func() string {
 func newRollingLogCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedRollingLogCollector {
 	return &namespacedRollingLogCollector{
 		ctx:            context,
+		baseDir:        getBaseLogStoreDir(),
 		maxRolls:       maxRolls,
 		maxFileSize:    maxFileSize,
 		fileNamePrefix: fileNamePrefix,
@@ -66,6 +68,9 @@ func newRollingLogCollector(context context.T, maxRolls int, maxFileSize int64, 
 }
 
 func (c *namespacedRollingLogCollector) CollectLog(namespace string, entry telemetrylog.Entry) error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
 	entryBytes, err := json.Marshal(entry)
 
 	if err != nil {
@@ -84,14 +89,38 @@ func (c *namespacedRollingLogCollector) CollectLog(namespace string, entry telem
 }
 
 func (c *namespacedRollingLogCollector) FetchAndDrop(limit int) (telemetrylog.NamespaceLogs, error) {
-	// TODO implement me
-	panic("implement me")
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	c.flushUnlocked() // finish any pending writes
+
+	log := c.ctx.Log()
+
+	nsMap, err := readAndDeleteRollingLogs(log, c.baseDir, c.fileNamePrefix, limit)
+
+	if err != nil && err != EOF {
+		return nil, err
+	}
+
+	result := telemetrylog.NamespaceLogs{}
+
+	for ns, lines := range nsMap {
+		logs := unmarshalList[telemetrylog.Entry](lines, log)
+
+		result[ns] = logs
+	}
+
+	return result, err
 }
 
 func (c *namespacedRollingLogCollector) Flush() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
+	return c.flushUnlocked()
+}
+
+func (c *namespacedRollingLogCollector) flushUnlocked() error {
 	var wg sync.WaitGroup
 	errCh := make(chan error, len(c.collectorMap))
 
@@ -151,15 +180,12 @@ func (c *namespacedRollingLogCollector) Close() error {
 }
 
 func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*rollingLogCollector, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
 	if namespace == "" {
 		return nil, fmt.Errorf("namespace cannot be empty")
 	}
 
 	if c.collectorMap[namespace] == nil {
-		p := filepath.Join(getBaseLogStoreDir(), namespace)
+		p := filepath.Join(c.baseDir, namespace)
 		if err := fileutil.MakeDirs(p); err != nil {
 			return nil, err
 		}

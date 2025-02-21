@@ -19,5 +19,5 @@ import (
 )
 
 type Exporter interface {
-	Export(int64metrics map[string]*[]metric.DataPoint[int64], float64metrics map[string]*[]metric.DataPoint[float64], logs map[string]*[]telemetrylog.Entry)
+	Export(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error
 }

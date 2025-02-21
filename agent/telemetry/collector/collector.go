@@ -28,6 +28,9 @@ package collector
 
 import (
 	"errors"
+	"fmt"
+	"runtime/debug"
+	"slices"
 	"sync"
 	"time"
 
@@ -35,6 +38,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/exporter"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+	"github.com/carlescere/scheduler"
 )
 
 // EOF is returned as error in Fetch when no new log entries are present
@@ -43,11 +47,6 @@ var EOF = errors.New("EOF")
 type Flushable interface {
 	Flush() error
 }
-
-// type Fetchable[N interface{}] interface {
-// 	// Fetch fetches all the available records, runs the function on them, and drops them
-
-// }
 
 type LogCollector interface {
 	CollectLog(namespace string, log telemetrylog.Entry) error
@@ -72,25 +71,24 @@ type Collector interface {
 
 	Collect(namespace string, metric metric.Metric[float64]) error
 
-	AddExporter(exportPeriod time.Duration, exporter exporter.Exporter)
+	AddExporter(exporter exporter.Exporter)
+
+	RemoveExporter(exporter exporter.Exporter)
 
 	Close() error
 }
 
-type exporterConfig struct {
-	exportPeriod time.Duration
-	exporter     exporter.Exporter
-}
-
 type collectorT struct {
-	aggregationPeriod time.Duration
-	metricCollector   MetricsCollector
-	logCollector      LogCollector
-	exporterMtx       *sync.Mutex
-	exporters         []exporterConfig
+	aggregationPeriod               time.Duration
+	metricCollector                 MetricsCollector
+	logCollector                    LogCollector
+	exporterMtx                     *sync.Mutex
+	exporters                       []exporter.Exporter
+	exportSchedulerJob              *scheduler.Job
+	exportSchedulerRunCompletedChan (chan bool)
 }
 
-func NewCollector(context context.T, aggregationPeriod time.Duration) (Collector, error) {
+func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeriod time.Duration) (Collector, error) {
 	// TODO : make the parameters configurable. Currently set to 10 max rolling files, 100 KB each
 	logCollector := newRollingLogCollector(context, 10, 100*1024, "logs")
 
@@ -101,38 +99,168 @@ func NewCollector(context context.T, aggregationPeriod time.Duration) (Collector
 		return nil, err
 	}
 
-	collector := &collectorT{
+	c := &collectorT{
 		aggregationPeriod: aggregationPeriod,
 		metricCollector:   metricCollector,
 		logCollector:      logCollector,
 		exporterMtx:       &sync.Mutex{},
 	}
 
-	return collector, nil
+	exportPeriodSeconds := int(exportPeriod.Seconds())
+
+	if exportPeriodSeconds <= 0 {
+		return nil, fmt.Errorf("export period is too small")
+	}
+
+	log := context.Log()
+
+	if c.exportSchedulerJob, err = scheduler.Every(exportPeriodSeconds).NotImmediately().Seconds().Run(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf("Telemetry export panic: %v", r)
+				log.Errorf("Stacktrace:\n%s", debug.Stack())
+			}
+
+			c.exportSchedulerRunCompletedChan <- true
+		}()
+
+		err := c.export()
+
+		if err != nil {
+			log.Warnf("Error when exporting telemetry: %v", err)
+		}
+	}); err != nil {
+		return nil, fmt.Errorf("unable to schedule telemetry exporter process: %v", err)
+	}
+
+	return c, nil
 }
 
 func (c *collectorT) Collect(namespace string, metric metric.Metric[float64]) error {
+	c.exporterMtx.Lock()
+	defer c.exporterMtx.Unlock()
+
 	//TODO implement me
 	panic("implement me")
 }
 
 func (c *collectorT) CollectLog(namespace string, log telemetrylog.Entry) error {
+	c.exporterMtx.Lock()
+	defer c.exporterMtx.Unlock()
+
 	//TODO implement me
 	panic("implement me")
 }
 
 // AddExporter adds a new Exporter to the collector with the specified export period
-func (c *collectorT) AddExporter(exportPeriod time.Duration, exporter exporter.Exporter) {
+func (c *collectorT) AddExporter(exporter exporter.Exporter) {
 	c.exporterMtx.Lock()
 	defer c.exporterMtx.Unlock()
 
-	c.exporters = append(c.exporters, exporterConfig{
-		exportPeriod: exportPeriod,
-		exporter:     exporter,
-	})
+	c.exporters = append(c.exporters, exporter)
+}
+
+// RemoveExporter removes an Exporter from the collector
+func (c *collectorT) RemoveExporter(exporter exporter.Exporter) {
+	c.exporterMtx.Lock()
+	defer c.exporterMtx.Unlock()
+
+	for i, e := range c.exporters {
+		if e == exporter {
+			c.exporters = slices.Delete(c.exporters, i, i+1)
+			break
+		}
+	}
+}
+
+func (c *collectorT) export() error {
+	c.exporterMtx.Lock()
+	defer c.exporterMtx.Unlock()
+
+	// don't want to lose telemetry until exporters are attached
+	if len(c.exporters) == 0 {
+		return nil
+	}
+
+	var errMetrics, errLogs error
+	var exportErrs []error
+	for errMetrics == nil || errLogs == nil {
+		var metrics metric.NamespaceMetrics[float64]
+		var logs telemetrylog.NamespaceLogs
+
+		metrics, errMetrics = c.metricCollector.FetchAndDrop(1000) // TODO: make configurable
+		logs, errLogs = c.logCollector.FetchAndDrop(1000)
+
+		if errMetrics != nil && errMetrics != EOF {
+			return errMetrics
+		}
+
+		if errLogs != nil && errLogs != EOF {
+			return errLogs
+		}
+
+		if len(metrics) == 0 && len(logs) == 0 {
+			return nil
+		}
+
+		// get all the unique namespaces in both metrics and logs
+		namespaces := make(map[string]bool)
+		for ns := range metrics {
+			namespaces[ns] = true
+		}
+		for ns := range logs {
+			namespaces[ns] = true
+		}
+
+		// send telemetry for all namespaces
+		for ns := range namespaces {
+			err := c.exportNamespaceTelemetry(ns, metrics[ns], logs[ns])
+
+			exportErrs = append(exportErrs, err)
+		}
+
+		if errMetrics == EOF && errLogs == EOF {
+			return nil
+		}
+	}
+
+	return errors.Join(errors.Join(errMetrics, errLogs), errors.Join(exportErrs...))
+}
+
+func (c *collectorT) exportNamespaceTelemetry(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error {
+	if metrics == nil {
+		metrics = []metric.Metric[float64]{}
+	}
+	if logs == nil {
+		logs = []telemetrylog.Entry{}
+	}
+
+	if len(metrics) == 0 || len(logs) == 0 {
+		return nil
+	}
+
+	var errs []error
+
+	for _, exporter := range c.exporters {
+		err := exporter.Export(namespace, metrics, logs)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 func (c *collectorT) Close() error {
-	//TODO implement me
-	panic("implement me")
+	c.exporterMtx.Lock()
+	defer c.exporterMtx.Unlock()
+
+	c.exportSchedulerJob.Quit <- true
+
+	var errs []error
+
+	errs = append(errs, c.metricCollector.Close())
+	errs = append(errs, c.logCollector.Close())
+
+	return errors.Join(errs...)
 }

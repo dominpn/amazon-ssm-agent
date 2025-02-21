@@ -46,7 +46,7 @@ type rollingLogCollectorTestSuite struct {
 	testLogEntry telemetrylog.Entry
 }
 
-// TestChannelSuite executes test suite
+// TestRollingLogCollectorSuite executes test suite
 func TestRollingLogCollectorSuite(t *testing.T) {
 	suite.Run(t, new(rollingLogCollectorTestSuite))
 }

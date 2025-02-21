@@ -37,6 +37,7 @@ type rollingDiskMetricCollector struct {
 type namespacedDiskMetricCollector struct {
 	ctx context.T
 
+	baseDir string
 	// maximum number of rolled files
 	maxRolls int
 	// maximum size of one file
@@ -56,6 +57,7 @@ var getBaseMetricsStoreDir = func() string {
 func NewRollingDiskMetricCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedDiskMetricCollector {
 	return &namespacedDiskMetricCollector{
 		ctx:            context,
+		baseDir:        getBaseMetricsStoreDir(),
 		maxRolls:       maxRolls,
 		maxFileSize:    maxFileSize,
 		fileNamePrefix: fileNamePrefix,
@@ -83,14 +85,38 @@ func (c *namespacedDiskMetricCollector) Collect(namespace string, metric metric.
 }
 
 func (c *namespacedDiskMetricCollector) FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error) {
-	// TODO implement me
-	panic("implement me")
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	c.flushUnlocked() // finish any pending writes
+
+	log := c.ctx.Log()
+
+	nsMap, err := readAndDeleteRollingLogs(log, c.baseDir, c.fileNamePrefix, limit)
+
+	if err != nil && err != EOF {
+		return nil, err
+	}
+
+	result := metric.NamespaceMetrics[float64]{}
+
+	for ns, lines := range nsMap {
+		metrics := unmarshalList[metric.Metric[float64]](lines, log)
+
+		result[ns] = metrics
+	}
+
+	return result, err
 }
 
 func (c *namespacedDiskMetricCollector) Flush() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
+	return c.flushUnlocked()
+}
+
+func (c *namespacedDiskMetricCollector) flushUnlocked() error {
 	var wg sync.WaitGroup
 	errCh := make(chan error, len(c.collectorMap))
 
@@ -138,13 +164,12 @@ func (c *namespacedDiskMetricCollector) Clean() error {
 	close(errCh)
 
 	// clean the directory
-	dir := getBaseMetricsStoreDir()
-	entries, err := os.ReadDir(dir)
+	entries, err := os.ReadDir(c.baseDir)
 	if err != nil {
 		return err
 	}
 	for _, entry := range entries {
-		path := filepath.Join(dir, entry.Name())
+		path := filepath.Join(c.baseDir, entry.Name())
 		if err := os.RemoveAll(path); err != nil {
 			return err
 		}
@@ -201,7 +226,7 @@ func (c *namespacedDiskMetricCollector) getMetricCollector(namespace string) (*r
 	}
 
 	if c.collectorMap[namespace] == nil {
-		p := filepath.Join(getBaseMetricsStoreDir(), namespace)
+		p := filepath.Join(c.baseDir, namespace)
 		if err := fileutil.MakeDirs(p); err != nil {
 			return nil, err
 		}
