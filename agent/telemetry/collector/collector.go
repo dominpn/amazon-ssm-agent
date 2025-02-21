@@ -94,7 +94,12 @@ func NewCollector(context context.T, aggregationPeriod time.Duration) (Collector
 	// TODO : make the parameters configurable. Currently set to 10 max rolling files, 100 KB each
 	logCollector := newRollingLogCollector(context, 10, 100*1024, "logs")
 
-	metricCollector := NewInMemoryMetricCollector(context)
+	// TODO make these configurable
+	metricCollector, err := NewHybridMetricCollector(context, 10, 1024*1024, "metrics", 10)
+
+	if err != nil {
+		return nil, err
+	}
 
 	collector := &collectorT{
 		aggregationPeriod: aggregationPeriod,
