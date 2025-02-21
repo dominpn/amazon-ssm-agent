@@ -68,6 +68,10 @@ var (
 	newProcessExecutor                                 = executor.NewProcessExecutor
 	osOpen                                             = os.Open
 	isCredSaveDefaultSSMAgentVersionPresentUsingReader = isCredSaveDefaultSSMAgentVersionPresentUsingIoReader
+	identityGetRemoteProvider                          = identity2.GetRemoteProvider
+	newEndPointHelper                                  = endpoint.NewEndpointHelper
+	defaultExponentialBackoff                          = backoffconfig.GetDefaultExponentialBackoff
+	getSharedCredsFilePath                             = sharedCredentials.GetSharedCredsFilePath
 )
 
 type ICredentialRefresher interface {
@@ -111,7 +115,7 @@ func NewCredentialRefresher(context agentctx.ICoreAgentContext) ICredentialRefre
 		isCredentialRefresherRunning: false,
 		getCurrentTimeFunc:           time.Now,
 		timeAfterFunc:                time.After,
-		endpointHelper:               endpoint.NewEndpointHelper(context.Log().WithContext("[EndpointHelper]"), *context.AppConfig()),
+		endpointHelper:               newEndPointHelper(context.Log().WithContext("[EndpointHelper]"), *context.AppConfig()),
 		appConfig:                    context.AppConfig(),
 	}
 }
@@ -142,7 +146,7 @@ func (c *credentialsRefresher) durationUntilRefresh() time.Duration {
 
 func (c *credentialsRefresher) Start() error {
 	var err error
-	credentialProvider, ok := identity2.GetRemoteProvider(c.agentIdentity)
+	credentialProvider, ok := identityGetRemoteProvider(c.agentIdentity)
 	if !ok {
 		c.log.Info("Identity does not require credential refresher")
 		c.sendCredentialsReadyMessage()
@@ -162,7 +166,7 @@ func (c *credentialsRefresher) Start() error {
 		return err
 	}
 
-	c.backoffConfig, err = backoffconfig.GetDefaultExponentialBackoff()
+	c.backoffConfig, err = defaultExponentialBackoff()
 	if err != nil {
 		return fmt.Errorf("error creating backoff config: %v", err)
 	}
@@ -423,7 +427,7 @@ func (c *credentialsRefresher) tryPurgeCreds(newShareFile string) {
 	purgeFileLocation := c.identityRuntimeConfig.ShareFile
 
 	if shouldPurgeCreds && purgeFileLocation != "" {
-		if defaultSharedCredsFilePath, err := sharedCredentials.GetSharedCredsFilePath(""); err != nil {
+		if defaultSharedCredsFilePath, err := getSharedCredsFilePath(""); err != nil {
 			c.log.Warn("Failed to check whether old credential file location is default aws share location." +
 				"Skipping purge of old credentials")
 		} else if purgeFileLocation == defaultSharedCredsFilePath {

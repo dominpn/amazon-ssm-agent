@@ -16,6 +16,7 @@ package credentialrefresher
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,17 +30,22 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/managedInstances/sharedCredentials"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
+	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/onprem"
+	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders"
+	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider"
 	credentialmocks "github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/mocks"
 	identityMock "github.com/aws/amazon-ssm-agent/common/identity/mocks"
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig"
 	runtimeconfigmocks "github.com/aws/amazon-ssm-agent/common/runtimeconfig/mocks"
+	ctxMocks "github.com/aws/amazon-ssm-agent/core/app/context/mocks"
 	"github.com/aws/amazon-ssm-agent/core/executor"
 	"github.com/aws/amazon-ssm-agent/core/executor/mocks"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/cenkalti/backoff/v4"
+	"github.com/cihub/seelog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -785,6 +791,7 @@ func TestCredUtilityFunctions_sleepRetry_minMaxTesting(t *testing.T) {
 	maxSeconds = getEC2DefaultSSMSleepDuration(16).Seconds()
 	assert.True(t, 300 <= minSeconds && minSeconds <= 300, "wrong min value for ec2 pre default jitter")
 	assert.True(t, 3200 <= maxSeconds && maxSeconds <= 3600, "wrong max value for ec2 pre default jitter")
+	assert.Equal(t, time.Duration(3540000000000), getEC2DefaultSSMSleepDuration(17))
 
 	minSeconds = getMediumBackoffRetryJitterSleepDuration(0).Seconds()
 	for i := 0; i < 17; i++ {
@@ -1058,6 +1065,12 @@ func Test_credentialsRefresher_isCredSaveDefaultSSMAgentVersionPresentUsingIoRea
 	reader := bytes.NewBuffer([]byte(file1Input))
 	isPresent := isCredSaveDefaultSSMAgentVersionPresentUsingIoReader(reader)
 	assert.False(t, isPresent)
+
+	file2Input := "SchemaVersion=1\n" +
+		"gent_telemetry amazon-ssm-agent.start 2.2.1.0 " + timeStamp
+	reader2 := bytes.NewBuffer([]byte(file2Input))
+	isPresent = isCredSaveDefaultSSMAgentVersionPresentUsingIoReader(reader2)
+	assert.False(t, isPresent)
 }
 
 func Test_credentialsRefresher_credentialRefresherRoutine_CredFilePurge(t *testing.T) {
@@ -1246,5 +1259,203 @@ func Test_credentialsRefresher_credentialRefresherRoutine_CredFilePurge(t *testi
 		runtimeConfigClient.AssertExpectations(t)
 		provider.AssertExpectations(t)
 		assert.Equal(t, tc.shouldPurge, purgeCalled.Load())
+	}
+}
+
+func Test_credentialsRefresher_Start_Error(t *testing.T) {
+	runtimeConfigMockedErrorMessage := "runtimeconfig mocked error for testing"
+	log := logmocks.NewMockLog()
+	agentIdentity := &identityMock.IAgentIdentity{}
+	agentContext := &ctxMocks.ICoreAgentContext{}
+	agentContext.On("Identity").Return(agentIdentity)
+	agentContext.On("Log").Return(log)
+	agentContext.On("AppConfig").Return(&appconfig.SsmagentConfig{Agent: appconfig.AgentInfo{}})
+
+	identityRemoteProviderMockedReturnTrue := &credentialmocks.IRemoteProvider{}
+	identityRemoteProviderMockedReturnTrue.On("SharesCredentials").Return(true)
+	identityGetRemoteProvider = func(identity identity.IAgentIdentity) (credentialproviders.IRemoteProvider, bool) {
+		return identityRemoteProviderMockedReturnTrue, true
+	}
+	runtimeConfigClientMockedError := &runtimeconfigmocks.IIdentityRuntimeConfigClient{}
+	config := runtimeconfig.IdentityRuntimeConfig{
+		ShareFile: "SomeShareFile",
+	}
+	runtimeConfigClientMockedError.On("GetConfig").Return(config, errors.New(runtimeConfigMockedErrorMessage))
+
+	runtimeConfig := runtimeconfig.IdentityRuntimeConfig{
+		CredentialsExpiresAt: fiveMinBeforeTime,
+		ShareFile:            "",
+	}
+
+	credsRefresherMocked := provide_creds_refresher()
+	credsRefresherMocked.runtimeConfigClient = runtimeConfigClientMockedError
+	credsRefresherMocked.identityRuntimeConfig = runtimeConfig
+	assert.EqualError(t, credsRefresherMocked.Start(), runtimeConfigMockedErrorMessage)
+
+	runtimeConfigClientMocked := &runtimeconfigmocks.IIdentityRuntimeConfigClient{}
+	runtimeConfigClientMocked.On("GetConfig").Return(config, nil)
+	defaultExponentialBackoff = func() (*backoff.ExponentialBackOff, error) {
+		return nil, errors.New(runtimeConfigMockedErrorMessage)
+	}
+	credsRefresherMocked5 := provide_creds_refresher()
+	credsRefresherMocked5.runtimeConfigClient = runtimeConfigClientMocked
+	credsRefresherMocked5.identityRuntimeConfig = runtimeConfig
+	assert.EqualError(t, credsRefresherMocked5.Start(), "error creating backoff config: "+runtimeConfigMockedErrorMessage)
+
+	identityRemoteProviderMocked := &credentialmocks.IRemoteProvider{}
+	identityRemoteProviderMocked.On("SharesCredentials").Return(false)
+	identityGetRemoteProvider = func(identity identity.IAgentIdentity) (credentialproviders.IRemoteProvider, bool) {
+		return identityRemoteProviderMocked, true
+	}
+	credsRefresherMocked2 := NewCredentialRefresher(agentContext)
+	assert.Equal(t, credsRefresherMocked2.Start(), nil)
+
+	identityGetRemoteProvider = func(identity identity.IAgentIdentity) (credentialproviders.IRemoteProvider, bool) {
+		return nil, false
+	}
+
+	credsRefresherMocked3 := NewCredentialRefresher(agentContext)
+	assert.Equal(t, credsRefresherMocked3.Start(), nil)
+}
+
+func Test_credentialsRefresher_GetCredChannel(t *testing.T) {
+	credentialsReadyChan := make(chan struct{}, 1)
+	credentialsReadyChan <- struct{}{}
+	credsRefresher := &credentialsRefresher{
+		credentialsReadyChan: credentialsReadyChan,
+	}
+	_, ok := <-credsRefresher.GetCredentialsReadyChan()
+	assert.True(t, ok)
+}
+
+func Test_credentialsRefresherRoute_Error_Cases(t *testing.T) {
+	runtimeConfig := runtimeconfig.IdentityRuntimeConfig{
+		CredentialsExpiresAt: fiveMinBeforeTime,
+		ShareFile:            "",
+	}
+	agentIdentity := &identityMock.IAgentIdentity{}
+	log := logmocks.NewMockLog()
+	credsRefresher := provide_creds_refresher()
+	credsRefresher.identityRuntimeConfig = runtimeConfig
+	go credsRefresher.credentialRefresherRoutine()
+	time.Sleep(1 * time.Second)
+	credsRefresher.Stop()
+
+	runtimeConfigMore := runtimeconfig.IdentityRuntimeConfig{
+		CredentialsExpiresAt: time.Now().Add(5 * time.Minute),
+		ShareFile:            "",
+		CredentialSource:     ec2roleprovider.CredentialSourceEC2,
+	}
+	// Creating panic by not defining IdentityType() for agentIdentity
+	credsRefresher2 := &credentialsRefresher{
+		log:                          log,
+		agentIdentity:                agentIdentity,
+		provider:                     nil,
+		runtimeConfigClient:          nil,
+		identityRuntimeConfig:        runtimeConfigMore,
+		credsReadyOnce:               sync.Once{},
+		credentialsReadyChan:         make(chan struct{}, 1),
+		stopCredentialRefresherChan:  make(chan struct{}),
+		isCredentialRefresherRunning: false,
+		getCurrentTimeFunc:           time.Now,
+		timeAfterFunc:                time.After,
+		appConfig:                    &appconfig.SsmagentConfig{Agent: appconfig.AgentInfo{}},
+	}
+	go credsRefresher2.credentialRefresherRoutine()
+	select {
+	case <-credsRefresher2.credentialsReadyChan:
+		credsRefresher2.isCredentialRefresherRunning = false
+		credsRefresher2.Stop()
+	case <-time.After(5 * time.Second):
+		assert.Fail(t, "CredentialsReadyChan never got a message")
+	}
+}
+
+func Test_Try_Purge_Creds(t *testing.T) {
+	filePathError := "cred file path error mocked"
+	getSharedCredsFilePath = func(filename string) (string, error) {
+		return "", errors.New(filePathError)
+	}
+	credsRefresher := provide_creds_refresher()
+	credsRefresher.appConfig = &appconfig.SsmagentConfig{Agent: appconfig.AgentInfo{ShouldPurgeInstanceProfileRoleCreds: true}}
+	credsRefresher.tryPurgeCreds("")
+
+	getSharedCredsFilePath = func(filename string) (string, error) {
+		return "foo", nil
+	}
+	credsRefresher.tryPurgeCreds("")
+
+	getSharedCredsFilePath = func(filename string) (string, error) {
+		return "anything", nil
+	}
+	purgeSharedCredentials = func(shareFilePath string) error {
+		return errors.New(filePathError)
+	}
+	credsRefresher.tryPurgeCreds("")
+}
+
+func Test_CredentialFileConsumerPresent_Fail(t *testing.T) {
+	mockedFileNameError := "mocked get file name error"
+	osOpen = func(name string) (*os.File, error) {
+		return &os.File{}, errors.New(mockedFileNameError)
+	}
+	credsRefresher := provide_creds_refresher()
+	assert.False(t, credsRefresher.credentialFileConsumerPresent(), false)
+
+	getFileNames = func(srcPath string) (files []string, err error) {
+		return []string{"amazon-ssm-agent-audit-2$-"}, nil
+	}
+	credsRefresher2 := provide_creds_refresher()
+	assert.False(t, credsRefresher2.credentialFileConsumerPresent(), false)
+
+	getFileNames = func(srcPath string) (files []string, err error) {
+		return []string{"foo"}, errors.New(mockedFileNameError)
+	}
+	credsRefresher3 := provide_creds_refresher()
+	assert.False(t, credsRefresher3.credentialFileConsumerPresent(), false)
+}
+
+func Test_Minlog(t *testing.T) {
+	mockedDebugLogError := "mocked debug log"
+	credsRefresher := provide_creds_refresher()
+	credsRefresher.minLog(seelog.DebugLvl, mockedDebugLogError, 1)
+	credsRefresher.minLog(100, mockedDebugLogError, 1)
+}
+
+func Test_IsDocumentSessionWorkerProcessRunning(t *testing.T) {
+	noWorkerProcess := executor.OsProcess{Executable: "/usr/bin/no-worker"}
+	processList := []executor.OsProcess{
+		noWorkerProcess,
+	}
+	executorMock := mocks.IExecutor{}
+	newProcessExecutor = func(log log.T) executor.IExecutor {
+		return &executorMock
+	}
+	executorMock.On("Processes").Return(processList, errors.New("Executor Mocked Error"))
+	credsRefresher := provide_creds_refresher()
+	assert.False(t, credsRefresher.isDocumentSessionWorkerProcessRunning(), false)
+}
+
+func provide_creds_refresher() *credentialsRefresher {
+	logMocked := logmocks.NewMockLog()
+	agentIdentity := &identityMock.IAgentIdentity{}
+	agentIdentity.On("IdentityType").Return("foo")
+	runtimeConfig := runtimeconfig.IdentityRuntimeConfig{
+		CredentialsExpiresAt: time.Now().Add(5 * time.Minute),
+		ShareFile:            "foo",
+	}
+	return &credentialsRefresher{
+		log:                          logMocked,
+		agentIdentity:                agentIdentity,
+		provider:                     nil,
+		runtimeConfigClient:          nil,
+		identityRuntimeConfig:        runtimeConfig,
+		credsReadyOnce:               sync.Once{},
+		credentialsReadyChan:         make(chan struct{}, 1),
+		stopCredentialRefresherChan:  make(chan struct{}),
+		isCredentialRefresherRunning: false,
+		getCurrentTimeFunc:           time.Now,
+		timeAfterFunc:                time.After,
+		appConfig:                    &appconfig.SsmagentConfig{Agent: appconfig.AgentInfo{}},
 	}
 }
