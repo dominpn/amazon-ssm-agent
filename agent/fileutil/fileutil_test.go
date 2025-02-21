@@ -120,11 +120,11 @@ func TestBuildPath(t *testing.T) {
 }
 
 func TestBuildSafePath(t *testing.T) {
-	orchestrationDirectory := "/C:Users/Orchestration/CommandId"
-	pathInjection1 := "../DDisk"
-	pathInjection2 := "disk1/disk2"
-	pathInjection3 := "../../../DDisk"
-	pathInjection4 := "../../../"
+	orchestrationDirectory := filepath.Join("C:Users", "Orchestration", "CommandId")
+	pathInjection1 := filepath.Join("..", "DDisk")
+	pathInjection2 := filepath.Join("disk1", "disk2")
+	pathInjection3 := filepath.Join("..", "..", "..", "DDisk")
+	pathInjection4 := filepath.Join("..", "..", "..")
 	sp1 := BuildSafePath(orchestrationDirectory, pathInjection1)
 	sp2 := BuildSafePath(orchestrationDirectory, pathInjection2, pathInjection3)
 	sp3 := BuildSafePath(orchestrationDirectory, pathInjection4)
