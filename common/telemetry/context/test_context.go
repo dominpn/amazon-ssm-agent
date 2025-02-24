@@ -17,9 +17,16 @@ func NewMockDefault() *Mock {
 	ctx := new(Mock)
 	log := logmocks.NewMockLog()
 	agentIdentity := identityMocks.NewDefaultMockAgentIdentity()
+	ctx.On("ChannelName").Return("testTelemetry")
 	ctx.On("Log").Return(log)
 	ctx.On("Identity").Return(agentIdentity)
 	return ctx
+}
+
+// ChannelName mocks the ChannelName function.
+func (m *Mock) ChannelName() string {
+	args := m.Called()
+	return args.Get(0).(string)
 }
 
 // Identity mocks the Identity function.

@@ -93,7 +93,7 @@ func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeri
 	logCollector := newRollingLogCollector(context, 10, 100*1024, "logs")
 
 	// TODO make these configurable
-	metricCollector, err := NewHybridMetricCollector(context, 10, 1024*1024, "metrics", 10)
+	metricCollector, err := NewHybridMetricCollector(context, 10, 1024*1024, "metrics", int(aggregationPeriod.Seconds()))
 
 	if err != nil {
 		return nil, err
@@ -140,16 +140,14 @@ func (c *collectorT) Collect(namespace string, metric metric.Metric[float64]) er
 	c.exporterMtx.Lock()
 	defer c.exporterMtx.Unlock()
 
-	//TODO implement me
-	panic("implement me")
+	return c.metricCollector.Collect(namespace, metric)
 }
 
 func (c *collectorT) CollectLog(namespace string, log telemetrylog.Entry) error {
 	c.exporterMtx.Lock()
 	defer c.exporterMtx.Unlock()
 
-	//TODO implement me
-	panic("implement me")
+	return c.logCollector.CollectLog(namespace, log)
 }
 
 // AddExporter adds a new Exporter to the collector with the specified export period

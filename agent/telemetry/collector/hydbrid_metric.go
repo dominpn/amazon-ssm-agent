@@ -67,7 +67,9 @@ func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64
 
 		err := c.writeToDisk()
 
-		log.Warnf("Error when writing metrics to disk: %v", err)
+		if err != nil {
+			log.Warnf("Error when writing metrics to disk: %v", err)
+		}
 	}); err != nil {
 		return nil, fmt.Errorf("unable to schedule metric flush process: %v", err)
 	}

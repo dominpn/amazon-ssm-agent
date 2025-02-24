@@ -64,7 +64,7 @@ func Initialize(context context.TelemetryContext) (err error) {
 
 	log := context.Log()
 
-	ipc, err, _ := channelCreator(log, context.Identity(), filewatcherbasedipc.ModeRespondent, "telemetry")
+	ipc, err, _ := channelCreator(log, context.Identity(), filewatcherbasedipc.ModeRespondent, context.ChannelName())
 
 	if err != nil {
 		log.Errorf(err.Error())
@@ -93,7 +93,7 @@ func (t *telemetry) shutdown() {
 
 // emitLog is the internal function which emits logs to the IPC channel
 func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetrylog.Severity, message string) (err error) {
-	entry := &telemetrylog.Entry{Time: time, Severity: severity, Body: message}
+	entry := &telemetrylog.Entry{Time: time.UTC(), Severity: severity, Body: message}
 
 	entryJson, err := json.Marshal(entry)
 	if err != nil {
@@ -118,7 +118,7 @@ func (t *telemetry) emitIntegerMetric(namespace string, name string, unit string
 		Name:       name,
 		Unit:       unit,
 		Kind:       kind,
-		DataPoints: []metric.DataPoint[int64]{{StartTime: time, EndTime: time, Value: value}},
+		DataPoints: []metric.DataPoint[int64]{{StartTime: time.UTC(), EndTime: time.UTC(), Value: value}},
 	}
 
 	entryJson, err := json.Marshal(entry)

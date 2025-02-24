@@ -18,6 +18,11 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
 
+type NamespacedTelemetry map[string]*struct {
+	Metrics []metric.Metric[float64]
+	Logs    []telemetrylog.Entry
+}
+
 type Exporter interface {
 	Export(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error
 }
