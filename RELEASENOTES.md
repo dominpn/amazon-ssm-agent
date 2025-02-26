@@ -1,7 +1,17 @@
 Latest
 ===============
+- Add and fix unit tests
+- Add and use BuildSafePath method to prevent path traversal in orchestration directory
+- Add new targets in Argot config and add summary for ssh.Unmarshal function
+- Fix Agent version not being loaded for UserAgent when no config file exists
+- Refactor and simplify existing logic within the ec2detector
+- Send EC2 detection results as part of the UserAgent header with UpdateInstanceInformation request
+- Use short log file name and avoid file issue causing infinite loop in session log upload
+
+3.3.1802.0
+===============
 - Fix TestDocumentWorkerCrash integration tests
-- Implement caching for platfrom data and refactor the code to use cached data if available
+- Implement caching for platform data and refactor the code to use cached data if available
 - Replace Get-CimInstance commands with WMI alternatives for retrieving system info
 - Add configuration file and script to run the Argot static analyzer to check for dataflow and other security invariants
 - Updater to allow downgrade if current version is inactive
