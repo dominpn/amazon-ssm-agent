@@ -171,6 +171,7 @@ func (c *collectorT) RemoveExporter(exporter exporter.Exporter) {
 	}
 }
 
+// export exports all the telemetry the singleton holds (both in-memory and on disk) in reasonable chunks
 func (c *collectorT) export() error {
 	c.exporterMtx.Lock()
 	defer c.exporterMtx.Unlock()
@@ -225,6 +226,7 @@ func (c *collectorT) export() error {
 	return errors.Join(errors.Join(errMetrics, errLogs), errors.Join(exportErrs...))
 }
 
+// exportNamespaceTelemetry exportes telemetry for a specific namespace to the attached exporters
 func (c *collectorT) exportNamespaceTelemetry(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error {
 	if metrics == nil {
 		metrics = []metric.Metric[float64]{}
