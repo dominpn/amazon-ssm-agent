@@ -179,6 +179,8 @@ var TelemetryDataStorePath string
 
 var RuntimeConfigFolderPath string
 
+var DynamicConfigFolderPath string
+
 func init() {
 	/*
 		System environment variable "AllUsersProfile" maps to following locations in different locations:
@@ -220,7 +222,7 @@ func init() {
 	UpdaterPidLockfile = filepath.Join(SSMDataPath, "update.lock")
 	LegacyUpdateDownloadFolder = DownloadRoot
 	TelemetryDataStorePath = filepath.Join(SSMDataPath, "telemetry")
-
+	DynamicConfigFolderPath = filepath.Join(SSMDataPath, "DynamicConfig")
 	DefaultCustomInventoryFolder = filepath.Join(SSMDataPath, "Inventory", "Custom")
 	EC2UpdateArtifactsRoot = filepath.Join(programData, EC2ConfigAppDataFolder, "Updater")
 	EC2UpdaterDownloadRoot = filepath.Join(programData, EC2ConfigAppDataFolder, "Downloads")

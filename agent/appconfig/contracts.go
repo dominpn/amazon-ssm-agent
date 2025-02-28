@@ -15,6 +15,7 @@
 package appconfig
 
 // CredentialProfile represents configurations for aws credential profile
+
 type CredentialProfile struct {
 	ShareCreds        bool
 	ShareProfile      string
@@ -68,6 +69,7 @@ type AgentInfo struct {
 	TelemetryMetricsToCloudWatch            bool
 	TelemetryMetricsToSSM                   bool
 	TelemetryMetricsNamespace               string
+	GlobalEnhancedTelemetryEnabled          bool
 	LongRunningWorkerMonitorIntervalSeconds int
 	// Temp config to purge cached EC2 credentials on disk if using instance profile role
 	ShouldPurgeInstanceProfileRoleCreds bool

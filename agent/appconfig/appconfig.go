@@ -128,6 +128,7 @@ func DefaultConfig() SsmagentConfig {
 		TelemetryMetricsToCloudWatch:            false,
 		TelemetryMetricsToSSM:                   true,
 		TelemetryMetricsNamespace:               DefaultTelemetryNamespace,
+		GlobalEnhancedTelemetryEnabled:          true,
 		AuditExpirationDay:                      DefaultAuditExpirationDay,
 		LongRunningWorkerMonitorIntervalSeconds: defaultLongRunningWorkerMonitorIntervalSeconds,
 		ShouldPurgeInstanceProfileRoleCreds:     false,

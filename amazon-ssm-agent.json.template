@@ -46,6 +46,7 @@
         "SelfUpdate": false,
         "TelemetryMetricsToCloudWatch": false,
         "TelemetryMetricsToSSM": true,
+        "GlobalEnhancedTelemetryEnabled": true,
         "AuditExpirationDay" : 7,
         "LongRunningWorkerMonitorIntervalSeconds": 60
     },

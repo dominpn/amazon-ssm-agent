@@ -112,7 +112,8 @@ var (
 	DefaultEC2SharedCredentialsFilePath = DefaultDataStorePath + "credentials"
 
 	// TelemetryDataStorePath specifies the directory where telemetry data is collected before sending
-	TelemetryDataStorePath = DefaultDataStorePath + "telemetry"
+	TelemetryDataStorePath  = DefaultDataStorePath + "telemetry"
+	DynamicConfigFolderPath = AgentData + "dynamicconfig"
 )
 
 // PowerShellPluginCommandName is the path of the powershell.exe to be used by the runPowerShellScript plugin
