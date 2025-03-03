@@ -52,6 +52,7 @@ type fileWatcherChannel struct {
 	onMessageChan chan string
 	mode          Mode
 	counter       int
+	maxFiles      int // -1 = infinity
 	//the next expected message
 	recvCounter              int
 	startTime                string
@@ -116,6 +117,7 @@ func NewFileWatcherChannel(logger log.T, mode Mode, name string, shouldReadRetry
 		logger:            logger,
 		mode:              mode,
 		counter:           0,
+		maxFiles:          -1,
 		recvCounter:       0,
 		shouldReadRetry:   shouldReadRetry,
 		watcherClosedChan: make(chan bool, 1),
@@ -138,6 +140,18 @@ func createIfNotExist(dir string) (err error) {
 	return
 }
 
+// NewRollingFileWatcherChannel is same as NewFileWatcherChannel but with a maxFiles limit to limit the maximum number of files on disk at a time
+func NewRollingFileWatcherChannel(logger log.T, mode Mode, name string, shouldReadRetry bool, maxFiles int) (*fileWatcherChannel, error) {
+	fc, err := NewFileWatcherChannel(logger, mode, name, shouldReadRetry)
+	if err != nil {
+		return fc, err
+	}
+
+	fc.maxFiles = maxFiles
+
+	return fc, nil
+}
+
 /*
 drop a file in the destination path with the file name as sequence id
 the file is first named as tmp, then quickly renamed to guarantee atomicity
@@ -150,6 +164,10 @@ func (ch *fileWatcherChannel) Send(rawJson string) error {
 		return errors.New("channel already closed")
 	}
 	log := ch.logger
+
+	// remove unconsumed files over specified limit
+	ch.removeUnconsumedFiles()
+
 	sequenceID := fmt.Sprintf("%v-%s-%03d", ch.mode, ch.startTime, ch.counter)
 	pathname := filepath.Join(ch.path, sequenceID)
 	tmp_pathname := filepath.Join(ch.tmpPath, sequenceID)
@@ -165,6 +183,30 @@ func (ch *fileWatcherChannel) Send(rawJson string) error {
 	//file successfully sent, increment counter
 	ch.counter++
 	return nil
+}
+
+// remove unconsumed files over maxFiles limit, deleting oldest message first
+func (ch *fileWatcherChannel) removeUnconsumedFiles() {
+	log := ch.logger
+
+	if ch.maxFiles > 0 {
+		// get the number of files present in the directory
+		existingFiles := ch.listAllUnconsumedSentMessages()
+
+		// delete the oldest files until we're within the limit
+		for i, file := range existingFiles {
+			if len(existingFiles)-i < ch.maxFiles {
+				break
+			}
+
+			err := os.Remove(file)
+
+			// we can't actually do anything if the delete fails. Consider it deleted.
+			if err != nil {
+				log.Debugf("remove file %v encountered error: %v \n", file, err)
+			}
+		}
+	}
 }
 
 func (ch *fileWatcherChannel) GetMessage() <-chan string {
@@ -281,6 +323,26 @@ func parseSequenceCounter(pathname string) int {
 	return int(counter)
 }
 
+// listAllUnconsumedSentMessages reads all messages sent by this channel but that are still not consumed, with order guarantees
+// ioutil.ReadDir() sorts by name, and name is the lexicographically ascending sequence id.
+func (ch *fileWatcherChannel) listAllUnconsumedSentMessages() []string {
+	fileInfos, _ := ioutil.ReadDir(ch.path)
+
+	result := []string{}
+	if len(fileInfos) > 0 {
+		for _, info := range fileInfos {
+			name := info.Name()
+			if ch.isOwnMessageFile(name) {
+				result = append(result, filepath.Join(ch.path, name))
+			} else {
+				ch.logger.Debugf("IPC file not readable: %s", name)
+			}
+		}
+	}
+
+	return result
+}
+
 // read all messages in the consuming dir, with order guarantees -- ioutil.ReadDir() sort by name, and name is the lexicographical ascending sequence id.
 // filter out its own sent messages and tmp messages
 func (ch *fileWatcherChannel) consumeAll() {
@@ -319,6 +381,18 @@ func (ch *fileWatcherChannel) isReadable(filename string) bool {
 		return false
 	}
 	return true
+}
+
+// isOwnMessageFile checks that the file is written (owned) by this channel
+func (ch *fileWatcherChannel) isOwnMessageFile(filename string) bool {
+	matched, err := regexp.MatchString("[a-zA-Z]+-[0-9]+-[0-9]+", filename)
+	if !matched || err != nil {
+		return false
+	}
+	if strings.HasPrefix(filename, "tmp") {
+		return false
+	}
+	return strings.HasPrefix(filename, string(ch.mode))
 }
 
 // read and remove a given file

@@ -88,6 +88,18 @@ func CreateFileWatcherChannel(log log.T, identity identity.IAgentIdentity, mode 
 	return f, err, false
 }
 
+// same as CreateFileWatcherChannel but with limit on max number of files
+func CreateRollingFileWatcherChannel(log log.T, identity identity.IAgentIdentity, mode Mode, filename string, shouldReadRetry bool, maxFiles int) (IPCChannel, error, bool) {
+	f, err, found := CreateFileWatcherChannel(log, identity, mode, filename, shouldReadRetry)
+
+	if err == nil {
+		fwc := f.(*fileWatcherChannel)
+		fwc.maxFiles = maxFiles
+	}
+
+	return f, err, found
+}
+
 // RemoveFileWatcherChannel removes the channel folder specific to the command
 func RemoveFileWatcherChannel(identity identity.IAgentIdentity, channelName string) error {
 	channelPath, err := utils.GetDefaultChannelPath(identity, channelName)

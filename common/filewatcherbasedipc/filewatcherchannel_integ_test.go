@@ -18,6 +18,7 @@
 package filewatcherbasedipc
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -157,6 +158,15 @@ func send(ch IPCChannel, messages []string, name string) {
 	}
 }
 
+// send a given set of messages with very small wait in between each message
+func sendFast(ch IPCChannel, messages []string, name string) {
+	for _, testMsg := range messages {
+		logger.Infof("%v sending messages: %v", name, testMsg)
+		ch.Send(testMsg)
+		time.Sleep(2 * time.Millisecond)
+	}
+}
+
 // Test case for reading file
 func TestReadFile(t *testing.T) {
 	defer func() {
@@ -216,4 +226,68 @@ func TestReadFileRetryThenSucceed(t *testing.T) {
 	output, err := fileReadWithRetry(filePath)
 	assert.Nil(t, err)
 	assert.Equal(t, string(output), string(content))
+}
+
+// assert that there's no limit on number of files by default
+func TestChannelNoLimit(t *testing.T) {
+	agentChannel, err := NewFileWatcherChannel(log.NewMockLogWithContext("AGENT"), ModeMaster, filepath.Join(defaultRootDir, channelName), false)
+	assert.NoError(t, err)
+	defer agentChannel.Destroy()
+
+	assert.Equal(t, -1, agentChannel.maxFiles)
+}
+
+// assert that sending messages above maxFiles limit deletes older messages
+func TestRollingChannelDeletesFiles(t *testing.T) {
+	agentChannel, err := NewRollingFileWatcherChannel(log.NewMockLogWithContext("AGENT"), ModeMaster, filepath.Join(defaultRootDir, channelName), false, 100)
+	assert.NoError(t, err)
+	defer agentChannel.Destroy()
+	logger.Info("agent channel opened, start transmission")
+
+	messageSet200 := make([]string, 0, 200)
+	for i := 0; i < 200; i++ {
+		messageSet200 = append(messageSet200, fmt.Sprintf("s%v", i))
+	}
+
+	sendFast(agentChannel, messageSet200, "AGENT")
+	// Sleep a bit to allow files to write
+	time.Sleep(50 * time.Millisecond)
+
+	// receiver
+	receiver, err := NewFileWatcherChannel(log.NewMockLogWithContext("WORKER"), ModeWorker, filepath.Join(defaultRootDir, channelName), false)
+	assert.NoError(t, err)
+	defer receiver.Close()
+	// only the last 100 messages should be left
+	expectedMessageSet := messageSet200[100:]
+	done := make(chan bool)
+	go verifyReceive(t, receiver, expectedMessageSet, string("WORKER"), done)
+	<-done
+}
+
+// test the rolling channel but there is no limit actually set
+func TestRollingChannelNoLimit(t *testing.T) {
+	agentChannel, err := NewRollingFileWatcherChannel(log.NewMockLogWithContext("AGENT"), ModeMaster, filepath.Join(defaultRootDir, channelName), false, 100)
+	assert.NoError(t, err)
+	defer agentChannel.Destroy()
+	logger.Info("agent channel opened, start transmission")
+
+	// remove the limit
+	agentChannel.maxFiles = -1
+
+	messageSet200 := make([]string, 0, 200)
+	for i := 0; i < 200; i++ {
+		messageSet200 = append(messageSet200, fmt.Sprintf("s%v", i))
+	}
+
+	sendFast(agentChannel, messageSet200, "AGENT")
+	// Sleep a bit to allow files to write
+	time.Sleep(50 * time.Millisecond)
+
+	// receiver
+	receiver, err := NewFileWatcherChannel(log.NewMockLogWithContext("WORKER"), ModeWorker, filepath.Join(defaultRootDir, channelName), false)
+	assert.NoError(t, err)
+	defer receiver.Close()
+	done := make(chan bool)
+	go verifyReceive(t, receiver, messageSet200, string("WORKER"), done)
+	<-done
 }

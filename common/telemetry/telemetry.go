@@ -56,7 +56,7 @@ func getTelemetry() (*telemetry, error) {
 
 // this is for mocking support
 var channelCreator = func(log logger.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
-	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, mode, filename, false)
+	return filewatcherbasedipc.CreateRollingFileWatcherChannel(log, identity, mode, filename, false, 100) // TODO: read the maxFiles from config
 }
 
 func Initialize(context context.TelemetryContext) (err error) {
