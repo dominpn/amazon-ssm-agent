@@ -34,6 +34,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/session/service"
 	"github.com/aws/amazon-ssm-agent/agent/session/telemetry"
 	"github.com/aws/amazon-ssm-agent/agent/ssmconnectionchannel"
+	telemetryV2 "github.com/aws/amazon-ssm-agent/agent/telemetry"
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gorilla/websocket"
@@ -56,6 +57,7 @@ type ControlChannel struct {
 	ChannelId                       string
 	Service                         service.Service
 	AuditLogScheduler               telemetry.IAuditLogTelemetry
+	TelemetryExporter               telemetryV2.ITelemetryExporter
 	channelType                     string
 	agentMessageIncomingMessageChan chan mgsContracts.AgentMessage
 }
@@ -72,6 +74,8 @@ func (controlChannel *ControlChannel) Initialize(context context.T,
 	controlChannel.channelType = mgsConfig.RoleSubscribe
 	controlChannel.wsChannel = &communicator.WebSocketChannel{}
 	controlChannel.AuditLogScheduler = telemetry.GetAuditLogTelemetryInstance(context, controlChannel.wsChannel)
+	// TODO read config here
+	controlChannel.TelemetryExporter = telemetryV2.GetControlChannelTelemetryExporter(context, controlChannel.wsChannel)
 	controlChannel.agentMessageIncomingMessageChan = agentMessageIncomingMessageChan
 	controlChannel.context = context
 	log.Debugf("Initialized controlchannel for instance: %s", instanceId)
@@ -189,6 +193,9 @@ func (controlChannel *ControlChannel) Close(log log.T) error {
 	log.Infof("Closing controlchannel with channel Id %s", controlChannel.ChannelId)
 	if controlChannel.AuditLogScheduler != nil {
 		controlChannel.AuditLogScheduler.StopScheduler()
+	}
+	if controlChannel.TelemetryExporter != nil {
+		controlChannel.TelemetryExporter.StopExporter()
 	}
 	if controlChannel.wsChannel != nil {
 		return controlChannel.wsChannel.Close(log)

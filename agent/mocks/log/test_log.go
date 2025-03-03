@@ -46,6 +46,7 @@ func NewMockLog() *Mock {
 	log.On("Infof", mock.Anything, mock.Anything).Return()
 	log.On("Closed").Return(false)
 	log.On("WithContext", mock.Anything).Return(log)
+	log.On("WithTelemetryNamespace", mock.Anything).Return(log)
 	log.On("Log", mock.Anything).Return()
 	return log
 }
@@ -79,6 +80,7 @@ func NewMockLogWithContext(ctx string) *Mock {
 	log.On("Tracef", mock.Anything, mock.Anything).Return()
 	log.On("Infof", mock.Anything, mock.Anything).Return()
 	log.On("Closed").Return(false)
+	log.On("WithTelemetryNamespace", mock.Anything).Return(log)
 	log.On("Log", mock.Anything).Return()
 	return log
 }

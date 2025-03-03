@@ -99,6 +99,7 @@ func (suite *singletonTestSuite) TestStartCollection() {
 	// set expectations
 	collectorMock.On("CollectLog", mock.Anything, mock.Anything).Return(nil)
 	collectorMock.On("Collect", mock.Anything, mock.Anything).Return(nil)
+	collectorMock.On("Close").Return(nil).Once()
 
 	// start telemetry collection
 	err := StartCollection(telemetryContext)
@@ -183,7 +184,7 @@ func (suite *singletonTestSuite) TestStartCollection() {
 		for _, e := range expectedMetrics {
 			collectorMock.AssertCalled(ct, "Collect", "testNamespace", e)
 		}
-	}, 20*time.Second, 100*time.Millisecond)
+	}, 30*time.Second, 100*time.Millisecond)
 }
 
 func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
@@ -203,6 +204,7 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 	// set expectations
 	collectorMock.On("CollectLog", mock.Anything, mock.Anything).Return(nil)
 	collectorMock.On("Collect", mock.Anything, mock.Anything).Return(nil)
+	collectorMock.On("Close").Return(nil).Once()
 
 	// start telemetry collection
 	err := StartCollection(telemetryContext)

@@ -235,7 +235,7 @@ func (c *collectorT) exportNamespaceTelemetry(namespace string, metrics []metric
 		logs = []telemetrylog.Entry{}
 	}
 
-	if len(metrics) == 0 || len(logs) == 0 {
+	if len(metrics) == 0 && len(logs) == 0 {
 		return nil
 	}
 

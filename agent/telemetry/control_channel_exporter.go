@@ -80,11 +80,19 @@ func GetControlChannelTelemetryExporter(ctx context.T, channel communicator.IWeb
 }
 
 func (t *controlChannelTelemetryExporter) StartExporter() {
-	collector.AddExporter(t)
+	err := collector.AddExporter(t)
+
+	if err != nil {
+		t.ctx.Log().Errorf("Error while adding telemetry exporter: %v", err)
+	}
 }
 
 func (t *controlChannelTelemetryExporter) StopExporter() {
-	collector.RemoveExporter(t)
+	err := collector.RemoveExporter(t)
+
+	if err != nil {
+		t.ctx.Log().Errorf("Error while removing telemetry exporter: %v", err)
+	}
 }
 
 func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error {

@@ -20,6 +20,8 @@ import (
 
 	agentcontracts "github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/version"
+
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	"github.com/aws/amazon-ssm-agent/core/app/context"
 	"github.com/aws/amazon-ssm-agent/core/app/credentialrefresher"
 	reboot "github.com/aws/amazon-ssm-agent/core/app/reboot/model"
@@ -121,6 +123,8 @@ func (agent *SSMCoreAgent) Stop() {
 	if agent.registrar != nil {
 		agent.registrar.Stop()
 	}
+
+	telemetry.Shutdown()
 
 	log.Info("Bye.")
 	log.Flush()

@@ -18,6 +18,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
 )
 
 // ICoreAgentContext defines a type that carries context specific data such as the logger.
@@ -78,7 +79,7 @@ func (c *CoreAgentContext) Identity() identity.IAgentIdentity {
 func NewCoreAgentContext(logger log.T, ssmAppconfig *appconfig.SsmagentConfig, agentIdentity identity.IAgentIdentity) (ICoreAgentContext, error) {
 	coreContext := &CoreAgentContext{
 		appConfig: ssmAppconfig,
-		log:       logger,
+		log:       logger.WithTelemetryNamespace(telemetry.SSMAgentNamespace),
 		identity:  agentIdentity,
 	}
 	return coreContext, nil

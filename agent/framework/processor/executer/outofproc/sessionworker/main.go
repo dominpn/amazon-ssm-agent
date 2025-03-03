@@ -31,6 +31,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/task"
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
+	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 )
 
 const (
@@ -76,7 +78,16 @@ func main() {
 	}
 
 	ctx := context.Default(logger, *cfg, agentIdentity).With(defaultSessionWorkerContextName).With("[" + channelName + "]")
-	logger = ctx.Log()
+	logger = ctx.Log() // get the logger again. It will have the telemetry namespace
+
+	// initalize telemetry
+	// TODO read config here
+	telemetryCtx := telemetryContext.NewTelemetryContext(channelName, logger, agentIdentity)
+	err = telemetry.Initialize(telemetryCtx)
+	if err != nil {
+		logger.Warnf("telemetry failed to initialize with error %v", err)
+	}
+	defer telemetry.Shutdown()
 
 	cloudwatchPublisher := cloudwatchlogspublisher.NewCloudWatchPublisher(ctx)
 	cloudwatchPublisher.Init()

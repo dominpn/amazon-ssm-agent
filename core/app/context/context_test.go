@@ -20,10 +20,13 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	identityMock "github.com/aws/amazon-ssm-agent/common/identity/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestCreateContext(t *testing.T) {
 	logger := log.NewMockLog()
+	logger.On("WithTelemetryNamespace", mock.Anything).Return(logger)
+
 	instanceId := "i-1234567890"
 	ssmAppconfig := &appconfig.SsmagentConfig{}
 
@@ -39,6 +42,8 @@ func TestCreateContext(t *testing.T) {
 
 func TestWithContext(t *testing.T) {
 	logger := &log.Mock{}
+	logger.On("WithTelemetryNamespace", mock.Anything).Return(logger)
+
 	instanceId := "i-1234567890"
 	ssmAppconfig := &appconfig.SsmagentConfig{}
 
@@ -60,6 +65,8 @@ func TestWithContext(t *testing.T) {
 
 func TestWithTelemetryNamespace(t *testing.T) {
 	logger := &log.Mock{}
+	logger.On("WithTelemetryNamespace", mock.Anything).Return(logger).Once()
+
 	instanceId := "i-1234567890"
 	ssmAppconfig := &appconfig.SsmagentConfig{}
 

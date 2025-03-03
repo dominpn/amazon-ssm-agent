@@ -49,7 +49,6 @@ var (
 	// namespace -> filewatcherbasedipc channel mapping
 	listenChannels map[string]filewatcherbasedipc.IPCChannel
 
-	// namespace -> channel mapping. It will be used to stop listening on telemetry.
 	stopSignals map[string](chan bool)
 
 	// WaitGroup to wait until all telemetry collection is stopped during shutdown
@@ -135,6 +134,32 @@ func StartCollection(context telemetryContext.TelemetryContext) error {
 
 	go listenOnChannel(log, stopSignal, ipc)
 
+	return nil
+}
+
+func StopCollection(context telemetryContext.TelemetryContext) error {
+	pkgMutex.Lock()
+	defer pkgMutex.Unlock()
+
+	if stopSignals == nil {
+		return fmt.Errorf("telemetry collector not initialized")
+	}
+
+	stopSignal := stopSignals[context.ChannelName()]
+
+	if stopSignal == nil {
+		return fmt.Errorf("telemetry collection for channel %v was not started", context.ChannelName())
+	}
+
+	listenChannel := listenChannels[context.ChannelName()]
+	if listenChannel == nil {
+		return fmt.Errorf("telemetry collection for channel %v was not started", context.ChannelName())
+	}
+
+	stopSignal <- true
+
+	delete(listenChannels, context.ChannelName())
+	delete(stopSignals, context.ChannelName())
 	return nil
 }
 
@@ -230,9 +255,13 @@ func Shutdown() error {
 		return nil
 	}
 
+	// send the stop signals
 	for _, stopSignal := range stopSignals {
 		stopSignal <- true
 	}
+
+	// stop the collector
+	singleton.Close()
 
 	//wait for all collections to stop
 	listenWg.Wait()

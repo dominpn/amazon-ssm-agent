@@ -278,7 +278,7 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorClose() 
 	resultErr2 := errors.New("test error 2")
 	diskCollectorMock.On("Close").Return(resultErr2)
 
-	// call the Clean method
+	// call the Close method
 	err := suite.collector.Close()
 	assert.Equal(suite.T(), errors.Join(resultErr1, resultErr2), err)
 }

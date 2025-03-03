@@ -15,8 +15,12 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	logpkg "github.com/aws/amazon-ssm-agent/agent/log/logger"
 	"github.com/aws/amazon-ssm-agent/agent/task"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
+
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
+
 	"github.com/aws/amazon-ssm-agent/core/executor"
 )
 
@@ -96,6 +100,16 @@ func (e *OutOfProcExecuter) Run(
 	ipc, err := e.initialize(stopTimer)
 	//save doc store immediately in case agent restarts.
 	docStore.Save(*e.docState)
+
+	// listen on telemetry from the worker
+	// TODO read config here
+	telemetryContext := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
+	telemetryErr := collector.StartCollection(telemetryContext)
+	if telemetryErr != nil {
+		log.Warnf("failed to start listening for telemetry with error %v", err)
+	}
+
+	defer collector.StopCollection(telemetryContext)
 
 	if err != nil {
 		log.Errorf("failed to prepare outofproc executer, falling back to InProc Executer")

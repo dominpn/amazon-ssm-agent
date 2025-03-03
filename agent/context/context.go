@@ -19,6 +19,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
 )
 
 // T transfers context specific data across different execution boundaries.
@@ -41,7 +42,7 @@ func Default(logger log.T, ssmAppconfig appconfig.SsmagentConfig, agentIdentity 
 		MinHealthFrequencyMinutes: appconfig.DefaultSsmHealthFrequencyMinutesMin,
 		MaxHealthFrequencyMinutes: appconfig.DefaultSsmHealthFrequencyMinutesMax,
 	}
-	return &defaultContext{context: contextList, log: logger.WithContext(contextList...), appconfig: ssmAppconfig, appconst: appconst, identity: agentIdentity}
+	return &defaultContext{context: contextList, log: logger.WithContext(contextList...).WithTelemetryNamespace(telemetry.SSMAgentNamespace), appconfig: ssmAppconfig, appconst: appconst, identity: agentIdentity}
 }
 
 type defaultContext struct {

@@ -21,7 +21,9 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/framework/coremanager"
 	"github.com/aws/amazon-ssm-agent/agent/health"
 	"github.com/aws/amazon-ssm-agent/agent/hibernation"
+	telemetryCollector "github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
 	"github.com/aws/amazon-ssm-agent/agent/version"
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	_ "go.nanomsg.org/mangos/v3/transport/ipc"
 )
 
@@ -102,6 +104,13 @@ func (agent *SSMAgent) Stop() {
 	}
 
 	agent.coreManager.Stop()
+
+	// stop the telemetry emission
+	telemetry.Shutdown()
+
+	// stop all telemetry collection
+	telemetryCollector.Shutdown()
+
 	log.Info("Bye.")
 	log.Flush()
 }

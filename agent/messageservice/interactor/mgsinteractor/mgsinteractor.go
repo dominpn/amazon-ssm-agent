@@ -557,6 +557,9 @@ var setupControlChannel = func(context context.T, mgsService service.Service, in
 				return nil, err
 			}
 			controlChannel.AuditLogScheduler.ScheduleAuditEvents()
+			if controlChannel.TelemetryExporter != nil {
+				controlChannel.TelemetryExporter.StartExporter()
+			}
 			return controlChannel, nil
 		},
 		GeometricRatio:      mgsConfig.RetryGeometricRatio,

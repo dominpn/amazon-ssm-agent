@@ -28,6 +28,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
 	"github.com/aws/amazon-ssm-agent/agent/proxyconfig"
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
+	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 	"github.com/aws/amazon-ssm-agent/core/app"
 	"github.com/aws/amazon-ssm-agent/core/app/bootstrap"
 	"github.com/aws/amazon-ssm-agent/core/app/runtimeconfiginit"
@@ -76,6 +78,15 @@ func initializeBasicModules(log log.T) (app.CoreAgent, log.T, error) {
 	context, err := bs.Init()
 	if err != nil {
 		return nil, log, err
+	}
+	log = context.Log() // get the logger again. It will have the telemetry namespace
+
+	// initalize telemetry SDK
+	// TODO read config here
+	telemetryCtx := telemetryContext.NewTelemetryContext(telemetry.CoreAgentChannelName, log, context.Identity())
+	err = telemetry.Initialize(telemetryCtx)
+	if err != nil {
+		log.Warnf("telemetry failed to initialize with error %v", err)
 	}
 
 	// Initialize runtime configs

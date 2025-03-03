@@ -31,6 +31,11 @@ var (
 	singleton *telemetry
 )
 
+const (
+	SSMAgentNamespace    = "SSMAgent"
+	CoreAgentChannelName = "core"
+)
+
 var pkgMutex = new(sync.RWMutex)
 
 type telemetry struct {
