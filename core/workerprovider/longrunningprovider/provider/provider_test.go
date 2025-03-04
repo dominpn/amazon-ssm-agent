@@ -15,6 +15,7 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -188,4 +189,101 @@ func (suite *WorkerProviderTestSuite) TestKillAllWorkerProcesses_Failure() {
 	assert.Equal(suite.T(), len(worker.Processes), 1)
 	assert.Equal(suite.T(), worker.Processes[failurePid].Pid, failurePid)
 	assert.Equal(suite.T(), worker.Processes[failurePid].Status, model.Active)
+}
+
+func (suite *WorkerProviderTestSuite) TestDiscoverWorker_Fail() {
+	var pingResults []*message.Message
+	var processes []executor.OsProcess
+	newProcess := &executor.OsProcess{
+		Executable: "foo",
+	}
+	processes = append(processes, *newProcess)
+	configs := make(map[string]*model.WorkerConfig)
+	configs[suite.config.Name] = suite.config
+
+	suite.exec.On("Start", suite.config).Return(suite.process, nil)
+	suite.exec.On("Processes").Return(processes, errors.New("mocked process errors"))
+
+	suite.provider.Start(configs, pingResults)
+	suite.exec.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), len(suite.provider.workerPool), 1)
+
+	configs = make(map[string]*model.WorkerConfig)
+	appendMessageUnmatched := &message.Message{
+		Topic: "foo",
+	}
+	appendMessageMatched := &message.Message{
+		Topic:   message.GetWorkerHealthResult,
+		Payload: []byte("SomePayload"),
+	}
+	appendMessageError := &message.Message{}
+	pingResults = append(pingResults, appendMessageUnmatched, appendMessageMatched, appendMessageError)
+	suite.provider.Start(configs, pingResults)
+	suite.exec.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), len(suite.provider.workerPool), 0)
+
+	configs[suite.config.Name] = &model.WorkerConfig{
+		Name:       model.SSMAgentWorkerName,
+		BinaryName: "foo",
+	}
+
+	suite.exec.On("Processes").Return(processes, nil)
+	suite.provider.discoverWorkers(configs, pingResults)
+	suite.exec.AssertExpectations(suite.T())
+
+	suite.provider.workerPool[model.SSMAgentWorkerName].Processes[1] = &model.Process{
+		Pid:    1,
+		Status: model.Unknown,
+	}
+	suite.exec.On("Kill", mock.Anything).Return(errors.New("mocked Kill error"))
+	suite.provider.discoverWorkers(configs, pingResults)
+	suite.exec.AssertExpectations(suite.T())
+
+	suite.provider.workerPool[model.SSMAgentWorkerName].Processes[2] = &model.Process{
+		Pid:    2,
+		Status: model.Unknown,
+	}
+	suite.provider.discoverWorkers(configs, pingResults)
+	suite.exec.AssertExpectations(suite.T())
+}
+
+func (suite *WorkerProviderTestSuite) TestStartWorkersIfNotRunning_Fail() {
+	var pingResults []*message.Message
+	var processes []executor.OsProcess
+	configs := make(map[string]*model.WorkerConfig)
+	configs[suite.config.Name] = suite.config
+
+	suite.exec.On("Start", suite.config).Return(suite.process, errors.New("mocked Start error"))
+	suite.exec.On("Processes").Return(processes, errors.New("mocked process errors"))
+
+	suite.provider.Start(configs, pingResults)
+	suite.exec.AssertExpectations(suite.T())
+}
+
+func (suite *WorkerProviderTestSuite) TestTerminateOrphanSsmAgentWorker_Fail() {
+	var processes []executor.OsProcess
+	configs := make(map[string]*model.WorkerConfig)
+	configs[suite.config.Name] = suite.config
+	newProcess := &executor.OsProcess{
+		Executable: "foo",
+	}
+	processes = append(processes, *newProcess)
+	configs[suite.config.Name] = &model.WorkerConfig{
+		Name:       model.SSMAgentWorkerName,
+		BinaryName: "foo",
+	}
+	suite.provider.workerPool[model.SSMAgentWorkerName] = &model.Worker{
+		Name:      model.SSMAgentWorkerName,
+		Config:    &model.WorkerConfig{},
+		Processes: make(map[int]*model.Process),
+	}
+	suite.provider.workerPool[model.SSMAgentWorkerName].Processes[2] = &model.Process{
+		Pid:    2,
+		Status: model.Active,
+	}
+
+	suite.exec.On("Kill", mock.Anything).Return(errors.New("mocked Kill error"))
+
+	suite.provider.terminateOrphanSsmAgentWorker()
+	suite.exec.AssertExpectations(suite.T())
 }

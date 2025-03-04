@@ -134,3 +134,8 @@ func (suite *FileSystemTestSuite) TestWrite_ReadDir() {
 		assert.Nil(suite.T(), err)
 	}
 }
+
+func (suite *FileSystemTestSuite) TestWrite_Create_FS_Append_File() {
+	localFileSystem := NewFileSystem()
+	assert.EqualError(suite.T(), localFileSystem.AppendToFile("", "silestring", os.FileMode(0)), "failed to write contents to file")
+}

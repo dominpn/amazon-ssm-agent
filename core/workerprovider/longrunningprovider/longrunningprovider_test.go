@@ -15,6 +15,7 @@
 package longrunningprovider
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -85,7 +86,7 @@ func TestLongRunningProviderTestSuite(t *testing.T) {
 
 func (suite *LongRunningProviderTestSuite) TestStartWorkers_Successful() {
 	suite.workerDiscover.On("FindWorkerConfigs").Return(suite.configs)
-	suite.messageBus.On("SendSurveyMessage", mock.Anything).Return(suite.pingResults, nil)
+	suite.messageBus.On("SendSurveyMessage", mock.Anything).Return(suite.pingResults, errors.New("mocked survey message error"))
 	suite.workerProvider.On("Start", suite.configs, suite.pingResults).Return(nil)
 
 	suite.container.Start()
@@ -98,7 +99,7 @@ func (suite *LongRunningProviderTestSuite) TestStartWorkers_Successful() {
 func (suite *LongRunningProviderTestSuite) TestWatchWorkers_RestartWorker() {
 
 	suite.workerDiscover.On("FindWorkerConfigs").Return(suite.configs)
-	suite.messageBus.On("SendSurveyMessage", mock.Anything).Return(suite.pingResults, nil)
+	suite.messageBus.On("SendSurveyMessage", mock.Anything).Return(suite.pingResults, errors.New("mocked survey message error"))
 	suite.workerProvider.On("Monitor", suite.configs, suite.pingResults).Return(nil)
 
 	go suite.container.Monitor()
@@ -180,4 +181,8 @@ func createStandardSSMAgentWorkers() map[string]*model.WorkerConfig {
 	configs[worker.Name] = &worker
 
 	return configs
+}
+
+func (suite *LongRunningProviderTestSuite) TestNewWorkerContainer() {
+	assert.NotNil(suite.T(), NewWorkerContainer(suite.context, suite.messageBus))
 }

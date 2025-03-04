@@ -99,3 +99,34 @@ func (suite *StoreTestSuite) TestRead() {
 
 	suite.mockFileSystem.AssertExpectations(suite.T())
 }
+
+func (suite *StoreTestSuite) TestWriteError() {
+	mockedErrorStr := "mocked write error"
+	dataStoreReal := NewLocalFileStore(log.NewMockLog())
+	err := dataStoreReal.Write("", "", "")
+	assert.NotNil(suite.T(), err)
+	suite.mockFileSystem.On("Stat", suite.filepath).Return(nil, nil)
+	suite.mockFileSystem.On("WriteFile", suite.filename, mock.Anything, mock.Anything).Return(errors.New(mockedErrorStr))
+	err = suite.dataStore.Write(suite.data, suite.filepath, suite.filename)
+	assert.NotNil(suite.T(), err)
+	assert.EqualError(suite.T(), err, mockedErrorStr)
+}
+
+func (suite *StoreTestSuite) TestReadFileExistenceError() {
+	var worker model.Worker
+	suite.mockFileSystem.On("Stat", suite.filename).Return(nil, errors.New("file does not exist"))
+	suite.mockFileSystem.On("IsNotExist", mock.Anything).Return(true)
+	err := suite.dataStore.Read(suite.filename, worker)
+	assert.NotNil(suite.T(), err)
+	assert.EqualError(suite.T(), err, "file doesn't exist filename")
+}
+
+func (suite *StoreTestSuite) TestReadFileReadError() {
+	var worker model.Worker
+	mockedErrorStr := "mocked file read error"
+	suite.mockFileSystem.On("Stat", suite.filename).Return(nil, nil)
+	suite.mockFileSystem.On("ReadFile", suite.filename).Return(nil, errors.New(mockedErrorStr))
+	err := suite.dataStore.Read(suite.filename, worker)
+	assert.NotNil(suite.T(), err)
+	assert.EqualError(suite.T(), err, mockedErrorStr)
+}
