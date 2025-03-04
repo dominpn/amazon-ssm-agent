@@ -163,6 +163,11 @@ func listFiles(dirPath string, filterFun func(filePath string) bool) ([]string, 
 func readAndDeleteRollingLogs(log log.BasicT, baseDir string, fileNamePrefix string, limit int) (map[string][]string, error) {
 	namespaces, err := getSubdirNames(baseDir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			// we probably have not received any telemetry yet. Ignore
+			return nil, EOF
+		}
+
 		return nil, err
 	}
 
@@ -230,8 +235,6 @@ func readDirAndTruncate(dir string, fileNamePrefix string, maxLines int, log log
 	allFilesReadFully := true
 
 	if len(files) == 0 {
-		// delete the namespace dir if it's empty. Ignore the error
-		os.Remove(dir)
 		return allLines, EOF
 	}
 
@@ -253,6 +256,13 @@ func readDirAndTruncate(dir string, fileNamePrefix string, maxLines int, log log
 				continue
 			} else if err != EOF {
 				return nil, err
+			} else {
+				// the file is completely empty, delete it
+				// But do not delete the file the logger is currently writing to
+				// the logger will throw an error if it cannot find the file
+				if filepath.Base(file) != fileNamePrefix {
+					os.Remove(file) // ignore error on deletion
+				}
 			}
 		} else {
 			// not an EOF so we didn't read the file fully
@@ -265,9 +275,6 @@ func readDirAndTruncate(dir string, fileNamePrefix string, maxLines int, log log
 	}
 
 	if allFilesReadFully {
-		// delete the namespace dir if it's empty. Ignore the error
-		os.Remove(dir)
-
 		err = EOF
 	} else {
 		err = nil
@@ -328,12 +335,7 @@ func readLinesAndTruncate(filePath string, maxLines int) ([]string, error) {
 		return nil, err
 	}
 
-	// the file is completely empty, delete it
 	if st.Size() == 0 {
-		file.Close()
-
-		os.Remove(filePath) // ignore error on deletion
-
 		err = EOF
 	}
 
@@ -343,6 +345,55 @@ func readLinesAndTruncate(filePath string, maxLines int) ([]string, error) {
 	slices.Reverse(result[resultWriteIndex:])
 
 	return result, err
+}
+
+func deleteDirectoryIfAllFilesEmpty(dirPath string) error {
+	// Open the directory
+	dir, err := os.Open(dirPath)
+	if err != nil {
+		return fmt.Errorf("failed to open directory: %v", err)
+	}
+	defer dir.Close()
+
+	// Read directory entries
+	entries, err := dir.Readdir(-1)
+	if err != nil {
+		return fmt.Errorf("failed to read directory: %v", err)
+	}
+
+	// If directory is empty, delete it
+	if len(entries) == 0 {
+		return os.Remove(dirPath)
+	}
+
+	// Check all files in the directory
+	allFilesEmpty := true
+	for _, entry := range entries {
+		// Skip subdirectories
+		if entry.IsDir() {
+			allFilesEmpty = false
+			break
+		}
+		// If any file has size > 0, mark as not empty
+		if entry.Size() > 0 {
+			allFilesEmpty = false
+			break
+		}
+	}
+
+	// If all files are empty (0 bytes), delete the directory and its contents
+	if allFilesEmpty {
+		// First remove all empty files
+		for _, entry := range entries {
+			if err := os.Remove(filepath.Join(dirPath, entry.Name())); err != nil {
+				return fmt.Errorf("failed to remove file: %v", err)
+			}
+		}
+		// Then remove the directory
+		return os.Remove(dirPath)
+	}
+
+	return nil
 }
 
 func unmarshalList[N interface{}](lines []string, log log.T) []N {

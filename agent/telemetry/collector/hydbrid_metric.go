@@ -37,21 +37,19 @@ type FlushableMetricsCollector interface {
 
 // hybridMetricCollector collects metrics in-memory and periodically flushes to disk
 type hybridMetricCollector struct {
-	diskWriteMtx                       *sync.Mutex
-	diskWriteSchedulerJob              *scheduler.Job
-	diskWriteSchedulerRunCompletedChan (chan bool)
-	inMemoryCollector                  FastMetricsCollector
-	onDiskCollector                    FlushableMetricsCollector
+	diskWriteMtx          *sync.Mutex
+	diskWriteSchedulerJob *scheduler.Job
+	inMemoryCollector     FastMetricsCollector
+	onDiskCollector       FlushableMetricsCollector
 }
 
 func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string, flushPeriodSeconds int) (c *hybridMetricCollector, err error) {
 	log := context.Log()
 
 	c = &hybridMetricCollector{
-		diskWriteMtx:                       &sync.Mutex{},
-		inMemoryCollector:                  NewInMemoryMetricCollector(context),
-		onDiskCollector:                    NewRollingDiskMetricCollector(context, maxRolls, maxFileSize, fileNamePrefix),
-		diskWriteSchedulerRunCompletedChan: make(chan bool),
+		diskWriteMtx:      &sync.Mutex{},
+		inMemoryCollector: NewInMemoryMetricCollector(context),
+		onDiskCollector:   NewRollingDiskMetricCollector(context, maxRolls, maxFileSize, fileNamePrefix),
 	}
 
 	// start writing to disk periodically
@@ -61,8 +59,6 @@ func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64
 				log.Errorf("Metric disk write panic: %v", r)
 				log.Errorf("Stacktrace:\n%s", debug.Stack())
 			}
-
-			c.diskWriteSchedulerRunCompletedChan <- true
 		}()
 
 		err := c.writeToDisk()

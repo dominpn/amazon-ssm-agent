@@ -49,17 +49,19 @@ var (
 	// namespace -> filewatcherbasedipc channel mapping
 	listenChannels map[string]filewatcherbasedipc.IPCChannel
 
+	// namespace -> stop signal mapping
 	stopSignals map[string](chan bool)
 
 	// WaitGroup to wait until all telemetry collection is stopped during shutdown
 	listenWg *sync.WaitGroup
 
+	// lock to protect all of the variables above
 	pkgMutex = new(sync.RWMutex)
 )
 
 // this is for mocking support
-var channelCreator = func(log log.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
-	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, mode, filename, false)
+var channelCreator = func(log log.T, identity identity.IAgentIdentity, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
+	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, filewatcherbasedipc.ModeSurveyor, filename, false)
 }
 
 func Initialize(context context.T) error {
@@ -118,55 +120,49 @@ func StartCollection(context telemetryContext.TelemetryContext) error {
 
 	log := context.Log()
 
-	ipc, err, _ := channelCreator(log, context.Identity(), filewatcherbasedipc.ModeSurveyor, context.ChannelName())
+	ipc, err, _ := channelCreator(log, context.Identity(), context.ChannelName())
 
 	if err != nil {
 		log.Warnf("could not initialize telemetry receiver for channel %v with error: %v", context.ChannelName(), err)
 		return err
 	}
 
-	listenChannels[context.ChannelName()] = ipc
+	channelName := context.ChannelName()
+	listenChannels[channelName] = ipc
 
 	stopSignal := make(chan bool)
-	stopSignals[context.ChannelName()] = stopSignal
+	stopSignals[channelName] = stopSignal
 
 	listenWg.Add(1)
 
-	go listenOnChannel(log, stopSignal, ipc)
+	go listenOnChannel(log, channelName, stopSignal, ipc)
 
 	return nil
 }
 
 func StopCollection(context telemetryContext.TelemetryContext) error {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	pkgMutex.RLock()
+	defer pkgMutex.RUnlock()
 
 	if stopSignals == nil {
 		return fmt.Errorf("telemetry collector not initialized")
 	}
-
 	stopSignal := stopSignals[context.ChannelName()]
-
 	if stopSignal == nil {
 		return fmt.Errorf("telemetry collection for channel %v was not started", context.ChannelName())
 	}
 
-	listenChannel := listenChannels[context.ChannelName()]
-	if listenChannel == nil {
-		return fmt.Errorf("telemetry collection for channel %v was not started", context.ChannelName())
-	}
-
 	stopSignal <- true
-
-	delete(listenChannels, context.ChannelName())
-	delete(stopSignals, context.ChannelName())
 	return nil
 }
 
-func listenOnChannel(log log.T, stopSignal chan bool, ipc filewatcherbasedipc.IPCChannel) {
+func listenOnChannel(log log.T, channelName string, stopSignal chan bool, ipc filewatcherbasedipc.IPCChannel) {
 	defer listenWg.Done()
 
 	defer func() {
+		// in a different goroutine to not block the Shutdown() method due to mutex
+		go registerListenerStopped(log, channelName)
+
 		if r := recover(); r != nil {
 			log.Warnf("Telemetry channel listener panic: %v", r)
 			log.Warnf("Stacktrace:\n%s", debug.Stack())
@@ -191,6 +187,25 @@ func listenOnChannel(log log.T, stopSignal chan bool, ipc filewatcherbasedipc.IP
 				log.Debugf("error processing telemetry message: %v", err)
 			}
 		}
+	}
+}
+
+func registerListenerStopped(log log.T, channelName string) {
+	pkgMutex.Lock()
+	defer pkgMutex.Unlock()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnf("Telemetry registerListenerStopped panic: %v", r)
+			log.Warnf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
+	if listenChannels != nil {
+		delete(listenChannels, channelName)
+	}
+	if stopSignals != nil {
+		delete(stopSignals, channelName)
 	}
 }
 
@@ -224,8 +239,8 @@ func processDatagam(datagram []byte) error {
 }
 
 func AddExporter(exporter exporter.Exporter) error {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	pkgMutex.RLock()
+	defer pkgMutex.RUnlock()
 
 	if singleton == nil {
 		return fmt.Errorf("cannot add exporter. telemetry collector not initialized")
@@ -236,8 +251,8 @@ func AddExporter(exporter exporter.Exporter) error {
 }
 
 func RemoveExporter(exporter exporter.Exporter) error {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	pkgMutex.RLock()
+	defer pkgMutex.RUnlock()
 
 	if singleton == nil {
 		return fmt.Errorf("cannot remove exporter. telemetry collector not initialized")
@@ -255,7 +270,7 @@ func Shutdown() error {
 		return nil
 	}
 
-	// send the stop signals
+	// send the stop signal to remaining IPC listeners
 	for _, stopSignal := range stopSignals {
 		stopSignal <- true
 	}

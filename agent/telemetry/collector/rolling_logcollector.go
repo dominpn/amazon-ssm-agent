@@ -30,7 +30,10 @@ import (
 
 // rollingLogCollector holds rolling log state of a single namespace
 type rollingLogCollector struct {
-	// log file name
+	// directory path
+	dirPath string
+
+	// seelog instnace
 	logger seelog.LoggerInterface
 }
 
@@ -197,7 +200,8 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 		}
 
 		rw := &rollingLogCollector{
-			logger: seelogger,
+			dirPath: p,
+			logger:  seelogger,
 		}
 
 		c.collectorMap[namespace] = rw
@@ -238,5 +242,9 @@ func (rw *rollingLogCollector) flush() error {
 
 func (rw *rollingLogCollector) close() error {
 	rw.logger.Close()
+
+	// remove the namespace direcory if it is empty. ignore errors
+	deleteDirectoryIfAllFilesEmpty(rw.dirPath)
+
 	return nil
 }

@@ -89,7 +89,7 @@ func mapDataPoints(dataPoints []metric.DataPoint[float64]) []DataPoint {
 
 	for i, dp := range dataPoints {
 		result[i] = DataPoint{
-			Time:  dp.StartTime, // since we aggregate metrics at second level, this will only be accurate to a second
+			Time:  dp.StartTime.UTC(), // since we aggregate metrics at second level, this will only be accurate to a second
 			Value: dp.Value,
 		}
 	}
@@ -103,7 +103,7 @@ func mapLogs(logs []telemetrylog.Entry) []LogEntry {
 
 	for i, l := range logs {
 		result[i] = LogEntry{
-			Time:     l.Time,
+			Time:     l.Time.UTC(),
 			Severity: l.Severity,
 			Body:     l.Body,
 		}

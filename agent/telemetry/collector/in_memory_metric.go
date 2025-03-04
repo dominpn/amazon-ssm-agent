@@ -76,7 +76,7 @@ func (c *namespacedAggregatedMetric) FetchAllAndDrop() (metric.NamespaceMetrics[
 	result := metric.NamespaceMetrics[float64]{}
 
 	for namespace, metrics := range c.metrics {
-		namespaceMetrics := make([]metric.Metric[float64], len(metrics))
+		namespaceMetrics := make([]metric.Metric[float64], 0, len(metrics))
 
 		for _, aggregatedMetric := range metrics {
 			namespaceMetrics = append(namespaceMetrics, metric.Metric[float64]{
@@ -190,7 +190,7 @@ func (m *timeAggregatedMetric[N]) fetch() []metric.DataPoint[N] {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	result := make([]metric.DataPoint[N], len(m.spans))
+	result := make([]metric.DataPoint[N], 0, len(m.spans))
 
 	for span, aggregatedDataPoint := range m.spans {
 		result = append(result, metric.DataPoint[N]{

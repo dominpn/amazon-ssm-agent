@@ -75,7 +75,7 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 		suite.Run(fmt.Sprintf("Test case %v", i), func() {
 			cleanupRollingUtilsTest()
 
-			namepaceLogsMap := make(map[string][]string)
+			expectedNamepaceLogsMap := make(map[string][]string)
 			writtenLineCount := 0
 
 			namespaces := make([]string, 0, len(testCase.namespaces))
@@ -97,7 +97,7 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 					logs = append(logs, line)
 				}
 
-				namepaceLogsMap[namespace] = logs
+				expectedNamepaceLogsMap[namespace] = logs
 
 				// create rolling files. seelog will handle the rolling for us
 				// a high maxFiles number will make sure that all files are kept on disk
@@ -137,7 +137,7 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 				i := 0
 				for i < fetchedLineCount {
 					for _, namespace := range namespaces {
-						expectedLines := namepaceLogsMap[namespace]
+						expectedLines := expectedNamepaceLogsMap[namespace]
 
 						// first line is the newest written line
 						actualLines := fetchedNamespaceLines[namespace]
@@ -159,26 +159,31 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 				// delete from expected lines map for the next fetch iteration
 				toDeleteCount := fetchedLineCount
 				for _, namespace := range namespaces {
-					expectedLines := namepaceLogsMap[namespace]
+					expectedLines := expectedNamepaceLogsMap[namespace]
 					toDeleteFromThisNamespace := min(len(expectedLines), toDeleteCount)
 
-					namepaceLogsMap[namespace] = expectedLines[:(len(expectedLines) - toDeleteFromThisNamespace)]
+					expectedNamepaceLogsMap[namespace] = expectedLines[:(len(expectedLines) - toDeleteFromThisNamespace)]
 
 					toDeleteCount -= toDeleteFromThisNamespace
+
+					if len(expectedNamepaceLogsMap[namespace]) == 0 {
+						namespaceDir := filepath.Join(baseDir, namespace)
+						files, err := os.ReadDir(namespaceDir)
+						assert.NoError(suite.T(), err)
+						assert.Equal(suite.T(), 1, len(files))
+
+						// ensure that the basic "logs" file is present and is empty. We don't want the logger to throw an error
+						// if it's writing to it
+						fileInfo, err := os.Stat(filepath.Join(namespaceDir, "logs"))
+						assert.NoError(suite.T(), err)
+						assert.False(suite.T(), fileInfo.IsDir())
+						assert.Equal(suite.T(), int64(0), fileInfo.Size())
+					}
+
 				}
 
 				remainingLineCount -= fetchedLineCount
 			}
-
-			// call atleast once to ensure all empty namespace directories are deleted
-			fetchedNamespaceLines, err := readAndDeleteRollingLogs(suite.ctx.Log(), baseDir, "logs", testCase.chunkFetchLimit)
-			assert.Equal(suite.T(), EOF, err)
-			assert.Empty(suite.T(), fetchedNamespaceLines)
-
-			// ensure that no namespace directories are present
-			dirs, err := getSubdirNames(baseDir)
-			assert.NoError(suite.T(), err)
-			assert.Empty(suite.T(), dirs)
 		})
 	}
 }

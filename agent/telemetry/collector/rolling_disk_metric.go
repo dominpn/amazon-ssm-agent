@@ -30,6 +30,9 @@ import (
 
 // rollingDiskMetricCollector holds a [seelog.LoggerInterface] instance
 type rollingDiskMetricCollector struct {
+	// directory path
+	dirPath string
+
 	logger seelog.LoggerInterface
 }
 
@@ -238,7 +241,8 @@ func (c *namespacedDiskMetricCollector) getMetricCollector(namespace string) (*r
 		}
 
 		rw := &rollingDiskMetricCollector{
-			logger: seelogger,
+			dirPath: p,
+			logger:  seelogger,
 		}
 
 		c.collectorMap[namespace] = rw
@@ -263,5 +267,9 @@ func (rw *rollingDiskMetricCollector) flush() error {
 
 func (rw *rollingDiskMetricCollector) close() error {
 	rw.logger.Close()
+
+	// remove the namespace direcory if it is empty. ignore errors
+	deleteDirectoryIfAllFilesEmpty(rw.dirPath)
+
 	return nil
 }

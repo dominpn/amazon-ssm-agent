@@ -79,13 +79,12 @@ type Collector interface {
 }
 
 type collectorT struct {
-	aggregationPeriod               time.Duration
-	metricCollector                 MetricsCollector
-	logCollector                    LogCollector
-	exporterMtx                     *sync.Mutex
-	exporters                       []exporter.Exporter
-	exportSchedulerJob              *scheduler.Job
-	exportSchedulerRunCompletedChan (chan bool)
+	aggregationPeriod  time.Duration
+	metricCollector    MetricsCollector
+	logCollector       LogCollector
+	exporterMtx        *sync.Mutex
+	exporters          []exporter.Exporter
+	exportSchedulerJob *scheduler.Job
 }
 
 func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeriod time.Duration) (Collector, error) {
@@ -120,8 +119,6 @@ func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeri
 				log.Errorf("Telemetry export panic: %v", r)
 				log.Errorf("Stacktrace:\n%s", debug.Stack())
 			}
-
-			c.exportSchedulerRunCompletedChan <- true
 		}()
 
 		err := c.export()

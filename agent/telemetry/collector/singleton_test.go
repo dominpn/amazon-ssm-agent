@@ -51,9 +51,9 @@ func TestSingletonSuite(t *testing.T) {
 func (suite *singletonTestSuite) SetupTest() {
 	suite.ctx = context.NewMockDefault()
 
-	channelCreator = func(log logger.T, _ identity.IAgentIdentity, mode filewatcherbasedipc.Mode, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
+	channelCreator = func(log logger.T, _ identity.IAgentIdentity, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
 		isFound := channelMock.IsExists(filename)
-		fakeChannel := channelMock.NewFakeChannel(log, mode, filename)
+		fakeChannel := channelMock.NewFakeChannel(log, filewatcherbasedipc.ModeSurveyor, filename)
 		return fakeChannel, nil, isFound
 	}
 }
