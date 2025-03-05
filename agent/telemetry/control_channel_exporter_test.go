@@ -18,10 +18,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	commMock "github.com/aws/amazon-ssm-agent/agent/session/communicator/mocks"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 	"github.com/stretchr/testify/assert"
@@ -36,6 +38,28 @@ type controlChannelExporterTestSuite struct {
 	ctx           *context.Mock
 	mockWsChannel commMock.IWebSocketChannel
 	exporter      *controlChannelTelemetryExporter
+}
+
+//Helper methods used by tests
+
+func getLowerThanConfiguredPercentageLimit() int {
+	return 22 //lower than configured percentage limit
+}
+
+func getHigherThanConfiguredPercentageLimit() int {
+	return 82 //higher than configured percentage limit
+}
+
+func getFakeDynamicConfig() dynamicconfiguration.NamespaceConfiguration {
+	return map[string]dynamicconfiguration.DynamicConfiguration{
+		"testNamespace": {
+			TelemetryDisabledTill: 0,
+			PercentageLimit:       50,
+			MaxRolls:              10,
+			MaxRollSize:           5,
+			ExportPeriod:          15,
+		},
+	}
 }
 
 // TestControlChannelExporterSuite executes test suite
@@ -69,14 +93,83 @@ func (suite *controlChannelExporterTestSuite) TestRemoveExporter() {
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportEmptyTelemetry() {
+
+	//Mocking this helper as this test does not have to know about all the probability details
+	checkTelemetryExport = func(log log.T, namespace string) bool {
+		return true
+	}
+
+	defer func() {
+		checkTelemetryExport = shouldExportTelemetry
+	}()
+
 	err := suite.exporter.Export("testNamespace", []metric.Metric[float64]{}, []telemetrylog.Entry{})
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNotCalled(suite.T(), "SendMessage")
 }
 
-func (suite *controlChannelExporterTestSuite) TestExportTelemetrySuccess() {
+func (suite *controlChannelExporterTestSuite) TestCheckTelemetryExportLucky() {
+	randomPercentage = getLowerThanConfiguredPercentageLimit
+	defer func() {
+		randomPercentage = getRandomPercentage
+	}()
 
+	getDynamicConfig = getFakeDynamicConfig
+	defer func() {
+		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+	}()
+
+	assert.Equal(suite.T(), true, checkTelemetryExport(suite.ctx.Log(), "testNamespace"))
+}
+
+func (suite *controlChannelExporterTestSuite) TestCheckTelemetryExportUnlucky() {
+	randomPercentage = getHigherThanConfiguredPercentageLimit
+	defer func() {
+		randomPercentage = getRandomPercentage
+	}()
+
+	getDynamicConfig = getFakeDynamicConfig
+	defer func() {
+		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+	}()
+
+	assert.Equal(suite.T(), false, checkTelemetryExport(suite.ctx.Log(), "testNamespace"))
+}
+
+func (suite *controlChannelExporterTestSuite) TestCheckTelemetryDefaultsBadLuckForEmptyCache() {
+	randomPercentage = getLowerThanConfiguredPercentageLimit
+	defer func() {
+		randomPercentage = getRandomPercentage
+	}()
+
+	getDynamicConfig = getFakeDynamicConfig
+	defer func() {
+		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+	}()
+
+	assert.Equal(suite.T(), false, checkTelemetryExport(suite.ctx.Log(), "wrongNamespace"))
+}
+
+func (suite *controlChannelExporterTestSuite) TestCheckTelemetryDefaultsBadLuckForNonExistingNamespace() {
+
+	randomPercentage = getLowerThanConfiguredPercentageLimit
+	defer func() {
+		randomPercentage = getRandomPercentage
+	}()
+
+	getDynamicConfig = func() dynamicconfiguration.NamespaceConfiguration {
+		return nil
+	}
+
+	defer func() {
+		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+	}()
+	assert.Equal(suite.T(), false, checkTelemetryExport(suite.ctx.Log(), "testNamespace"))
+}
+
+func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenLucky() {
+	//ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -126,7 +219,21 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetrySuccess() {
 		require.NoError(suite.T(), err)
 	}).Return(nil)
 
+	randomPercentage = getLowerThanConfiguredPercentageLimit
+	defer func() {
+		randomPercentage = getRandomPercentage
+	}()
+
+	getDynamicConfig = getFakeDynamicConfig
+
+	defer func() {
+		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+	}()
+
+	//ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
+
+	//ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNumberOfCalls(suite.T(), "SendMessage", 1)
@@ -145,4 +252,74 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetrySuccess() {
 
 	assert.Equal(suite.T(), expectedMetrics, receivedInnerPayload.Metrics)
 	assert.Equal(suite.T(), expectedLogs, receivedInnerPayload.Logs)
+}
+
+func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWhenUnLucky() {
+	//ARRANGE
+	now := time.Now().UTC()
+
+	// prepare test telemetry
+	namespace := "testNamespace"
+
+	sentMetrics := make([]metric.Metric[float64], 0)
+	sentLogs := make([]telemetrylog.Entry, 0)
+
+	expectedMetrics := make([]Metric, 0)
+	expectedLogs := make([]LogEntry, 0)
+
+	for j := range 10 {
+		metricName := fmt.Sprintf("testMetric%v", j)
+		sentMetrics = append(sentMetrics, metric.Metric[float64]{
+			Name:       metricName,
+			Unit:       "1",
+			Kind:       metric.Sum,
+			DataPoints: []metric.DataPoint[float64]{{StartTime: now, EndTime: now.Add(time.Second), Value: 100}},
+		})
+		expectedMetrics = append(expectedMetrics, Metric{
+			Name:       metricName,
+			Unit:       "1",
+			DataPoints: []DataPoint{{Time: now, Value: 100}},
+		})
+
+		sentLogs = append(sentLogs, telemetrylog.Entry{
+			Time:     now,
+			Severity: telemetrylog.ERROR,
+			Body:     fmt.Sprintf("This is a test message %v", j),
+		})
+		expectedLogs = append(expectedLogs, LogEntry{
+			Time:     now,
+			Severity: telemetrylog.ERROR,
+			Body:     fmt.Sprintf("This is a test message %v", j),
+		})
+	}
+
+	// set expectations
+	receivedMessage := &mgsContracts.AgentMessage{}
+
+	suite.mockWsChannel.On("SendMessage", mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		// verify telemetry is sent
+		message := args.Get(1).([]byte)
+		assert.NotEmpty(suite.T(), message)
+
+		err := receivedMessage.Deserialize(suite.ctx.Log(), message)
+		require.NoError(suite.T(), err)
+	}).Return(nil)
+
+	randomPercentage = getHigherThanConfiguredPercentageLimit
+	defer func() {
+		randomPercentage = getRandomPercentage
+	}()
+
+	getDynamicConfig = getFakeDynamicConfig
+	defer func() {
+		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+	}()
+
+	//ACT
+	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
+
+	//ASSERT
+	assert.NoError(suite.T(), err)
+
+	suite.mockWsChannel.AssertNotCalled(suite.T(), "SendMessage")
 }

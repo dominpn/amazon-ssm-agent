@@ -28,15 +28,18 @@ package telemetry
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"runtime/debug"
 	"sync"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
+	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/session/communicator"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
@@ -110,6 +113,35 @@ func (t *controlChannelTelemetryExporter) StopExporter() {
 	}
 }
 
+// For mocking support
+var getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+var checkTelemetryExport = shouldExportTelemetry
+
+var randomPercentage = getRandomPercentage
+
+func getRandomPercentage() int {
+	return rand.IntN(100)
+}
+
+func shouldExportTelemetry(log log.T, namespace string) bool {
+	telemetryEmissionLuck := randomPercentage()
+	cachedDynamicConfiguration := getDynamicConfig()
+
+	if cachedDynamicConfiguration == nil {
+		log.Debugf("Dynamic Configuration Cache is empty, not emitting metrics for namespace %v", namespace)
+		return false
+	}
+
+	config, ok := cachedDynamicConfiguration[namespace]
+	if !ok {
+		log.Debugf("No configuration found for namespace %v", namespace)
+		return false
+	}
+
+	configuredPercentageLimit := config.PercentageLimit
+	return telemetryEmissionLuck < configuredPercentageLimit
+}
+
 func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -123,6 +155,11 @@ func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []met
 	defer pkgMutex.Unlock()
 
 	logger := t.ctx.Log()
+
+	if !checkTelemetryExport(logger, namespace) {
+		logger.Warnf("Skipping telemetry export for namespace %s", namespace)
+		return nil
+	}
 
 	if len(metrics) == 0 && len(logs) == 0 {
 		return nil
