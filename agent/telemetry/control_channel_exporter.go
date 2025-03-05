@@ -28,6 +28,7 @@ package telemetry
 import (
 	"encoding/json"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -80,6 +81,13 @@ func GetControlChannelTelemetryExporter(ctx context.T, channel communicator.IWeb
 }
 
 func (t *controlChannelTelemetryExporter) StartExporter() {
+	defer func() {
+		if r := recover(); r != nil {
+			t.ctx.Log().Warnf("controlChannelTelemetryExporter StartExporter panic: %v", r)
+			t.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
 	err := collector.AddExporter(t)
 
 	if err != nil {
@@ -88,6 +96,13 @@ func (t *controlChannelTelemetryExporter) StartExporter() {
 }
 
 func (t *controlChannelTelemetryExporter) StopExporter() {
+	defer func() {
+		if r := recover(); r != nil {
+			t.ctx.Log().Warnf("controlChannelTelemetryExporter StopExporter panic: %v", r)
+			t.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
 	err := collector.RemoveExporter(t)
 
 	if err != nil {
@@ -95,7 +110,15 @@ func (t *controlChannelTelemetryExporter) StopExporter() {
 	}
 }
 
-func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error {
+func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.ctx.Log().Warnf("controlChannelTelemetryExporter Export panic: %v", r)
+			t.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in controlChannelTelemetryExporter Export %v", r)
+		}
+	}()
+
 	pkgMutex.Lock()
 	defer pkgMutex.Unlock()
 
@@ -106,7 +129,7 @@ func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []met
 	}
 
 	var payloadBytes []byte
-	payloadBytes, err := createTelemetryPayload(metrics, logs)
+	payloadBytes, err = createTelemetryPayload(metrics, logs)
 	if err != nil {
 		logger.Debugf("Error while preparing payload for telemetry: %v", err)
 		return err
@@ -131,11 +154,10 @@ func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []met
 	}
 
 	err = t.sendChannelContract(agentTelemetryBytes, AgentTelemetryV2MessageType)
-
 	if err != nil {
-		return fmt.Errorf("unable to send message to MGS: %s", err)
+		err = fmt.Errorf("unable to send message to MGS: %s", err)
 	}
-	return nil
+	return err
 }
 
 // sendChannelContract sends the payload through the web socket connection with necessary packaging
@@ -150,7 +172,7 @@ func (t *controlChannelTelemetryExporter) sendChannelContract(payload []byte, me
 		Flags:          0,
 		Payload:        payload,
 	}
-	log.Info("Sending payload to MGS: ", jsonutil.Indent(string(payload)))
+	log.Debugf("Sending payload to MGS: %v", jsonutil.Indent(string(payload)))
 	agentBytes, err := agentMessage.Serialize(log)
 	if err != nil {
 		return err

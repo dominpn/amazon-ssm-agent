@@ -16,6 +16,8 @@ package telemetry
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -60,6 +62,14 @@ var channelCreator = func(log logger.T, identity identity.IAgentIdentity, mode f
 }
 
 func Initialize(context context.TelemetryContext) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			context.Log().Warnf("telemetry Initialize panic: %v", r)
+			context.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in telemetry.Initialize %v", r)
+		}
+	}()
+
 	pkgMutex.Lock()
 	defer pkgMutex.Unlock()
 
@@ -83,6 +93,13 @@ func Initialize(context context.TelemetryContext) (err error) {
 }
 
 func Shutdown() {
+	defer func() {
+		if r := recover(); r != nil && singleton != nil {
+			singleton.context.Log().Warnf("telemetry Shutdown panic: %v", r)
+			singleton.context.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
 	pkgMutex.Lock()
 	defer pkgMutex.Unlock()
 
@@ -93,11 +110,21 @@ func Shutdown() {
 }
 
 func (t *telemetry) shutdown() {
-	t.fileChannel.Destroy()
+	if t.fileChannel != nil {
+		t.fileChannel.Destroy()
+	}
 }
 
 // emitLog is the internal function which emits logs to the IPC channel
 func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetrylog.Severity, message string) (err error) {
+	defer func() {
+		if r := recover(); r != nil && singleton != nil {
+			singleton.context.Log().Warnf("telemetry emitLog panic: %v", r)
+			singleton.context.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in telemetry.emitLog %v", r)
+		}
+	}()
+
 	entry := &telemetrylog.Entry{Time: time.UTC(), Severity: severity, Body: message}
 
 	entryJson, err := json.Marshal(entry)
@@ -115,10 +142,24 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 	if err != nil {
 		return err
 	}
+
+	if t.fileChannel == nil {
+		return errors.New("telemetry is not initialized")
+	}
 	return t.fileChannel.Send(string(ipcMessageJson))
 }
 
 func (t *telemetry) emitIntegerMetric(namespace string, name string, unit string, kind metric.Kind, time time.Time, value int64) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if singleton != nil {
+				singleton.context.Log().Warnf("telemetry emitIntegerMetric panic: %v", r)
+				singleton.context.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+			}
+			err = fmt.Errorf("panic in telemetry.emitIntegerMetric %v", r)
+		}
+	}()
+
 	entry := &metric.Metric[int64]{
 		Name:       name,
 		Unit:       unit,
@@ -140,6 +181,10 @@ func (t *telemetry) emitIntegerMetric(namespace string, name string, unit string
 	ipcMessageJson, err := json.Marshal(ipcMessage)
 	if err != nil {
 		return err
+	}
+
+	if t.fileChannel == nil {
+		return errors.New("telemetry is not initialized")
 	}
 	return t.fileChannel.Send(string(ipcMessageJson))
 }

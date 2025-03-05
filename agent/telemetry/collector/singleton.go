@@ -44,6 +44,8 @@ import (
 )
 
 var (
+	ctx context.T
+
 	singleton Collector
 
 	// namespace -> filewatcherbasedipc channel mapping
@@ -64,9 +66,21 @@ var channelCreator = func(log log.T, identity identity.IAgentIdentity, filename 
 	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, filewatcherbasedipc.ModeSurveyor, filename, false)
 }
 
-func Initialize(context context.T) error {
+func Initialize(context context.T) (err error) {
+	log := context.Log()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnf("Telemetry collector Initialize panic: %v", r)
+			log.Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in telemetry collector Initialize %v", r)
+		}
+	}()
+
 	pkgMutex.Lock()
 	defer pkgMutex.Unlock()
+
+	ctx = context
 
 	// TODO : make the parameters configurable
 	// 10 second aggregation
@@ -110,15 +124,23 @@ func collectLog(namespace string, log telemetrylog.Entry) error {
 // StartCollection starts telemetry collection for a specified telemetry context
 // internally, it creates the receiver end of the telemetry channel and collects the telemetry
 // from it.
-func StartCollection(context telemetryContext.TelemetryContext) error {
+func StartCollection(context telemetryContext.TelemetryContext) (err error) {
+	log := context.Log()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnf("Telemetry StartCollection panic: %v", r)
+			log.Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in telemetry collector StartCollection %v", r)
+		}
+	}()
+
 	pkgMutex.Lock()
 	defer pkgMutex.Unlock()
 
 	if singleton == nil {
 		return fmt.Errorf("telemetry collector not initialized")
 	}
-
-	log := context.Log()
 
 	ipc, err, _ := channelCreator(log, context.Identity(), context.ChannelName())
 
@@ -140,15 +162,25 @@ func StartCollection(context telemetryContext.TelemetryContext) error {
 	return nil
 }
 
-func StopCollection(context telemetryContext.TelemetryContext) error {
+func StopCollection(context telemetryContext.TelemetryContext) (err error) {
+	log := context.Log()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnf("Telemetry StopCollection panic: %v", r)
+			log.Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in telemetry collector StopCollection %v", r)
+		}
+	}()
+
 	pkgMutex.RLock()
 	defer pkgMutex.RUnlock()
 
 	if stopSignals == nil {
 		return fmt.Errorf("telemetry collector not initialized")
 	}
-	stopSignal := stopSignals[context.ChannelName()]
-	if stopSignal == nil {
+	stopSignal, ok := stopSignals[context.ChannelName()]
+	if !ok {
 		return fmt.Errorf("telemetry collection for channel %v was not started", context.ChannelName())
 	}
 
@@ -157,16 +189,18 @@ func StopCollection(context telemetryContext.TelemetryContext) error {
 }
 
 func listenOnChannel(log log.T, channelName string, stopSignal chan bool, ipc filewatcherbasedipc.IPCChannel) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnf("Telemetry channel listener panic: %v", r)
+			log.Warnf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
 	defer listenWg.Done()
 
 	defer func() {
 		// in a different goroutine to not block the Shutdown() method due to mutex
 		go registerListenerStopped(log, channelName)
-
-		if r := recover(); r != nil {
-			log.Warnf("Telemetry channel listener panic: %v", r)
-			log.Warnf("Stacktrace:\n%s", debug.Stack())
-		}
 	}()
 
 	for {
@@ -191,15 +225,15 @@ func listenOnChannel(log log.T, channelName string, stopSignal chan bool, ipc fi
 }
 
 func registerListenerStopped(log log.T, channelName string) {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
-
 	defer func() {
 		if r := recover(); r != nil {
 			log.Warnf("Telemetry registerListenerStopped panic: %v", r)
 			log.Warnf("Stacktrace:\n%s", debug.Stack())
 		}
 	}()
+
+	pkgMutex.Lock()
+	defer pkgMutex.Unlock()
 
 	if listenChannels != nil {
 		delete(listenChannels, channelName)
@@ -238,7 +272,15 @@ func processDatagam(datagram []byte) error {
 	}
 }
 
-func AddExporter(exporter exporter.Exporter) error {
+func AddExporter(exporter exporter.Exporter) (err error) {
+	defer func() {
+		if r := recover(); r != nil && ctx != nil {
+			ctx.Log().Warnf("Telemetry AddExporter panic: %v", r)
+			ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in singleton collector AddExporter %v", r)
+		}
+	}()
+
 	pkgMutex.RLock()
 	defer pkgMutex.RUnlock()
 
@@ -250,7 +292,15 @@ func AddExporter(exporter exporter.Exporter) error {
 	return nil
 }
 
-func RemoveExporter(exporter exporter.Exporter) error {
+func RemoveExporter(exporter exporter.Exporter) (err error) {
+	defer func() {
+		if r := recover(); r != nil && ctx != nil {
+			ctx.Log().Warnf("Telemetry RemoveExporter panic: %v", r)
+			ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in singleton collector RemoveExporter %v", r)
+		}
+	}()
+
 	pkgMutex.RLock()
 	defer pkgMutex.RUnlock()
 
@@ -262,7 +312,15 @@ func RemoveExporter(exporter exporter.Exporter) error {
 	return nil
 }
 
-func Shutdown() error {
+func Shutdown() (err error) {
+	defer func() {
+		if r := recover(); r != nil && ctx != nil {
+			ctx.Log().Warnf("Telemetry singleton collector Shutdown panic: %v", r)
+			ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in telemetry singleton collector Shutdown %v", r)
+		}
+	}()
+
 	pkgMutex.Lock()
 	defer pkgMutex.Unlock()
 
@@ -285,6 +343,7 @@ func Shutdown() error {
 	listenChannels = nil
 	stopSignals = nil
 	listenWg = nil
+	ctx = nil
 
 	return nil
 }

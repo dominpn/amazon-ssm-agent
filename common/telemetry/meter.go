@@ -1,6 +1,8 @@
 package telemetry
 
 import (
+	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
@@ -28,14 +30,22 @@ type int64Counter struct {
 }
 
 // Add increments the counter by the specified amount
-func (i int64Counter) Add(incr int64) error {
-	telemetry, err := getTelemetry()
+func (i int64Counter) Add(incr int64) (err error) {
+	t, err := getTelemetry()
 	if err != nil {
 		return err
 	}
 
+	defer func() {
+		if r := recover(); r != nil {
+			t.context.Log().Errorf("Counter Add panic: %v", r)
+			t.context.Log().Errorf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in Add %v", r)
+		}
+	}()
+
 	pkgMutex.RLock()
 	defer pkgMutex.RUnlock()
 
-	return telemetry.emitIntegerMetric(i.namespace, i.name, i.unit, metric.Sum, time.Now(), incr)
+	return t.emitIntegerMetric(i.namespace, i.name, i.unit, metric.Sum, time.Now(), incr)
 }

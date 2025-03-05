@@ -15,6 +15,7 @@ package telemetry
 
 import (
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
@@ -26,31 +27,48 @@ type telemetryLogger struct {
 
 // GetLogger provides a handle on the [github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog.Log]. It can be used to emit logs.
 func GetLogger(namespace string) telemetrylog.Log {
-	return telemetryLogger{namespace: namespace}
+	return &telemetryLogger{namespace: namespace}
 }
 
 // EmitLog emits log without formatting
-func (t telemetryLogger) EmitLog(s telemetrylog.Severity, v ...interface{}) error {
-	telemetry, err := getTelemetry()
+func (l *telemetryLogger) EmitLog(s telemetrylog.Severity, v ...interface{}) (err error) {
+	var t *telemetry
+	t, err = getTelemetry()
 	if err != nil {
 		return err
 	}
 
+	defer func() {
+		if r := recover(); r != nil {
+			t.context.Log().Errorf("EmitLog panic: %v", r)
+			t.context.Log().Errorf("Stacktrace:\n%s", debug.Stack())
+			err = fmt.Errorf("panic in EmitLog %v", r)
+		}
+	}()
+
 	pkgMutex.RLock()
 	defer pkgMutex.RUnlock()
 
-	return telemetry.emitLog(t.namespace, time.Now(), s, fmt.Sprint(v...))
+	return t.emitLog(l.namespace, time.Now(), s, fmt.Sprint(v...))
 }
 
 // EmitLogf emits log with formatting
-func (t telemetryLogger) EmitLogf(s telemetrylog.Severity, format string, params ...interface{}) error {
-	telemetry, err := getTelemetry()
+func (l *telemetryLogger) EmitLogf(s telemetrylog.Severity, format string, params ...interface{}) (err error) {
+	var t *telemetry
+	t, err = getTelemetry()
 	if err != nil {
 		return err
 	}
 
+	defer func() {
+		if r := recover(); r != nil {
+			t.context.Log().Errorf("EmitLogf panic: %v", r)
+			t.context.Log().Errorf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
 	pkgMutex.RLock()
 	defer pkgMutex.RUnlock()
 
-	return telemetry.emitLog(t.namespace, time.Now(), s, fmt.Sprintf(format, params...))
+	return t.emitLog(l.namespace, time.Now(), s, fmt.Sprintf(format, params...))
 }

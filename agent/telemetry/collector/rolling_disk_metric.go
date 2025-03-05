@@ -18,9 +18,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"sync"
 
 	"github.com/cihub/seelog"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
@@ -149,22 +151,31 @@ func (c *namespacedDiskMetricCollector) Clean() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	var wg sync.WaitGroup
-	errCh := make(chan error, len(c.collectorMap))
+	var eg errgroup.Group
+	eg.SetLimit(4) // limit to 4 parallel flushes
 
 	// close collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
-		wg.Add(1)
-		go func(collector *rollingDiskMetricCollector) {
-			defer wg.Done()
+		func(collector *rollingDiskMetricCollector) {
+			eg.Go(func() (err error) {
+				defer func() {
+					if r := recover(); r != nil {
+						c.ctx.Log().Warnf("namespacedDiskMetricCollector Clean panic: %v", r)
+						c.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+						err = fmt.Errorf("panic in namespacedDiskMetricCollector Clean %v", r)
+					}
+				}()
 
-			errCh <- collector.flush()
+				return collector.flush()
+			})
 		}(innerCollector)
 	}
 
 	// Wait for all goroutines to finish
-	wg.Wait()
-	close(errCh)
+	err := eg.Wait()
+	if err != nil {
+		return err
+	}
 
 	// clean the directory
 	entries, err := os.ReadDir(c.baseDir)
@@ -177,46 +188,43 @@ func (c *namespacedDiskMetricCollector) Clean() error {
 			return err
 		}
 	}
-
-	errs := make([]error, 0)
-	for err := range errCh {
-		errs = append(errs, err)
-	}
-
-	return errors.Join(errs...)
+	return nil
 }
 
 func (c *namespacedDiskMetricCollector) Close() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	var wg sync.WaitGroup
-	errCh := make(chan error, len(c.collectorMap))
+	var eg errgroup.Group
+	eg.SetLimit(4) // limit to 4 parallel closes
 
 	// close collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
-		wg.Add(1)
-		go func(collector *rollingDiskMetricCollector) {
-			defer wg.Done()
+		func(collector *rollingDiskMetricCollector) {
+			eg.Go(func() (err error) {
+				defer func() {
+					if r := recover(); r != nil {
+						c.ctx.Log().Warnf("namespacedDiskMetricCollector Close panic: %v", r)
+						c.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+						err = fmt.Errorf("panic in namespacedDiskMetricCollector Close %v", r)
+					}
+				}()
 
-			errCh <- collector.close()
+				return collector.close()
+			})
 		}(innerCollector)
 	}
 
 	// Wait for all goroutines to finish
-	wg.Wait()
-	close(errCh)
+	err := eg.Wait()
+	if err != nil {
+		return err
+	}
 
 	for k := range c.collectorMap {
 		delete(c.collectorMap, k)
 	}
-
-	errs := make([]error, 0)
-	for err := range errCh {
-		errs = append(errs, err)
-	}
-
-	return errors.Join(errs...)
+	return nil
 }
 
 // getMetricCollector returns a [rollingDiskMetricCollector] for the given namespace
