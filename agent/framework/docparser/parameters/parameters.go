@@ -46,7 +46,7 @@ func ReplaceParameters(input interface{}, parameters map[string]interface{}, log
 	case string:
 		// handle single parameter case first
 		for parameterName, parameterValue := range parameters {
-			if isSingleParameterString(input, parameterName) {
+			if isSingleParameterString(input, parameterName, logger) {
 				return parameterValue
 			}
 		}
@@ -96,10 +96,14 @@ var singleParamRegex = regexp.MustCompile(paramNameRegex)
 
 // isSingleParameterString returns true if the given string has the form "{{ paramName }}" with
 // some spaces but nothing else.
-func isSingleParameterString(input string, paramName string) bool {
+func isSingleParameterString(input string, paramName string, logger log.T) bool {
 	if singleParamRegex.MatchString(paramName) {
 		// this method should be called only on parameter names that have been validated first
-		r := regexp.MustCompile(fmt.Sprintf(`^{{\s*%v\s*}}$`, paramName))
+		r, err := regexp.Compile(fmt.Sprintf(`^{{\s*%v\s*}}$`, paramName))
+		if err != nil {
+			logger.Errorf("Failed to compile regex for parameter %s: %v", paramName, err)
+			return false
+		}
 		return r.MatchString(input)
 	}
 	return false
@@ -133,7 +137,11 @@ func ReplaceParameter(input string, parameters map[string]interface{}, logger lo
 		pvs[k] = strings.ReplaceAll(tempStr, "$$", "$")
 
 		//find all occurrences of {{ paramName }} in the input string
-		r := regexp.MustCompile(fmt.Sprintf(`{{\s*%v\s*}}`, k))
+		r, err := regexp.Compile(fmt.Sprintf(`{{\s*%v\s*}}`, k))
+		if err != nil {
+			logger.Errorf("Failed to compile regex for parameter: %v", err)
+			return ""
+		}
 		findings := r.FindAllStringIndex(input, -1)
 		for _, finding := range findings {
 			tokenIndex = append(tokenIndex, finding[0])

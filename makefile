@@ -488,6 +488,9 @@ vuln-check:
 	govulncheck $(GO_SPACE)/agent/... $(GO_SPACE)/core/... $(GO_SPACE)/common/... $(GO_SPACE)/internal/...
 
 # Static analyses using argot
-.PHONY: argot-check
+.PHONY: argot-check argot-update
 argot-check:
 	$(GO_SPACE)/Tools/src/run_argot.sh
+
+argot-update:
+	$(GO_SPACE)/Tools/src/run_argot.sh "true"

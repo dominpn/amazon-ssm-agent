@@ -349,7 +349,12 @@ func getRedhatishPlatform(data string) (string, error) {
 	}
 
 	for _, m := range mapping {
-		if regexp.MustCompile(m.regex).MatchString(data) {
+		r, err := regexp.Compile(m.regex)
+		if err != nil {
+			// Regex pattern failed to compile
+			return "", fmt.Errorf("invalid regex pattern %q: %w", m.regex, err)
+		}
+		if r.MatchString(data) {
 			return m.platform, nil
 		}
 	}

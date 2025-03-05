@@ -119,11 +119,12 @@ dataflow-problems:
         unsafe-max-depth: 5 # if we need more than 5 calls to get to the const, it's a red flag!
       targets:
         - amazon-ssm-agent-unix
-        # - agent-worker-unix TODO: there are some findings for the workers
-        # - ssm-document-worker
         - amazon-ssm-agent-windows
+        - agent-worker-unix
+        - agent-worker-windows
         - updater-unix
         - ssm-cli
+        - ssm-document-worker
         - ssm-session-worker
         - ssm-setup-cli
       must-be-static: true
@@ -136,6 +137,7 @@ syntactic-problems:
       description: "Agent must check resource availability before performing changes"
       targets:
         - amazon-ssm-agent-unix
+        - amazon-ssm-agent-windows
         - agent-worker-unix
         - agent-worker-windows
         - updater-unix
@@ -208,3 +210,4 @@ syntactic-problems:
           method: "httpDownload"
         - package: ".*github.com/aws/amazon-ssm-agent/agent/plugins/downloadcontent/httpresource"
           method: "NewHTTPResource"
+          

@@ -38,10 +38,11 @@ func TestIsSingleParameterString(t *testing.T) {
 		{"a {{ command}}", "command", false},
 		{"{{ command }} {{ command }}", "command", false},
 		{"{{ co!mmand}}", "co!mmand", false},
+		{"{{ +command }}", "+command", false},
 	}
 
 	for _, test := range isSingleParameterStringTests {
-		r := isSingleParameterString(test.Input, test.ParamName)
+		r := isSingleParameterString(test.Input, test.ParamName, logger)
 		assert.Equal(t, test.Result, r)
 	}
 }
