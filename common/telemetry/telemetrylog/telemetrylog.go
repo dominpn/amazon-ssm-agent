@@ -20,6 +20,7 @@ type Severity string
 const (
 	DEBUG    Severity = "DEBUG"
 	INFO     Severity = "INFO"
+	WARN     Severity = "WARN"
 	ERROR    Severity = "ERROR"
 	CRITICAL Severity = "CRITICAL"
 )

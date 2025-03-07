@@ -89,7 +89,7 @@ func (suite *rollingDiskMetricCollectorTestSuite) TestCorrectDataIsWritten() {
 	namespaceDir := filepath.Join(testingDir, "metrics", "testNamespace")
 
 	for i := 0; i < 100; i++ {
-		testCollector.Collect("testNamespace", suite.testMetric)
+		testCollector.CollectMetric("testNamespace", suite.testMetric)
 	}
 	testCollector.Flush()
 
@@ -226,7 +226,7 @@ func (tester *rollingDiskMetricCollectorTester) testCase(testCase *namespacedDis
 		}
 
 		for i := 0; i < namespaceTestConfig.writeCount; i++ {
-			err := rlc.Collect(namespace, tester.testMetric)
+			err := rlc.CollectMetric(namespace, tester.testMetric)
 
 			if err != nil {
 				tester.t.Error(err)

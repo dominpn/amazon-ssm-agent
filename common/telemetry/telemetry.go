@@ -34,8 +34,9 @@ var (
 )
 
 const (
-	SSMAgentNamespace    = "SSMAgent"
-	CoreAgentChannelName = "core"
+	SSMAgentNamespace      = "SSMAgent"
+	CoreAgentChannelName   = "core"
+	AgentWorkerChannelName = "agent_worker"
 )
 
 var pkgMutex = new(sync.RWMutex)
@@ -58,7 +59,7 @@ func getTelemetry() (*telemetry, error) {
 
 // this is for mocking support
 var channelCreator = func(log logger.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
-	return filewatcherbasedipc.CreateRollingFileWatcherChannel(log, identity, mode, filename, false, 100) // TODO: read the maxFiles from config
+	return filewatcherbasedipc.CreateRollingFileWatcherChannel(log, identity, mode, filename, false, 1000) // TODO: read the maxFiles from config
 }
 
 func Initialize(context context.TelemetryContext) (err error) {

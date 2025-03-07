@@ -35,7 +35,7 @@ func NewInMemoryMetricCollector(context context.T) *namespacedAggregatedMetric {
 	}
 }
 
-func (c *namespacedAggregatedMetric) Collect(namespace string, metric metric.Metric[float64]) error {
+func (c *namespacedAggregatedMetric) CollectMetric(namespace string, metric metric.Metric[float64]) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -90,30 +90,18 @@ func (c *namespacedAggregatedMetric) FetchAllAndDrop() (metric.NamespaceMetrics[
 		result[namespace] = namespaceMetrics
 	}
 
-	defer c.unlockedClean()
+	clear(c.metrics)
 
 	return result, nil
 }
 
-func (c *namespacedAggregatedMetric) Clean() error {
+func (c *namespacedAggregatedMetric) Close() (err error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	c.unlockedClean()
+	clear(c.metrics)
 
 	return nil
-}
-
-func (c *namespacedAggregatedMetric) unlockedClean() error {
-	for k := range c.metrics {
-		delete(c.metrics, k)
-	}
-
-	return nil
-}
-
-func (c *namespacedAggregatedMetric) Close() error {
-	return c.Clean()
 }
 
 // timeAggregatedMetric holds metrics aggregated by 1-second time spans. For example, if we get 500 data

@@ -44,6 +44,8 @@ const (
 	consumeRetryIntervalInMilliseconds = 200
 )
 
+var fileNameRegex = regexp.MustCompile("[a-zA-Z]+-[0-9]+-[0-9]+")
+
 // TODO add unittest
 type fileWatcherChannel struct {
 	logger        log.T
@@ -203,7 +205,7 @@ func (ch *fileWatcherChannel) removeUnconsumedFiles() {
 
 			// we can't actually do anything if the delete fails. Consider it deleted.
 			if err != nil {
-				log.Debugf("remove file %v encountered error: %v \n", file, err)
+				log.Warnf("remove file %v encountered error: %v \n", file, err)
 			}
 		}
 	}
@@ -262,11 +264,7 @@ func (ch *fileWatcherChannel) removeMessage(filePath string) {
 // isFileFromSameMode checks whether file matches the current file mode or not
 // also check for the file pattern mode-startTime-counter
 func (ch *fileWatcherChannel) isFileFromSameMode(filename string) bool {
-	matched, err := regexp.MatchString("[a-zA-Z]+-[0-9]+-[0-9]+", filename)
-	if !matched || err != nil {
-		return false
-	}
-	return strings.Contains(filename, string(ch.mode)) && !strings.Contains(filename, "tmp")
+	return fileNameRegex.MatchString(filename) && strings.Contains(filename, string(ch.mode)) && !strings.Contains(filename, "tmp")
 }
 
 // Close a filechannel
@@ -332,7 +330,7 @@ func (ch *fileWatcherChannel) listAllUnconsumedSentMessages() []string {
 	if len(fileInfos) > 0 {
 		for _, info := range fileInfos {
 			name := info.Name()
-			if ch.isOwnMessageFile(name) {
+			if ch.isFileFromSameMode(name) {
 				result = append(result, filepath.Join(ch.path, name))
 			} else {
 				ch.logger.Debugf("IPC file not readable: %s", name)
@@ -370,8 +368,8 @@ func (ch *fileWatcherChannel) isFullPathReadable(fullpath string) bool {
 }
 
 func (ch *fileWatcherChannel) isReadable(filename string) bool {
-	matched, err := regexp.MatchString("[a-zA-Z]+-[0-9]+-[0-9]+", filename)
-	if !matched || err != nil {
+	matched := fileNameRegex.MatchString(filename)
+	if !matched {
 		return false
 	}
 	if strings.HasPrefix(filename, "tmp") {
@@ -381,18 +379,6 @@ func (ch *fileWatcherChannel) isReadable(filename string) bool {
 		return false
 	}
 	return true
-}
-
-// isOwnMessageFile checks that the file is written (owned) by this channel
-func (ch *fileWatcherChannel) isOwnMessageFile(filename string) bool {
-	matched, err := regexp.MatchString("[a-zA-Z]+-[0-9]+-[0-9]+", filename)
-	if !matched || err != nil {
-		return false
-	}
-	if strings.HasPrefix(filename, "tmp") {
-		return false
-	}
-	return strings.HasPrefix(filename, string(ch.mode))
 }
 
 // read and remove a given file

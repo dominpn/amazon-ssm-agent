@@ -17,10 +17,11 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"strconv"
+	"runtime/debug"
 	"sync"
 
 	"github.com/cihub/seelog"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
@@ -49,8 +50,13 @@ type namespacedRollingLogCollector struct {
 
 	// prefix of each log file
 	fileNamePrefix string
-	mtx            *sync.Mutex
-	collectorMap   map[string]*rollingLogCollector
+
+	// mutex for locking log collection
+	logCollectorMtx *sync.Mutex
+
+	// mutex for the collectorMap below
+	collectorMapMtx *sync.Mutex
+	collectorMap    map[string]*rollingLogCollector
 }
 
 // for mocking the write directory since TelemetryDataStorePath is a constant
@@ -60,19 +66,20 @@ var getBaseLogStoreDir = func() string {
 
 func newRollingLogCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedRollingLogCollector {
 	return &namespacedRollingLogCollector{
-		ctx:            context,
-		baseDir:        getBaseLogStoreDir(),
-		maxRolls:       maxRolls,
-		maxFileSize:    maxFileSize,
-		fileNamePrefix: fileNamePrefix,
-		mtx:            &sync.Mutex{},
-		collectorMap:   make(map[string]*rollingLogCollector),
+		ctx:             context,
+		baseDir:         getBaseLogStoreDir(),
+		maxRolls:        maxRolls,
+		maxFileSize:     maxFileSize,
+		fileNamePrefix:  fileNamePrefix,
+		logCollectorMtx: &sync.Mutex{},
+		collectorMapMtx: &sync.Mutex{},
+		collectorMap:    make(map[string]*rollingLogCollector),
 	}
 }
 
 func (c *namespacedRollingLogCollector) CollectLog(namespace string, entry telemetrylog.Entry) error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	c.logCollectorMtx.Lock()
+	defer c.logCollectorMtx.Unlock()
 
 	entryBytes, err := json.Marshal(entry)
 
@@ -92,10 +99,11 @@ func (c *namespacedRollingLogCollector) CollectLog(namespace string, entry telem
 }
 
 func (c *namespacedRollingLogCollector) FetchAndDrop(limit int) (telemetrylog.NamespaceLogs, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	// need to stop collection since we will be truncating the written files
+	c.logCollectorMtx.Lock()
+	defer c.logCollectorMtx.Unlock()
 
-	c.flushUnlocked() // finish any pending writes
+	c.Flush() // finish any pending writes
 
 	log := c.ctx.Log()
 
@@ -117,72 +125,73 @@ func (c *namespacedRollingLogCollector) FetchAndDrop(limit int) (telemetrylog.Na
 }
 
 func (c *namespacedRollingLogCollector) Flush() error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	var eg errgroup.Group
+	eg.SetLimit(4) // limit to 4 parallel flushes
 
-	return c.flushUnlocked()
-}
-
-func (c *namespacedRollingLogCollector) flushUnlocked() error {
-	var wg sync.WaitGroup
-	errCh := make(chan error, len(c.collectorMap))
+	c.collectorMapMtx.Lock()
 
 	// flush collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
-		wg.Add(1)
-		go func(collector *rollingLogCollector) {
-			defer wg.Done()
+		func(collector *rollingLogCollector) {
+			eg.Go(func() (err error) {
+				defer func() {
+					if r := recover(); r != nil {
+						c.ctx.Log().Warnf("rollingLogCollector flush panic: %v", r)
+						c.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+						err = fmt.Errorf("panic in rollingLogCollector flush %v", r)
+					}
+				}()
 
-			errCh <- collector.flush()
+				return collector.flush()
+			})
 		}(innerCollector)
 	}
 
+	c.collectorMapMtx.Unlock()
+
 	// Wait for all goroutines to finish
-	wg.Wait()
-	close(errCh)
-
-	errs := make([]error, 0)
-	for err := range errCh {
-		errs = append(errs, err)
-	}
-
-	return errors.Join(errs...)
+	return eg.Wait()
 }
 
 func (c *namespacedRollingLogCollector) Close() error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	var eg errgroup.Group
+	eg.SetLimit(4) // limit to 4 parallel closes
 
-	var wg sync.WaitGroup
-	errCh := make(chan error, len(c.collectorMap))
+	c.collectorMapMtx.Lock()
+	defer c.collectorMapMtx.Unlock()
 
 	// close collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
-		wg.Add(1)
-		go func(collector *rollingLogCollector) {
-			defer wg.Done()
+		func(collector *rollingLogCollector) {
+			eg.Go(func() (err error) {
+				defer func() {
+					if r := recover(); r != nil {
+						c.ctx.Log().Warnf("rollingLogCollector close panic: %v", r)
+						c.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+						err = fmt.Errorf("panic in rollingLogCollector close %v", r)
+					}
+				}()
 
-			errCh <- collector.close()
+				return collector.close()
+			})
 		}(innerCollector)
 	}
 
 	// Wait for all goroutines to finish
-	wg.Wait()
-	close(errCh)
-
-	for k := range c.collectorMap {
-		delete(c.collectorMap, k)
+	err := eg.Wait()
+	if err != nil {
+		return err
 	}
 
-	errs := make([]error, 0)
-	for err := range errCh {
-		errs = append(errs, err)
-	}
+	clear(c.collectorMap)
 
-	return errors.Join(errs...)
+	return nil
 }
 
 func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*rollingLogCollector, error) {
+	c.collectorMapMtx.Lock()
+	defer c.collectorMapMtx.Unlock()
+
 	if namespace == "" {
 		return nil, fmt.Errorf("namespace cannot be empty")
 	}
@@ -208,22 +217,6 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 	}
 
 	return c.collectorMap[namespace], nil
-}
-
-func getLoggerConfig(defaultLogDir string, logFile string, maxRolls int, maxFileSize int64) []byte {
-
-	logFilePath := filepath.Join(defaultLogDir, logFile)
-	logConfig := `
-<seelog type="adaptive" mininterval="2000000" maxinterval="100000000" critmsgcount="500" minlevel="trace">
-    <outputs formatid="common"> `
-	logConfig += `<rollingfile type="size" filename="` + logFilePath + `" maxsize="` + strconv.FormatInt(maxFileSize, 10) + `" maxrolls="` + strconv.Itoa(maxRolls) + `"/>
-    </outputs>
-    <formats>
-        <format id="common" format="%Msg%n"/>
-    </formats>
-</seelog>
-`
-	return []byte(logConfig)
 }
 
 func (c *rollingLogCollector) write(bytes []byte) (err error) {

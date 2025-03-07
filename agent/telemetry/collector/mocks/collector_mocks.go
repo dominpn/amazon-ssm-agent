@@ -42,7 +42,7 @@ func (m *CollectorMock) CollectLog(namespace string, log telemetrylog.Entry) err
 	return r0
 }
 
-func (m *CollectorMock) Collect(namespace string, metric metric.Metric[float64]) error {
+func (m *CollectorMock) CollectMetric(namespace string, metric metric.Metric[float64]) error {
 	ret := m.Called(namespace, metric)
 
 	var r0 error

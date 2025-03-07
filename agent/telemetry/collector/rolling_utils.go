@@ -27,6 +27,23 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 )
 
+const seelogConfigStringFormat = `
+<seelog type="adaptive" mininterval="2000000" maxinterval="100000000" critmsgcount="500" minlevel="trace">
+    <outputs formatid="common">
+	<rollingfile type="size" filename="%v" maxsize="%v" maxrolls="%v"/>
+    </outputs>
+    <formats>
+        <format id="common" format="%%Msg%%n"/>
+    </formats>
+</seelog>`
+
+func getLoggerConfig(defaultLogDir string, logFile string, maxRolls int, maxFileSize int64) []byte {
+
+	logFilePath := filepath.Join(defaultLogDir, logFile)
+	logConfig := fmt.Sprintf(seelogConfigStringFormat, logFilePath, maxFileSize, maxRolls)
+	return []byte(logConfig)
+}
+
 // getReverseSortedLogFiles retrieves and sorts file names from the current directory.
 // It filters valid roll files based on the collector's naming pattern and returns
 // their full file paths in descending order. This makes sure that the first file has the latest logs
@@ -161,11 +178,14 @@ func listFiles(dirPath string, filterFun func(filePath string) bool) ([]string, 
 // It reads rolling files from all namespaces, while staying within the specified limit. It deletes the lines which were read.
 // returns a namespace -> lines map. returns EOF as error if all the logs were read from all the namespaces
 func readAndDeleteRollingLogs(log log.BasicT, baseDir string, fileNamePrefix string, limit int) (map[string][]string, error) {
+	resultMap := make(map[string][]string)
+
 	namespaces, err := getSubdirNames(baseDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// we probably have not received any telemetry yet. Ignore
-			return nil, EOF
+			log.Debugf("Directory %v not found, ignoring", baseDir)
+			return resultMap, EOF
 		}
 
 		return nil, err
@@ -177,8 +197,6 @@ func readAndDeleteRollingLogs(log log.BasicT, baseDir string, fileNamePrefix str
 	for _, ns := range namespaces {
 		namespaceDirs = append(namespaceDirs, filepath.Join(baseDir, ns))
 	}
-
-	resultMap := make(map[string][]string)
 
 	remainingLimit := limit
 
@@ -347,6 +365,9 @@ func readLinesAndTruncate(filePath string, maxLines int) ([]string, error) {
 	return result, err
 }
 
+// deleteDirectoryIfAllFilesEmpty deletes all the empty files from the given directory.
+// It also deletes the directory if the directory is empty after all the files are deleted.
+// It does not work recursively.
 func deleteDirectoryIfAllFilesEmpty(dirPath string) error {
 	// Open the directory
 	dir, err := os.Open(dirPath)
@@ -370,29 +391,20 @@ func deleteDirectoryIfAllFilesEmpty(dirPath string) error {
 	allFilesEmpty := true
 	for _, entry := range entries {
 		// Skip subdirectories
-		if entry.IsDir() {
+		if entry.IsDir() || entry.Size() > 0 {
 			allFilesEmpty = false
-			break
-		}
-		// If any file has size > 0, mark as not empty
-		if entry.Size() > 0 {
-			allFilesEmpty = false
-			break
-		}
-	}
-
-	// If all files are empty (0 bytes), delete the directory and its contents
-	if allFilesEmpty {
-		// First remove all empty files
-		for _, entry := range entries {
+		} else {
+			// remove the empty file
 			if err := os.Remove(filepath.Join(dirPath, entry.Name())); err != nil {
 				return fmt.Errorf("failed to remove file: %v", err)
 			}
 		}
-		// Then remove the directory
-		return os.Remove(dirPath)
 	}
 
+	// If all files are empty (0 bytes), delete the directory
+	if allFilesEmpty {
+		return os.Remove(dirPath)
+	}
 	return nil
 }
 

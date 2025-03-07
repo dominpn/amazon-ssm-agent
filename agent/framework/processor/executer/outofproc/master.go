@@ -103,13 +103,12 @@ func (e *OutOfProcExecuter) Run(
 
 	// listen on telemetry from the worker
 	// TODO read config here
-	telemetryContext := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
-	telemetryErr := collector.StartCollection(telemetryContext)
+	telemetryCtx := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
+	telemetryErr := collector.StartCollection(telemetryCtx)
+	defer collector.StopCollection(telemetryCtx)
 	if telemetryErr != nil {
-		log.Warnf("failed to start listening for telemetry with error %v", err)
+		log.Warnf("Failed to start listening for telemetry from the worker for documentID %v with error %v", documentID, err)
 	}
-
-	defer collector.StopCollection(telemetryContext)
 
 	if err != nil {
 		log.Errorf("failed to prepare outofproc executer, falling back to InProc Executer")

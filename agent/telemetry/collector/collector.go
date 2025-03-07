@@ -10,20 +10,6 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-
-// Copyright 2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License"). You may not
-// use this file except in compliance with the License. A copy of the
-// License is located at
-//
-// http://aws.amazon.com/apache2.0/
-//
-// or in the "license" file accompanying this file. This file is distributed
-// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-// either express or implied. See the License for the specific language governing
-// permissions and limitations under the License.
-
 package collector
 
 import (
@@ -49,36 +35,43 @@ type Flushable interface {
 }
 
 type LogCollector interface {
+	// CollectLog is used to ingest a log entry into the collector
 	CollectLog(namespace string, log telemetrylog.Entry) error
 
+	// FetchAndDrop fetches maximum of [limit] number of logs ingested until now in all the namespaces
 	FetchAndDrop(limit int) (telemetrylog.NamespaceLogs, error)
 
 	Close() error
 }
 
 type MetricsCollector interface {
-	Collect(namespace string, metric metric.Metric[float64]) error
+	// CollectMetric is used to ingest a metric into the collector
+	CollectMetric(namespace string, metric metric.Metric[float64]) error
 
+	// FetchAndDrop fetches maximum of [limit] number of metrics ingested until now in all the namespaces
 	FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error)
-
-	Clean() error
 
 	Close() error
 }
 
 type Collector interface {
+	// CollectLog is used to ingest a log entry into the collector
 	CollectLog(namespace string, log telemetrylog.Entry) error
 
-	Collect(namespace string, metric metric.Metric[float64]) error
+	// CollectMetric is used to ingest a metric into the collector
+	CollectMetric(namespace string, metric metric.Metric[float64]) error
 
+	// AddExporter adds a new Exporter to the collector
 	AddExporter(exporter exporter.Exporter)
 
+	// RemoveExporter removes an Exporter from the collector
 	RemoveExporter(exporter exporter.Exporter)
 
 	Close() error
 }
 
 type collectorT struct {
+	context            context.T
 	aggregationPeriod  time.Duration
 	metricCollector    MetricsCollector
 	logCollector       LogCollector
@@ -99,6 +92,7 @@ func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeri
 	}
 
 	c := &collectorT{
+		context:           context,
 		aggregationPeriod: aggregationPeriod,
 		metricCollector:   metricCollector,
 		logCollector:      logCollector,
@@ -133,13 +127,15 @@ func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeri
 	return c, nil
 }
 
-func (c *collectorT) Collect(namespace string, metric metric.Metric[float64]) error {
+// CollectMetric is used to ingest a metric into the collector
+func (c *collectorT) CollectMetric(namespace string, metric metric.Metric[float64]) error {
 	c.exporterMtx.Lock()
 	defer c.exporterMtx.Unlock()
 
-	return c.metricCollector.Collect(namespace, metric)
+	return c.metricCollector.CollectMetric(namespace, metric)
 }
 
+// CollectLog is used to ingest a log entry into the collector
 func (c *collectorT) CollectLog(namespace string, log telemetrylog.Entry) error {
 	c.exporterMtx.Lock()
 	defer c.exporterMtx.Unlock()
@@ -175,6 +171,7 @@ func (c *collectorT) export() error {
 
 	// don't want to lose telemetry until exporters are attached
 	if len(c.exporters) == 0 {
+		c.context.Log().Debugf("No exporters attached, skipping export")
 		return nil
 	}
 

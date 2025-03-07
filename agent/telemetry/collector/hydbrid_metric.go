@@ -73,8 +73,8 @@ func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64
 	return c, nil
 }
 
-func (c *hybridMetricCollector) Collect(namespace string, metric metric.Metric[float64]) error {
-	return c.inMemoryCollector.Collect(namespace, metric)
+func (c *hybridMetricCollector) CollectMetric(namespace string, metric metric.Metric[float64]) error {
+	return c.inMemoryCollector.CollectMetric(namespace, metric)
 }
 
 func (c *hybridMetricCollector) FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error) {
@@ -105,7 +105,7 @@ func (c *hybridMetricCollector) unlockedWriteToDisk() error {
 
 	for ns, metrics := range inMemMetrics {
 		for _, m := range metrics {
-			if err := c.onDiskCollector.Collect(ns, m); err != nil {
+			if err := c.onDiskCollector.CollectMetric(ns, m); err != nil {
 				return err
 			}
 		}
@@ -127,18 +127,6 @@ func (c *hybridMetricCollector) Flush() error {
 	}
 
 	return nil
-}
-
-func (c *hybridMetricCollector) Clean() error {
-	c.diskWriteMtx.Lock()
-	defer c.diskWriteMtx.Unlock()
-
-	errs := make([]error, 0)
-
-	errs = append(errs, c.inMemoryCollector.Clean())
-	errs = append(errs, c.onDiskCollector.Clean())
-
-	return errors.Join(errs...)
 }
 
 func (c *hybridMetricCollector) Close() error {

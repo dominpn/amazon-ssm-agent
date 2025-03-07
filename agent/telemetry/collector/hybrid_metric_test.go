@@ -119,7 +119,7 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorWriteToD
 		return resultList, nil
 	})
 
-	diskCollectorMock.On("Collect", mock.Anything, mock.Anything).Return(nil)
+	diskCollectorMock.On("CollectMetric", mock.Anything, mock.Anything).Return(nil)
 
 	inMemoryCollectorMock.On("Clean").Return(nil)
 
@@ -127,7 +127,7 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorWriteToD
 
 	inMemoryCollectorMock.AssertNumberOfCalls(suite.T(), "FetchAllAndDrop", 1)
 
-	diskCollectorMock.AssertNumberOfCalls(suite.T(), "Collect", 4)
+	diskCollectorMock.AssertNumberOfCalls(suite.T(), "CollectMetric", 4)
 }
 
 func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorWritesPeriodically() {
@@ -161,7 +161,7 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorWritesPe
 		return resultList, nil
 	})
 
-	diskCollectorMock.On("Collect", mock.Anything, mock.Anything).Return(nil)
+	diskCollectorMock.On("CollectMetric", mock.Anything, mock.Anything).Return(nil)
 
 	// skip the scheduler wait
 	suite.collector.diskWriteSchedulerJob.SkipWait <- true
@@ -170,7 +170,7 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorWritesPe
 		ct := NewCommonT(c)
 
 		inMemoryCollectorMock.AssertNumberOfCalls(ct, "FetchAllAndDrop", 1)
-		diskCollectorMock.AssertNumberOfCalls(ct, "Collect", 1)
+		diskCollectorMock.AssertNumberOfCalls(ct, "CollectMetric", 1)
 	}, 20*time.Second, 50*time.Millisecond)
 }
 
@@ -198,7 +198,7 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorPanicRec
 		inMemoryCollectorMock.AssertNumberOfCalls(ct, "FetchAllAndDrop", 1)
 		inMemoryCollectorMock.AssertNumberOfCalls(ct, "Clean", 0)
 
-		diskCollectorMock.AssertNumberOfCalls(ct, "Collect", 0)
+		diskCollectorMock.AssertNumberOfCalls(ct, "CollectMetric", 0)
 	}, 20*time.Second, 50*time.Millisecond)
 }
 
@@ -228,34 +228,10 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorFlush() 
 
 	// Assert writeToDisk was called
 	inMemoryCollectorMock.AssertNumberOfCalls(suite.T(), "FetchAllAndDrop", 1)
-	diskCollectorMock.AssertNumberOfCalls(suite.T(), "Collect", 0)
+	diskCollectorMock.AssertNumberOfCalls(suite.T(), "CollectMetric", 0)
 
 	// assert the flush method was called
 	diskCollectorMock.AssertCalled(suite.T(), "Flush")
-}
-
-func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorClean() {
-	// create a hybrid metric collector
-	collector, err := NewHybridMetricCollector(context.NewMockDefault(), 10, 1024*1024, "metrics", 10)
-	assert.NoError(suite.T(), err)
-
-	// mock the in memory collector
-	inMemoryCollectorMock := mocks.NewFastMetricsCollectorMock()
-	collector.inMemoryCollector = inMemoryCollectorMock
-
-	// mock the on disk collector
-	diskCollectorMock := mocks.NewSlowMetricsCollectorMock()
-	collector.onDiskCollector = diskCollectorMock
-
-	resultErr1 := errors.New("test error 1")
-	inMemoryCollectorMock.On("Clean").Return(resultErr1)
-
-	resultErr2 := errors.New("test error 2")
-	diskCollectorMock.On("Clean").Return(resultErr2)
-
-	// call the Clean method
-	err = collector.Clean()
-	assert.Equal(suite.T(), errors.Join(resultErr1, resultErr2), err)
 }
 
 func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorClose() {

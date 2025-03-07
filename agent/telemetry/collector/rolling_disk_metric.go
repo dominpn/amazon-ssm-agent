@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime/debug"
 	"sync"
@@ -50,8 +49,13 @@ type namespacedDiskMetricCollector struct {
 
 	// prefix of each log file
 	fileNamePrefix string
-	mtx            *sync.Mutex
-	collectorMap   map[string]*rollingDiskMetricCollector
+
+	// mutex for locking metric collection
+	metricCollectorMtx *sync.Mutex
+
+	// mutex for the collectorMap below
+	collectorMapMtx *sync.Mutex
+	collectorMap    map[string]*rollingDiskMetricCollector
 }
 
 // for mocking the write directory since TelemetryDataStorePath is a constant
@@ -61,17 +65,21 @@ var getBaseMetricsStoreDir = func() string {
 
 func NewRollingDiskMetricCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedDiskMetricCollector {
 	return &namespacedDiskMetricCollector{
-		ctx:            context,
-		baseDir:        getBaseMetricsStoreDir(),
-		maxRolls:       maxRolls,
-		maxFileSize:    maxFileSize,
-		fileNamePrefix: fileNamePrefix,
-		mtx:            &sync.Mutex{},
-		collectorMap:   make(map[string]*rollingDiskMetricCollector),
+		ctx:                context,
+		baseDir:            getBaseMetricsStoreDir(),
+		maxRolls:           maxRolls,
+		maxFileSize:        maxFileSize,
+		fileNamePrefix:     fileNamePrefix,
+		metricCollectorMtx: &sync.Mutex{},
+		collectorMapMtx:    &sync.Mutex{},
+		collectorMap:       make(map[string]*rollingDiskMetricCollector),
 	}
 }
 
-func (c *namespacedDiskMetricCollector) Collect(namespace string, metric metric.Metric[float64]) error {
+func (c *namespacedDiskMetricCollector) CollectMetric(namespace string, metric metric.Metric[float64]) error {
+	c.metricCollectorMtx.Lock()
+	defer c.metricCollectorMtx.Unlock()
+
 	metricBytes, err := json.Marshal(metric)
 
 	if err != nil {
@@ -89,11 +97,13 @@ func (c *namespacedDiskMetricCollector) Collect(namespace string, metric metric.
 	return err
 }
 
+// FetchAndDrop fetches maximum of [limit] number of metrics ingested until now in all the namespaces
 func (c *namespacedDiskMetricCollector) FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	// need to stop collection since we will be truncating the written files
+	c.metricCollectorMtx.Lock()
+	defer c.metricCollectorMtx.Unlock()
 
-	c.flushUnlocked() // finish any pending writes
+	c.Flush() // finish any pending writes
 
 	log := c.ctx.Log()
 
@@ -115,54 +125,20 @@ func (c *namespacedDiskMetricCollector) FetchAndDrop(limit int) (metric.Namespac
 }
 
 func (c *namespacedDiskMetricCollector) Flush() error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	return c.flushUnlocked()
-}
-
-func (c *namespacedDiskMetricCollector) flushUnlocked() error {
-	var wg sync.WaitGroup
-	errCh := make(chan error, len(c.collectorMap))
-
-	// flush collectors for each namespace in parallel
-	for _, innerCollector := range c.collectorMap {
-		wg.Add(1)
-		go func(collector *rollingDiskMetricCollector) {
-			defer wg.Done()
-
-			errCh <- collector.flush()
-		}(innerCollector)
-	}
-
-	// Wait for all goroutines to finish
-	wg.Wait()
-	close(errCh)
-
-	errs := make([]error, 0)
-	for err := range errCh {
-		errs = append(errs, err)
-	}
-
-	return errors.Join(errs...)
-}
-
-func (c *namespacedDiskMetricCollector) Clean() error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
 	var eg errgroup.Group
 	eg.SetLimit(4) // limit to 4 parallel flushes
 
-	// close collectors for each namespace in parallel
+	c.collectorMapMtx.Lock()
+
+	// flush collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
 		func(collector *rollingDiskMetricCollector) {
 			eg.Go(func() (err error) {
 				defer func() {
 					if r := recover(); r != nil {
-						c.ctx.Log().Warnf("namespacedDiskMetricCollector Clean panic: %v", r)
+						c.ctx.Log().Warnf("rollingDiskMetricCollector flush panic: %v", r)
 						c.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
-						err = fmt.Errorf("panic in namespacedDiskMetricCollector Clean %v", r)
+						err = fmt.Errorf("panic in rollingDiskMetricCollector flush %v", r)
 					}
 				}()
 
@@ -171,32 +147,18 @@ func (c *namespacedDiskMetricCollector) Clean() error {
 		}(innerCollector)
 	}
 
-	// Wait for all goroutines to finish
-	err := eg.Wait()
-	if err != nil {
-		return err
-	}
+	c.collectorMapMtx.Unlock()
 
-	// clean the directory
-	entries, err := os.ReadDir(c.baseDir)
-	if err != nil {
-		return err
-	}
-	for _, entry := range entries {
-		path := filepath.Join(c.baseDir, entry.Name())
-		if err := os.RemoveAll(path); err != nil {
-			return err
-		}
-	}
-	return nil
+	// Wait for all goroutines to finish
+	return eg.Wait()
 }
 
 func (c *namespacedDiskMetricCollector) Close() error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
 	var eg errgroup.Group
 	eg.SetLimit(4) // limit to 4 parallel closes
+
+	c.collectorMapMtx.Lock()
+	defer c.collectorMapMtx.Unlock()
 
 	// close collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
@@ -204,9 +166,9 @@ func (c *namespacedDiskMetricCollector) Close() error {
 			eg.Go(func() (err error) {
 				defer func() {
 					if r := recover(); r != nil {
-						c.ctx.Log().Warnf("namespacedDiskMetricCollector Close panic: %v", r)
+						c.ctx.Log().Warnf("rollingDiskMetricCollector close panic: %v", r)
 						c.ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
-						err = fmt.Errorf("panic in namespacedDiskMetricCollector Close %v", r)
+						err = fmt.Errorf("panic in rollingDiskMetricCollector close %v", r)
 					}
 				}()
 
@@ -221,16 +183,14 @@ func (c *namespacedDiskMetricCollector) Close() error {
 		return err
 	}
 
-	for k := range c.collectorMap {
-		delete(c.collectorMap, k)
-	}
+	clear(c.collectorMap)
 	return nil
 }
 
 // getMetricCollector returns a [rollingDiskMetricCollector] for the given namespace
 func (c *namespacedDiskMetricCollector) getMetricCollector(namespace string) (*rollingDiskMetricCollector, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	c.collectorMapMtx.Lock()
+	defer c.collectorMapMtx.Unlock()
 
 	if namespace == "" {
 		return nil, fmt.Errorf("namespace cannot be empty")

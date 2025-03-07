@@ -98,7 +98,7 @@ func (suite *singletonTestSuite) TestStartCollection() {
 
 	// set expectations
 	collectorMock.On("CollectLog", mock.Anything, mock.Anything).Return(nil)
-	collectorMock.On("Collect", mock.Anything, mock.Anything).Return(nil)
+	collectorMock.On("CollectMetric", mock.Anything, mock.Anything).Return(nil)
 	collectorMock.On("Close").Return(nil).Once()
 
 	// start telemetry collection
@@ -175,14 +175,14 @@ func (suite *singletonTestSuite) TestStartCollection() {
 		ct := NewCommonT(c)
 
 		collectorMock.AssertNumberOfCalls(ct, "CollectLog", logCounts)
-		collectorMock.AssertNumberOfCalls(ct, "Collect", metricCounts)
+		collectorMock.AssertNumberOfCalls(ct, "CollectMetric", metricCounts)
 
 		for _, e := range expectedLogEntries {
 			collectorMock.AssertCalled(ct, "CollectLog", "testNamespace", e)
 		}
 
 		for _, e := range expectedMetrics {
-			collectorMock.AssertCalled(ct, "Collect", "testNamespace", e)
+			collectorMock.AssertCalled(ct, "CollectMetric", "testNamespace", e)
 		}
 	}, 30*time.Second, 100*time.Millisecond)
 }
@@ -203,7 +203,7 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 
 	// set expectations
 	collectorMock.On("CollectLog", mock.Anything, mock.Anything).Return(nil)
-	collectorMock.On("Collect", mock.Anything, mock.Anything).Return(nil)
+	collectorMock.On("CollectMetric", mock.Anything, mock.Anything).Return(nil)
 	collectorMock.On("Close").Return(nil).Once()
 
 	// start telemetry collection
@@ -222,12 +222,12 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 		ct := NewCommonT(c)
 
 		collectorMock.AssertNumberOfCalls(ct, "CollectLog", 0)
-		collectorMock.AssertNumberOfCalls(ct, "Collect", 0)
+		collectorMock.AssertNumberOfCalls(ct, "CollectMetric", 0)
 
 		logsCalls := mocklog.Calls
 		erroredLogCounts := 0
 		for _, call := range logsCalls {
-			if call.Method == "Debugf" && strings.Contains(call.Arguments.Get(0).(string), "error processing telemetry message") {
+			if call.Method == "Debugf" && strings.Contains(call.Arguments.Get(0).(string), "Error processing telemetry message") {
 				erroredLogCounts++
 			}
 		}

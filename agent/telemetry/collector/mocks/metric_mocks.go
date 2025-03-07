@@ -40,7 +40,7 @@ func (m *SlowMetricsCollectorMock) Flush() error {
 	return r0
 }
 
-func (m *SlowMetricsCollectorMock) Collect(namespace string, metric metric.Metric[float64]) error {
+func (m *SlowMetricsCollectorMock) CollectMetric(namespace string, metric metric.Metric[float64]) error {
 	ret := m.Called(namespace, metric)
 
 	var r0 error
@@ -112,7 +112,7 @@ func (m *FastMetricsCollectorMock) Flush() error {
 	return r0
 }
 
-func (m *FastMetricsCollectorMock) Collect(namespace string, metric metric.Metric[float64]) error {
+func (m *FastMetricsCollectorMock) CollectMetric(namespace string, metric metric.Metric[float64]) error {
 	ret := m.Called(namespace, metric)
 
 	var r0 error

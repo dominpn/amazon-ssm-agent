@@ -39,20 +39,20 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/ssm"
 	"github.com/aws/amazon-ssm-agent/agent/startup"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
+	agentIdentity "github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/identity/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 )
 
 const (
-	activationCodeFlag              = "code"
-	activationIDFlag                = "id"
-	regionFlag                      = "region"
-	registerFlag                    = "register"
-	fingerprintFlag                 = "fingerprint"
-	similarityThresholdFlag         = "similarityThreshold"
-	workerFlag                      = "worker"
-	agentWorkerTelemetryChannelName = "agent_worker"
+	activationCodeFlag      = "code"
+	activationIDFlag        = "id"
+	regionFlag              = "region"
+	registerFlag            = "register"
+	fingerprintFlag         = "fingerprint"
+	similarityThresholdFlag = "similarityThreshold"
+	workerFlag              = "worker"
 )
 
 var (
@@ -82,31 +82,7 @@ func start(log log.T, shouldCheckHibernation bool) (ssmAgent agent.ISSMAgent, er
 
 	// initalize the telemetry SDK
 	// TODO read config here
-	telemetryCtx := telemetryContext.NewTelemetryContext(agentWorkerTelemetryChannelName, log, agentIdentity)
-	err = telemetry.Initialize(telemetryCtx)
-	if err != nil {
-		log.Warnf("telemetry failed to initialize with error %v", err)
-	}
-
-	// initialize telemetry collector
-	// TODO read config here
-	collector.Initialize(context)
-
-	// listen on telemetry from the core agent
-	// TODO read config here
-	coreAgentTelemetryContext := telemetryContext.NewTelemetryContext(telemetry.CoreAgentChannelName, log, context.Identity())
-	err = collector.StartCollection(coreAgentTelemetryContext)
-	if err != nil {
-		log.Warnf("failed to start listening for telemetry with error %v", err)
-	}
-
-	// listen on telemetry from self
-	// TODO read config here
-	agentWorkerTelemetryContext := telemetryContext.NewTelemetryContext(agentWorkerTelemetryChannelName, log, context.Identity())
-	err = collector.StartCollection(agentWorkerTelemetryContext)
-	if err != nil {
-		log.Warnf("failed to start listening for telemetry with error %v", err)
-	}
+	initializeTelemetry(log, agentIdentity, context)
 
 	// Reset password for default RunAs user if already exists
 	sessionUtil := &utility.SessionUtil{}
@@ -160,6 +136,33 @@ func start(log log.T, shouldCheckHibernation bool) (ssmAgent agent.ISSMAgent, er
 		err = startAgent(ssmAgent, context)
 	}
 	return
+}
+
+func initializeTelemetry(log log.T, agentIdentity agentIdentity.IAgentIdentity, context context.T) {
+	telemetryCtx := telemetryContext.NewTelemetryContext(telemetry.AgentWorkerChannelName, log, agentIdentity)
+	err := telemetry.Initialize(telemetryCtx)
+	if err != nil {
+		log.Warnf("Telemetry failed to initialize with error %v", err)
+	}
+
+	// initialize telemetry collector
+	// TODO read config here
+	collector.Initialize(context)
+
+	// listen on telemetry from the core agent
+	// TODO read config here
+	coreAgentTelemetryContext := telemetryContext.NewTelemetryContext(telemetry.CoreAgentChannelName, log, context.Identity())
+	err = collector.StartCollection(coreAgentTelemetryContext)
+	if err != nil {
+		log.Warnf("Failed to start listening for telemetry from the core agent with error %v", err)
+	}
+
+	// listen on telemetry from self
+	// TODO read config here
+	err = collector.StartCollection(telemetryCtx)
+	if err != nil {
+		log.Warnf("Failed to start listening for telemetry from the agent worker with error %v", err)
+	}
 }
 
 func startAgent(ssmAgent agent.ISSMAgent, context context.T) (err error) {

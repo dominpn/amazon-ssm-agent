@@ -10,19 +10,6 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-
-// Copyright 2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License"). You may not
-// use this file except in compliance with the License. A copy of the
-// License is located at
-//
-// http://aws.amazon.com/apache2.0/
-//
-// or in the "license" file accompanying this file. This file is distributed
-// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-// either express or implied. See the License for the specific language governing
-// permissions and limitations under the License.
 package collector
 
 import (
@@ -107,7 +94,7 @@ func collectMetric(namespace string, metric metric.Metric[float64]) error {
 		return fmt.Errorf("telemetry collector not initialized")
 	}
 
-	return singleton.Collect(namespace, metric)
+	return singleton.CollectMetric(namespace, metric)
 }
 
 func collectLog(namespace string, log telemetrylog.Entry) error {
@@ -145,7 +132,7 @@ func StartCollection(context telemetryContext.TelemetryContext) (err error) {
 	ipc, err, _ := channelCreator(log, context.Identity(), context.ChannelName())
 
 	if err != nil {
-		log.Warnf("could not initialize telemetry receiver for channel %v with error: %v", context.ChannelName(), err)
+		log.Warnf("Could not initialize telemetry receiver for channel %v with error: %v", context.ChannelName(), err)
 		return err
 	}
 
@@ -162,6 +149,7 @@ func StartCollection(context telemetryContext.TelemetryContext) (err error) {
 	return nil
 }
 
+// StopCollection stops telemetry collection for a specified telemetry context
 func StopCollection(context telemetryContext.TelemetryContext) (err error) {
 	log := context.Log()
 
@@ -216,9 +204,9 @@ func listenOnChannel(log log.T, channelName string, stopSignal chan bool, ipc fi
 				return
 			}
 
-			log.Debugf("received datagram from %v: %v", ipc.GetPath(), datagram)
+			log.Debugf("Received datagram from %v: %v", ipc.GetPath(), datagram)
 			if err := processDatagam([]byte(datagram)); err != nil {
-				log.Debugf("error processing telemetry message: %v", err)
+				log.Debugf("Error processing telemetry message: %v", err)
 			}
 		}
 	}
@@ -272,6 +260,7 @@ func processDatagam(datagram []byte) error {
 	}
 }
 
+// AddExporter adds a new Exporter to the collector with the specified export period
 func AddExporter(exporter exporter.Exporter) (err error) {
 	defer func() {
 		if r := recover(); r != nil && ctx != nil {
@@ -292,6 +281,7 @@ func AddExporter(exporter exporter.Exporter) (err error) {
 	return nil
 }
 
+// RemoveExporter removes an Exporter from the collector
 func RemoveExporter(exporter exporter.Exporter) (err error) {
 	defer func() {
 		if r := recover(); r != nil && ctx != nil {
