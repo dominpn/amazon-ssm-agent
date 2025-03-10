@@ -53,7 +53,19 @@ func getHigherThanConfiguredPercentageLimit() int {
 func getFakeDynamicConfig() dynamicconfiguration.NamespaceConfiguration {
 	return map[string]dynamicconfiguration.DynamicConfiguration{
 		"testNamespace": {
-			TelemetryDisabledTill: 0,
+			TelemetryDisabledTill: 0, // definitely in the past : number of seconds elapsed since January 1, 1970 UTC
+			PercentageLimit:       50,
+			MaxRolls:              10,
+			MaxRollSize:           5,
+			ExportPeriod:          15,
+		},
+	}
+}
+
+func getFakeDynamicConfigWithTelemetryDisabledForever() dynamicconfiguration.NamespaceConfiguration {
+	return map[string]dynamicconfiguration.DynamicConfiguration{
+		"testNamespace": {
+			TelemetryDisabledTill: 2 * time.Now().Unix(), // definitely in the future : 2 * number of seconds elapsed since January 1, 1970 UTC
 			PercentageLimit:       50,
 			MaxRolls:              10,
 			MaxRollSize:           5,
@@ -165,6 +177,21 @@ func (suite *controlChannelExporterTestSuite) TestCheckTelemetryDefaultsBadLuckF
 	defer func() {
 		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
 	}()
+	assert.Equal(suite.T(), false, checkTelemetryExport(suite.ctx.Log(), "testNamespace"))
+}
+
+func (suite *controlChannelExporterTestSuite) TestCheckTelemetryExportWithTelemetryDisabledForever() {
+	randomPercentage = getLowerThanConfiguredPercentageLimit
+	defer func() {
+		randomPercentage = getRandomPercentage
+	}()
+
+	getDynamicConfig = getFakeDynamicConfigWithTelemetryDisabledForever
+	defer func() {
+		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+	}()
+
+	//Luck is in our favour , its just that telemetry is disabled currently for testNamespace
 	assert.Equal(suite.T(), false, checkTelemetryExport(suite.ctx.Log(), "testNamespace"))
 }
 

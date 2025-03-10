@@ -126,7 +126,7 @@ func shouldExportTelemetry(log log.T, namespace string) bool {
 	}
 
 	configuredPercentageLimit := config.PercentageLimit
-	return telemetryEmissionLuck < configuredPercentageLimit
+	return telemetryEmissionLuck < configuredPercentageLimit && config.TelemetryDisabledTill < time.Now().Unix()
 }
 
 func (t *controlChannelTelemetryExporter) Export(namespace string,
