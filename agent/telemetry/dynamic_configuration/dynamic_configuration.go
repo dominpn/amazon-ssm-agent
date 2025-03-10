@@ -63,6 +63,65 @@ func EvictCache() {
 	loadedDynamicConfiguration = nil
 }
 
+func getDefaultConfiguration() DynamicConfiguration {
+	return DynamicConfiguration{
+		//TODO: Fix Defaults
+		TelemetryDisabledTill: 0,
+		PercentageLimit:       0,
+		MaxRolls:              0,
+		MaxRollSize:           0,
+		ExportPeriod:          0,
+	}
+}
+
+func getConfiguration(namespace string) DynamicConfiguration {
+	if !isLoaded() {
+		return populateDynamicConfigurationWithDefaults()["default"]
+	}
+
+	namespacedConfiguration, ok := GetCachedDynamicConfiguration()[namespace]
+	if ok {
+		return namespacedConfiguration
+	}
+
+	defaultConfiguration, ok := GetCachedDynamicConfiguration()["default"]
+	if !ok {
+		return populateDynamicConfigurationWithDefaults()["default"]
+	}
+
+	return defaultConfiguration
+}
+
+var MaxRolls = GetMaxRolls
+
+func GetMaxRolls(namespace string) int {
+	return getConfiguration(namespace).MaxRolls
+}
+
+var MaxRollSize = GetMaxRollSize
+
+func GetMaxRollSize(namespace string) int64 {
+	return getConfiguration(namespace).MaxRollSize
+}
+
+var ExportPeriod = GetExportPeriod
+
+func GetExportPeriod(namespace string) int {
+	return getConfiguration(namespace).ExportPeriod
+}
+
+var PercentageLimit = GetPercentageLimit
+
+func GetPercentageLimit(namespace string) int {
+	return getConfiguration(namespace).PercentageLimit
+}
+
+var TelemetryDisabledTill = GetTelemetryDisabledTill
+
+func GetTelemetryDisabledTill(namespace string) int64 {
+	return getConfiguration(namespace).TelemetryDisabledTill
+}
+
 // return the cached dynamic configuration
 func GetCachedDynamicConfiguration() NamespaceConfiguration {
 	lock.RLock()
@@ -90,14 +149,7 @@ func readCurrentDynamicConfiguration(log log.T, configFilePath string) (configMa
 
 func populateDynamicConfigurationWithDefaults() NamespaceConfiguration {
 	configMap := make(NamespaceConfiguration)
-	configMap["default"] = DynamicConfiguration{
-		//TODO: Fix Defaults
-		TelemetryDisabledTill: 0,
-		PercentageLimit:       0,
-		MaxRolls:              0,
-		MaxRollSize:           0,
-		ExportPeriod:          0,
-	}
+	configMap["default"] = getDefaultConfiguration()
 	return configMap
 }
 

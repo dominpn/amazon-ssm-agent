@@ -26,6 +26,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
 
@@ -45,11 +46,6 @@ type namespacedRollingLogCollector struct {
 	ctx context.T
 
 	baseDir string
-	// maximum number of rolled files
-	maxRolls int
-	// maximum size of one file
-	maxFileSize int64
-
 	// prefix of each log file
 	fileNamePrefix string
 
@@ -66,16 +62,13 @@ var getBaseLogStoreDir = func() string {
 	return filepath.Join(appconfig.TelemetryDataStorePath, "logs")
 }
 
-func newRollingLogCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedRollingLogCollector {
+func newRollingLogCollector(context context.T, fileNamePrefix string) *namespacedRollingLogCollector {
 	return &namespacedRollingLogCollector{
-		ctx:             context,
-		baseDir:         getBaseLogStoreDir(),
-		maxRolls:        maxRolls,
-		maxFileSize:     maxFileSize,
-		fileNamePrefix:  fileNamePrefix,
-		logCollectorMtx: &sync.Mutex{},
-		collectorMapMtx: &sync.Mutex{},
-		collectorMap:    make(map[string]*rollingLogCollector),
+		ctx:            context,
+		baseDir:        getBaseLogStoreDir(),
+		fileNamePrefix: fileNamePrefix,
+		mtx:            &sync.Mutex{},
+		collectorMap:   make(map[string]*rollingLogCollector),
 	}
 }
 
@@ -205,8 +198,9 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 		if err := fileutil.MakeDirs(p); err != nil {
 			return nil, err
 		}
-
-		loggerConfig := getLoggerConfig(p, c.fileNamePrefix, c.maxRolls, c.maxFileSize)
+		maxRolls := dynamicconfiguration.MaxRolls(namespace)
+		maxFileSize := dynamicconfiguration.MaxRollSize(namespace)
+		loggerConfig := getLoggerConfig(p, c.fileNamePrefix, maxRolls, maxFileSize)
 		seelogger, err := seelog.LoggerFromConfigAsBytes(loggerConfig)
 		if err != nil {
 			return nil, err

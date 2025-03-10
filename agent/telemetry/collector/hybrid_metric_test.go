@@ -21,6 +21,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/mocks"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -42,7 +43,7 @@ func TestHydringMetricsCollectorTestSuite(t *testing.T) {
 func (suite *HydringMetricsCollectorTestSuite) SetupTest() {
 	suite.ctx = context.NewMockDefault()
 
-	collector, err := NewHybridMetricCollector(suite.ctx, 10, 1024*1024, "metrics", 10)
+	collector, err := NewHybridMetricCollector(suite.ctx, "metrics", 10)
 	assert.NoError(suite.T(), err)
 
 	suite.collector = collector
@@ -203,7 +204,14 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorPanicRec
 
 func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorFlush() {
 	// create a hybrid metric collector
-	collector, err := NewHybridMetricCollector(context.NewMockDefault(), 10, 1024*1024, "metrics", 10)
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	collector, err := NewHybridMetricCollector(context.NewMockDefault(), "metrics", 10)
 	assert.NoError(suite.T(), err)
 
 	// mock the in memory collector
@@ -231,6 +239,37 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorFlush() 
 
 	// assert the flush method was called
 	diskCollectorMock.AssertCalled(suite.T(), "Flush")
+}
+
+func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorClean() {
+	// create a hybrid metric collector
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	collector, err := NewHybridMetricCollector(context.NewMockDefault(), "metrics", 10)
+	assert.NoError(suite.T(), err)
+
+	// mock the in memory collector
+	inMemoryCollectorMock := mocks.NewFastMetricsCollectorMock()
+	collector.inMemoryCollector = inMemoryCollectorMock
+
+	// mock the on disk collector
+	diskCollectorMock := mocks.NewSlowMetricsCollectorMock()
+	collector.onDiskCollector = diskCollectorMock
+
+	resultErr1 := errors.New("test error 1")
+	inMemoryCollectorMock.On("Clean").Return(resultErr1)
+
+	resultErr2 := errors.New("test error 2")
+	diskCollectorMock.On("Clean").Return(resultErr2)
+
+	// call the Clean method
+	err = collector.Clean()
+	assert.Equal(suite.T(), errors.Join(resultErr1, resultErr2), err)
 }
 
 func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorClose() {

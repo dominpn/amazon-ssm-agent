@@ -149,3 +149,260 @@ func TestNewTelemetryDynamicConfigurationWatchesConfigFileUpdatesWithNewNamespac
 	assert.Equal(t, int64(902), dynamicConfig["distributor"].MaxRollSize)
 	assert.Equal(t, 20, dynamicConfig["distributor"].ExportPeriod)
 }
+
+func TestMaxRollsWhenConfigInitialisedWithoutNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{"default":{"telemetryDisabledTillEpoch":10,"percentageLimit":50,"maxRolls":15,"maxRollSize":500,"exportPeriodMinutes":15}}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, 15, MaxRolls("ssmagent"))
+}
+
+func TestMaxRollSizeWhenConfigInitialisedWithoutNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{"default":{"telemetryDisabledTillEpoch":10,"percentageLimit":50,"maxRolls":15,"maxRollSize":500,"exportPeriodMinutes":15}}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, int64(500), MaxRollSize("ssmagent"))
+}
+
+func TestPercentageLimitWhenConfigInitialisedWithoutNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{"default":{"telemetryDisabledTillEpoch":10,"percentageLimit":50,"maxRolls":15,"maxRollSize":500,"exportPeriodMinutes":15}}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, 50, PercentageLimit("ssmagent"))
+}
+
+func TestExportPeriodWhenConfigInitialisedWithoutNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{"default":{"telemetryDisabledTillEpoch":10,"percentageLimit":50,"maxRolls":15,"maxRollSize":500,"exportPeriodMinutes":15}}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, 15, ExportPeriod("ssmagent"))
+}
+
+func TestTelemetryDisabledTillWhenConfigInitialisedWithoutNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{"default":{"telemetryDisabledTillEpoch":10,"percentageLimit":50,"maxRolls":15,"maxRollSize":500,"exportPeriodMinutes":15}}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, int64(10), TelemetryDisabledTill("ssmagent"))
+}
+
+func TestDefaultWhenConfigNotInitialised(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+
+	assert.Equal(t, 0, MaxRolls("ssmagent"))
+	assert.Equal(t, int64(0), MaxRollSize("ssmagent"))
+	assert.Equal(t, 0, PercentageLimit("ssmagent"))
+	assert.Equal(t, int64(0), TelemetryDisabledTill("ssmagent"))
+	assert.Equal(t, 0, ExportPeriod("ssmagent"))
+}
+
+func TestMaxRollsWhenConfigInitialisedWithNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{
+		"default": {
+			"telemetryDisabledTillEpoch": 55,
+			"percentageLimit": 12,
+			"maxRolls": 17,
+			"maxRollSize": 502,
+			"exportPeriodMinutes": 20
+		},
+		"distributor": {
+			"telemetryDisabledTillEpoch": 89,
+			"percentageLimit": 82,
+			"maxRolls": 87,
+			"maxRollSize": 902,
+			"exportPeriodMinutes": 20
+		}
+	}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, 87, MaxRolls("distributor"))
+}
+
+func TestMaxRollSizeWhenConfigInitialisedWithNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{
+		"default": {
+			"telemetryDisabledTillEpoch": 55,
+			"percentageLimit": 12,
+			"maxRolls": 17,
+			"maxRollSize": 502,
+			"exportPeriodMinutes": 20
+		},
+		"distributor": {
+			"telemetryDisabledTillEpoch": 89,
+			"percentageLimit": 82,
+			"maxRolls": 87,
+			"maxRollSize": 902,
+			"exportPeriodMinutes": 20
+		}
+	}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, int64(902), MaxRollSize("distributor"))
+}
+
+func TestPercentageLimitWhenConfigInitialisedWithNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{
+		"default": {
+			"telemetryDisabledTillEpoch": 55,
+			"percentageLimit": 12,
+			"maxRolls": 17,
+			"maxRollSize": 502,
+			"exportPeriodMinutes": 20
+		},
+		"distributor": {
+			"telemetryDisabledTillEpoch": 89,
+			"percentageLimit": 82,
+			"maxRolls": 87,
+			"maxRollSize": 902,
+			"exportPeriodMinutes": 20
+		}
+	}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, 82, PercentageLimit("distributor"))
+}
+
+func TestExportPeriodWhenConfigInitialisedWithNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{
+		"default": {
+			"telemetryDisabledTillEpoch": 55,
+			"percentageLimit": 12,
+			"maxRolls": 17,
+			"maxRollSize": 502,
+			"exportPeriodMinutes": 20
+		},
+		"distributor": {
+			"telemetryDisabledTillEpoch": 89,
+			"percentageLimit": 82,
+			"maxRolls": 87,
+			"maxRollSize": 902,
+			"exportPeriodMinutes": 20
+		}
+	}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, 20, ExportPeriod("distributor"))
+}
+
+func TestTelemetryDisabledTillWhenConfigInitialisedWithNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{
+		"default": {
+			"telemetryDisabledTillEpoch": 55,
+			"percentageLimit": 12,
+			"maxRolls": 17,
+			"maxRollSize": 502,
+			"exportPeriodMinutes": 20
+		},
+		"distributor": {
+			"telemetryDisabledTillEpoch": 89,
+			"percentageLimit": 82,
+			"maxRolls": 87,
+			"maxRollSize": 902,
+			"exportPeriodMinutes": 20
+		}
+	}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, int64(89), TelemetryDisabledTill("distributor"))
+}

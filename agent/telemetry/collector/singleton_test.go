@@ -19,18 +19,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	logger "github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
+
 	logMock "github.com/aws/amazon-ssm-agent/agent/mocks/log"
+
 	collectorMocks "github.com/aws/amazon-ssm-agent/agent/telemetry/collector/mocks"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
+
 	channelMock "github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc/mocks"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
+
 	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -86,7 +92,13 @@ func (suite *singletonTestSuite) TestShutdown() {
 
 func (suite *singletonTestSuite) TestStartCollection() {
 	Initialize(suite.ctx)
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
 
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
 	// replace the singleton with mock
 	collectorMock := collectorMocks.NewCollectorMock()
 	singleton = collectorMock
@@ -189,7 +201,13 @@ func (suite *singletonTestSuite) TestStartCollection() {
 
 func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 	Initialize(suite.ctx)
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
 
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
 	// replace the singleton with mock
 	collectorMock := collectorMocks.NewCollectorMock()
 	singleton = collectorMock

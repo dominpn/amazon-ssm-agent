@@ -25,6 +25,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -78,7 +79,14 @@ func (suite *rollingLogCollectorTestSuite) SetupTest() {
 
 func (suite *rollingLogCollectorTestSuite) TestCorrectDataIsWritten() {
 	// maxRolls = 1  each file 1MB
-	testCollector := newRollingLogCollector(context.NewMockDefault(), 10, 1024*1024, "logs")
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	testCollector := newRollingLogCollector(context.NewMockDefault(), "logs")
 	defer testCollector.Close()
 
 	_, err := testCollector.getLogCollector("testNamespace")
@@ -190,10 +198,16 @@ func (tester *rollingCollectorTester) listAllFilesInNamespaceDir(namespace strin
 
 func (tester *rollingCollectorTester) testCase(testCase *namespacedCollectorTestCase, testNum int) {
 	defer cleanupRollingCollectorTest()
+	dynamicconfiguration.MaxRolls = testCase.getMaxRolls
+	dynamicconfiguration.MaxRollSize = testCase.getMaxRollSize
 
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
 	tester.t.Logf("Start test  [%v]\n", testNum)
 
-	rlc := newRollingLogCollector(context.NewMockDefault(), testCase.maxRolls, testCase.fileSize, "testlogs")
+	rlc := newRollingLogCollector(context.NewMockDefault(), "testlogs")
 	defer rlc.Close()
 
 	for namespace, namespaceTestConfig := range testCase.namespaces {
@@ -346,9 +360,9 @@ type collectorTestConfig struct {
 
 // test case config for rolling log collector
 type namespacedCollectorTestCase struct {
-	maxRolls   int
-	fileSize   int64
-	namespaces map[string]*collectorTestConfig
+	namespaces     map[string]*collectorTestConfig
+	getMaxRolls    func(string) int
+	getMaxRollSize func(string) int64
 }
 
 func createCollectorTestConfig(
@@ -359,30 +373,28 @@ func createCollectorTestConfig(
 }
 
 func createRollingSizeFileWriterTestCase(
-	maxRolls int,
-	fileSize int64,
-	namespaces map[string]*collectorTestConfig) *namespacedCollectorTestCase {
-	return &namespacedCollectorTestCase{maxRolls, fileSize, namespaces}
+	maxRolls int, maxRollSize int64, namespaces map[string]*collectorTestConfig) *namespacedCollectorTestCase {
+	return &namespacedCollectorTestCase{namespaces, func(string) int { return maxRolls }, func(string) int64 { return maxRollSize }}
 }
 
 var rollingfileWriterTests = []*namespacedCollectorTestCase{
 
-	createRollingSizeFileWriterTestCase(10, 600,
-		map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 0, []string{"randomfile.testlogs"})}),
+	createRollingSizeFileWriterTestCase(
+		5, 500, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 0, []string{"randomfile.testlogs"})}),
 
-	createRollingSizeFileWriterTestCase(5, 500,
-		map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile"}, 1, []string{"randomfile", "testlogs"})}),
+	createRollingSizeFileWriterTestCase(
+		5, 500, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile"}, 1, []string{"randomfile", "testlogs"})}),
 
-	createRollingSizeFileWriterTestCase(5, 500,
-		map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 1, []string{"randomfile.testlogs", "testlogs"})}),
+	createRollingSizeFileWriterTestCase(
+		5, 500, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 1, []string{"randomfile.testlogs", "testlogs"})}),
 
 	// Each line is of 123 chars. Each file has ceil(500/123) = 5 log entries
 	// 100 entries. So 20 files total including last file of which last 5 are kept in history
-	createRollingSizeFileWriterTestCase(5, 500,
-		map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 100, []string{"randomfile.testlogs", "testlogs", "testlogs.15", "testlogs.16", "testlogs.17", "testlogs.18", "testlogs.19"})}),
+	createRollingSizeFileWriterTestCase(
+		5, 500, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 100, []string{"randomfile.testlogs", "testlogs", "testlogs.15", "testlogs.16", "testlogs.17", "testlogs.18", "testlogs.19"})}),
 
-	createRollingSizeFileWriterTestCase(5, 500,
-		map[string]*collectorTestConfig{
+	createRollingSizeFileWriterTestCase(
+		5, 500, map[string]*collectorTestConfig{
 			// Each line is of 123 chars. Each file has ceil(500/123) = 5 log entries
 			// 32 entries. So 7 files total including last file out of which last 5 are kept in history
 			"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 32, []string{"randomfile.testlogs", "testlogs", "testlogs.2", "testlogs.3", "testlogs.4", "testlogs.5", "testlogs.6"}),
@@ -394,6 +406,6 @@ var rollingfileWriterTests = []*namespacedCollectorTestCase{
 	// Each line is of 123 chars. Each file has ceil(500/123) = 5 log entries
 	// 100 entries. So 20 files total including last file of which last 5 are kept in history
 	// Plus, testlogs.5 is considered a part of roll history  so the counting starts from there
-	createRollingSizeFileWriterTestCase(5, 500,
-		map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"testlogs.5"}, 100, []string{"testlogs", "testlogs.20", "testlogs.21", "testlogs.22", "testlogs.23", "testlogs.24"})}),
+	createRollingSizeFileWriterTestCase(
+		5, 500, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"testlogs.5"}, 100, []string{"testlogs", "testlogs.20", "testlogs.21", "testlogs.22", "testlogs.23", "testlogs.24"})}),
 }

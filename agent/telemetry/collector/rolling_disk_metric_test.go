@@ -24,6 +24,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -80,7 +81,14 @@ func (suite *rollingDiskMetricCollectorTestSuite) SetupTest() {
 
 func (suite *rollingDiskMetricCollectorTestSuite) TestCorrectDataIsWritten() {
 	// maxRolls = 1  each file 1MB
-	testCollector := NewRollingDiskMetricCollector(context.NewMockDefault(), 10, 1024*1024, "metrics")
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	testCollector := NewRollingDiskMetricCollector(context.NewMockDefault(), "metrics")
 	defer testCollector.Close()
 
 	_, err := testCollector.getMetricCollector("testNamespace")
@@ -188,9 +196,16 @@ func (tester *rollingDiskMetricCollectorTester) listAllFilesInNamespaceDir(names
 func (tester *rollingDiskMetricCollectorTester) testCase(testCase *namespacedDiskMetricCollectorTestCase, testNum int) {
 	defer cleanupRollingCollectorTest()
 
+	dynamicconfiguration.MaxRolls = testCase.getMaxRolls
+	dynamicconfiguration.MaxRollSize = testCase.getMaxRollSize
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
 	tester.t.Logf("Start test  [%v]\n", testNum)
 
-	rlc := NewRollingDiskMetricCollector(context.NewMockDefault(), testCase.maxRolls, testCase.fileSize, "testmetrics")
+	rlc := NewRollingDiskMetricCollector(context.NewMockDefault(), "testmetrics")
 	defer rlc.Close()
 
 	for namespace, namespaceTestConfig := range testCase.namespaces {
@@ -343,9 +358,9 @@ type diskMetricCollectorTestConfig struct {
 
 // test case config for rolling collector
 type namespacedDiskMetricCollectorTestCase struct {
-	maxRolls   int
-	fileSize   int64
-	namespaces map[string]*diskMetricCollectorTestConfig
+	getMaxRolls    func(string) int
+	getMaxRollSize func(string) int64
+	namespaces     map[string]*diskMetricCollectorTestConfig
 }
 
 func createMetricCollectorTestConfig(
@@ -357,9 +372,11 @@ func createMetricCollectorTestConfig(
 
 func createMetricRollingSizeFileWriterTestCase(
 	maxRolls int,
-	fileSize int64,
+	maxRollSize int64,
 	namespaces map[string]*diskMetricCollectorTestConfig) *namespacedDiskMetricCollectorTestCase {
-	return &namespacedDiskMetricCollectorTestCase{maxRolls, fileSize, namespaces}
+	var getMaxRolls = func(string) int { return maxRolls }
+	var getMaxRollSize = func(string) int64 { return maxRollSize }
+	return &namespacedDiskMetricCollectorTestCase{getMaxRolls, getMaxRollSize, namespaces}
 }
 
 var rollingMetricFileWriterTests = []*namespacedDiskMetricCollectorTestCase{

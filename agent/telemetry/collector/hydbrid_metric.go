@@ -43,14 +43,13 @@ type hybridMetricCollector struct {
 	onDiskCollector       FlushableMetricsCollector
 }
 
-func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64,
-	fileNamePrefix string, flushPeriodSeconds int) (c *hybridMetricCollector, err error) {
+func NewHybridMetricCollector(context context.T, fileNamePrefix string, flushPeriodSeconds int) (c *hybridMetricCollector, err error) {
 	log := context.Log()
 
 	c = &hybridMetricCollector{
 		diskWriteMtx:      &sync.Mutex{},
 		inMemoryCollector: NewInMemoryMetricCollector(context),
-		onDiskCollector:   NewRollingDiskMetricCollector(context, maxRolls, maxFileSize, fileNamePrefix),
+		onDiskCollector:   NewRollingDiskMetricCollector(context, fileNamePrefix),
 	}
 
 	// start writing to disk periodically

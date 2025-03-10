@@ -26,6 +26,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
+	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 )
 
@@ -65,17 +66,13 @@ var getBaseMetricsStoreDir = func() string {
 	return filepath.Join(appconfig.TelemetryDataStorePath, "metrics")
 }
 
-func NewRollingDiskMetricCollector(context context.T, maxRolls int, maxFileSize int64,
-	fileNamePrefix string) *namespacedDiskMetricCollector {
+func NewRollingDiskMetricCollector(context context.T, fileNamePrefix string) *namespacedDiskMetricCollector {
 	return &namespacedDiskMetricCollector{
-		ctx:                context,
-		baseDir:            getBaseMetricsStoreDir(),
-		maxRolls:           maxRolls,
-		maxFileSize:        maxFileSize,
-		fileNamePrefix:     fileNamePrefix,
-		metricCollectorMtx: &sync.Mutex{},
-		collectorMapMtx:    &sync.Mutex{},
-		collectorMap:       make(map[string]*rollingDiskMetricCollector),
+		ctx:            context,
+		baseDir:        getBaseMetricsStoreDir(),
+		fileNamePrefix: fileNamePrefix,
+		mtx:            &sync.Mutex{},
+		collectorMap:   make(map[string]*rollingDiskMetricCollector),
 	}
 }
 
@@ -207,7 +204,7 @@ func (c *namespacedDiskMetricCollector) getMetricCollector(namespace string) (*r
 			return nil, err
 		}
 
-		loggerConfig := getLoggerConfig(p, c.fileNamePrefix, c.maxRolls, c.maxFileSize)
+		loggerConfig := getLoggerConfig(p, c.fileNamePrefix, dynamicconfiguration.MaxRolls(namespace), dynamicconfiguration.MaxRollSize(namespace))
 		seelogger, err := seelog.LoggerFromConfigAsBytes(loggerConfig)
 		if err != nil {
 			return nil, err
