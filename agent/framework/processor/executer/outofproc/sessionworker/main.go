@@ -81,13 +81,16 @@ func main() {
 	logger = ctx.Log() // get the logger again. It will have the telemetry namespace
 
 	// initalize telemetry
-	// TODO read config here
-	telemetryCtx := telemetryContext.NewTelemetryContext(channelName, logger, agentIdentity)
-	err = telemetry.Initialize(telemetryCtx)
-	if err != nil {
-		logger.Warnf("telemetry failed to initialize with error %v", err)
+	if !ctx.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
+		logger.Info("Agent GlobalEnhancedTelemetry is disabled, hence not initializing telemetry for ssm-session-worker")
+	} else {
+		telemetryCtx := telemetryContext.NewTelemetryContext(channelName, logger, agentIdentity)
+		err = telemetry.Initialize(telemetryCtx)
+		if err != nil {
+			logger.Warnf("telemetry failed to initialize with error %v", err)
+		}
+		defer telemetry.Shutdown()
 	}
-	defer telemetry.Shutdown()
 
 	cloudwatchPublisher := cloudwatchlogspublisher.NewCloudWatchPublisher(ctx)
 	cloudwatchPublisher.Init()

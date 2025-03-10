@@ -102,12 +102,15 @@ func (e *OutOfProcExecuter) Run(
 	docStore.Save(*e.docState)
 
 	// listen on telemetry from the worker
-	// TODO read config here
-	telemetryCtx := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
-	telemetryErr := collector.StartCollection(telemetryCtx)
-	defer collector.StopCollection(telemetryCtx)
-	if telemetryErr != nil {
-		log.Warnf("Failed to start listening for telemetry from the worker for documentID %v with error %v", documentID, err)
+	if !e.ctx.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
+		log.Infof("Agent GlobalEnhancedTelemetry is disabled, hence not starting telemetry collection from worker for documentID %v ", documentID)
+	} else {
+		telemetryCtx := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
+		telemetryErr := collector.StartCollection(telemetryCtx)
+		if telemetryErr != nil {
+			log.Warnf("failed to start listening for telemetry from the worker for documentID %v with error %v", documentID, err)
+		}
+		defer collector.StopCollection(telemetryCtx)
 	}
 
 	if err != nil {

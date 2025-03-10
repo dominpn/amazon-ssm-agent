@@ -64,11 +64,11 @@ var getBaseLogStoreDir = func() string {
 
 func newRollingLogCollector(context context.T, fileNamePrefix string) *namespacedRollingLogCollector {
 	return &namespacedRollingLogCollector{
-		ctx:            context,
-		baseDir:        getBaseLogStoreDir(),
-		fileNamePrefix: fileNamePrefix,
-		mtx:            &sync.Mutex{},
-		collectorMap:   make(map[string]*rollingLogCollector),
+		ctx:             context,
+		baseDir:         getBaseLogStoreDir(),
+		fileNamePrefix:  fileNamePrefix,
+		collectorMapMtx: &sync.Mutex{},
+		collectorMap:    make(map[string]*rollingLogCollector),
 	}
 }
 

@@ -74,8 +74,13 @@ func (controlChannel *ControlChannel) Initialize(context context.T,
 	controlChannel.channelType = mgsConfig.RoleSubscribe
 	controlChannel.wsChannel = &communicator.WebSocketChannel{}
 	controlChannel.AuditLogScheduler = telemetry.GetAuditLogTelemetryInstance(context, controlChannel.wsChannel)
-	// TODO read config here
-	controlChannel.TelemetryExporter = telemetryV2.GetControlChannelTelemetryExporter(context, controlChannel.wsChannel)
+
+	if !context.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
+		log.Info("Agent GlobalEnhancedTelemetry is disabled, hence not adding telemetryExporter to control channel")
+	} else {
+		controlChannel.TelemetryExporter = telemetryV2.GetControlChannelTelemetryExporter(context, controlChannel.wsChannel)
+	}
+
 	controlChannel.agentMessageIncomingMessageChan = agentMessageIncomingMessageChan
 	controlChannel.context = context
 	log.Debugf("Initialized controlchannel for instance: %s", instanceId)
