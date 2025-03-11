@@ -127,6 +127,7 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 		}
 	}()
 
+	message = TruncateLog(message)
 	entry := &telemetrylog.Entry{Time: time.UTC(), Severity: severity, Body: message}
 
 	entryJson, err := json.Marshal(entry)

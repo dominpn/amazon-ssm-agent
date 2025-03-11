@@ -199,6 +199,65 @@ func (suite *singletonTestSuite) TestStartCollection() {
 	}, 30*time.Second, 100*time.Millisecond)
 }
 
+func (suite *singletonTestSuite) TestLogsAreTruncated() {
+	Initialize(suite.ctx)
+
+	// replace the singleton with mock
+	collectorMock := collectorMocks.NewCollectorMock()
+	singleton = collectorMock
+
+	// create sender side of the IPC channel
+	telemetryContext := telemetryContext.NewMockDefault()
+	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeRespondent, telemetryContext.ChannelName())
+	defer senderIpc.Destroy()
+
+	// set expectations
+	collectorMock.On("CollectLog", mock.Anything, mock.Anything).Return(nil)
+	collectorMock.On("CollectMetric", mock.Anything, mock.Anything).Return(nil)
+	collectorMock.On("Close").Return(nil).Once()
+
+	// start telemetry collection
+	err := StartCollection(telemetryContext)
+	assert.NoError(suite.T(), err)
+
+	now := time.Now()
+
+	// send logs to the channel
+	sentLogEntry := &telemetrylog.Entry{
+		Time:     now.UTC(),
+		Severity: telemetrylog.ERROR,
+		Body:     strings.Repeat("A🙂", 200),
+	}
+
+	entryJson, err := json.Marshal(sentLogEntry)
+	assert.NoError(suite.T(), err)
+	message := &telemetry.Message{
+		Namespace: "testNamespace",
+		Type:      telemetry.LOG,
+		Payload:   string(entryJson),
+	}
+
+	datagram, err := json.Marshal(message)
+	assert.NoError(suite.T(), err)
+
+	// send log
+	err = senderIpc.Send(string(datagram))
+	assert.NoError(suite.T(), err)
+
+	expectedLogEntry := *sentLogEntry                 // make a copy
+	expectedLogEntry.Body = strings.Repeat("A🙂", 100) // 2 * 100 characters = 200 expected characters
+
+	// assert that they were collected
+	assert.EventuallyWithT(suite.T(), func(c *assert.CollectT) {
+		ct := NewCommonT(c)
+
+		collectorMock.AssertNumberOfCalls(ct, "CollectLog", 1)
+		collectorMock.AssertNumberOfCalls(ct, "CollectMetric", 0)
+
+		collectorMock.AssertCalled(ct, "CollectLog", "testNamespace", expectedLogEntry)
+	}, 20*time.Second, 100*time.Millisecond)
+}
+
 func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 	Initialize(suite.ctx)
 	dynamicconfiguration.MaxRolls = func(string) int { return 10 }

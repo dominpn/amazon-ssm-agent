@@ -10,13 +10,12 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-
-// Package agent represents the core SSM agent object
 package telemetry
 
 import (
 	"encoding/json"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
@@ -124,6 +123,45 @@ func (suite *TelemetryTestSuite) Test_emitLog() {
 		Time:     now,
 		Severity: telemetrylog.ERROR,
 		Body:     "This is a test message",
+	}
+
+	entryJson, err := json.Marshal(expectedLogEntry)
+	assert.Nil(suite.T(), err)
+
+	expectedMessage := &Message{
+		Namespace: "testNamespace",
+		Type:      LOG,
+		Payload:   string(entryJson),
+	}
+
+	// create other side of the IPC channel
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeSurveyor, suite.mockContext.ChannelName())
+	defer receiveIpc.Close()
+
+	msg := <-receiveIpc.GetMessage()
+
+	var actualMessage *Message
+	err = json.Unmarshal([]byte(msg), &actualMessage)
+	assert.Nil(suite.T(), err)
+
+	// Check that correct message was received on the other side
+	assert.Equal(suite.T(), expectedMessage, actualMessage)
+}
+
+func (suite *TelemetryTestSuite) Test_emitLogTruncates() {
+	Initialize(suite.mockContext)
+
+	telemetryInstance, _ := getTelemetry()
+
+	now := time.Now()
+
+	err := telemetryInstance.emitLog("testNamespace", now, telemetrylog.ERROR, strings.Repeat("🙂", 350))
+	assert.Nil(suite.T(), err)
+
+	expectedLogEntry := &telemetrylog.Entry{
+		Time:     now,
+		Severity: telemetrylog.ERROR,
+		Body:     strings.Repeat("🙂", 200),
 	}
 
 	entryJson, err := json.Marshal(expectedLogEntry)

@@ -22,6 +22,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/exporter"
+	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 	"github.com/carlescere/scheduler"
@@ -207,6 +208,11 @@ func (c *collectorT) export() error {
 
 		// send telemetry for all namespaces
 		for ns := range namespaces {
+			// we read the logs from the disk so we need to truncate them
+			for i, _ := range logs[ns] {
+				logs[ns][i].Body = telemetry.TruncateLog(logs[ns][i].Body)
+			}
+
 			err := c.exportNamespaceTelemetry(ns, metrics[ns], logs[ns])
 			exportErrs = append(exportErrs, err)
 		}

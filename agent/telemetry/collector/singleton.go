@@ -105,6 +105,9 @@ func collectLog(namespace string, log telemetrylog.Entry) error {
 		return fmt.Errorf("telemetry collector not initialized")
 	}
 
+	// truncate the log body
+	log.Body = telemetry.TruncateLog(log.Body)
+
 	return singleton.CollectLog(namespace, log)
 }
 
