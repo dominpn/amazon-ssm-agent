@@ -58,7 +58,8 @@ func getTelemetry() (*telemetry, error) {
 }
 
 // this is for mocking support
-var channelCreator = func(log logger.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
+var channelCreator = func(log logger.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode,
+	filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
 	return filewatcherbasedipc.CreateRollingFileWatcherChannel(log, identity, mode, filename, false, 1000) // TODO: read the maxFiles from config
 }
 
@@ -150,7 +151,7 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 	return t.fileChannel.Send(string(ipcMessageJson))
 }
 
-func (t *telemetry) emitIntegerMetric(namespace string, name string, unit string, kind metric.Kind, time time.Time, value int64) (err error) {
+func (t *telemetry) emitIntegerMetric(namespace, name, unit string, kind metric.Kind, time time.Time, value int64) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if singleton != nil {

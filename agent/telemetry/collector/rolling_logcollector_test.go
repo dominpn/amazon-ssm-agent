@@ -181,7 +181,7 @@ func (tester *rollingCollectorTester) listAllFilesInNamespaceDir(namespace strin
 	}
 
 	err := filepath.Walk(filepath.Join(getBaseLogStoreDir(), namespace), visit)
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -207,7 +207,7 @@ func (tester *rollingCollectorTester) testCase(testCase *namespacedCollectorTest
 
 			var err error
 
-			if len(dir) != 0 {
+			if dir != "" {
 				err = fileutil.MakeDirs(dir)
 				if err != nil {
 					tester.t.Error(err)
@@ -320,11 +320,9 @@ func (tester *rollingCollectorTester) checkJustRequiredFilesExist(namespace stri
 			exAbs, err := filepath.Abs(expected)
 			if err != nil {
 				tester.t.Errorf("filepath.Abs failed for %s", expected)
-			} else {
-				if exAbs == f {
-					found = true
-					break
-				}
+			} else if exAbs == f {
+				found = true
+				break
 			}
 		}
 
@@ -357,7 +355,6 @@ func createCollectorTestConfig(
 	files []string,
 	writeCount int,
 	resFiles []string) *collectorTestConfig {
-
 	return &collectorTestConfig{files, writeCount, resFiles}
 }
 
@@ -365,13 +362,12 @@ func createRollingSizeFileWriterTestCase(
 	maxRolls int,
 	fileSize int64,
 	namespaces map[string]*collectorTestConfig) *namespacedCollectorTestCase {
-
 	return &namespacedCollectorTestCase{maxRolls, fileSize, namespaces}
 }
 
 var rollingfileWriterTests = []*namespacedCollectorTestCase{
 
-	createRollingSizeFileWriterTestCase(5, 500,
+	createRollingSizeFileWriterTestCase(10, 600,
 		map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 0, []string{"randomfile.testlogs"})}),
 
 	createRollingSizeFileWriterTestCase(5, 500,

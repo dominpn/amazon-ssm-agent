@@ -31,6 +31,8 @@ import (
 
 // rollingDiskMetricCollector holds a [seelog.LoggerInterface] instance
 type rollingDiskMetricCollector struct {
+	ctx context.T
+
 	// directory path
 	dirPath string
 
@@ -63,7 +65,8 @@ var getBaseMetricsStoreDir = func() string {
 	return filepath.Join(appconfig.TelemetryDataStorePath, "metrics")
 }
 
-func NewRollingDiskMetricCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string) *namespacedDiskMetricCollector {
+func NewRollingDiskMetricCollector(context context.T, maxRolls int, maxFileSize int64,
+	fileNamePrefix string) *namespacedDiskMetricCollector {
 	return &namespacedDiskMetricCollector{
 		ctx:                context,
 		baseDir:            getBaseMetricsStoreDir(),
@@ -124,7 +127,7 @@ func (c *namespacedDiskMetricCollector) FetchAndDrop(limit int) (metric.Namespac
 	return result, err
 }
 
-func (c *namespacedDiskMetricCollector) Flush() error {
+func (c *namespacedDiskMetricCollector) Flush() (err error) {
 	var eg errgroup.Group
 	eg.SetLimit(4) // limit to 4 parallel flushes
 
@@ -142,7 +145,8 @@ func (c *namespacedDiskMetricCollector) Flush() error {
 					}
 				}()
 
-				return collector.flush()
+				collector.flush()
+				return nil
 			})
 		}(innerCollector)
 	}
@@ -172,7 +176,8 @@ func (c *namespacedDiskMetricCollector) Close() error {
 					}
 				}()
 
-				return collector.close()
+				collector.close()
+				return nil
 			})
 		}(innerCollector)
 	}
@@ -209,6 +214,7 @@ func (c *namespacedDiskMetricCollector) getMetricCollector(namespace string) (*r
 		}
 
 		rw := &rollingDiskMetricCollector{
+			ctx:     c.ctx,
 			dirPath: p,
 			logger:  seelogger,
 		}
@@ -228,16 +234,16 @@ func (c *rollingDiskMetricCollector) write(bytes []byte) (err error) {
 	return nil
 }
 
-func (rw *rollingDiskMetricCollector) flush() error {
+func (rw *rollingDiskMetricCollector) flush() {
 	rw.logger.Flush()
-	return nil
 }
 
-func (rw *rollingDiskMetricCollector) close() error {
+func (rw *rollingDiskMetricCollector) close() {
 	rw.logger.Close()
 
 	// remove the namespace direcory if it is empty. ignore errors
-	deleteDirectoryIfAllFilesEmpty(rw.dirPath)
-
-	return nil
+	err := deleteDirectoryIfAllFilesEmpty(rw.dirPath)
+	if err != nil {
+		rw.ctx.Log().Warnf("Failed to delete telemetry directory %s: %v", rw.dirPath, err)
+	}
 }

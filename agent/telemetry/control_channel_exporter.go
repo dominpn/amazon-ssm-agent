@@ -129,7 +129,8 @@ func shouldExportTelemetry(log log.T, namespace string) bool {
 	return telemetryEmissionLuck < configuredPercentageLimit
 }
 
-func (t *controlChannelTelemetryExporter) Export(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) (err error) {
+func (t *controlChannelTelemetryExporter) Export(namespace string,
+	metrics []metric.Metric[float64], logs []telemetrylog.Entry) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			t.ctx.Log().Warnf("controlChannelTelemetryExporter Export panic: %v", r)
@@ -191,7 +192,7 @@ func (t *controlChannelTelemetryExporter) sendChannelContract(payload []byte, me
 		MessageType:    messageType,
 		MessageId:      uuid.NewV4(),
 		SchemaVersion:  1,
-		CreatedDate:    uint64(time.Now().UnixNano() / 1000000),
+		CreatedDate:    uint64(time.Now().UnixNano() / 1000000), //nolint:gosec
 		SequenceNumber: 0,
 		Flags:          0,
 		Payload:        payload,

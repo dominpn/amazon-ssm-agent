@@ -52,5 +52,5 @@ type Counter[N int64 | float64] interface {
 
 // Meter interface provides different "instruments" like counter, gauge, histogram etc.
 type Meter interface {
-	Int64Counter(name string, unit string) Int64Counter
+	Int64Counter(name, unit string) Int64Counter
 }

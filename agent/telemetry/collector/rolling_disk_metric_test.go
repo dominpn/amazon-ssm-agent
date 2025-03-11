@@ -178,7 +178,7 @@ func (tester *rollingDiskMetricCollectorTester) listAllFilesInNamespaceDir(names
 	}
 
 	err := filepath.Walk(filepath.Join(getBaseMetricsStoreDir(), namespace), visit)
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -204,7 +204,7 @@ func (tester *rollingDiskMetricCollectorTester) testCase(testCase *namespacedDis
 
 			var err error
 
-			if len(dir) != 0 {
+			if dir != "" {
 				err = fileutil.MakeDirs(dir)
 				if err != nil {
 					tester.t.Error(err)
@@ -317,11 +317,9 @@ func (tester *rollingDiskMetricCollectorTester) checkJustRequiredFilesExist(name
 			exAbs, err := filepath.Abs(expected)
 			if err != nil {
 				tester.t.Errorf("filepath.Abs failed for %s", expected)
-			} else {
-				if exAbs == f {
-					found = true
-					break
-				}
+			} else if exAbs == f {
+				found = true
+				break
 			}
 		}
 
@@ -354,7 +352,6 @@ func createMetricCollectorTestConfig(
 	files []string,
 	writeCount int,
 	resFiles []string) *diskMetricCollectorTestConfig {
-
 	return &diskMetricCollectorTestConfig{files, writeCount, resFiles}
 }
 
@@ -362,13 +359,11 @@ func createMetricRollingSizeFileWriterTestCase(
 	maxRolls int,
 	fileSize int64,
 	namespaces map[string]*diskMetricCollectorTestConfig) *namespacedDiskMetricCollectorTestCase {
-
 	return &namespacedDiskMetricCollectorTestCase{maxRolls, fileSize, namespaces}
 }
 
 var rollingMetricFileWriterTests = []*namespacedDiskMetricCollectorTestCase{
-
-	createMetricRollingSizeFileWriterTestCase(5, 500,
+	createMetricRollingSizeFileWriterTestCase(10, 600,
 		map[string]*diskMetricCollectorTestConfig{"namespace1": createMetricCollectorTestConfig([]string{"randomfile.testmetrics"}, 0, []string{"randomfile.testmetrics"})}),
 
 	createMetricRollingSizeFileWriterTestCase(5, 500,

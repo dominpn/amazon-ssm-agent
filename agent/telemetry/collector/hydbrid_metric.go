@@ -43,7 +43,8 @@ type hybridMetricCollector struct {
 	onDiskCollector       FlushableMetricsCollector
 }
 
-func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64, fileNamePrefix string, flushPeriodSeconds int) (c *hybridMetricCollector, err error) {
+func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64,
+	fileNamePrefix string, flushPeriodSeconds int) (c *hybridMetricCollector, err error) {
 	log := context.Log()
 
 	c = &hybridMetricCollector{
@@ -61,9 +62,8 @@ func NewHybridMetricCollector(context context.T, maxRolls int, maxFileSize int64
 			}
 		}()
 
-		err := c.writeToDisk()
-
-		if err != nil {
+		writeErr := c.writeToDisk()
+		if writeErr != nil {
 			log.Warnf("Error when writing metrics to disk: %v", err)
 		}
 	}); err != nil {
@@ -82,7 +82,10 @@ func (c *hybridMetricCollector) FetchAndDrop(limit int) (metric.NamespaceMetrics
 	defer c.diskWriteMtx.Unlock()
 
 	// write in-memory metrics to disk
-	c.unlockedWriteToDisk()
+	err := c.unlockedWriteToDisk()
+	if err != nil {
+		return nil, err
+	}
 
 	return c.onDiskCollector.FetchAndDrop(limit)
 }
@@ -136,10 +139,8 @@ func (c *hybridMetricCollector) Close() error {
 	// stop the disk writer job
 	c.diskWriteSchedulerJob.Quit <- true
 
-	errs := make([]error, 0)
-
-	errs = append(errs, c.inMemoryCollector.Close())
-	errs = append(errs, c.onDiskCollector.Close())
+	errs := make([]error, 0, 2)
+	errs = append(errs, c.inMemoryCollector.Close(), c.onDiskCollector.Close())
 
 	return errors.Join(errs...)
 }

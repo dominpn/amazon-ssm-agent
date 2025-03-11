@@ -69,7 +69,7 @@ func (suite *singletonTestSuite) TestInitialize() {
 
 	assert.NotNil(suite.T(), singleton)
 	assert.Equal(suite.T(), map[string]filewatcherbasedipc.IPCChannel{}, listenChannels)
-	assert.Equal(suite.T(), map[string](chan bool){}, stopSignals)
+	assert.Equal(suite.T(), map[string]chan bool{}, stopSignals)
 	assert.NotNil(suite.T(), listenWg)
 }
 
@@ -226,7 +226,8 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 
 		logsCalls := mocklog.Calls
 		erroredLogCounts := 0
-		for _, call := range logsCalls {
+		for i := range logsCalls {
+			call := logsCalls[i]
 			if call.Method == "Debugf" && strings.Contains(call.Arguments.Get(0).(string), "Error processing telemetry message") {
 				erroredLogCounts++
 			}

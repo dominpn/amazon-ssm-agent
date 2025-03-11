@@ -27,11 +27,6 @@ type aggregateDataPoint struct {
 	dataPointCounts int
 }
 
-// aggregatedMetric is an interface for metric aggregators
-type aggregatedMetric[N int64 | float64] interface {
-	aggregate(point metric.DataPoint[N]) error
-}
-
 // kindAggregator is an interface which specifies how two metric points should be aggregated
 type kindAggregator[N int64 | float64] interface {
 	aggregate(previous aggregateDataPoint, newValue N) aggregateDataPoint

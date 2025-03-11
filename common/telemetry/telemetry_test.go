@@ -64,7 +64,6 @@ func (suite *TelemetryTestSuite) TearDownTest() {
 }
 
 func (suite *TelemetryTestSuite) TestInitialize() {
-
 	telemetryInstance, _ := getTelemetry()
 	assert.Nil(suite.T(), telemetryInstance)
 
@@ -83,7 +82,6 @@ func (suite *TelemetryTestSuite) TestInitialize() {
 // TestTelemetryAlreadyInitialized verifies that the telemetry initialization
 // can only occur once
 func (suite *TelemetryTestSuite) TestTelemetryAlreadyInitialized() {
-
 	telemetryInstance, _ := getTelemetry()
 	assert.Nil(suite.T(), telemetryInstance)
 

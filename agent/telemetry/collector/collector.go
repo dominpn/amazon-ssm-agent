@@ -80,7 +80,7 @@ type collectorT struct {
 	exportSchedulerJob *scheduler.Job
 }
 
-func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeriod time.Duration) (Collector, error) {
+func NewCollector(context context.T, aggregationPeriod, exportPeriod time.Duration) (Collector, error) {
 	// TODO : make the parameters configurable. Currently set to 10 max rolling files, 100 KB each
 	logCollector := newRollingLogCollector(context, 10, 100*1024, "logs")
 
@@ -115,9 +115,8 @@ func NewCollector(context context.T, aggregationPeriod time.Duration, exportPeri
 			}
 		}()
 
-		err := c.export()
-
-		if err != nil {
+		exportErr := c.export()
+		if exportErr != nil {
 			log.Warnf("Error when exporting telemetry: %v", err)
 		}
 	}); err != nil {
@@ -220,7 +219,7 @@ func (c *collectorT) export() error {
 	return errors.Join(errors.Join(errMetrics, errLogs), errors.Join(exportErrs...))
 }
 
-// exportNamespaceTelemetry exportes telemetry for a specific namespace to the attached exporters
+// exportNamespaceTelemetry exports telemetry for a specific namespace to the attached exporters
 func (c *collectorT) exportNamespaceTelemetry(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error {
 	if metrics == nil {
 		metrics = []metric.Metric[float64]{}
@@ -251,10 +250,8 @@ func (c *collectorT) Close() error {
 
 	c.exportSchedulerJob.Quit <- true
 
-	var errs []error
-
-	errs = append(errs, c.metricCollector.Close())
-	errs = append(errs, c.logCollector.Close())
+	errs := make([]error, 0, 2)
+	errs = append(errs, c.metricCollector.Close(), c.logCollector.Close())
 
 	return errors.Join(errs...)
 }

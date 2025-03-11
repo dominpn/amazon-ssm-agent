@@ -68,6 +68,7 @@ func (suite *rollingUtilsTestSuite) TearDownTest() {
 	fileutil.DeleteDirectory(testingDir)
 }
 
+//nolint:gocognit,funlen
 func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 	baseDir := filepath.Join(testingDir, "logs")
 
@@ -104,11 +105,10 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 				loggerConfig := getRollingUtilsTestLoggerConfig(namespaceDir, "logs", 100000000, 700)
 				seelogger, err := seelog.LoggerFromConfigAsBytes(loggerConfig)
 				require.NoError(suite.T(), err)
-				defer seelogger.Close()
-
 				for _, line := range logs {
 					seelogger.Debug(line)
 				}
+				seelogger.Close()
 
 				writtenLineCount += len(logs)
 			}
@@ -179,7 +179,6 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 						assert.False(suite.T(), fileInfo.IsDir())
 						assert.Equal(suite.T(), int64(0), fileInfo.Size())
 					}
-
 				}
 
 				remainingLineCount -= fetchedLineCount
@@ -193,8 +192,7 @@ func cleanupRollingUtilsTest() {
 	fileutil.DeleteDirectory(testingDir)
 }
 
-func getRollingUtilsTestLoggerConfig(defaultLogDir string, logFile string, maxRolls int, maxFileSize int64) []byte {
-
+func getRollingUtilsTestLoggerConfig(defaultLogDir, logFile string, maxRolls int, maxFileSize int64) []byte {
 	logFilePath := filepath.Join(defaultLogDir, logFile)
 	logConfig := `
 <seelog type="sync" minlevel="trace">
@@ -227,7 +225,6 @@ func createRollingUtilsNamespaceTestConfig(linesToWrite int) *ruNamespaceTestCon
 func createRollingUtilsTestCase(
 	chunkFetchLimit int,
 	namespaces map[string]*ruNamespaceTestConfig) *ruTestCase {
-
 	return &ruTestCase{chunkFetchLimit, namespaces}
 }
 

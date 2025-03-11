@@ -39,7 +39,7 @@ var (
 	listenChannels map[string]filewatcherbasedipc.IPCChannel
 
 	// namespace -> stop signal mapping
-	stopSignals map[string](chan bool)
+	stopSignals map[string]chan bool
 
 	// WaitGroup to wait until all telemetry collection is stopped during shutdown
 	listenWg *sync.WaitGroup
@@ -80,7 +80,7 @@ func Initialize(context context.T) (err error) {
 
 	singleton = c
 	listenChannels = make(map[string]filewatcherbasedipc.IPCChannel)
-	stopSignals = make(map[string](chan bool))
+	stopSignals = make(map[string]chan bool)
 	listenWg = new(sync.WaitGroup)
 
 	return nil
@@ -199,7 +199,7 @@ func listenOnChannel(log log.T, channelName string, stopSignal chan bool, ipc fi
 
 		case datagram, more := <-ipc.GetMessage():
 			if !more {
-				//safe close
+				// safe close
 				log.Debug("ipc channel closed, stop telemetry listener")
 				return
 			}
@@ -326,7 +326,7 @@ func Shutdown() (err error) {
 	// stop the collector
 	singleton.Close()
 
-	//wait for all collections to stop
+	// wait for all collections to stop
 	listenWg.Wait()
 
 	singleton = nil

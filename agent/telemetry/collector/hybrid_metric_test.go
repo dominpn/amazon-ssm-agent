@@ -20,7 +20,6 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
-
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/mocks"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/stretchr/testify/assert"

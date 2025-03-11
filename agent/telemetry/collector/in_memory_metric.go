@@ -105,7 +105,7 @@ func (c *namespacedAggregatedMetric) Close() (err error) {
 }
 
 // timeAggregatedMetric holds metrics aggregated by 1-second time spans. For example, if we get 500 data
-// points withing a single seconds for a metric, it will aggregate them to a single data point and store it.
+// points within a single seconds for a metric, it will aggregate them to a single data point and store it.
 // if another metric comes after that one second, it will be aggregated in anothe [timeSpan].
 type timeAggregatedMetric[N int64 | float64] struct {
 	name           string
@@ -167,10 +167,6 @@ func (m *timeAggregatedMetric[N]) aggregate(point metric.DataPoint[N]) error {
 	}
 
 	return nil
-}
-
-func (m *timeAggregatedMetric[N]) getDataPointsCount() int {
-	return len(m.spans)
 }
 
 // fetchAndDrop fetches limit number of the aggregated data points and drops them from the metric

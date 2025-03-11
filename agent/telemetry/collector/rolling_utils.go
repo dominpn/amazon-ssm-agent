@@ -37,8 +37,7 @@ const seelogConfigStringFormat = `
     </formats>
 </seelog>`
 
-func getLoggerConfig(defaultLogDir string, logFile string, maxRolls int, maxFileSize int64) []byte {
-
+func getLoggerConfig(defaultLogDir, logFile string, maxRolls int, maxFileSize int64) []byte {
 	logFilePath := filepath.Join(defaultLogDir, logFile)
 	logConfig := fmt.Sprintf(seelogConfigStringFormat, logFilePath, maxFileSize, maxRolls)
 	return []byte(logConfig)
@@ -102,7 +101,7 @@ func matchesRollPattern(file, expectedPrefix, expectedRollDelimiter string) bool
 	return strings.HasPrefix(file, rname)
 }
 
-func createFullFileName(originalName string, rollDelimiter string, rollNumber int) string {
+func createFullFileName(originalName, rollDelimiter string, rollNumber int) string {
 	return originalName + rollDelimiter + strconv.Itoa(rollNumber)
 }
 
@@ -162,7 +161,6 @@ func listFiles(dirPath string, filterFun func(filePath string) bool) ([]string, 
 
 		for _, item := range items {
 			if item.Mode()&os.ModeType == 0 { // check that it's a regular file (not a symlink etc)
-
 				fp := item.Name()
 				if filterFun != nil && !filterFun(fp) {
 					continue
@@ -177,7 +175,7 @@ func listFiles(dirPath string, filterFun func(filePath string) bool) ([]string, 
 // readAndDeleteRollingLogs is the common logic used fetching written records for both log and metric collectors.
 // It reads rolling files from all namespaces, while staying within the specified limit. It deletes the lines which were read.
 // returns a namespace -> lines map. returns EOF as error if all the logs were read from all the namespaces
-func readAndDeleteRollingLogs(log log.BasicT, baseDir string, fileNamePrefix string, limit int) (map[string][]string, error) {
+func readAndDeleteRollingLogs(log log.BasicT, baseDir, fileNamePrefix string, limit int) (map[string][]string, error) {
 	resultMap := make(map[string][]string)
 
 	namespaces, err := getSubdirNames(baseDir)
@@ -213,11 +211,11 @@ func readAndDeleteRollingLogs(log log.BasicT, baseDir string, fileNamePrefix str
 		nsDir := namespaceDirs[i]
 
 		var allLines []string
-		allLines, err := readDirAndTruncate(nsDir, fileNamePrefix, remainingLimit, log)
+		allLines, readErr := readDirAndTruncate(nsDir, fileNamePrefix, remainingLimit, log)
 
-		if err != nil {
-			if err != EOF {
-				return nil, err
+		if readErr != nil {
+			if readErr != EOF {
+				return nil, readErr
 			}
 		} else {
 			// we didn't read the directory fully
@@ -243,7 +241,7 @@ func readAndDeleteRollingLogs(log log.BasicT, baseDir string, fileNamePrefix str
 
 // readDirAndTruncate reads at most maxLines lines from all the files matching fileNamePrefix from the specified directory
 // returns EOF if all matching files were completely read. Returns some other error if there was an actual error
-func readDirAndTruncate(dir string, fileNamePrefix string, maxLines int, log log.BasicT) (allLines []string, err error) {
+func readDirAndTruncate(dir, fileNamePrefix string, maxLines int, log log.BasicT) (allLines []string, err error) {
 	files, err := getReverseSortedLogFiles(dir, fileNamePrefix, ".")
 	if err != nil {
 		return nil, err
@@ -263,24 +261,22 @@ func readDirAndTruncate(dir string, fileNamePrefix string, maxLines int, log log
 		}
 
 		// read and truncate file
-		lines, err := readLinesAndTruncate(file, maxLines)
+		lines, readErr := readLinesAndTruncate(file, maxLines)
 
-		if err != nil {
-			if os.IsNotExist(err) {
+		if readErr != nil {
+			if os.IsNotExist(readErr) {
 				log.Debugf("File %v not found, ignoring", file)
 				continue
-			} else if os.IsPermission(err) {
+			} else if os.IsPermission(readErr) {
 				log.Debugf("File %v not accessible, ignoring", file)
 				continue
-			} else if err != EOF {
-				return nil, err
-			} else {
+			} else if readErr != EOF {
+				return nil, readErr
+			} else if filepath.Base(file) != fileNamePrefix {
 				// the file is completely empty, delete it
 				// But do not delete the file the logger is currently writing to
 				// the logger will throw an error if it cannot find the file
-				if filepath.Base(file) != fileNamePrefix {
-					os.Remove(file) // ignore error on deletion
-				}
+				os.Remove(file) // ignore error on deletion
 			}
 		} else {
 			// not an EOF so we didn't read the file fully
@@ -333,8 +329,8 @@ func readLinesAndTruncate(filePath string, maxLines int) ([]string, error) {
 		resultWriteIndex = (resultWriteIndex + 1) % maxLines
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, err
+	if scannerErr := scanner.Err(); scannerErr != nil {
+		return nil, scannerErr
 	}
 
 	st, err := file.Stat()

@@ -31,6 +31,8 @@ import (
 
 // rollingLogCollector holds rolling log state of a single namespace
 type rollingLogCollector struct {
+	ctx context.T
+
 	// directory path
 	dirPath string
 
@@ -142,7 +144,8 @@ func (c *namespacedRollingLogCollector) Flush() error {
 					}
 				}()
 
-				return collector.flush()
+				collector.flush()
+				return nil
 			})
 		}(innerCollector)
 	}
@@ -153,7 +156,7 @@ func (c *namespacedRollingLogCollector) Flush() error {
 	return eg.Wait()
 }
 
-func (c *namespacedRollingLogCollector) Close() error {
+func (c *namespacedRollingLogCollector) Close() (err error) {
 	var eg errgroup.Group
 	eg.SetLimit(4) // limit to 4 parallel closes
 
@@ -172,13 +175,14 @@ func (c *namespacedRollingLogCollector) Close() error {
 					}
 				}()
 
-				return collector.close()
+				collector.close()
+				return nil
 			})
 		}(innerCollector)
 	}
 
 	// Wait for all goroutines to finish
-	err := eg.Wait()
+	err = eg.Wait()
 	if err != nil {
 		return err
 	}
@@ -209,6 +213,7 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 		}
 
 		rw := &rollingLogCollector{
+			ctx:     c.ctx,
 			dirPath: p,
 			logger:  seelogger,
 		}
@@ -228,16 +233,16 @@ func (c *rollingLogCollector) write(bytes []byte) (err error) {
 	return nil
 }
 
-func (rw *rollingLogCollector) flush() error {
+func (rw *rollingLogCollector) flush() {
 	rw.logger.Flush()
-	return nil
 }
 
-func (rw *rollingLogCollector) close() error {
+func (rw *rollingLogCollector) close() {
 	rw.logger.Close()
 
 	// remove the namespace direcory if it is empty. ignore errors
-	deleteDirectoryIfAllFilesEmpty(rw.dirPath)
-
-	return nil
+	err := deleteDirectoryIfAllFilesEmpty(rw.dirPath)
+	if err != nil {
+		rw.ctx.Log().Warnf("Failed to delete telemetry directory %s: %v", rw.dirPath, err)
+	}
 }
