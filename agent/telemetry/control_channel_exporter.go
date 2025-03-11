@@ -26,6 +26,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/session/communicator"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/datastores"
 	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
@@ -46,6 +47,7 @@ var telemetryExporterInstance *controlChannelTelemetryExporter
 type ITelemetryExporter interface {
 	StartExporter()
 	StopExporter()
+	ShouldExport(namespace string) bool
 }
 
 // controlChannelTelemetryExporter helps us in scheduling the process to send telemetry to MGS
@@ -102,7 +104,9 @@ func (t *controlChannelTelemetryExporter) StopExporter() {
 
 // For mocking support
 var getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
-var checkTelemetryExport = shouldExportTelemetry
+var controlChannelCheckTelemetryExportLuck = checkTelemetryExportLuck
+var controlChannelIsTelemetryEnabled = isTelemetryEnabled
+var controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 
 var randomPercentage = getRandomPercentage
 
@@ -110,7 +114,7 @@ func getRandomPercentage() int {
 	return rand.IntN(100)
 }
 
-func shouldExportTelemetry(log log.T, namespace string) bool {
+func checkTelemetryExportLuck(log log.T, namespace string) bool {
 	telemetryEmissionLuck := randomPercentage()
 	cachedDynamicConfiguration := getDynamicConfig()
 
@@ -124,9 +128,41 @@ func shouldExportTelemetry(log log.T, namespace string) bool {
 		log.Debugf("No configuration found for namespace %v", namespace)
 		return false
 	}
-
 	configuredPercentageLimit := config.PercentageLimit
-	return telemetryEmissionLuck < configuredPercentageLimit && config.TelemetryDisabledTill < time.Now().Unix()
+	return telemetryEmissionLuck < configuredPercentageLimit
+}
+
+func isTelemetryEnabled(log log.T, namespace string) bool {
+	cachedDynamicConfiguration := getDynamicConfig()
+	if cachedDynamicConfiguration == nil {
+		log.Debugf("Dynamic Configuration Cache is empty, defaulting to telemetry disabled for namespace %v", namespace)
+		return false
+	}
+
+	config, ok := cachedDynamicConfiguration[namespace]
+	if !ok {
+		log.Debugf("No configuration found for namespace %v, defaulting to telemetry disabled", namespace)
+		return false
+	}
+
+	return config.TelemetryDisabledTill < time.Now().Unix()
+}
+
+func tooSoontoExportTelemetry(log log.T, namespace string) bool {
+	lastEmittedDataStore := datastores.TelemetryLastEmittedDataStore()
+	lastEmittedTimeStamp := lastEmittedDataStore.Read(namespace)
+	log.Debugf("Last emitted timestamp for namespace %v is %v", namespace, lastEmittedTimeStamp)
+	exportPeriod := dynamicconfiguration.ExportPeriod(namespace)
+	return (time.Now().Unix() - lastEmittedTimeStamp) < int64(exportPeriod*60)
+}
+
+func updateLastEmittedTimestamp(namespace string, lastEmittedTimeStamp int64) {
+	lastEmittedDataStore := datastores.TelemetryLastEmittedDataStore()
+	lastEmittedDataStore.Write(namespace, lastEmittedTimeStamp)
+}
+
+func (t *controlChannelTelemetryExporter) ShouldExport(namespace string) bool {
+	return controlChannelCheckTelemetryExportLuck(t.ctx.Log(), namespace) && controlChannelIsTelemetryEnabled(t.ctx.Log(), namespace) && !controlChannelTooSoontoExportTelemetry(t.ctx.Log(), namespace)
 }
 
 func (t *controlChannelTelemetryExporter) Export(namespace string,
@@ -144,7 +180,7 @@ func (t *controlChannelTelemetryExporter) Export(namespace string,
 
 	logger := t.ctx.Log()
 
-	if !checkTelemetryExport(logger, namespace) {
+	if !t.ShouldExport(namespace) {
 		logger.Warnf("Skipping telemetry export for namespace %s", namespace)
 		return nil
 	}
@@ -182,6 +218,9 @@ func (t *controlChannelTelemetryExporter) Export(namespace string,
 	if err != nil {
 		err = fmt.Errorf("unable to send message to MGS: %s", err)
 	}
+
+	updateLastEmittedTimestamp(namespace, time.Now().Unix())
+
 	return err
 }
 

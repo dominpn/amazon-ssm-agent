@@ -208,7 +208,6 @@ func (c *collectorT) export() error {
 		// send telemetry for all namespaces
 		for ns := range namespaces {
 			err := c.exportNamespaceTelemetry(ns, metrics[ns], logs[ns])
-
 			exportErrs = append(exportErrs, err)
 		}
 
