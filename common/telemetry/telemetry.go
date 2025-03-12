@@ -152,7 +152,7 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 	return t.fileChannel.Send(string(ipcMessageJson))
 }
 
-func (t *telemetry) emitIntegerMetric(namespace, name, unit string, kind metric.Kind, time time.Time, value int64) (err error) {
+func (t *telemetry) emitIntegerMetric(namespace, name string, unit metric.Unit, kind metric.Kind, time time.Time, value int64) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if singleton != nil {

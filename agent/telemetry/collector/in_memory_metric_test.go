@@ -24,21 +24,21 @@ func TestNewTimeAggregatedMetric(t *testing.T) {
 	tests := []struct {
 		name       string
 		metricName string
-		unit       string
+		unit       metric.Unit
 		kind       metric.Kind
 		wantErr    bool
 	}{
 		{
 			name:       "valid sum metric",
 			metricName: "test_metric",
-			unit:       "count",
+			unit:       metric.UnitCount,
 			kind:       metric.Sum,
 			wantErr:    false,
 		},
 		{
 			name:       "unsupported metric kind",
 			metricName: "test_metric",
-			unit:       "count",
+			unit:       metric.UnitCount,
 			kind:       metric.Kind("unsupported"),
 			wantErr:    true,
 		},
@@ -113,10 +113,10 @@ func TestTimeAggregatedMetricAggregateStartTimeEqualsEndTime(t *testing.T) {
 }
 
 func TestInt64TimeAggregatedSumMetric(t *testing.T) {
-	tam, err := newTimeAggregatedMetric[int64]("test_metric", "{count}", metric.Sum)
+	tam, err := newTimeAggregatedMetric[int64]("test_metric", metric.UnitCount, metric.Sum)
 	assert.NoError(t, err)
 	assert.Equal(t, "test_metric", tam.name)
-	assert.Equal(t, "{count}", tam.unit)
+	assert.Equal(t, metric.UnitCount, tam.unit)
 	assert.Equal(t, metric.Sum, tam.kind)
 
 	now := time.Now().Truncate(time.Second)
@@ -179,10 +179,10 @@ func TestInt64TimeAggregatedSumMetric(t *testing.T) {
 }
 
 func TestFloat64TimeAggregatedSumMetric(t *testing.T) {
-	tam, err := newTimeAggregatedMetric[float64]("test_metric", "{count}", metric.Sum)
+	tam, err := newTimeAggregatedMetric[float64]("test_metric", metric.UnitCount, metric.Sum)
 	assert.NoError(t, err)
 	assert.Equal(t, "test_metric", tam.name)
-	assert.Equal(t, "{count}", tam.unit)
+	assert.Equal(t, metric.UnitCount, tam.unit)
 	assert.Equal(t, metric.Sum, tam.kind)
 
 	now := time.Now().Truncate(time.Second)
@@ -245,10 +245,10 @@ func TestFloat64TimeAggregatedSumMetric(t *testing.T) {
 }
 
 func TestInt64TimeAggregatedGaugeMetric(t *testing.T) {
-	tam, err := newTimeAggregatedMetric[int64]("test_metric", "{count}", metric.Gauge)
+	tam, err := newTimeAggregatedMetric[int64]("test_metric", metric.UnitCount, metric.Gauge)
 	assert.NoError(t, err)
 	assert.Equal(t, "test_metric", tam.name)
-	assert.Equal(t, "{count}", tam.unit)
+	assert.Equal(t, metric.UnitCount, tam.unit)
 	assert.Equal(t, metric.Gauge, tam.kind)
 
 	now := time.Now().Truncate(time.Second)

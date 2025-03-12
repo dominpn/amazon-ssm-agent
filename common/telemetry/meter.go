@@ -31,14 +31,14 @@ func GetMeter(namespace string) metric.Meter {
 	return meterT{namespace: namespace}
 }
 
-func (m meterT) Int64Counter(name, unit string) metric.Int64Counter {
+func (m meterT) Int64Counter(name string, unit metric.Unit) metric.Int64Counter {
 	return int64Counter{namespace: m.namespace, name: name, unit: unit}
 }
 
 type int64Counter struct {
 	namespace string
 	name      string
-	unit      string
+	unit      metric.Unit
 }
 
 // Add increments the counter by the specified amount

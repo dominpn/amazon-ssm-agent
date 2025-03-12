@@ -109,7 +109,7 @@ func (c *namespacedAggregatedMetric) Close() (err error) {
 // if another metric comes after that one second, it will be aggregated in anothe [timeSpan].
 type timeAggregatedMetric[N int64 | float64] struct {
 	name           string
-	unit           string
+	unit           metric.Unit
 	kind           metric.Kind
 	kindAggregator kindAggregator[N]
 	mtx            *sync.Mutex
@@ -117,7 +117,7 @@ type timeAggregatedMetric[N int64 | float64] struct {
 }
 
 // newTimeAggregatedMetric creates and returns a new instance of [timeAggregatedMetric]
-func newTimeAggregatedMetric[N int64 | float64](name, unit string, kind metric.Kind) (*timeAggregatedMetric[N], error) {
+func newTimeAggregatedMetric[N int64 | float64](name string, unit metric.Unit, kind metric.Kind) (*timeAggregatedMetric[N], error) {
 	kc, err := newMetricKindAggregator[N](kind)
 	if err != nil {
 		return nil, err

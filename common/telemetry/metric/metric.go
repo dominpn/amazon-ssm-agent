@@ -23,12 +23,58 @@ const (
 	Gauge Kind = "gauge"
 )
 
+type Unit string
+
+const (
+	// Time-based units
+	UnitSeconds      Unit = "s"
+	UnitMicroseconds Unit = "us"
+	UnitMilliseconds Unit = "ms"
+
+	// Size-based units
+	UnitBytes     Unit = "By"
+	UnitKilobytes Unit = "KiBy"
+	UnitMegabytes Unit = "MiBy"
+	UnitGigabytes Unit = "GiBy"
+	UnitTerabytes Unit = "TiBy"
+
+	// Bit-based units
+	UnitBits     Unit = "bit"
+	UnitKilobits Unit = "Kibit"
+	UnitMegabits Unit = "Mibit"
+	UnitGigabits Unit = "Gibit"
+	UnitTerabits Unit = "Tibit"
+
+	// Rate units
+	UnitBytesPerSecond     Unit = "By/s"
+	UnitKilobytesPerSecond Unit = "KiBy/s"
+	UnitMegabytesPerSecond Unit = "MiBy/s"
+	UnitGigabytesPerSecond Unit = "GiBy/s"
+	UnitTerabytesPerSecond Unit = "TiBy/s"
+
+	UnitBitsPerSecond     Unit = "bit/s"
+	UnitKilobitsPerSecond Unit = "Kibit/s"
+	UnitMegabitsPerSecond Unit = "Mibit/s"
+	UnitGigabitsPerSecond Unit = "Gibit/s"
+	UnitTerabitsPerSecond Unit = "Tibit/s"
+
+	// Other units
+	UnitPercent     Unit = "%"
+	UnitCount       Unit = "1"
+	UnitCountPerSec Unit = "1/s"
+	UnitNone        Unit = ""
+)
+
+func (u Unit) String() string {
+	return string(u)
+}
+
 type NamespaceMetrics[N int64 | float64] map[string][]Metric[N]
 
 type Metric[N int64 | float64] struct {
 	// Name is the name of the Instrument that created this data.
 	Name       string
-	Unit       string
+	Unit       Unit
 	Kind       Kind
 	DataPoints []DataPoint[N]
 }
@@ -52,5 +98,5 @@ type Counter[N int64 | float64] interface {
 
 // Meter interface provides different "instruments" like counter, gauge, histogram etc.
 type Meter interface {
-	Int64Counter(name, unit string) Int64Counter
+	Int64Counter(name string, unit Unit) Int64Counter
 }

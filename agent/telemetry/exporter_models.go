@@ -75,7 +75,7 @@ func mapMetrics(metrics []metric.Metric[float64]) []Metric {
 	for i, m := range metrics {
 		result[i] = Metric{
 			Name:       m.Name,
-			Unit:       m.Unit,
+			Unit:       m.Unit.String(),
 			DataPoints: mapDataPoints(m.DataPoints),
 		}
 	}
