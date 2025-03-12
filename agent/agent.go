@@ -39,6 +39,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/ssm"
 	"github.com/aws/amazon-ssm-agent/agent/startup"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
+	dynamicConfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	agentIdentity "github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/identity/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
@@ -143,6 +144,9 @@ func initializeTelemetry(log log.T, agentIdentity agentIdentity.IAgentIdentity, 
 		log.Info("Agent GlobalEnhancedTelemetry is disabled, hence skipping telemetry initialisation")
 		return
 	}
+
+	//Initialize dynamic configuration required by telemetry
+	dynamicConfiguration.NewTelemetryDynamicConfiguration(log, true, filepath.Join(appconfig.DynamicConfigFolderPath, appconfig.DynamicConfigFileName))
 
 	telemetryCtx := telemetryContext.NewTelemetryContext(telemetry.AgentWorkerChannelName, log, agentIdentity)
 	err := telemetry.Initialize(telemetryCtx)
