@@ -65,12 +65,11 @@ func EvictCache() {
 
 func getDefaultConfiguration() DynamicConfiguration {
 	return DynamicConfiguration{
-		//TODO: Fix Defaults
 		TelemetryDisabledTill: 0,
-		PercentageLimit:       0,
-		MaxRolls:              0,
-		MaxRollSize:           0,
-		ExportPeriod:          0,
+		PercentageLimit:       5,
+		MaxRolls:              10,
+		MaxRollSize:           2048,
+		ExportPeriod:          5,
 	}
 }
 
@@ -153,8 +152,12 @@ func populateDynamicConfigurationWithDefaults() NamespaceConfiguration {
 	return configMap
 }
 
+var GetDynamicConfigFolderPath = func() string {
+	return appconfig.DynamicConfigFolderPath
+}
+
 func saveDynamicConfiguration(log log.T, configMap NamespaceConfiguration, configFilePath string) error {
-	err := os.MkdirAll(appconfig.DynamicConfigFolderPath, 0666)
+	err := os.MkdirAll(GetDynamicConfigFolderPath(), 0755)
 	if err != nil {
 		log.Errorf("Failed to create directory: %v", err)
 	}

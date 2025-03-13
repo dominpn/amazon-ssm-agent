@@ -41,11 +41,11 @@ func TestNewTelemetryDynamicConfigurationPopulatesDefaults(t *testing.T) {
 	NewTelemetryDynamicConfiguration(log, false, fakeConfigFilePath)
 	dynamicConfig := GetCachedDynamicConfiguration()
 
-	assert.Equal(t, dynamicConfig["default"].TelemetryDisabledTill, int64(0))
-	assert.Equal(t, 0, dynamicConfig["default"].PercentageLimit)
-	assert.Equal(t, 0, dynamicConfig["default"].MaxRolls)
-	assert.Equal(t, int64(0), dynamicConfig["default"].MaxRollSize)
-	assert.Equal(t, 0, dynamicConfig["default"].ExportPeriod)
+	assert.Equal(t, getDefaultConfiguration().TelemetryDisabledTill, dynamicConfig["default"].TelemetryDisabledTill)
+	assert.Equal(t, getDefaultConfiguration().PercentageLimit, dynamicConfig["default"].PercentageLimit)
+	assert.Equal(t, getDefaultConfiguration().MaxRolls, dynamicConfig["default"].MaxRolls)
+	assert.Equal(t, getDefaultConfiguration().MaxRollSize, dynamicConfig["default"].MaxRollSize)
+	assert.Equal(t, getDefaultConfiguration().ExportPeriod, dynamicConfig["default"].ExportPeriod)
 }
 
 func TestNewTelemetryDynamicConfigurationReadsPreExistingConfigFile(t *testing.T) {
@@ -240,11 +240,84 @@ func TestDefaultWhenConfigNotInitialised(t *testing.T) {
 	Setup()
 	defer Teardown()
 
-	assert.Equal(t, 0, MaxRolls("ssmagent"))
-	assert.Equal(t, int64(0), MaxRollSize("ssmagent"))
-	assert.Equal(t, 0, PercentageLimit("ssmagent"))
-	assert.Equal(t, int64(0), TelemetryDisabledTill("ssmagent"))
-	assert.Equal(t, 0, ExportPeriod("ssmagent"))
+	assert.Equal(t, getDefaultConfiguration().MaxRolls, MaxRolls("ssmagent"))
+	assert.Equal(t, getDefaultConfiguration().MaxRollSize, MaxRollSize("ssmagent"))
+	assert.Equal(t, getDefaultConfiguration().PercentageLimit, PercentageLimit("ssmagent"))
+	assert.Equal(t, getDefaultConfiguration().TelemetryDisabledTill, TelemetryDisabledTill("ssmagent"))
+	assert.Equal(t, getDefaultConfiguration().ExportPeriod, ExportPeriod("ssmagent"))
+}
+
+func TestInitSavesConfigToDiskWhenNotPresentInitially(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	oldDynamicConfigFolderPath := GetDynamicConfigFolderPath
+	GetDynamicConfigFolderPath = func() string {
+		return testingDir
+	}
+	defer func() {
+		GetDynamicConfigFolderPath = oldDynamicConfigFolderPath
+	}()
+	// assert.FileDoesNotExist(t, filepath.Clean(fakeConfigFilePath))
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.FileExists(t, filepath.Clean(fakeConfigFilePath))
+}
+func TestMaxRollsUsesDefaultWhenNoConfigFileOnDisk(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, getDefaultConfiguration().MaxRolls, MaxRolls("distributor"))
+}
+
+func TestMaxRollSizeUsesDefaultWhenNoConfigFileOnDisk(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, getDefaultConfiguration().MaxRollSize, MaxRollSize("distributor"))
+}
+
+func TestPercentageLimitUsesDefaultWhenNoConfigFileOnDisk(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, getDefaultConfiguration().PercentageLimit, PercentageLimit("distributor"))
+}
+
+func TestTelemetryDisabledTillUsesDefaultWhenNoConfigFileOnDisk(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, getDefaultConfiguration().TelemetryDisabledTill, TelemetryDisabledTill("distributor"))
+}
+
+func TestExportPeriodUsesDefaultWhenNoConfigFileOnDisk(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, getDefaultConfiguration().ExportPeriod, ExportPeriod("distributor"))
 }
 
 func TestMaxRollsWhenConfigInitialisedWithNamespace(t *testing.T) {

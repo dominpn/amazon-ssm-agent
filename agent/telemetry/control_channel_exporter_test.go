@@ -173,9 +173,9 @@ func (suite *controlChannelExporterTestSuite) TestCheckTelemetryExportLucky() {
 		randomPercentage = getRandomPercentage
 	}()
 
-	getDynamicConfig = getFakeDynamicConfig
+	dynamicconfiguration.PercentageLimit = func(namespace string) int { return 50 }
 	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+		dynamicconfiguration.PercentageLimit = dynamicconfiguration.GetPercentageLimit
 	}()
 
 	assert.Equal(suite.T(), true, controlChannelCheckTelemetryExportLuck(suite.ctx.Log(), "testNamespace"))
@@ -187,58 +187,31 @@ func (suite *controlChannelExporterTestSuite) TestCheckTelemetryExportUnlucky() 
 		randomPercentage = getRandomPercentage
 	}()
 
-	getDynamicConfig = getFakeDynamicConfig
+	dynamicconfiguration.PercentageLimit = func(namespace string) int { return 50 }
 	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+		dynamicconfiguration.PercentageLimit = dynamicconfiguration.GetPercentageLimit
 	}()
 
-	assert.Equal(suite.T(), false, controlChannelCheckTelemetryExportLuck(suite.ctx.Log(), "testNamespace"))
-}
-
-func (suite *controlChannelExporterTestSuite) TestCheckTelemetryDefaultsBadLuckForEmptyCache() {
-	randomPercentage = getLowerThanConfiguredPercentageLimit
-	defer func() {
-		randomPercentage = getRandomPercentage
-	}()
-
-	getDynamicConfig = getFakeDynamicConfig
-	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
-	}()
-
-	assert.Equal(suite.T(), false, controlChannelCheckTelemetryExportLuck(suite.ctx.Log(), "wrongNamespace"))
-}
-
-func (suite *controlChannelExporterTestSuite) TestCheckTelemetryDefaultsBadLuckForNonExistingNamespace() {
-
-	randomPercentage = getLowerThanConfiguredPercentageLimit
-	defer func() {
-		randomPercentage = getRandomPercentage
-	}()
-
-	getDynamicConfig = func() dynamicconfiguration.NamespaceConfiguration {
-		return nil
-	}
-
-	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
-	}()
 	assert.Equal(suite.T(), false, controlChannelCheckTelemetryExportLuck(suite.ctx.Log(), "testNamespace"))
 }
 
 func (suite *controlChannelExporterTestSuite) TestIsTelemetryDisabled() {
-	getDynamicConfig = getFakeDynamicConfigWithTelemetryDisabledForever
+	dynamicconfiguration.TelemetryDisabledTill = func(string) int64 {
+		return 2 * time.Now().Unix()
+	}
 	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+		dynamicconfiguration.TelemetryDisabledTill = dynamicconfiguration.GetTelemetryDisabledTill
 	}()
 
 	assert.Equal(suite.T(), false, controlChannelIsTelemetryEnabled(suite.ctx.Log(), "testNamespace"))
 }
 
 func (suite *controlChannelExporterTestSuite) TestIsTelemetryEnabled() {
-	getDynamicConfig = getFakeDynamicConfig
+	dynamicconfiguration.TelemetryDisabledTill = func(string) int64 {
+		return 0
+	}
 	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+		dynamicconfiguration.TelemetryDisabledTill = dynamicconfiguration.GetTelemetryDisabledTill
 	}()
 
 	assert.Equal(suite.T(), true, controlChannelIsTelemetryEnabled(suite.ctx.Log(), "testNamespace"))
@@ -348,10 +321,9 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenLuck
 		randomPercentage = getRandomPercentage
 	}()
 
-	getDynamicConfig = getFakeDynamicConfig
-
+	dynamicconfiguration.PercentageLimit = func(namespace string) int { return 50 }
 	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+		dynamicconfiguration.PercentageLimit = dynamicconfiguration.GetPercentageLimit
 	}()
 
 	controlChannelIsTelemetryEnabled = func(log log.T, namespace string) bool {
@@ -435,9 +407,9 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWh
 		randomPercentage = getRandomPercentage
 	}()
 
-	getDynamicConfig = getFakeDynamicConfig
+	dynamicconfiguration.PercentageLimit = func(namespace string) int { return 50 }
 	defer func() {
-		getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
+		dynamicconfiguration.PercentageLimit = dynamicconfiguration.GetPercentageLimit
 	}()
 
 	controlChannelIsTelemetryEnabled = func(log log.T, namespace string) bool {

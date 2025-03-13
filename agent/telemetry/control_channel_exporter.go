@@ -103,7 +103,6 @@ func (t *controlChannelTelemetryExporter) StopExporter() {
 }
 
 // For mocking support
-var getDynamicConfig = dynamicconfiguration.GetCachedDynamicConfiguration
 var controlChannelCheckTelemetryExportLuck = checkTelemetryExportLuck
 var controlChannelIsTelemetryEnabled = isTelemetryEnabled
 var controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
@@ -116,42 +115,18 @@ func getRandomPercentage() int {
 
 func checkTelemetryExportLuck(log log.T, namespace string) bool {
 	telemetryEmissionLuck := randomPercentage()
-	cachedDynamicConfiguration := getDynamicConfig()
-
-	if cachedDynamicConfiguration == nil {
-		log.Debugf("Dynamic Configuration Cache is empty, not emitting metrics for namespace %v", namespace)
-		return false
-	}
-
-	config, ok := cachedDynamicConfiguration[namespace]
-	if !ok {
-		log.Debugf("No configuration found for namespace %v", namespace)
-		return false
-	}
-	configuredPercentageLimit := config.PercentageLimit
+	configuredPercentageLimit := dynamicconfiguration.PercentageLimit(namespace)
 	return telemetryEmissionLuck < configuredPercentageLimit
 }
 
 func isTelemetryEnabled(log log.T, namespace string) bool {
-	cachedDynamicConfiguration := getDynamicConfig()
-	if cachedDynamicConfiguration == nil {
-		log.Debugf("Dynamic Configuration Cache is empty, defaulting to telemetry disabled for namespace %v", namespace)
-		return false
-	}
-
-	config, ok := cachedDynamicConfiguration[namespace]
-	if !ok {
-		log.Debugf("No configuration found for namespace %v, defaulting to telemetry disabled", namespace)
-		return false
-	}
-
-	return config.TelemetryDisabledTill < time.Now().Unix()
+	telemetryDisabledTill := dynamicconfiguration.TelemetryDisabledTill(namespace)
+	return telemetryDisabledTill < time.Now().Unix()
 }
 
 func tooSoontoExportTelemetry(log log.T, namespace string) bool {
 	lastEmittedDataStore := datastores.TelemetryLastEmittedDataStore()
 	lastEmittedTimeStamp := lastEmittedDataStore.Read(namespace)
-	log.Debugf("Last emitted timestamp for namespace %v is %v", namespace, lastEmittedTimeStamp)
 	exportPeriod := dynamicconfiguration.ExportPeriod(namespace)
 	return (time.Now().Unix() - lastEmittedTimeStamp) < int64(exportPeriod*60)
 }
@@ -181,7 +156,7 @@ func (t *controlChannelTelemetryExporter) Export(namespace string,
 	logger := t.ctx.Log()
 
 	if !t.ShouldExport(namespace) {
-		logger.Warnf("Skipping telemetry export for namespace %s", namespace)
+		logger.Debugf("Skipping telemetry export for namespace %s", namespace)
 		return nil
 	}
 
@@ -218,7 +193,6 @@ func (t *controlChannelTelemetryExporter) Export(namespace string,
 	if err != nil {
 		err = fmt.Errorf("unable to send message to MGS: %s", err)
 	}
-
 	updateLastEmittedTimestamp(namespace, time.Now().Unix())
 
 	return err
