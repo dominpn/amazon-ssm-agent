@@ -25,27 +25,28 @@ type ch struct {
 var queueMap = make(map[string]ch)
 
 func (q *queue) Enqueue(elem string) {
-	mu.RLock()
-	defer mu.RUnlock()
+	mu.Lock()
+	defer mu.Unlock()
 	*q = append(*q, elem)
 }
 
 func (q *queue) Dequeue() (string, bool) {
+	mu.Lock()
+	defer mu.Unlock()
 	if len(*q) == 0 {
 		return "", false
 	}
-	mu.RLock()
-	defer mu.RUnlock()
 	res := (*q)[0]
 	*q = (*q)[1:]
 	return res, true
 }
 
 type FakeChannel struct {
-	recvChan chan string
-	closed   bool
-	name     string
-	mode     filewatcherbasedipc.Mode
+	recvChan    chan string
+	closedMutex sync.RWMutex // mutex on the closed variable below
+	closed      bool
+	name        string
+	mode        filewatcherbasedipc.Mode
 }
 
 func getQueue(c ch, mode filewatcherbasedipc.Mode) (*queue, *queue) {
@@ -67,9 +68,10 @@ func NewFakeChannel(log log.T, mode filewatcherbasedipc.Mode, name string) *Fake
 	recvChan := make(chan string, 100)
 	_, recvQ := getQueue(queueMap[name], mode)
 	f := FakeChannel{
-		mode:     mode,
-		name:     name,
-		recvChan: recvChan,
+		closedMutex: sync.RWMutex{},
+		mode:        mode,
+		name:        name,
+		recvChan:    recvChan,
 	}
 	go f.poll(name, recvQ, recvChan)
 	return &f
@@ -77,9 +79,10 @@ func NewFakeChannel(log log.T, mode filewatcherbasedipc.Mode, name string) *Fake
 
 func (f *FakeChannel) poll(name string, q *queue, recvChan chan string) {
 	for {
-		if f.closed {
+		if f.isClosed() {
 			return
 		}
+
 		if _, ok := queueMap[name]; !ok {
 			fmt.Println("fatal: channel " + name + " already destroyed while receiving...")
 			return
@@ -106,12 +109,22 @@ func (f *FakeChannel) GetMessage() <-chan string {
 	return f.recvChan
 }
 
+func (f *FakeChannel) isClosed() bool {
+	f.closedMutex.RLock()
+	defer f.closedMutex.RUnlock()
+	return f.closed
+}
+
 // close stops the receiving channel
 func (f *FakeChannel) Close() {
-	if f.closed {
+	if f.isClosed() {
 		return
 	}
+
+	f.closedMutex.Lock()
+	defer f.closedMutex.Unlock()
 	f.closed = true
+
 	time.Sleep(120 * time.Millisecond)
 	close(f.recvChan)
 	return

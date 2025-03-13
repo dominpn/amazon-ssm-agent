@@ -67,6 +67,7 @@ func newRollingLogCollector(context context.T, fileNamePrefix string) *namespace
 		ctx:             context,
 		baseDir:         getBaseLogStoreDir(),
 		fileNamePrefix:  fileNamePrefix,
+		logCollectorMtx: &sync.Mutex{},
 		collectorMapMtx: &sync.Mutex{},
 		collectorMap:    make(map[string]*rollingLogCollector),
 	}

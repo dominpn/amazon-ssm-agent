@@ -68,11 +68,12 @@ var getBaseMetricsStoreDir = func() string {
 
 func NewRollingDiskMetricCollector(context context.T, fileNamePrefix string) *namespacedDiskMetricCollector {
 	return &namespacedDiskMetricCollector{
-		ctx:            context,
-		baseDir:        getBaseMetricsStoreDir(),
-		fileNamePrefix: fileNamePrefix,
-		mtx:            &sync.Mutex{},
-		collectorMap:   make(map[string]*rollingDiskMetricCollector),
+		ctx:                context,
+		baseDir:            getBaseMetricsStoreDir(),
+		fileNamePrefix:     fileNamePrefix,
+		metricCollectorMtx: &sync.Mutex{},
+		collectorMapMtx:    &sync.Mutex{},
+		collectorMap:       make(map[string]*rollingDiskMetricCollector),
 	}
 }
 

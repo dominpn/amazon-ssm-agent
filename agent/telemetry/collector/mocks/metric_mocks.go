@@ -58,9 +58,12 @@ func (m *SlowMetricsCollectorMock) FetchAndDrop(limit int) (metric.NamespaceMetr
 
 	var r0 metric.NamespaceMetrics[float64]
 	var r1 error
-	rf := ret.Get(0).(func() (metric.NamespaceMetrics[float64], error))
-
-	r0, r1 = rf()
+	if rf, ok := ret.Get(0).(func() (metric.NamespaceMetrics[float64], error)); ok {
+		r0, r1 = rf()
+	} else {
+		r0 = ret.Get(0).(metric.NamespaceMetrics[float64])
+		r1 = ret.Get(1).(error)
+	}
 	return r0, r1
 }
 
@@ -130,9 +133,12 @@ func (m *FastMetricsCollectorMock) FetchAndDrop(limit int) (metric.NamespaceMetr
 
 	var r0 metric.NamespaceMetrics[float64]
 	var r1 error
-	rf := ret.Get(0).(func() (metric.NamespaceMetrics[float64], error))
-
-	r0, r1 = rf()
+	if rf, ok := ret.Get(0).(func() (metric.NamespaceMetrics[float64], error)); ok {
+		r0, r1 = rf()
+	} else {
+		r0 = ret.Get(0).(metric.NamespaceMetrics[float64])
+		r1 = ret.Get(1).(error)
+	}
 	return r0, r1
 }
 

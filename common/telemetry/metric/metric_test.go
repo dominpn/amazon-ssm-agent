@@ -10,28 +10,36 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package telemetrylog
+package metric
 
 import (
-	"github.com/stretchr/testify/mock"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-type Mock struct {
-	mock.Mock
-}
+func TestUnit_String(t *testing.T) {
+	tests := []struct {
+		name     string
+		unit     Unit
+		expected string
+	}{
+		{
+			name:     "Empty unit",
+			unit:     Unit(""),
+			expected: "",
+		},
+		{
+			name:     "Count unit",
+			unit:     Unit("count"),
+			expected: "count",
+		},
+	}
 
-// NewMockDefault returns an instance of Mock with default expectations set.
-func NewMockDefault() *Mock {
-	log := new(Mock)
-	return log
-}
-
-func (m *Mock) EmitLog(s Severity, v ...interface{}) error {
-	args := m.Called(s, v)
-	return args.Error(0)
-}
-
-func (m *Mock) EmitLogf(s Severity, format string, params ...interface{}) error {
-	args := m.Called(s, format, params)
-	return args.Error(0)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.unit.String()
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

@@ -13,9 +13,12 @@
 package collector
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/stretchr/testify/assert"
 )
@@ -308,4 +311,266 @@ func TestInt64TimeAggregatedGaugeMetric(t *testing.T) {
 	}]
 	assert.Equal(t, float64(7.5), third.Value)
 	assert.Equal(t, 2, third.dataPointCounts)
+}
+
+func TestNamespacedAggregatedMetric_CollectMetric(t *testing.T) {
+	timeStamp := time.Now().UTC()
+
+	tests := []struct {
+		name      string
+		namespace string
+		metric    metric.Metric[float64]
+		wantErr   bool
+	}{
+		{
+			name:      "Basic",
+			namespace: "test-namespace",
+			metric: metric.Metric[float64]{
+				Name: "test-metric",
+				Unit: metric.UnitCount,
+				Kind: metric.Sum,
+				DataPoints: []metric.DataPoint[float64]{
+					{
+						StartTime: timeStamp,
+						EndTime:   timeStamp,
+						Value:     1.0},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:      "Multiple data points",
+			namespace: "test-namespace",
+			metric: metric.Metric[float64]{
+				Name: "test-metric",
+				Unit: metric.UnitCount,
+				Kind: metric.Sum,
+				DataPoints: []metric.DataPoint[float64]{
+					{
+						StartTime: timeStamp,
+						EndTime:   timeStamp,
+						Value:     2.0,
+					},
+					{
+						StartTime: timeStamp,
+						EndTime:   timeStamp,
+						Value:     3.0,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:      "Empty datapoints",
+			namespace: "test-namespace",
+			metric: metric.Metric[float64]{
+				Name:       "test-metric",
+				Unit:       metric.UnitCount,
+				Kind:       metric.Sum,
+				DataPoints: []metric.DataPoint[float64]{},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Initialize the collector
+			c := NewInMemoryMetricCollector(context.NewMockDefault())
+
+			// Execute the method
+			err := c.CollectMetric(tt.namespace, tt.metric)
+
+			// Assert results
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				// Verify metric was stored correctly
+				assert.NotNil(t, c.metrics[tt.namespace])
+				assert.NotNil(t, c.metrics[tt.namespace][tt.metric.Name])
+
+				// Verify metric properties
+				storedMetric := c.metrics[tt.namespace][tt.metric.Name]
+				assert.Equal(t, tt.metric.Name, storedMetric.name)
+				assert.Equal(t, tt.metric.Unit, storedMetric.unit)
+				assert.Equal(t, tt.metric.Kind, storedMetric.kind)
+
+				if len(tt.metric.DataPoints) == 0 {
+					assert.Len(t, storedMetric.spans, 0)
+				} else {
+					expectedValue := 0.0
+					for _, point := range tt.metric.DataPoints {
+						expectedValue += point.Value
+					}
+
+					spanStartTime := tt.metric.DataPoints[0].StartTime.Truncate(time.Second)
+
+					assert.Equal(t, metric.DataPoint[float64]{
+						StartTime: spanStartTime,
+						EndTime:   spanStartTime.Add(time.Second),
+						Value:     expectedValue,
+					}, storedMetric.spans[timeSpan{
+						startTime: spanStartTime,
+						endTime:   spanStartTime.Add(time.Second),
+					}].DataPoint)
+				}
+			}
+		})
+	}
+}
+
+// Test concurrent access
+func TestNamespacedAggregatedMetric_CollectMetric_Concurrent(t *testing.T) {
+	c := NewInMemoryMetricCollector(context.NewMockDefault())
+
+	timeStamp := time.Now().UTC()
+
+	const goroutines = 10
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+
+	for i := 0; i < goroutines; i++ {
+		go func(id int) {
+			defer wg.Done()
+			metric := metric.Metric[float64]{
+				Name: fmt.Sprintf("test-metric-%d", id),
+				Unit: metric.UnitCount,
+				Kind: metric.Sum,
+				DataPoints: []metric.DataPoint[float64]{
+					{
+						Value:     float64(id),
+						StartTime: timeStamp.Add(time.Duration(i) * time.Second),
+						EndTime:   timeStamp.Add(time.Duration(i) * time.Second),
+					},
+				},
+			}
+			err := c.CollectMetric("test-namespace", metric)
+			assert.NoError(t, err)
+		}(i)
+	}
+
+	wg.Wait()
+
+	// Verify all metrics were stored
+	assert.Len(t, c.metrics["test-namespace"], goroutines)
+}
+
+func TestNamespacedAggregatedMetric_FetchAllAndDrop(t *testing.T) {
+	timeStamp := time.Now().UTC()
+
+	tests := []struct {
+		name      string
+		namespace string
+		metric    metric.Metric[float64]
+		wantErr   bool
+	}{
+		{
+			name:      "Basic",
+			namespace: "test-namespace",
+			metric: metric.Metric[float64]{
+				Name: "test-metric",
+				Unit: metric.UnitCount,
+				Kind: metric.Sum,
+				DataPoints: []metric.DataPoint[float64]{
+					{
+						StartTime: timeStamp,
+						EndTime:   timeStamp,
+						Value:     1.0},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:      "Multiple datapoints",
+			namespace: "test-namespace",
+			metric: metric.Metric[float64]{
+				Name: "test-metric",
+				Unit: metric.UnitCount,
+				Kind: metric.Sum,
+				DataPoints: []metric.DataPoint[float64]{
+					{
+						StartTime: timeStamp,
+						EndTime:   timeStamp,
+						Value:     2.0,
+					},
+					{
+						StartTime: timeStamp,
+						EndTime:   timeStamp,
+						Value:     3.0,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:      "Empty datapoints",
+			namespace: "test-namespace",
+			metric: metric.Metric[float64]{
+				Name:       "test-metric",
+				Unit:       metric.UnitCount,
+				Kind:       metric.Sum,
+				DataPoints: []metric.DataPoint[float64]{},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Initialize the collector
+			c := NewInMemoryMetricCollector(context.NewMockDefault())
+
+			// Execute the method
+			err := c.CollectMetric(tt.namespace, tt.metric)
+
+			// Assert results
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				result, err := c.FetchAllAndDrop()
+				assert.NoError(t, err)
+
+				if len(tt.metric.DataPoints) == 0 {
+					assert.Equal(t, metric.NamespaceMetrics[float64]{
+						"test-namespace": []metric.Metric[float64]{
+							{
+								Name:       tt.metric.Name,
+								Unit:       tt.metric.Unit,
+								Kind:       tt.metric.Kind,
+								DataPoints: []metric.DataPoint[float64]{},
+							},
+						},
+					}, result)
+				} else {
+					expectedValue := 0.0
+					for _, point := range tt.metric.DataPoints {
+						expectedValue += point.Value
+					}
+
+					spanStartTime := tt.metric.DataPoints[0].StartTime.Truncate(time.Second)
+
+					assert.Equal(t, metric.NamespaceMetrics[float64]{
+						"test-namespace": []metric.Metric[float64]{
+							{
+								Name: tt.metric.Name,
+								Unit: tt.metric.Unit,
+								Kind: tt.metric.Kind,
+								DataPoints: []metric.DataPoint[float64]{
+									{
+										StartTime: spanStartTime,
+										EndTime:   spanStartTime.Add(time.Second),
+										Value:     expectedValue,
+									},
+								},
+							},
+						},
+					}, result)
+				}
+			}
+		})
+	}
 }

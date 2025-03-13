@@ -144,6 +144,115 @@ func (suite *rollingDiskMetricCollectorTestSuite) TearDownTest() {
 	fileutil.DeleteDirectory(testingDir)
 }
 
+func (suite *rollingDiskMetricCollectorTestSuite) TestFetchAndDrop() {
+	// maxRolls = 1  each file 1MB
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	testCollector := NewRollingDiskMetricCollector(context.NewMockDefault(), "metrics")
+	defer testCollector.Close()
+
+	startTimeStamp := time.Now().UTC()
+
+	for i := 0; i < 100; i++ {
+		metric := metric.Metric[float64]{
+			Name: "test_metric",
+			Unit: "ms",
+			Kind: metric.Sum,
+			DataPoints: []metric.DataPoint[float64]{{
+				StartTime: startTimeStamp.Add(time.Duration(i) * time.Second),
+				EndTime:   startTimeStamp.Add(time.Duration(i) * time.Second),
+				Value:     float64(i),
+			}},
+		}
+		testCollector.CollectMetric("testNamespace", metric)
+		testCollector.CollectMetric("testNamespace2", metric)
+	}
+	testCollector.Flush()
+
+	fetchedMetrics, err := testCollector.FetchAndDrop(1000000)
+	assert.ErrorIs(suite.T(), EOF, err)
+
+	// 2 namespaces
+	assert.Len(suite.T(), fetchedMetrics, 2)
+	assert.Len(suite.T(), fetchedMetrics["testNamespace"], 100)
+	assert.Len(suite.T(), fetchedMetrics["testNamespace2"], 100)
+
+	for i := 0; i < 100; i++ {
+		metric := metric.Metric[float64]{
+			Name: "test_metric",
+			Unit: "ms",
+			Kind: metric.Sum,
+			DataPoints: []metric.DataPoint[float64]{{
+				StartTime: startTimeStamp.Add(time.Duration(i) * time.Second),
+				EndTime:   startTimeStamp.Add(time.Duration(i) * time.Second),
+				Value:     float64(i),
+			}},
+		}
+		// the logs are oldest first
+		assert.Equal(suite.T(), metric, fetchedMetrics["testNamespace"][100-i-1])
+		assert.Equal(suite.T(), metric, fetchedMetrics["testNamespace2"][100-i-1])
+	}
+}
+
+func (suite *rollingDiskMetricCollectorTestSuite) TestFetchAndDropPartial() {
+	// maxRolls = 1  each file 1MB
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	testCollector := NewRollingDiskMetricCollector(context.NewMockDefault(), "metrics")
+	defer testCollector.Close()
+
+	startTimeStamp := time.Now().UTC()
+
+	for i := 0; i < 100; i++ {
+		metric := metric.Metric[float64]{
+			Name: "test_metric",
+			Unit: "ms",
+			Kind: metric.Sum,
+			DataPoints: []metric.DataPoint[float64]{{
+				StartTime: startTimeStamp.Add(time.Duration(i) * time.Second),
+				EndTime:   startTimeStamp.Add(time.Duration(i) * time.Second),
+				Value:     float64(i),
+			}},
+		}
+		testCollector.CollectMetric("testNamespace", metric)
+		testCollector.CollectMetric("testNamespace2", metric)
+	}
+	testCollector.Flush()
+
+	fetchedMetrics, err := testCollector.FetchAndDrop(50)
+	assert.NoError(suite.T(), err) // has more metrics
+
+	// 1 namespace
+	assert.Len(suite.T(), fetchedMetrics, 1)
+	assert.Len(suite.T(), fetchedMetrics["testNamespace"], 50)
+
+	// the metrics are oldest first
+	for i := 0; i < 50; i++ {
+		metric := metric.Metric[float64]{
+			Name: "test_metric",
+			Unit: "ms",
+			Kind: metric.Sum,
+			DataPoints: []metric.DataPoint[float64]{{
+				StartTime: startTimeStamp.Add(time.Duration(i+50) * time.Second),
+				EndTime:   startTimeStamp.Add(time.Duration(i+50) * time.Second),
+				Value:     float64(i + 50),
+			}},
+		}
+		// the logs are oldest first
+		assert.Equal(suite.T(), metric, fetchedMetrics["testNamespace"][50-i-1])
+	}
+}
+
 type rollingDiskMetricCollectorTester struct {
 	testMetric metric.Metric[float64]
 	testCases  []*namespacedDiskMetricCollectorTestCase

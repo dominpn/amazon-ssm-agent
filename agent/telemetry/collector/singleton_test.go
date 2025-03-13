@@ -19,8 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	logger "github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 
@@ -28,15 +26,17 @@ import (
 
 	collectorMocks "github.com/aws/amazon-ssm-agent/agent/telemetry/collector/mocks"
 	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
+	exporterMocks "github.com/aws/amazon-ssm-agent/agent/telemetry/exporter/mocks"
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 
 	channelMock "github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc/mocks"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
-
-	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
+	telemetryContextMocks "github.com/aws/amazon-ssm-agent/common/telemetry/context/mocks"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -66,6 +66,7 @@ func (suite *singletonTestSuite) SetupTest() {
 
 func (suite *singletonTestSuite) TearDownTest() {
 	Shutdown()
+	singleton = nil
 }
 
 func (suite *singletonTestSuite) TestInitialize() {
@@ -104,7 +105,7 @@ func (suite *singletonTestSuite) TestStartCollection() {
 	singleton = collectorMock
 
 	// create sender side of the IPC channel
-	telemetryContext := telemetryContext.NewMockDefault()
+	telemetryContext := telemetryContextMocks.NewMockDefault()
 	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeRespondent, telemetryContext.ChannelName())
 	defer senderIpc.Destroy()
 
@@ -207,7 +208,7 @@ func (suite *singletonTestSuite) TestLogsAreTruncated() {
 	singleton = collectorMock
 
 	// create sender side of the IPC channel
-	telemetryContext := telemetryContext.NewMockDefault()
+	telemetryContext := telemetryContextMocks.NewMockDefault()
 	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeRespondent, telemetryContext.ChannelName())
 	defer senderIpc.Destroy()
 
@@ -272,7 +273,7 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 	singleton = collectorMock
 
 	// create sender side of the IPC channel
-	telemetryContext := telemetryContext.NewMockDefault()
+	telemetryContext := telemetryContextMocks.NewMockDefault()
 	mocklog := telemetryContext.Log().(*logMock.Mock)
 
 	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeRespondent, telemetryContext.ChannelName())
@@ -290,8 +291,8 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 	logCounts := 10
 
 	// send malformed messages to the channel
-	for range logCounts {
-		err = senderIpc.Send(string("malformed messaged"))
+	for i := range logCounts {
+		err = senderIpc.Send(fmt.Sprintf("malformed message %v", i))
 		assert.NoError(suite.T(), err)
 	}
 
@@ -301,17 +302,104 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 		collectorMock.AssertNumberOfCalls(ct, "CollectLog", 0)
 		collectorMock.AssertNumberOfCalls(ct, "CollectMetric", 0)
 
-		logsCalls := mocklog.Calls
-		erroredLogCounts := 0
-		for i := range logsCalls {
-			call := logsCalls[i]
-			if call.Method == "Debugf" && strings.Contains(call.Arguments.Get(0).(string), "Error processing telemetry message") {
-				erroredLogCounts++
-			}
-		}
+		for i := range logCounts {
+			mocklog.AssertCalled(ct, "Debugf", mock.MatchedBy(func(msg string) bool {
+				return strings.Contains(msg, "Received datagram from")
+			}), mock.MatchedBy(func(args []interface{}) bool {
+				return len(args) == 2 && strings.Contains(args[1].(string), fmt.Sprintf("malformed message %v", i))
+			}))
 
-		assert.Equal(ct, erroredLogCounts, logCounts)
+			mocklog.AssertCalled(ct, "Debugf", mock.MatchedBy(func(msg string) bool {
+				return strings.Contains(msg, "Error processing telemetry message")
+			}), mock.Anything)
+		}
+		// assert.Equal(ct, erroredLogCounts, logCounts)
 	}, 20*time.Second, 100*time.Millisecond)
+}
+
+func (suite *singletonTestSuite) TestStopCollection() {
+	Initialize(suite.ctx)
+
+	telemetryContext := telemetryContextMocks.NewMockDefault()
+
+	testChan := make(chan bool)
+	stopSignals[telemetryContext.ChannelName()] = testChan
+	defer delete(stopSignals, telemetryContext.ChannelName())
+
+	go StopCollection(telemetryContext)
+
+	// wait for stop signal
+	<-testChan
+}
+
+func (suite *singletonTestSuite) TestStopCollectionPanic() {
+	Initialize(suite.ctx)
+
+	backupPkgMutex := pkgMutex
+	defer func() {
+		pkgMutex = backupPkgMutex
+	}()
+	pkgMutex = nil
+
+	telemetryContext := telemetryContextMocks.NewMockDefault()
+
+	err := StopCollection(telemetryContext)
+
+	assert.ErrorContains(suite.T(), err, "panic in telemetry collector StopCollection")
+}
+
+func (suite *singletonTestSuite) TestAddRemoveExporter() {
+	Initialize(suite.ctx)
+
+	// replace the singleton with mock
+	collectorMock := collectorMocks.NewCollectorMock()
+	singleton = collectorMock
+	collectorMock.On("Close").Return(nil).Once()
+
+	exporterMock := exporterMocks.NewExporterMock()
+
+	collectorMock.On("AddExporter", mock.Anything).Return(nil).Once()
+	collectorMock.On("RemoveExporter", mock.Anything).Return(nil).Once()
+
+	AddExporter(exporterMock)
+
+	collectorMock.AssertNumberOfCalls(suite.T(), "AddExporter", 1)
+
+	RemoveExporter(exporterMock)
+
+	collectorMock.AssertNumberOfCalls(suite.T(), "RemoveExporter", 1)
+}
+
+func (suite *singletonTestSuite) TestAddExporterPanic() {
+	Initialize(suite.ctx)
+
+	// replace the singleton with mock
+	collectorMock := collectorMocks.NewCollectorMock()
+	singleton = collectorMock
+	collectorMock.On("Close").Return(nil).Once()
+
+	exporterMock := exporterMocks.NewExporterMock()
+
+	collectorMock.On("AddExporter", mock.Anything).Panic("panic")
+
+	err := AddExporter(exporterMock)
+
+	assert.ErrorContains(suite.T(), err, "panic in singleton collector AddExporter")
+}
+
+func (suite *singletonTestSuite) TestRemoveExporterPanic() {
+	Initialize(suite.ctx)
+
+	// replace the singleton with mock
+	collectorMock := collectorMocks.NewCollectorMock()
+	singleton = collectorMock
+
+	collectorMock.On("Close").Return(nil).Once()
+	collectorMock.On("RemoveExporter", mock.Anything).Panic("panic")
+
+	err := RemoveExporter(nil)
+
+	assert.ErrorContains(suite.T(), err, "panic in singleton collector RemoveExporter")
 }
 
 // interface which allows us to use assert.CollectT as testing.T

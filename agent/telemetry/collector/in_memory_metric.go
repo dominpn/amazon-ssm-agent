@@ -65,8 +65,7 @@ func (c *namespacedAggregatedMetric) CollectMetric(namespace string, metric metr
 }
 
 func (c *namespacedAggregatedMetric) FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error) {
-	// TODO implement me
-	panic("implement me")
+	panic("this method is not implemented. Use FetchAllAndDrop instead")
 }
 
 func (c *namespacedAggregatedMetric) FetchAllAndDrop() (metric.NamespaceMetrics[float64], error) {

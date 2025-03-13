@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	telemetryLog "github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+	telemetryLogMocks "github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog/mocks"
 	seelog "github.com/cihub/seelog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -28,7 +29,7 @@ const (
 )
 
 type TestCase struct {
-	TelemetryLog *telemetryLog.Mock
+	TelemetryLog *telemetryLogMocks.Mock
 	Context      string
 	LogFormat    string
 	Level        LogLevel
@@ -59,7 +60,7 @@ func generateTelemetryTestCase(t *testing.T, level LogLevel, telemetryEmitError 
 
 	testCase.Output += fmt.Sprintf("[%v] %v %v\n", levelStr, testCase.Context, msg)
 
-	mockLog := telemetryLog.NewMockDefault()
+	mockLog := telemetryLogMocks.NewMockDefault()
 	mockLog.On("EmitLog", mock.Anything, mock.Anything).Return(telemetryEmitError)
 	mockLog.On("EmitLogf", mock.Anything, mock.Anything, mock.Anything).Return(telemetryEmitError)
 

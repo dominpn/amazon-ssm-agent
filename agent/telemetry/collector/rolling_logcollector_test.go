@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 
 	"os"
 	"path/filepath"
@@ -140,6 +141,96 @@ func (suite *rollingLogCollectorTestSuite) TearDownTest() {
 
 	testingDir := filepath.Clean(testingDir)
 	fileutil.DeleteDirectory(testingDir)
+}
+
+func (suite *rollingLogCollectorTestSuite) TestFetchAndDrop() {
+	// maxRolls = 1  each file 1MB
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	testCollector := newRollingLogCollector(context.NewMockDefault(), "testlogs")
+	defer testCollector.Close()
+
+	startTimeStamp := time.Now().UTC()
+
+	for i := 0; i < 100; i++ {
+		logEntry := telemetrylog.Entry{
+			Time:     startTimeStamp.Add(time.Duration(i) * time.Second),
+			Severity: telemetrylog.ERROR,
+			Body:     "qiuyeuq%dqw%vkjd%%qi+-s$`dwew`jd%ssdqwsd\"\\'''\\'\n" + strconv.Itoa(i),
+		}
+		testCollector.CollectLog("testNamespace", logEntry)
+		testCollector.CollectLog("testNamespace2", logEntry)
+	}
+	testCollector.Flush()
+
+	fetchedLogs, err := testCollector.FetchAndDrop(1000000)
+	assert.ErrorIs(suite.T(), EOF, err)
+
+	// 2 namespaces
+	assert.Len(suite.T(), fetchedLogs, 2)
+	assert.Len(suite.T(), fetchedLogs["testNamespace"], 100)
+	assert.Len(suite.T(), fetchedLogs["testNamespace2"], 100)
+
+	for i := 0; i < 100; i++ {
+		logEntry := telemetrylog.Entry{
+			Time:     startTimeStamp.Add(time.Duration(i) * time.Second),
+			Severity: telemetrylog.ERROR,
+			Body:     "qiuyeuq%dqw%vkjd%%qi+-s$`dwew`jd%ssdqwsd\"\\'''\\'\n" + strconv.Itoa(i),
+		}
+
+		// the logs are oldest first
+		assert.Equal(suite.T(), logEntry, fetchedLogs["testNamespace"][100-i-1])
+		assert.Equal(suite.T(), logEntry, fetchedLogs["testNamespace2"][100-i-1])
+	}
+}
+
+func (suite *rollingLogCollectorTestSuite) TestFetchAndDropPartial() {
+	// maxRolls = 1  each file 1MB
+	dynamicconfiguration.MaxRolls = func(string) int { return 10 }
+	dynamicconfiguration.MaxRollSize = func(string) int64 { return 1024 * 1024 }
+
+	defer func() {
+		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
+		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
+	}()
+	testCollector := newRollingLogCollector(context.NewMockDefault(), "logs")
+	defer testCollector.Close()
+
+	startTimeStamp := time.Now().UTC()
+
+	for i := 0; i < 100; i++ {
+		logEntry := telemetrylog.Entry{
+			Time:     startTimeStamp.Add(time.Duration(i) * time.Second),
+			Severity: telemetrylog.ERROR,
+			Body:     "qiuyeuq%dqw%vkjd%%qi+-s$`dwew`jd%ssdqwsd\"\\'''\\'\n" + strconv.Itoa(i),
+		}
+		testCollector.CollectLog("testNamespace", logEntry)
+		testCollector.CollectLog("testNamespace2", logEntry)
+	}
+	testCollector.Flush()
+
+	fetchedLogs, err := testCollector.FetchAndDrop(50)
+	assert.NoError(suite.T(), err) // has more logs
+
+	// 1 namespace
+	assert.Len(suite.T(), fetchedLogs, 1)
+	assert.Len(suite.T(), fetchedLogs["testNamespace"], 50)
+
+	// the logs are oldest first
+	for i := 0; i < 50; i++ {
+		logEntry := telemetrylog.Entry{
+			Time:     startTimeStamp.Add(time.Duration(i+50) * time.Second),
+			Severity: telemetrylog.ERROR,
+			Body:     "qiuyeuq%dqw%vkjd%%qi+-s$`dwew`jd%ssdqwsd\"\\'''\\'\n" + strconv.Itoa(i+50),
+		}
+
+		assert.Equal(suite.T(), logEntry, fetchedLogs["testNamespace"][50-i-1])
+	}
 }
 
 type rollingCollectorTester struct {

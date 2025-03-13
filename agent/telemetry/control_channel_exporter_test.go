@@ -15,11 +15,13 @@ package telemetry
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
+	logMock "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	commMock "github.com/aws/amazon-ssm-agent/agent/session/communicator/mocks"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
@@ -94,15 +96,47 @@ func (suite *controlChannelExporterTestSuite) TearDownTest() {
 }
 
 func (suite *controlChannelExporterTestSuite) TestStartExporter() {
-	err := collector.AddExporter(suite.exporter)
+	collector.Initialize(suite.ctx)
+	defer collector.Shutdown()
 
-	assert.ErrorContains(suite.T(), err, "cannot add exporter. telemetry collector not initialized")
+	suite.exporter.StartExporter()
+
+	log := suite.ctx.Log().(*logMock.Mock)
+
+	log.AssertNotCalled(suite.T(), "Errorf", mock.Anything, mock.Anything)
+	log.AssertNotCalled(suite.T(), "Error", mock.Anything)
 }
 
-func (suite *controlChannelExporterTestSuite) TestRemoveExporter() {
-	err := collector.RemoveExporter(suite.exporter)
+func (suite *controlChannelExporterTestSuite) TestStartExporterNotInitialized() {
+	suite.exporter.StartExporter()
 
-	assert.ErrorContains(suite.T(), err, "cannot remove exporter. telemetry collector not initialized")
+	log := suite.exporter.ctx.Log().(*logMock.Mock)
+
+	log.AssertCalled(suite.T(), "Errorf", mock.MatchedBy(func(msg string) bool {
+		return strings.Contains(msg, "Error while adding telemetry exporter")
+	}), mock.Anything)
+}
+
+func (suite *controlChannelExporterTestSuite) TestStopExporter() {
+	collector.Initialize(suite.ctx)
+	defer collector.Shutdown()
+
+	suite.exporter.StopExporter()
+
+	log := suite.ctx.Log().(*logMock.Mock)
+
+	log.AssertNotCalled(suite.T(), "Errorf", mock.Anything, mock.Anything)
+	log.AssertNotCalled(suite.T(), "Error", mock.Anything)
+}
+
+func (suite *controlChannelExporterTestSuite) TestStopExporterNotInitialized() {
+	suite.exporter.StopExporter()
+
+	log := suite.exporter.ctx.Log().(*logMock.Mock)
+
+	log.AssertCalled(suite.T(), "Errorf", mock.MatchedBy(func(msg string) bool {
+		return strings.Contains(msg, "Error while removing telemetry exporter")
+	}), mock.Anything)
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportEmptyTelemetry() {
