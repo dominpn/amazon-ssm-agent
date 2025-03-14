@@ -109,5 +109,7 @@ var (
 
 	// TelemetryDataStorePath specifies the directory where telemetry data is collected before sending
 	TelemetryDataStorePath = DefaultDataStorePath + "telemetry"
-	DynamicConfigFolderPath = DefaultProgramFolder + "dynamicconfig"
+
+	// DynamicConfigFolderPath specifies the directory where dynamicconfig is stored
+	DynamicConfigFolderPath = DefaultDataStorePath + "dynamicconfig"
 )
