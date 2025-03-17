@@ -1049,7 +1049,7 @@ fi
 # domain joined and cause a mismatch.
 check_for_write_protect realm
 REALM_LIST_OUT=$(realm list 2>/dev/null | grep "domain-name: ${DIRECTORY_NAME}\$")
-if [ ! -z $REALM_LIST_OUT  ]; then
+if [ ! -z "$REALM_LIST_OUT"  ]; then
    echo "########## SKIPPING Domain Join: ${DIRECTORY_NAME} already joined  ##########"
    exit 0
 fi
