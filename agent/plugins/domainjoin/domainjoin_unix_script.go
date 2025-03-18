@@ -831,7 +831,7 @@ do_domainjoin() {
        # Use username@RemoteTrustedDir (Active Directory Trust) to join
        echo "do_domainjoin(): Found directory/realm in username as username@directory"
     else
-        if [ ${LINUX_DISTRO} == "RHEL" ]; then
+        if [ ${LINUX_DISTRO} = "RHEL" ]; then
             # Redhat and derivatives require domain portion to be upper case, ie use Kerberos Realm
             # https://access.redhat.com/solutions/5592351
             DOMAIN_USERNAME=${DOMAIN_USERNAME}@${REALM}
@@ -841,10 +841,10 @@ do_domainjoin() {
     fi
 
     IS_VERSION_ID_2022="FALSE"
-    if [ ${LINUX_DISTRO_VERSION_ID} == "2022" -o ${LINUX_DISTRO_VERSION_ID} == "2023" ]; then
+    if [ ${LINUX_DISTRO_VERSION_ID} = "2022" -o ${LINUX_DISTRO_VERSION_ID} = "2023" ]; then
         IS_VERSION_ID_2022="TRUE"
     fi
-    if [ ${LINUX_DISTRO} == "AMAZON_LINUX" -a ${IS_VERSION_ID_2022} == "TRUE" ]; then
+    if [ ${LINUX_DISTRO} = "AMAZON_LINUX" -a ${IS_VERSION_ID_2022} = "TRUE" ]; then
        # Add kinit as a workaround for this issue:
        #     WARNING: The option -k|--kerberos is deprecated!
        USERNAME=$(echo ${DOMAIN_USERNAME} | sed 's/@.*$//g')
