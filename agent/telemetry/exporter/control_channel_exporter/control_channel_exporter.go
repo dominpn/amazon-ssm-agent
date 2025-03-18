@@ -196,6 +196,7 @@ func (t *controlChannelTelemetryExporter) Export(namespace string,
 		Namespace:     namespace,
 		AgentVersion:  version.Version,
 		InstanceId:    instanceId,
+		AwsAccountId:  "",
 		Payload:       string(payloadBytes),
 	}
 

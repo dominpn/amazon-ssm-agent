@@ -26,6 +26,7 @@ type AgentTelemetryV2 struct {
 	Namespace     string `json:"Namespace"`
 	AgentVersion  string `json:"AgentVersion"`
 	InstanceId    string `json:"InstanceId"`
+	AwsAccountId  string `json:"AwsAccountId"`
 	ConfigHash    string `json:"ConfigHash"`
 	Payload       string `json:"Payload"` // AgentTelemetryV2Payload
 }
