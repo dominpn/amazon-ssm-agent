@@ -10,17 +10,17 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package rolling
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"sort"
-	"strconv"
-
+	"io"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"testing"
 	"time"
 
@@ -28,6 +28,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -87,7 +88,7 @@ func (suite *rollingLogCollectorTestSuite) TestCorrectDataIsWritten() {
 		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
 		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
 	}()
-	testCollector := newRollingLogCollector(context.NewMockDefault(), "logs")
+	testCollector := NewRollingLogCollector(context.NewMockDefault(), "logs")
 	defer testCollector.Close()
 
 	_, err := testCollector.getLogCollector("testNamespace")
@@ -152,7 +153,7 @@ func (suite *rollingLogCollectorTestSuite) TestFetchAndDrop() {
 		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
 		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
 	}()
-	testCollector := newRollingLogCollector(context.NewMockDefault(), "testlogs")
+	testCollector := NewRollingLogCollector(context.NewMockDefault(), "testlogs")
 	defer testCollector.Close()
 
 	startTimeStamp := time.Now().UTC()
@@ -169,7 +170,7 @@ func (suite *rollingLogCollectorTestSuite) TestFetchAndDrop() {
 	testCollector.Flush()
 
 	fetchedLogs, err := testCollector.FetchAndDrop(1000000)
-	assert.ErrorIs(suite.T(), EOF, err)
+	assert.ErrorIs(suite.T(), io.EOF, err)
 
 	// 2 namespaces
 	assert.Len(suite.T(), fetchedLogs, 2)
@@ -198,7 +199,7 @@ func (suite *rollingLogCollectorTestSuite) TestFetchAndDropPartial() {
 		dynamicconfiguration.MaxRolls = dynamicconfiguration.GetMaxRolls
 		dynamicconfiguration.MaxRollSize = dynamicconfiguration.GetMaxRollSize
 	}()
-	testCollector := newRollingLogCollector(context.NewMockDefault(), "logs")
+	testCollector := NewRollingLogCollector(context.NewMockDefault(), "logs")
 	defer testCollector.Close()
 
 	startTimeStamp := time.Now().UTC()
@@ -298,7 +299,7 @@ func (tester *rollingCollectorTester) testCase(testCase *namespacedCollectorTest
 	}()
 	tester.t.Logf("Start test  [%v]\n", testNum)
 
-	rlc := newRollingLogCollector(context.NewMockDefault(), "testlogs")
+	rlc := NewRollingLogCollector(context.NewMockDefault(), "testlogs")
 	defer rlc.Close()
 
 	for namespace, namespaceTestConfig := range testCase.namespaces {
@@ -471,7 +472,7 @@ func createRollingSizeFileWriterTestCase(
 var rollingfileWriterTests = []*namespacedCollectorTestCase{
 
 	createRollingSizeFileWriterTestCase(
-		5, 500, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 0, []string{"randomfile.testlogs"})}),
+		10, 600, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile.testlogs"}, 0, []string{"randomfile.testlogs"})}),
 
 	createRollingSizeFileWriterTestCase(
 		5, 500, map[string]*collectorTestConfig{"namespace1": createCollectorTestConfig([]string{"randomfile"}, 1, []string{"randomfile", "testlogs"})}),

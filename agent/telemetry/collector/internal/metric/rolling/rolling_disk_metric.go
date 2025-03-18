@@ -10,12 +10,13 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package rolling
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"runtime/debug"
 	"sync"
@@ -26,6 +27,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/utils"
 	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 )
@@ -45,10 +47,6 @@ type namespacedDiskMetricCollector struct {
 	ctx context.T
 
 	baseDir string
-	// maximum number of rolled files
-	maxRolls int
-	// maximum size of one file
-	maxFileSize int64
 
 	// prefix of each log file
 	fileNamePrefix string
@@ -57,7 +55,7 @@ type namespacedDiskMetricCollector struct {
 	metricCollectorMtx *sync.Mutex
 
 	// mutex for the collectorMap below
-	collectorMapMtx *sync.Mutex
+	collectorMapMtx *sync.RWMutex
 	collectorMap    map[string]*rollingDiskMetricCollector
 }
 
@@ -72,29 +70,34 @@ func NewRollingDiskMetricCollector(context context.T, fileNamePrefix string) *na
 		baseDir:            getBaseMetricsStoreDir(),
 		fileNamePrefix:     fileNamePrefix,
 		metricCollectorMtx: &sync.Mutex{},
-		collectorMapMtx:    &sync.Mutex{},
+		collectorMapMtx:    &sync.RWMutex{},
 		collectorMap:       make(map[string]*rollingDiskMetricCollector),
 	}
 }
 
+// CollectMetric stores the metric on disk asynchronously
 func (c *namespacedDiskMetricCollector) CollectMetric(namespace string, metric metric.Metric[float64]) error {
 	c.metricCollectorMtx.Lock()
 	defer c.metricCollectorMtx.Unlock()
 
+	logger := c.ctx.Log()
 	metricBytes, err := json.Marshal(metric)
 
 	if err != nil {
+		logger.Debugf("Error in marshaling in rolling log collector %v", err)
 		return err
 	}
-
 	rw, err := c.getMetricCollector(namespace)
 
 	if err != nil {
+		logger.Debugf("Error getting inner rolling log collector %v", err)
 		return err
 	}
 
 	err = rw.write(metricBytes)
-
+	if err != nil {
+		logger.Debugf("Error in writing to inner collector in rolling metric collector %v", err)
+	}
 	return err
 }
 
@@ -108,16 +111,16 @@ func (c *namespacedDiskMetricCollector) FetchAndDrop(limit int) (metric.Namespac
 
 	log := c.ctx.Log()
 
-	nsMap, err := readAndDeleteRollingLogs(log, c.baseDir, c.fileNamePrefix, limit)
+	nsMap, err := utils.ReadAndDeleteRollingLogs(log, c.baseDir, c.fileNamePrefix, limit)
 
-	if err != nil && err != EOF {
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
 	result := metric.NamespaceMetrics[float64]{}
 
 	for ns, lines := range nsMap {
-		metrics := unmarshalList[metric.Metric[float64]](lines, log)
+		metrics := utils.UnmarshalList[metric.Metric[float64]](lines, log)
 
 		result[ns] = metrics
 	}
@@ -125,11 +128,12 @@ func (c *namespacedDiskMetricCollector) FetchAndDrop(limit int) (metric.Namespac
 	return result, err
 }
 
+// Flush forces immediate and synchronous writing of the metrics to disk
 func (c *namespacedDiskMetricCollector) Flush() (err error) {
 	var eg errgroup.Group
 	eg.SetLimit(4) // limit to 4 parallel flushes
 
-	c.collectorMapMtx.Lock()
+	c.collectorMapMtx.RLock()
 
 	// flush collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
@@ -149,12 +153,13 @@ func (c *namespacedDiskMetricCollector) Flush() (err error) {
 		}(innerCollector)
 	}
 
-	c.collectorMapMtx.Unlock()
+	c.collectorMapMtx.RUnlock()
 
 	// Wait for all goroutines to finish
 	return eg.Wait()
 }
 
+// Close closes the collector
 func (c *namespacedDiskMetricCollector) Close() error {
 	var eg errgroup.Group
 	eg.SetLimit(4) // limit to 4 parallel closes
@@ -205,7 +210,7 @@ func (c *namespacedDiskMetricCollector) getMetricCollector(namespace string) (*r
 			return nil, err
 		}
 
-		loggerConfig := getLoggerConfig(p, c.fileNamePrefix, dynamicconfiguration.MaxRolls(namespace), dynamicconfiguration.MaxRollSize(namespace))
+		loggerConfig := utils.GetLoggerConfig(p, c.fileNamePrefix, dynamicconfiguration.MaxRolls(namespace), dynamicconfiguration.MaxRollSize(namespace))
 		seelogger, err := seelog.LoggerFromConfigAsBytes(loggerConfig)
 		if err != nil {
 			return nil, err
@@ -240,7 +245,7 @@ func (rw *rollingDiskMetricCollector) close() {
 	rw.logger.Close()
 
 	// remove the namespace direcory if it is empty. ignore errors
-	err := deleteDirectoryIfAllFilesEmpty(rw.dirPath)
+	err := utils.DeleteDirectoryIfAllFilesEmpty(rw.dirPath)
 	if err != nil {
 		rw.ctx.Log().Warnf("Failed to delete telemetry directory %s: %v", rw.dirPath, err)
 	}

@@ -10,7 +10,7 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package telemetry
+package control_channel_exporter
 
 import (
 	"encoding/json"
@@ -43,38 +43,14 @@ type controlChannelExporterTestSuite struct {
 	exporter      *controlChannelTelemetryExporter
 }
 
-//Helper methods used by tests
+// Helper methods used by tests
 
 func getLowerThanConfiguredPercentageLimit() int {
-	return 22 //lower than configured percentage limit
+	return 22 // lower than configured percentage limit
 }
 
 func getHigherThanConfiguredPercentageLimit() int {
-	return 82 //higher than configured percentage limit
-}
-
-func getFakeDynamicConfig() dynamicconfiguration.NamespaceConfiguration {
-	return map[string]dynamicconfiguration.DynamicConfiguration{
-		"testNamespace": {
-			TelemetryDisabledTill: 0, // definitely in the past : number of seconds elapsed since January 1, 1970 UTC
-			PercentageLimit:       50,
-			MaxRolls:              10,
-			MaxRollSize:           5,
-			ExportPeriod:          15,
-		},
-	}
-}
-
-func getFakeDynamicConfigWithTelemetryDisabledForever() dynamicconfiguration.NamespaceConfiguration {
-	return map[string]dynamicconfiguration.DynamicConfiguration{
-		"testNamespace": {
-			TelemetryDisabledTill: 2 * time.Now().Unix(), // definitely in the future : 2 * number of seconds elapsed since January 1, 1970 UTC
-			PercentageLimit:       50,
-			MaxRolls:              10,
-			MaxRollSize:           5,
-			ExportPeriod:          15,
-		},
-	}
+	return 82 // higher than configured percentage limit
 }
 
 // TestControlChannelExporterSuite executes test suite
@@ -140,7 +116,6 @@ func (suite *controlChannelExporterTestSuite) TestStopExporterNotInitialized() {
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportEmptyTelemetry() {
-
 	// //Mocking this helper as this test does not have to know about all the implementation details
 	controlChannelCheckTelemetryExportLuck = func(log log.T, namespace string) bool {
 		return true
@@ -266,7 +241,7 @@ func (suite *controlChannelExporterTestSuite) TestUpdateLastEmittedDataStore() {
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenLucky() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -339,10 +314,10 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenLuck
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
 
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNumberOfCalls(suite.T(), "SendMessage", 1)
@@ -364,7 +339,7 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenLuck
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWhenUnLucky() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -425,17 +400,17 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWh
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
 
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNotCalled(suite.T(), "SendMessage")
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenTelemetryEnabledForNamespace() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -504,10 +479,10 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenTele
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
 
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNumberOfCalls(suite.T(), "SendMessage", 1)
@@ -529,7 +504,7 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenTele
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWhenTelemetryDisabledForNamespace() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -586,17 +561,17 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWh
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
 
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNotCalled(suite.T(), "SendMessage")
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenNotTooSoonSinceLastEmission() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -664,10 +639,10 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenNotT
 	defer func() {
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNumberOfCalls(suite.T(), "SendMessage", 1)
@@ -689,7 +664,7 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryExportsWhenNotT
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWhenTooSoonSinceLastEmission() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -746,17 +721,17 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotExportWh
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
 
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNotCalled(suite.T(), "SendMessage")
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryUpdatesLastEmittedTimestampAfterExporting() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -833,10 +808,10 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryUpdatesLastEmit
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
 
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNumberOfCalls(suite.T(), "SendMessage", 1)
@@ -860,7 +835,7 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryUpdatesLastEmit
 }
 
 func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotUpdateLastEmittedTimestampForNoExport() {
-	//ARRANGE
+	// ARRANGE
 	now := time.Now().UTC()
 
 	// prepare test telemetry
@@ -926,13 +901,12 @@ func (suite *controlChannelExporterTestSuite) TestExportTelemetryDoesNotUpdateLa
 		controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 	}()
 
-	//ACT
+	// ACT
 	err := suite.exporter.Export(namespace, sentMetrics, sentLogs)
 
-	//ASSERT
+	// ASSERT
 	assert.NoError(suite.T(), err)
 
 	suite.mockWsChannel.AssertNotCalled(suite.T(), "SendMessage")
 	assert.Equal(suite.T(), int64(0), lsd[namespace])
-
 }

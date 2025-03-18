@@ -10,7 +10,7 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package inmemory
 
 import (
 	"errors"
@@ -22,7 +22,7 @@ import (
 )
 
 type namespacedAggregatedMetric struct {
-	mtx *sync.Mutex
+	metricsMapMtx *sync.Mutex
 
 	// map from namespace -> metric name -> data points
 	metrics map[string]map[string]*timeAggregatedMetric[float64]
@@ -30,14 +30,14 @@ type namespacedAggregatedMetric struct {
 
 func NewInMemoryMetricCollector(context context.T) *namespacedAggregatedMetric {
 	return &namespacedAggregatedMetric{
-		mtx:     &sync.Mutex{},
-		metrics: make(map[string]map[string]*timeAggregatedMetric[float64]),
+		metricsMapMtx: &sync.Mutex{},
+		metrics:       make(map[string]map[string]*timeAggregatedMetric[float64]),
 	}
 }
 
 func (c *namespacedAggregatedMetric) CollectMetric(namespace string, metric metric.Metric[float64]) error {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	c.metricsMapMtx.Lock()
+	defer c.metricsMapMtx.Unlock()
 
 	if c.metrics[namespace] == nil {
 		c.metrics[namespace] = make(map[string]*timeAggregatedMetric[float64])
@@ -65,12 +65,12 @@ func (c *namespacedAggregatedMetric) CollectMetric(namespace string, metric metr
 }
 
 func (c *namespacedAggregatedMetric) FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error) {
-	panic("this method is not implemented. Use FetchAllAndDrop instead")
+	panic("this method should not be used. Use FetchAllAndDrop instead")
 }
 
 func (c *namespacedAggregatedMetric) FetchAllAndDrop() (metric.NamespaceMetrics[float64], error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	c.metricsMapMtx.Lock()
+	defer c.metricsMapMtx.Unlock()
 
 	result := metric.NamespaceMetrics[float64]{}
 
@@ -95,8 +95,8 @@ func (c *namespacedAggregatedMetric) FetchAllAndDrop() (metric.NamespaceMetrics[
 }
 
 func (c *namespacedAggregatedMetric) Close() (err error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	c.metricsMapMtx.Lock()
+	defer c.metricsMapMtx.Unlock()
 
 	clear(c.metrics)
 
@@ -111,7 +111,7 @@ type timeAggregatedMetric[N int64 | float64] struct {
 	unit           metric.Unit
 	kind           metric.Kind
 	kindAggregator kindAggregator[N]
-	mtx            *sync.Mutex
+	spansMtx       *sync.RWMutex
 	spans          map[timeSpan]aggregateDataPoint
 }
 
@@ -125,7 +125,7 @@ func newTimeAggregatedMetric[N int64 | float64](name string, unit metric.Unit, k
 		name:           name,
 		unit:           unit,
 		kind:           kind,
-		mtx:            &sync.Mutex{},
+		spansMtx:       &sync.RWMutex{},
 		kindAggregator: kc,
 		spans:          make(map[timeSpan]aggregateDataPoint),
 	}
@@ -134,11 +134,11 @@ func newTimeAggregatedMetric[N int64 | float64](name string, unit metric.Unit, k
 
 // aggregate implements the [aggregatedMetric] interface
 func (m *timeAggregatedMetric[N]) aggregate(point metric.DataPoint[N]) error {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
+	m.spansMtx.Lock()
+	defer m.spansMtx.Unlock()
 
 	if !point.EndTime.Equal(point.StartTime) {
-		return errors.New("invalid datapoint. Only a single point in time in is supported")
+		return errors.New("invalid datapoint. Only a single point in time is supported")
 	}
 
 	// the closest second before the start time of this data point
@@ -168,10 +168,10 @@ func (m *timeAggregatedMetric[N]) aggregate(point metric.DataPoint[N]) error {
 	return nil
 }
 
-// fetchAndDrop fetches limit number of the aggregated data points and drops them from the metric
+// fetchAndDrop fetches all of the aggregated data points and drops them from the metric
 func (m *timeAggregatedMetric[N]) fetch() []metric.DataPoint[N] {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
+	m.spansMtx.RLock()
+	defer m.spansMtx.RUnlock()
 
 	result := make([]metric.DataPoint[N], 0, len(m.spans))
 

@@ -138,7 +138,7 @@ func readCurrentDynamicConfiguration(log log.T, configFilePath string) (configMa
 		return nil, err
 	}
 	// Parse the JSON data into a map
-	err = json.Unmarshal([]byte(configBytes), &configMap)
+	err = json.Unmarshal(configBytes, &configMap)
 	if err != nil {
 		log.Errorf("Error unmarshalling dynamic configuration:", err)
 		return nil, err
@@ -164,7 +164,7 @@ func saveDynamicConfiguration(log log.T, configMap NamespaceConfiguration, confi
 
 	configBytes, err := json.Marshal(configMap)
 	if err != nil {
-		log.Errorf("Error marshalling dynamic configuration map:", err)
+		log.Errorf("Error marshaling dynamic configuration map:", err)
 		return err
 	}
 	err = os.WriteFile(configFilePath, configBytes, 0600)
@@ -216,9 +216,9 @@ func replaceDynamicConfiguration(log log.T, configFilePath string) {
 
 // initDynamicConfiguration initializes a new DynamicConfiguration object based on current configurations and starts file watcher on the configurations file
 func initDynamicConfiguration(log log.T, useWatcher bool, configFilePath string) (dynamicConfiguration NamespaceConfiguration) {
-	// This function is called only once throughout lifetime of process, when telemetry is initialised and cache is empty
+	// This function is called only once throughout lifetime of process, when telemetry is initialized and cache is empty
 	// Fetching from disk and/or populating cache with default values and writing to disk is mandatory
-	// First we attempt to fetch from disk because any stale overriden config is better/newer than default config
+	// First we attempt to fetch from disk because any stale overridden config is better/newer than default config
 	// If file does not exist on disk or if disk read failed, we populate it with default config instead of retrying as configs are not super-critical and default configs are a safe start
 	defer func() {
 		if msg := recover(); msg != nil {

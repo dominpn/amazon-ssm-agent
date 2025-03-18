@@ -50,6 +50,8 @@ func (c *CoreAgentContext) With(logContext string) ICoreAgentContext {
 	return newContext
 }
 
+// WithTelemetryNamespace returns a new context with the specified telemetry namespace.
+// All telemetry emission using this context will have this telemetry namespace.
 func (c *CoreAgentContext) WithTelemetryNamespace(telemetryNamespace string) ICoreAgentContext {
 	newContext := &CoreAgentContext{
 		context:   c.context,

@@ -56,8 +56,5 @@ func (i int64Counter) Add(incr int64) (err error) {
 		}
 	}()
 
-	pkgMutex.RLock()
-	defer pkgMutex.RUnlock()
-
 	return t.emitIntegerMetric(i.namespace, i.name, i.unit, metric.Sum, time.Now(), incr)
 }

@@ -10,30 +10,28 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package internal
 
 import (
 	"errors"
 	"fmt"
+	"io"
 	"runtime/debug"
 	"slices"
 	"sync"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
+	rollingLog "github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/log/rolling"
+	metricCollector "github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/metric"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/metric/hybrid"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/exporter"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+
 	"github.com/carlescere/scheduler"
 )
-
-// EOF is returned as error in Fetch when no new log entries are present
-var EOF = errors.New("EOF")
-
-type Flushable interface {
-	Flush() error
-}
 
 type LogCollector interface {
 	// CollectLog is used to ingest a log entry into the collector
@@ -41,16 +39,6 @@ type LogCollector interface {
 
 	// FetchAndDrop fetches maximum of [limit] number of logs ingested until now in all the namespaces
 	FetchAndDrop(limit int) (telemetrylog.NamespaceLogs, error)
-
-	Close() error
-}
-
-type MetricsCollector interface {
-	// CollectMetric is used to ingest a metric into the collector
-	CollectMetric(namespace string, metric metric.Metric[float64]) error
-
-	// FetchAndDrop fetches maximum of [limit] number of metrics ingested until now in all the namespaces
-	FetchAndDrop(limit int) (metric.NamespaceMetrics[float64], error)
 
 	Close() error
 }
@@ -72,22 +60,24 @@ type Collector interface {
 }
 
 type collectorT struct {
-	context            context.T
-	aggregationPeriod  time.Duration
-	metricCollector    MetricsCollector
-	logCollector       LogCollector
-	exporterMtx        *sync.Mutex
+	context           context.T
+	aggregationPeriod time.Duration
+
+	// collectorMtx is for locking the metric and log collection
+	collectorMtx    *sync.Mutex
+	metricCollector metricCollector.MetricsCollector
+	logCollector    LogCollector
+
+	// exporterMtx locks the exporters list below
+	exporterMtx        *sync.RWMutex
 	exporters          []exporter.Exporter
 	exportSchedulerJob *scheduler.Job
 }
 
 func NewCollector(context context.T, aggregationPeriod, exportPeriod time.Duration) (Collector, error) {
-	// TODO : make the parameters configurable. Currently set to 10 max rolling files, 100 KB each
+	logCollector := rollingLog.NewRollingLogCollector(context, "logs")
 
-	logCollector := newRollingLogCollector(context, "logs")
-
-	// TODO make these configurable
-	metricCollector, err := NewHybridMetricCollector(context, "metrics", int(aggregationPeriod.Seconds()))
+	metricCollector, err := hybrid.NewHybridMetricCollector(context, "metrics", int(aggregationPeriod.Seconds()))
 
 	if err != nil {
 		return nil, err
@@ -98,7 +88,8 @@ func NewCollector(context context.T, aggregationPeriod, exportPeriod time.Durati
 		aggregationPeriod: aggregationPeriod,
 		metricCollector:   metricCollector,
 		logCollector:      logCollector,
-		exporterMtx:       &sync.Mutex{},
+		collectorMtx:      &sync.Mutex{},
+		exporterMtx:       &sync.RWMutex{},
 	}
 
 	exportPeriodSeconds := int(exportPeriod.Seconds())
@@ -130,16 +121,16 @@ func NewCollector(context context.T, aggregationPeriod, exportPeriod time.Durati
 
 // CollectMetric is used to ingest a metric into the collector
 func (c *collectorT) CollectMetric(namespace string, metric metric.Metric[float64]) error {
-	c.exporterMtx.Lock()
-	defer c.exporterMtx.Unlock()
+	c.collectorMtx.Lock()
+	defer c.collectorMtx.Unlock()
 
 	return c.metricCollector.CollectMetric(namespace, metric)
 }
 
 // CollectLog is used to ingest a log entry into the collector
 func (c *collectorT) CollectLog(namespace string, log telemetrylog.Entry) error {
-	c.exporterMtx.Lock()
-	defer c.exporterMtx.Unlock()
+	c.collectorMtx.Lock()
+	defer c.collectorMtx.Unlock()
 
 	return c.logCollector.CollectLog(namespace, log)
 }
@@ -165,10 +156,14 @@ func (c *collectorT) RemoveExporter(exporter exporter.Exporter) {
 	}
 }
 
-// export exports all the telemetry the singleton holds (both in-memory and on disk) in reasonable chunks
+// export exports all the telemetry the collector holds (both in-memory and on disk) in reasonable chunks
 func (c *collectorT) export() error {
-	c.exporterMtx.Lock()
-	defer c.exporterMtx.Unlock()
+	// stop any more collection until all existing telemetry is exported
+	c.collectorMtx.Lock()
+	defer c.collectorMtx.Unlock()
+
+	c.exporterMtx.RLock()
+	defer c.exporterMtx.RUnlock()
 
 	// don't want to lose telemetry until exporters are attached
 	if len(c.exporters) == 0 {
@@ -182,14 +177,17 @@ func (c *collectorT) export() error {
 		var metrics metric.NamespaceMetrics[float64]
 		var logs telemetrylog.NamespaceLogs
 
-		metrics, errMetrics = c.metricCollector.FetchAndDrop(1000) // TODO: make configurable
+		metrics, errMetrics = c.metricCollector.FetchAndDrop(1000)
 		logs, errLogs = c.logCollector.FetchAndDrop(1000)
 
-		if errMetrics != nil && errMetrics != EOF {
-			return errMetrics
+		if errMetrics != nil && errMetrics != io.EOF {
+			if errLogs == io.EOF {
+				errLogs = nil // don't send the EOF error
+			}
+			return errors.Join(errMetrics, errLogs)
 		}
 
-		if errLogs != nil && errLogs != EOF {
+		if errLogs != nil && errLogs != io.EOF {
 			return errLogs
 		}
 
@@ -209,7 +207,7 @@ func (c *collectorT) export() error {
 		// send telemetry for all namespaces
 		for ns := range namespaces {
 			// we read the logs from the disk so we need to truncate them
-			for i, _ := range logs[ns] {
+			for i := range logs[ns] {
 				logs[ns][i].Body = telemetry.TruncateLog(logs[ns][i].Body)
 			}
 
@@ -217,7 +215,7 @@ func (c *collectorT) export() error {
 			exportErrs = append(exportErrs, err)
 		}
 
-		if errMetrics == EOF && errLogs == EOF {
+		if errMetrics == io.EOF && errLogs == io.EOF {
 			return nil
 		}
 	}
@@ -227,6 +225,9 @@ func (c *collectorT) export() error {
 
 // exportNamespaceTelemetry exports telemetry for a specific namespace to the attached exporters
 func (c *collectorT) exportNamespaceTelemetry(namespace string, metrics []metric.Metric[float64], logs []telemetrylog.Entry) error {
+	c.exporterMtx.RLock()
+	defer c.exporterMtx.RUnlock()
+
 	if metrics == nil {
 		metrics = []metric.Metric[float64]{}
 	}
@@ -251,8 +252,8 @@ func (c *collectorT) exportNamespaceTelemetry(namespace string, metrics []metric
 }
 
 func (c *collectorT) Close() error {
-	c.exporterMtx.Lock()
-	defer c.exporterMtx.Unlock()
+	c.collectorMtx.Lock()
+	defer c.collectorMtx.Unlock()
 
 	c.exportSchedulerJob.Quit <- true
 

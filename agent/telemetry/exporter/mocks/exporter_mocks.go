@@ -16,6 +16,7 @@ package mocks
 import (
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+
 	"github.com/stretchr/testify/mock"
 )
 

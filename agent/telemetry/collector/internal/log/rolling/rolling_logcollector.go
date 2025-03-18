@@ -10,12 +10,13 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package rolling
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"runtime/debug"
 	"sync"
@@ -26,6 +27,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/utils"
 	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
@@ -53,7 +55,7 @@ type namespacedRollingLogCollector struct {
 	logCollectorMtx *sync.Mutex
 
 	// mutex for the collectorMap below
-	collectorMapMtx *sync.Mutex
+	collectorMapMtx *sync.RWMutex
 	collectorMap    map[string]*rollingLogCollector
 }
 
@@ -62,38 +64,45 @@ var getBaseLogStoreDir = func() string {
 	return filepath.Join(appconfig.TelemetryDataStorePath, "logs")
 }
 
-func newRollingLogCollector(context context.T, fileNamePrefix string) *namespacedRollingLogCollector {
+func NewRollingLogCollector(context context.T, fileNamePrefix string) *namespacedRollingLogCollector {
 	return &namespacedRollingLogCollector{
 		ctx:             context,
 		baseDir:         getBaseLogStoreDir(),
 		fileNamePrefix:  fileNamePrefix,
 		logCollectorMtx: &sync.Mutex{},
-		collectorMapMtx: &sync.Mutex{},
+		collectorMapMtx: &sync.RWMutex{},
 		collectorMap:    make(map[string]*rollingLogCollector),
 	}
 }
 
+// CollectLog stores the log on disk asynchronously
 func (c *namespacedRollingLogCollector) CollectLog(namespace string, entry telemetrylog.Entry) error {
 	c.logCollectorMtx.Lock()
 	defer c.logCollectorMtx.Unlock()
 
+	logger := c.ctx.Log()
+
 	entryBytes, err := json.Marshal(entry)
 
 	if err != nil {
+		logger.Debugf("Error in marshaling in rolling log collector %v", err)
 		return err
 	}
-
 	rw, err := c.getLogCollector(namespace)
 
 	if err != nil {
+		logger.Debugf("Error getting inner rolling log collector %v", err)
 		return err
 	}
 
 	err = rw.write(entryBytes)
-
+	if err != nil {
+		logger.Debugf("Error in writing to inner collector in rolling log collector %v", err)
+	}
 	return err
 }
 
+// FetchAndDrop fetches maximum of [limit] number of logs ingested until now in all the namespaces
 func (c *namespacedRollingLogCollector) FetchAndDrop(limit int) (telemetrylog.NamespaceLogs, error) {
 	// need to stop collection since we will be truncating the written files
 	c.logCollectorMtx.Lock()
@@ -103,16 +112,16 @@ func (c *namespacedRollingLogCollector) FetchAndDrop(limit int) (telemetrylog.Na
 
 	log := c.ctx.Log()
 
-	nsMap, err := readAndDeleteRollingLogs(log, c.baseDir, c.fileNamePrefix, limit)
+	nsMap, err := utils.ReadAndDeleteRollingLogs(log, c.baseDir, c.fileNamePrefix, limit)
 
-	if err != nil && err != EOF {
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
 	result := telemetrylog.NamespaceLogs{}
 
 	for ns, lines := range nsMap {
-		logs := unmarshalList[telemetrylog.Entry](lines, log)
+		logs := utils.UnmarshalList[telemetrylog.Entry](lines, log)
 
 		result[ns] = logs
 	}
@@ -120,11 +129,12 @@ func (c *namespacedRollingLogCollector) FetchAndDrop(limit int) (telemetrylog.Na
 	return result, err
 }
 
+// Flush forces immediate and synchronous writing of the logs to disk
 func (c *namespacedRollingLogCollector) Flush() error {
 	var eg errgroup.Group
 	eg.SetLimit(4) // limit to 4 parallel flushes
 
-	c.collectorMapMtx.Lock()
+	c.collectorMapMtx.RLock()
 
 	// flush collectors for each namespace in parallel
 	for _, innerCollector := range c.collectorMap {
@@ -144,7 +154,7 @@ func (c *namespacedRollingLogCollector) Flush() error {
 		}(innerCollector)
 	}
 
-	c.collectorMapMtx.Unlock()
+	c.collectorMapMtx.RUnlock()
 
 	// Wait for all goroutines to finish
 	return eg.Wait()
@@ -186,6 +196,7 @@ func (c *namespacedRollingLogCollector) Close() (err error) {
 	return nil
 }
 
+// getLogCollector returns a [namespacedRollingLogCollector] for the given namespace
 func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*rollingLogCollector, error) {
 	c.collectorMapMtx.Lock()
 	defer c.collectorMapMtx.Unlock()
@@ -201,7 +212,7 @@ func (c *namespacedRollingLogCollector) getLogCollector(namespace string) (*roll
 		}
 		maxRolls := dynamicconfiguration.MaxRolls(namespace)
 		maxFileSize := dynamicconfiguration.MaxRollSize(namespace)
-		loggerConfig := getLoggerConfig(p, c.fileNamePrefix, maxRolls, maxFileSize)
+		loggerConfig := utils.GetLoggerConfig(p, c.fileNamePrefix, maxRolls, maxFileSize)
 		seelogger, err := seelog.LoggerFromConfigAsBytes(loggerConfig)
 		if err != nil {
 			return nil, err
@@ -236,7 +247,7 @@ func (rw *rollingLogCollector) close() {
 	rw.logger.Close()
 
 	// remove the namespace direcory if it is empty. ignore errors
-	err := deleteDirectoryIfAllFilesEmpty(rw.dirPath)
+	err := utils.DeleteDirectoryIfAllFilesEmpty(rw.dirPath)
 	if err != nil {
 		rw.ctx.Log().Warnf("Failed to delete telemetry directory %s: %v", rw.dirPath, err)
 	}

@@ -65,6 +65,8 @@ func (c *defaultContext) With(logContext string) T {
 	return newContext
 }
 
+// WithTelemetryNamespace returns a new context with the specified telemetry namespace.
+// All telemetry emission using this context will have this telemetry namespace.
 func (c *defaultContext) WithTelemetryNamespace(namespace string) T {
 	newContext := &defaultContext{
 		context:   c.context,

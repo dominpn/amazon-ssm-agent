@@ -21,6 +21,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/exporter"
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	"github.com/aws/amazon-ssm-agent/common/identity"
@@ -33,7 +34,7 @@ import (
 var (
 	ctx context.T
 
-	singleton Collector
+	singleton internal.Collector
 
 	// namespace -> filewatcherbasedipc channel mapping
 	listenChannels map[string]filewatcherbasedipc.IPCChannel
@@ -45,7 +46,7 @@ var (
 	listenWg *sync.WaitGroup
 
 	// lock to protect all of the variables above
-	pkgMutex = new(sync.RWMutex)
+	singletonMutex = new(sync.RWMutex)
 )
 
 // this is for mocking support
@@ -64,15 +65,14 @@ func Initialize(context context.T) (err error) {
 		}
 	}()
 
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMutex.Lock()
+	defer singletonMutex.Unlock()
 
 	ctx = context
 
-	// TODO : make the parameters configurable
 	// 10 second aggregation
 	// Exports every 5 minutes
-	c, err := NewCollector(context, time.Second*10, time.Minute*5)
+	c, err := internal.NewCollector(context, time.Second*10, time.Minute*5)
 
 	if err != nil {
 		return err
@@ -87,8 +87,8 @@ func Initialize(context context.T) (err error) {
 }
 
 func collectMetric(namespace string, metric metric.Metric[float64]) error {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMutex.Lock()
+	defer singletonMutex.Unlock()
 
 	if singleton == nil {
 		return fmt.Errorf("telemetry collector not initialized")
@@ -98,8 +98,8 @@ func collectMetric(namespace string, metric metric.Metric[float64]) error {
 }
 
 func collectLog(namespace string, log telemetrylog.Entry) error {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMutex.Lock()
+	defer singletonMutex.Unlock()
 
 	if singleton == nil {
 		return fmt.Errorf("telemetry collector not initialized")
@@ -125,8 +125,8 @@ func StartCollection(context telemetryContext.TelemetryContext) (err error) {
 		}
 	}()
 
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMutex.Lock()
+	defer singletonMutex.Unlock()
 
 	if singleton == nil {
 		return fmt.Errorf("telemetry collector not initialized")
@@ -164,8 +164,8 @@ func StopCollection(context telemetryContext.TelemetryContext) (err error) {
 		}
 	}()
 
-	pkgMutex.RLock()
-	defer pkgMutex.RUnlock()
+	singletonMutex.RLock()
+	defer singletonMutex.RUnlock()
 
 	if stopSignals == nil {
 		return fmt.Errorf("telemetry collector not initialized")
@@ -223,8 +223,8 @@ func registerListenerStopped(log log.T, channelName string) {
 		}
 	}()
 
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMutex.Lock()
+	defer singletonMutex.Unlock()
 
 	if listenChannels != nil {
 		delete(listenChannels, channelName)
@@ -273,8 +273,8 @@ func AddExporter(exporter exporter.Exporter) (err error) {
 		}
 	}()
 
-	pkgMutex.RLock()
-	defer pkgMutex.RUnlock()
+	singletonMutex.RLock()
+	defer singletonMutex.RUnlock()
 
 	if singleton == nil {
 		return fmt.Errorf("cannot add exporter. telemetry collector not initialized")
@@ -294,8 +294,8 @@ func RemoveExporter(exporter exporter.Exporter) (err error) {
 		}
 	}()
 
-	pkgMutex.RLock()
-	defer pkgMutex.RUnlock()
+	singletonMutex.RLock()
+	defer singletonMutex.RUnlock()
 
 	if singleton == nil {
 		return fmt.Errorf("cannot remove exporter. telemetry collector not initialized")
@@ -314,8 +314,8 @@ func Shutdown() (err error) {
 		}
 	}()
 
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMutex.Lock()
+	defer singletonMutex.Unlock()
 
 	if stopSignals == nil || listenWg == nil {
 		return nil

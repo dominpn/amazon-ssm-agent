@@ -139,7 +139,6 @@ func start(log log.T, shouldCheckHibernation bool) (ssmAgent agent.ISSMAgent, er
 }
 
 func initializeTelemetry(log log.T, agentIdentity agentIdentity.IAgentIdentity, context context.T) {
-
 	if !context.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
 		log.Info("Agent GlobalEnhancedTelemetry is disabled, hence skipping telemetry initialisation")
 		return
@@ -154,19 +153,22 @@ func initializeTelemetry(log log.T, agentIdentity agentIdentity.IAgentIdentity, 
 		log.Warnf("Telemetry failed to initialize with error %v", err)
 	}
 	// initialize telemetry collector
-	collector.Initialize(context)
-
-	// listen on telemetry from the core agent
-	coreAgentTelemetryContext := telemetryContext.NewTelemetryContext(telemetry.CoreAgentChannelName, log, context.Identity())
-	err = collector.StartCollection(coreAgentTelemetryContext)
+	err = collector.Initialize(context)
 	if err != nil {
-		log.Warnf("Failed to start listening for telemetry from the core agent with error %v", err)
-	}
+		log.Warnf("Telemetry collector initialize failed with error %v", err)
+	} else {
+		// listen on telemetry from the core agent
+		coreAgentTelemetryContext := telemetryContext.NewTelemetryContext(telemetry.CoreAgentChannelName, log, context.Identity())
+		err = collector.StartCollection(coreAgentTelemetryContext)
+		if err != nil {
+			log.Warnf("Failed to start listening for telemetry from the core agent with error %v", err)
+		}
 
-	// listen on telemetry from self
-	err = collector.StartCollection(telemetryCtx)
-	if err != nil {
-		log.Warnf("Failed to start listening for telemetry from the agent worker with error %v", err)
+		// listen on telemetry from self
+		err = collector.StartCollection(telemetryCtx)
+		if err != nil {
+			log.Warnf("Failed to start listening for telemetry from the agent worker with error %v", err)
+		}
 	}
 }
 

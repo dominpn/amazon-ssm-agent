@@ -10,7 +10,7 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package telemetry
+package control_channel_exporter
 
 import (
 	"encoding/json"
@@ -31,18 +31,23 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+
 	"github.com/gorilla/websocket"
+
 	"github.com/twinj/uuid"
 )
 
 const (
-	UnknownInstanceId           = "unknown"
-	AgentTelemetryV2MessageType = "agent_telemetry_v2" // represents message type for V2 agent telemetry
+	// UnknownInstanceId is the instance ID sent to the backend if the instance ID could not be determined
+	UnknownInstanceId = "unknown"
+
+	// AgentTelemetryV2MessageType represents message type for V2 agent telemetry
+	AgentTelemetryV2MessageType = "agent_telemetry_v2"
 )
 
 // used to lock the send message process.
-var pkgMutex = &sync.Mutex{}
-var telemetryExporterInstance *controlChannelTelemetryExporter
+var telemetryExporterSingletonMtx = &sync.RWMutex{}
+var telemetryExporterSingleton *controlChannelTelemetryExporter
 
 type ITelemetryExporter interface {
 	StartExporter()
@@ -58,18 +63,18 @@ type controlChannelTelemetryExporter struct {
 
 // GetControlChannelTelemetryExporter returns us the singleton instance of AuditLogTelemetry
 func GetControlChannelTelemetryExporter(ctx context.T, channel communicator.IWebSocketChannel) *controlChannelTelemetryExporter {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	telemetryExporterSingletonMtx.Lock()
+	defer telemetryExporterSingletonMtx.Unlock()
 
-	if telemetryExporterInstance != nil {
-		return telemetryExporterInstance
+	if telemetryExporterSingleton != nil {
+		return telemetryExporterSingleton
 	}
 
-	telemetryExporterInstance = &controlChannelTelemetryExporter{
+	telemetryExporterSingleton = &controlChannelTelemetryExporter{
 		channel: channel,
 		ctx:     ctx,
 	}
-	return telemetryExporterInstance
+	return telemetryExporterSingleton
 }
 
 func (t *controlChannelTelemetryExporter) StartExporter() {
@@ -149,9 +154,6 @@ func (t *controlChannelTelemetryExporter) Export(namespace string,
 			err = fmt.Errorf("panic in controlChannelTelemetryExporter Export %v", r)
 		}
 	}()
-
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
 
 	logger := t.ctx.Log()
 

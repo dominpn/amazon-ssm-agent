@@ -10,7 +10,7 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package utils
 
 import (
 	"bufio"
@@ -37,7 +37,7 @@ const seelogConfigStringFormat = `
     </formats>
 </seelog>`
 
-func getLoggerConfig(defaultLogDir, logFile string, maxRolls int, maxFileSize int64) []byte {
+func GetLoggerConfig(defaultLogDir, logFile string, maxRolls int, maxFileSize int64) []byte {
 	logFilePath := filepath.Join(defaultLogDir, logFile)
 	logConfig := fmt.Sprintf(seelogConfigStringFormat, logFilePath, maxFileSize, maxRolls)
 	return []byte(logConfig)
@@ -172,10 +172,10 @@ func listFiles(dirPath string, filterFun func(filePath string) bool) ([]string, 
 	return result, nil
 }
 
-// readAndDeleteRollingLogs is the common logic used fetching written records for both log and metric collectors.
+// ReadAndDeleteRollingLogs is the common logic used fetching written records for both log and metric collectors.
 // It reads rolling files from all namespaces, while staying within the specified limit. It deletes the lines which were read.
 // returns a namespace -> lines map. returns EOF as error if all the logs were read from all the namespaces
-func readAndDeleteRollingLogs(log log.BasicT, baseDir, fileNamePrefix string, limit int) (map[string][]string, error) {
+func ReadAndDeleteRollingLogs(log log.BasicT, baseDir, fileNamePrefix string, limit int) (map[string][]string, error) {
 	resultMap := make(map[string][]string)
 
 	namespaces, err := getSubdirNames(baseDir)
@@ -183,7 +183,7 @@ func readAndDeleteRollingLogs(log log.BasicT, baseDir, fileNamePrefix string, li
 		if os.IsNotExist(err) {
 			// we probably have not received any telemetry yet. Ignore
 			log.Debugf("Directory %v not found, ignoring", baseDir)
-			return resultMap, EOF
+			return resultMap, io.EOF
 		}
 
 		return nil, err
@@ -214,7 +214,7 @@ func readAndDeleteRollingLogs(log log.BasicT, baseDir, fileNamePrefix string, li
 		allLines, readErr := readDirAndTruncate(nsDir, fileNamePrefix, remainingLimit, log)
 
 		if readErr != nil {
-			if readErr != EOF {
+			if readErr != io.EOF {
 				return nil, readErr
 			}
 		} else {
@@ -231,7 +231,7 @@ func readAndDeleteRollingLogs(log log.BasicT, baseDir, fileNamePrefix string, li
 	}
 
 	if allFilesReadFully {
-		err = EOF
+		err = io.EOF
 	} else {
 		err = nil
 	}
@@ -251,7 +251,7 @@ func readDirAndTruncate(dir, fileNamePrefix string, maxLines int, log log.BasicT
 	allFilesReadFully := true
 
 	if len(files) == 0 {
-		return allLines, EOF
+		return allLines, io.EOF
 	}
 
 	for _, file := range files {
@@ -270,7 +270,7 @@ func readDirAndTruncate(dir, fileNamePrefix string, maxLines int, log log.BasicT
 			} else if os.IsPermission(readErr) {
 				log.Debugf("File %v not accessible, ignoring", file)
 				continue
-			} else if readErr != EOF {
+			} else if readErr != io.EOF {
 				return nil, readErr
 			} else if filepath.Base(file) != fileNamePrefix {
 				// the file is completely empty, delete it
@@ -289,7 +289,7 @@ func readDirAndTruncate(dir, fileNamePrefix string, maxLines int, log log.BasicT
 	}
 
 	if allFilesReadFully {
-		err = EOF
+		err = io.EOF
 	} else {
 		err = nil
 	}
@@ -350,7 +350,7 @@ func readLinesAndTruncate(filePath string, maxLines int) ([]string, error) {
 	}
 
 	if st.Size() == 0 {
-		err = EOF
+		err = io.EOF
 	}
 
 	// rotate the results so they're in the correct order
@@ -361,10 +361,10 @@ func readLinesAndTruncate(filePath string, maxLines int) ([]string, error) {
 	return result, err
 }
 
-// deleteDirectoryIfAllFilesEmpty deletes all the empty files from the given directory.
+// DeleteDirectoryIfAllFilesEmpty deletes all the empty files from the given directory.
 // It also deletes the directory if the directory is empty after all the files are deleted.
 // It does not work recursively.
-func deleteDirectoryIfAllFilesEmpty(dirPath string) error {
+func DeleteDirectoryIfAllFilesEmpty(dirPath string) error {
 	// Open the directory
 	dir, err := os.Open(dirPath)
 	if err != nil {
@@ -404,7 +404,7 @@ func deleteDirectoryIfAllFilesEmpty(dirPath string) error {
 	return nil
 }
 
-func unmarshalList[N interface{}](lines []string, log log.T) []N {
+func UnmarshalList[N interface{}](lines []string, log log.T) []N {
 	logs := make([]N, 0, len(lines))
 
 	for _, line := range lines {

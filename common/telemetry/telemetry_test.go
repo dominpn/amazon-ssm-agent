@@ -26,6 +26,7 @@ import (
 	telemetryContextMocks "github.com/aws/amazon-ssm-agent/common/telemetry/context/mocks"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

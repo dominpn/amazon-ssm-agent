@@ -39,16 +39,17 @@ const (
 	AgentWorkerChannelName = "agent_worker"
 )
 
-var pkgMutex = new(sync.RWMutex)
+var singletonMtx = new(sync.RWMutex)
 
 type telemetry struct {
-	context     context.TelemetryContext
+	context context.TelemetryContext
+
 	fileChannel filewatcherbasedipc.IPCChannel
 }
 
 func getTelemetry() (*telemetry, error) {
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMtx.RLock()
+	defer singletonMtx.RUnlock()
 
 	if singleton == nil {
 		return nil, errors.New("telemetry is not initialized")
@@ -60,7 +61,7 @@ func getTelemetry() (*telemetry, error) {
 // this is for mocking support
 var channelCreator = func(log logger.T, identity identity.IAgentIdentity, mode filewatcherbasedipc.Mode,
 	filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
-	return filewatcherbasedipc.CreateRollingFileWatcherChannel(log, identity, mode, filename, false, 1000) // TODO: read the maxFiles from config
+	return filewatcherbasedipc.CreateRollingFileWatcherChannel(log, identity, mode, filename, false, 1000)
 }
 
 func Initialize(context context.TelemetryContext) (err error) {
@@ -72,8 +73,8 @@ func Initialize(context context.TelemetryContext) (err error) {
 		}
 	}()
 
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMtx.Lock()
+	defer singletonMtx.Unlock()
 
 	if singleton != nil {
 		return errors.New("telemetry is already initialized")
@@ -102,8 +103,8 @@ func Shutdown() {
 		}
 	}()
 
-	pkgMutex.Lock()
-	defer pkgMutex.Unlock()
+	singletonMtx.Lock()
+	defer singletonMtx.Unlock()
 
 	if singleton != nil {
 		singleton.shutdown()

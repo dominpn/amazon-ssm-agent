@@ -19,15 +19,9 @@ import (
 	"runtime/debug"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
+
 	"github.com/fsnotify/fsnotify"
 )
-
-// IFileWatcher interface for FileWatcher with functions to initialize, start and stop the watcher
-type ifileWatcher interface {
-	Init(log log.T, configFilePath string, replaceDynamicConfiguration func(log log.T, configFilePath string))
-	Start()
-	Stop()
-}
 
 // configFileWatcher implements the ifileWatcher by using fileChangeWatcher and fileExistsWatcher
 type configFileWatcher struct {
@@ -47,7 +41,6 @@ func NewFileWatcher(log log.T, configFilePath string, replaceDynamicConfiguratio
 
 // Start creates and starts the go routines for filewatcher
 func (fileWatcher *configFileWatcher) Start() {
-
 	fileWatcher.log.Infof("Starting TelemetryDynamicConfiguration File Watcher On: %v", fileWatcher.configFilePath)
 
 	// Since the filewatcher fails if the file does not exist, need to watch the parent directory for any changes
@@ -86,7 +79,7 @@ func (fileWatcher *configFileWatcher) fileEventHandler() {
 	}()
 	// Waiting on signals from OS
 	for event := range fileWatcher.watcher.Events {
-		// Event signalled by OS on file
+		// Event signaled by OS on file
 		fileWatcher.log.Debugf("Event on file %v : %v", event.Name, event)
 		if event.Name == fileWatcher.configFilePath {
 			// Event on the file being watched

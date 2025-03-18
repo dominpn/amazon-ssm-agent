@@ -10,7 +10,7 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package hybrid
 
 import (
 	"errors"
@@ -20,9 +20,10 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
-	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/mocks"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/mocks"
 	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -259,4 +260,28 @@ func (suite *HydringMetricsCollectorTestSuite) TestHybridMetricCollectorClose() 
 	// call the Close method
 	err := suite.collector.Close()
 	assert.Equal(suite.T(), errors.Join(resultErr1, resultErr2), err)
+}
+
+// interface which allows us to use assert.CollectT as testing.T
+// open issue in testify: https://github.com/stretchr/testify/issues/1414
+type commonT struct {
+	c *assert.CollectT
+}
+
+func (c *commonT) FailNow() {
+	c.c.FailNow()
+}
+
+func (c *commonT) Errorf(format string, args ...interface{}) {
+	c.c.Errorf(format, args...)
+}
+
+func (c *commonT) Logf(format string, args ...interface{}) {
+	c.c.Errorf(format, args...)
+}
+
+func NewCommonT(c *assert.CollectT) *commonT {
+	return &commonT{
+		c: c,
+	}
 }

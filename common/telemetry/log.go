@@ -46,9 +46,6 @@ func (l *telemetryLogger) EmitLog(s telemetrylog.Severity, v ...interface{}) (er
 		}
 	}()
 
-	pkgMutex.RLock()
-	defer pkgMutex.RUnlock()
-
 	return t.emitLog(l.namespace, time.Now(), s, fmt.Sprint(v...))
 }
 
@@ -66,9 +63,6 @@ func (l *telemetryLogger) EmitLogf(s telemetrylog.Severity, format string, param
 			t.context.Log().Errorf("Stacktrace:\n%s", debug.Stack())
 		}
 	}()
-
-	pkgMutex.RLock()
-	defer pkgMutex.RUnlock()
 
 	return t.emitLog(l.namespace, time.Now(), s, fmt.Sprintf(format, params...))
 }

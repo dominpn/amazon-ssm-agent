@@ -313,7 +313,6 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 				return strings.Contains(msg, "Error processing telemetry message")
 			}), mock.Anything)
 		}
-		// assert.Equal(ct, erroredLogCounts, logCounts)
 	}, 20*time.Second, 100*time.Millisecond)
 }
 
@@ -335,11 +334,11 @@ func (suite *singletonTestSuite) TestStopCollection() {
 func (suite *singletonTestSuite) TestStopCollectionPanic() {
 	Initialize(suite.ctx)
 
-	backupPkgMutex := pkgMutex
+	backupPkgMutex := singletonMutex
 	defer func() {
-		pkgMutex = backupPkgMutex
+		singletonMutex = backupPkgMutex
 	}()
-	pkgMutex = nil
+	singletonMutex = nil
 
 	telemetryContext := telemetryContextMocks.NewMockDefault()
 

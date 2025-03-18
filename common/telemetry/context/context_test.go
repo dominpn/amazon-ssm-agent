@@ -19,6 +19,7 @@ import (
 	logMock "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	identityMock "github.com/aws/amazon-ssm-agent/common/identity/mocks"
+
 	"github.com/stretchr/testify/assert"
 )
 

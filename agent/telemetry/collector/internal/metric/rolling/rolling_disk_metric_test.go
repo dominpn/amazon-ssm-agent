@@ -10,12 +10,13 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package rolling
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -26,12 +27,15 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	dynamicconfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
 const (
+	testingDir = "./testingvar"
+
 	// all tests rely on this
 	testMetricJsonSize = 163
 )
@@ -175,7 +179,7 @@ func (suite *rollingDiskMetricCollectorTestSuite) TestFetchAndDrop() {
 	testCollector.Flush()
 
 	fetchedMetrics, err := testCollector.FetchAndDrop(1000000)
-	assert.ErrorIs(suite.T(), EOF, err)
+	assert.ErrorIs(suite.T(), io.EOF, err)
 
 	// 2 namespaces
 	assert.Len(suite.T(), fetchedMetrics, 2)
@@ -273,6 +277,11 @@ func (tester *rollingDiskMetricCollectorTester) test() {
 	for i, tc := range tester.testCases {
 		tester.testCase(tc, i)
 	}
+}
+
+func cleanupRollingCollectorTest() {
+	testingDir := filepath.Clean(testingDir)
+	fileutil.DeleteDirectory(testingDir)
 }
 
 func (tester *rollingDiskMetricCollectorTester) listAllFilesInNamespaceDir(namespace string) ([]string, error) {

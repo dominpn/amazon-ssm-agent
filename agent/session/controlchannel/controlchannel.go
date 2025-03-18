@@ -34,7 +34,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/session/service"
 	"github.com/aws/amazon-ssm-agent/agent/session/telemetry"
 	"github.com/aws/amazon-ssm-agent/agent/ssmconnectionchannel"
-	telemetryV2 "github.com/aws/amazon-ssm-agent/agent/telemetry"
+	telemetryV2 "github.com/aws/amazon-ssm-agent/agent/telemetry/exporter/control_channel_exporter"
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gorilla/websocket"

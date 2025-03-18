@@ -10,7 +10,7 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package inmemory
 
 import (
 	"fmt"
@@ -20,6 +20,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
+
 	"github.com/stretchr/testify/assert"
 )
 

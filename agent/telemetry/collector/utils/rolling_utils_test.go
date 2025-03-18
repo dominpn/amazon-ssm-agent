@@ -10,10 +10,11 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package utils
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -24,14 +25,20 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
+
 	"github.com/cihub/seelog"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
-const testCharset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789🖥️🏢🚢!@#$%^&*"
+const (
+	testingDir = "./testingvar"
+
+	testCharset = "abcdefghijklmnopqrstuvwxyz" +
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789🖥️🏢🚢!@#$%^&*"
+)
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -119,7 +126,7 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 			remainingLineCount := writtenLineCount
 
 			for remainingLineCount > 0 {
-				fetchedNamespaceLines, err := readAndDeleteRollingLogs(suite.ctx.Log(), baseDir, "logs", testCase.chunkFetchLimit)
+				fetchedNamespaceLines, err := ReadAndDeleteRollingLogs(suite.ctx.Log(), baseDir, "logs", testCase.chunkFetchLimit)
 
 				fetchedLineCount := 0
 				for _, lines := range fetchedNamespaceLines {
@@ -128,7 +135,7 @@ func (suite *rollingUtilsTestSuite) TestRollingUtils() {
 
 				if remainingLineCount <= testCase.chunkFetchLimit {
 					assert.Equal(suite.T(), remainingLineCount, fetchedLineCount)
-					assert.Equal(suite.T(), EOF, err)
+					assert.Equal(suite.T(), io.EOF, err)
 				} else {
 					assert.Equal(suite.T(), testCase.chunkFetchLimit, fetchedLineCount)
 					assert.NoError(suite.T(), err)

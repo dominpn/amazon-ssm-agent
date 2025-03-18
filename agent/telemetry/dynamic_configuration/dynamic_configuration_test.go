@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -260,7 +261,6 @@ func TestInitSavesConfigToDiskWhenNotPresentInitially(t *testing.T) {
 	defer func() {
 		GetDynamicConfigFolderPath = oldDynamicConfigFolderPath
 	}()
-	// assert.FileDoesNotExist(t, filepath.Clean(fakeConfigFilePath))
 	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
 
 	assert.FileExists(t, filepath.Clean(fakeConfigFilePath))

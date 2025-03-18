@@ -10,14 +10,15 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package internal
 
 import (
+	"io"
 	"testing"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
-	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/mocks"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/mocks"
 	exporterMocks "github.com/aws/amazon-ssm-agent/agent/telemetry/exporter/mocks"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
@@ -145,8 +146,8 @@ func (suite *collectorTestSuite) TestExportSchedule() {
 		},
 	}
 
-	metricCollectorMock.On("FetchAndDrop", mock.Anything).Return(metrics, EOF).Once()
-	logCollectorMock.On("FetchAndDrop", mock.Anything).Return(logs, EOF).Once()
+	metricCollectorMock.On("FetchAndDrop", mock.Anything).Return(metrics, io.EOF).Once()
+	logCollectorMock.On("FetchAndDrop", mock.Anything).Return(logs, io.EOF).Once()
 
 	exporterMock.On("Export", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
@@ -264,4 +265,28 @@ func (suite *collectorTestSuite) TestAddRemoveExporter() {
 	collector.RemoveExporter(exporterMock)
 
 	assert.Len(suite.T(), collector.exporters, 0)
+}
+
+// interface which allows us to use assert.CollectT as testing.T
+// open issue in testify: https://github.com/stretchr/testify/issues/1414
+type commonT struct {
+	c *assert.CollectT
+}
+
+func (c *commonT) FailNow() {
+	c.c.FailNow()
+}
+
+func (c *commonT) Errorf(format string, args ...interface{}) {
+	c.c.Errorf(format, args...)
+}
+
+func (c *commonT) Logf(format string, args ...interface{}) {
+	c.c.Errorf(format, args...)
+}
+
+func NewCommonT(c *assert.CollectT) *commonT {
+	return &commonT{
+		c: c,
+	}
 }

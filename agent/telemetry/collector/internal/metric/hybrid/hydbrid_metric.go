@@ -10,7 +10,7 @@
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-package collector
+package hybrid
 
 import (
 	"errors"
@@ -19,20 +19,24 @@ import (
 	"sync"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
+	metricCollector "github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/metric"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/metric/inmemory"
+	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal/metric/rolling"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
+
 	"github.com/carlescere/scheduler"
 )
 
 type FastMetricsCollector interface {
-	MetricsCollector
+	metricCollector.MetricsCollector
 
 	FetchAllAndDrop() (metric.NamespaceMetrics[float64], error)
 }
 
 // FlushableMetricsCollector supports flushing. This interface is suitable for disk/network based collectors
 type FlushableMetricsCollector interface {
-	MetricsCollector
-	Flushable
+	metricCollector.MetricsCollector
+	Flush() error
 }
 
 // hybridMetricCollector collects metrics in-memory and periodically flushes to disk
@@ -48,8 +52,8 @@ func NewHybridMetricCollector(context context.T, fileNamePrefix string, flushPer
 
 	c = &hybridMetricCollector{
 		diskWriteMtx:      &sync.Mutex{},
-		inMemoryCollector: NewInMemoryMetricCollector(context),
-		onDiskCollector:   NewRollingDiskMetricCollector(context, fileNamePrefix),
+		inMemoryCollector: inmemory.NewInMemoryMetricCollector(context),
+		onDiskCollector:   rolling.NewRollingDiskMetricCollector(context, fileNamePrefix),
 	}
 
 	// start writing to disk periodically
