@@ -118,33 +118,46 @@ func getRandomPercentage() int {
 	return rand.IntN(100)
 }
 
+// checkTelemetryExportLuck returns us the result of the "coin toss", whether we got lucky enough to export telemetry or not
 func checkTelemetryExportLuck(log log.T, namespace string) bool {
 	telemetryEmissionLuck := randomPercentage()
 	configuredPercentageLimit := dynamicconfiguration.PercentageLimit(namespace)
-	return telemetryEmissionLuck < configuredPercentageLimit
+	checkResult := telemetryEmissionLuck < configuredPercentageLimit
+	log.Debugf("TelemetryExportLuck checkResult: %d", checkResult)
+	return checkResult
 }
 
+// isTelemetryEnabled returns if telemetry is currently enabled for given namespace
 func isTelemetryEnabled(log log.T, namespace string) bool {
 	telemetryDisabledTill := dynamicconfiguration.TelemetryDisabledTill(namespace)
-	return telemetryDisabledTill < time.Now().Unix()
+	checkResult := telemetryDisabledTill < time.Now().Unix()
+	log.Debugf("TelemetryEnabled checkResult: %d", checkResult)
+	return checkResult
 }
 
+// tooSoontoExportTelemetry returns if exportPeriod amount of time has passed since we last exported telemetry for given namespace
 func tooSoontoExportTelemetry(log log.T, namespace string) bool {
 	lastEmittedDataStore := datastores.TelemetryLastEmittedDataStore()
 	lastEmittedTimeStamp := lastEmittedDataStore.Read(namespace)
 	exportPeriod := dynamicconfiguration.ExportPeriod(namespace)
-	return (time.Now().Unix() - lastEmittedTimeStamp) < int64(exportPeriod*60)
+	checkResult := (time.Now().Unix() - lastEmittedTimeStamp) < int64(exportPeriod*60)
+	log.Debugf("TooSoonToExportTelemetry checkResult: %d", checkResult)
+	return checkResult
 }
 
+// updateLastEmittedTimestamp updates the in-memory key-value data store to store last timestamp when export is done
 func updateLastEmittedTimestamp(namespace string, lastEmittedTimeStamp int64) {
 	lastEmittedDataStore := datastores.TelemetryLastEmittedDataStore()
 	lastEmittedDataStore.Write(namespace, lastEmittedTimeStamp)
 }
 
+// ShouldExport checks if agent should export telemetry to MGS
+// It depends on the result of the coin toss, whether telemetry is enabled for a namespace and if exportPeriod time has elapsed since last export
 func (t *controlChannelTelemetryExporter) ShouldExport(namespace string) bool {
 	return controlChannelCheckTelemetryExportLuck(t.ctx.Log(), namespace) && controlChannelIsTelemetryEnabled(t.ctx.Log(), namespace) && !controlChannelTooSoontoExportTelemetry(t.ctx.Log(), namespace)
 }
 
+// Export exports telemetry for a given namespace to MGS
 func (t *controlChannelTelemetryExporter) Export(namespace string,
 	metrics []metric.Metric[float64], logs []telemetrylog.Entry) (err error) {
 	defer func() {

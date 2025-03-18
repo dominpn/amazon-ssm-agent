@@ -145,8 +145,7 @@ func initializeTelemetry(log log.T, agentIdentity agentIdentity.IAgentIdentity, 
 	}
 
 	//Initialize dynamic configuration required by telemetry
-	dynamicConfiguration.NewTelemetryDynamicConfiguration(log, true, filepath.Join(appconfig.DynamicConfigFolderPath, appconfig.DynamicConfigFileName))
-
+	dynamicConfiguration.NewTelemetryDynamicConfiguration(log, true, filepath.Join(appconfig.DynamicConfigFolderPath, appconfig.TelemetryDynamicConfigFileName))
 	telemetryCtx := telemetryContext.NewTelemetryContext(telemetry.AgentWorkerChannelName, log, agentIdentity)
 	err := telemetry.Initialize(telemetryCtx)
 	if err != nil {
