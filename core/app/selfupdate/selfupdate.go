@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,11 +40,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/core/app/selfupdate/fileutil/artifact"
 	"github.com/carlescere/scheduler"
 	"github.com/nightlyone/lockfile"
-)
-
-const (
-	updateDelayFactor = 43200 // 12 hours
-	updateDelayBase   = 1800  // 1800 seconds
 )
 
 // UpdatePluginResult represents Agent update plugin result
@@ -72,6 +68,8 @@ var (
 	updateInitialize        func(string) error
 	updateDownloadResource  func(string) error
 	updateExecuteSelfUpdate func(log log.T, region string) (pid int, err error)
+	updateDelayFactor       = "43200" // 12 hours
+	updateDelayBase         = "1800"  // 1800 seconds
 )
 
 // IUpdateProvider is the interface to start/stop selfupdate component
@@ -162,7 +160,18 @@ func (u *SelfUpdate) Stop() {
 // Periodically Pulling manifest file and updater from regional S3 bucket.
 // Unzip updater and execute the updater
 func (u *SelfUpdate) updateFromS3WithDelay() {
-	nextTrigger := time.Duration(rand.Intn(updateDelayFactor)+updateDelayBase) * time.Second
+	log := u.context.Log()
+	updateDelayFactorInt, err := strconv.Atoi(updateDelayFactor)
+	if err != nil {
+		log.Errorf("updateDelayFactor has non-digits: %v", updateDelayFactor)
+		return
+	}
+	updateDelayBaseInt, err := strconv.Atoi(updateDelayBase)
+	if err != nil {
+		log.Errorf("updateDelayBase has non-digits: %v", updateDelayBase)
+		return
+	}
+	nextTrigger := time.Duration(rand.Intn(updateDelayFactorInt)+updateDelayBaseInt) * time.Second
 	select {
 	case <-time.After(nextTrigger):
 		_ = u.updateFromS3()
