@@ -19,10 +19,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/common/channel"
 	channelmocks "github.com/aws/amazon-ssm-agent/common/channel/mocks"
+	identityMock "github.com/aws/amazon-ssm-agent/common/identity/mocks"
 	"github.com/aws/amazon-ssm-agent/common/message"
 	contextmocks "github.com/aws/amazon-ssm-agent/core/app/context/mocks"
 	"github.com/stretchr/testify/assert"
@@ -155,4 +157,70 @@ func (suite *MessageBusTestSuite) TestSendSurveyMessage_Fail() {
 	assert.Nil(suite.T(), err)
 	assert.True(suite.T(), len(results) == 0)
 	suite.mockHealthChannel.AssertExpectations(suite.T())
+
+	surveyMsg.Topic = message.GetWorkerHealthResult
+	_, err = suite.messageBus.SendSurveyMessage(surveyMsg)
+	assert.EqualError(suite.T(), err, "unsupported topic: GetWorkerHealthResult")
+
+	channels := make(map[message.TopicType]channel.IChannel)
+
+	mockContext := &contextmocks.ICoreAgentContext{}
+	mockContext.On("With", mock.Anything).Return(mockContext)
+	mockLog := logmocks.NewMockLog()
+	mockContext.On("Log").Return(mockLog)
+
+	messageBusLocal := &MessageBus{
+		context:        mockContext,
+		surveyChannels: channels,
+	}
+	surveyMsg.Topic = message.GetWorkerHealthRequest
+	messageBusLocal.SendSurveyMessage(surveyMsg)
+	suite.mockHealthChannel.AssertExpectations(suite.T())
+}
+
+func (suite *MessageBusTestSuite) TestNewMessageBus_Successful() {
+	agentIdentity := &identityMock.IAgentIdentity{}
+	suite.mockContext.On("Identity").Return(agentIdentity)
+	suite.mockContext.On("AppConfig").Return(&appconfig.SsmagentConfig{Agent: appconfig.AgentInfo{}})
+	messageBus := NewMessageBus(suite.mockContext)
+	assert.NotNil(suite.T(), messageBus)
+	assert.Equal(suite.T(), messageBus.context, suite.mockContext)
+	suite.mockContext.AssertExpectations(suite.T())
+}
+
+func (suite *MessageBusTestSuite) TestStart_Listen_Fail() {
+	mockedError := "mocked error"
+	suite.mockHealthChannel.On("Initialize", mock.Anything).Return(nil)
+	suite.mockHealthChannel.On("Listen", mock.Anything).Return(errors.New(mockedError))
+	err := suite.messageBus.Start()
+	assert.NotNil(suite.T(), err)
+	suite.mockHealthChannel.AssertExpectations(suite.T())
+}
+
+func (suite *MessageBusTestSuite) Test_StartSetToption_Fail() {
+	mockedError := "mocked error"
+	suite.mockHealthChannel.On("Initialize", mock.Anything).Return(nil)
+	suite.mockHealthChannel.On("Listen", mock.Anything).Return(nil)
+	suite.mockHealthChannel.On("SetOption", mock.Anything, mock.Anything).Return(nil)
+	suite.mockTerminateChannel.On("Initialize", mock.Anything).Return(nil)
+	suite.mockTerminateChannel.On("Listen", mock.Anything).Return(nil)
+	suite.mockTerminateChannel.On("SetOption", mock.Anything, mock.Anything).Return(errors.New(mockedError))
+	err := suite.messageBus.Start()
+	assert.NotNil(suite.T(), err)
+	suite.mockHealthChannel.AssertExpectations(suite.T())
+	suite.mockTerminateChannel.AssertExpectations(suite.T())
+	assert.EqualError(suite.T(), err, "failed to start termination channel: setOption(): "+mockedError)
+}
+
+func (suite *MessageBusTestSuite) TestCreateMessageChannelWithRetry_Fail() {
+	err := suite.messageBus.createMessageChannelWithRetry(message.GetWorkerHealthResult)
+	assert.NotNil(suite.T(), err)
+}
+func (suite *MessageBusTestSuite) TestStop_Faill() {
+	mockedError := "mocked error"
+	suite.mockHealthChannel.On("Close").Return(nil)
+	suite.mockTerminateChannel.On("Close").Return(errors.New(mockedError))
+	suite.messageBus.Stop()
+	suite.mockHealthChannel.AssertExpectations(suite.T())
+	suite.mockTerminateChannel.AssertExpectations(suite.T())
 }
