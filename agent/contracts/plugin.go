@@ -107,6 +107,7 @@ type Configuration struct {
 	ShellProfile                ShellProfileConfig
 	SessionOwner                string
 	UpstreamServiceName         UpstreamServiceName
+	EnvironmentVariables        map[string]string
 }
 
 // Plugin wraps the plugin configuration and plugin result.

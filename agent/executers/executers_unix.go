@@ -60,7 +60,7 @@ func validateEnvironmentVariables(command *exec.Cmd) {
 		env = append(env, fmtEnvVariable("HOME", "/"))
 		i := 0
 		for _, a := range env {
-			if strings.Contains(a, "TERM") {
+			if strings.EqualFold(a, "TERM") {
 				if i == len(env)-1 {
 					env = env[:i]
 				} else {

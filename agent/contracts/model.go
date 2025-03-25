@@ -184,15 +184,16 @@ type ConnectionChannel struct {
 
 // A Parameter in the DocumentContent of an MDS message.
 type Parameter struct {
-	DefaultVal     interface{} `json:"default" yaml:"default"`
-	Description    string      `json:"description" yaml:"description"`
-	ParamType      string      `json:"type" yaml:"type"`
-	AllowedVal     []string    `json:"allowedValues" yaml:"allowedValues"`
-	AllowedPattern string      `json:"allowedPattern" yaml:"allowedPattern"`
-	MinChars       json.Number `json:"minChars,omitempty" yaml:"minChars,omitempty"`
-	MaxChars       json.Number `json:"maxChars,omitempty" yaml:"maxChars,omitempty"`
-	MinItems       json.Number `json:"minItems,omitempty" yaml:"minItems,omitempty"`
-	MaxItems       json.Number `json:"maxItems,omitempty" yaml:"maxItems,omitempty"`
+	DefaultVal        interface{} `json:"default" yaml:"default"`
+	Description       string      `json:"description" yaml:"description"`
+	ParamType         string      `json:"type" yaml:"type"`
+	AllowedVal        []string    `json:"allowedValues" yaml:"allowedValues"`
+	AllowedPattern    string      `json:"allowedPattern" yaml:"allowedPattern"`
+	MinChars          json.Number `json:"minChars,omitempty" yaml:"minChars,omitempty"`
+	MaxChars          json.Number `json:"maxChars,omitempty" yaml:"maxChars,omitempty"`
+	MinItems          json.Number `json:"minItems,omitempty" yaml:"minItems,omitempty"`
+	MaxItems          json.Number `json:"maxItems,omitempty" yaml:"maxItems,omitempty"`
+	InterpolationType string      `json:"interpolationType" yaml:"interpolationType"`
 }
 
 // PluginConfig stores plugin configuration
@@ -216,11 +217,14 @@ type InstancePluginConfig struct {
 
 // DocumentContent object which represents ssm document content.
 type DocumentContent struct {
-	SchemaVersion string                   `json:"schemaVersion" yaml:"schemaVersion"`
-	Description   string                   `json:"description" yaml:"description"`
-	RuntimeConfig map[string]*PluginConfig `json:"runtimeConfig" yaml:"runtimeConfig"`
-	MainSteps     []*InstancePluginConfig  `json:"mainSteps" yaml:"mainSteps"`
-	Parameters    map[string]*Parameter    `json:"parameters" yaml:"parameters"`
+	SchemaVersion                   string                   `json:"schemaVersion" yaml:"schemaVersion"`
+	Description                     string                   `json:"description" yaml:"description"`
+	RuntimeConfig                   map[string]*PluginConfig `json:"runtimeConfig" yaml:"runtimeConfig"`
+	MainSteps                       []*InstancePluginConfig  `json:"mainSteps" yaml:"mainSteps"`
+	Parameters                      map[string]*Parameter    `json:"parameters" yaml:"parameters"`
+	ShellEnvVariablesParamKeys      map[string]interface{}   `json:"shellEnvVariablesParamKeys" yaml:"shellEnvVariablesParamKeys"`
+	PowerShellEnvVariablesParamKeys map[string]interface{}   `json:"powerShellEnvVariablesParamKeys" yaml:"powerShellEnvVariablesParamKeys"`
+	EnvVariablesParamValues         map[string]interface{}   `json:"envVariablesParamValues" yaml:"envVariablesParamValues"`
 
 	// InvokedPlugin field is set when document is invoked from any other plugin.
 	// Currently, InvokedPlugin is set only in runDocument Plugin

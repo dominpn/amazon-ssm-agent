@@ -553,6 +553,73 @@ func TestParseDocument_ReplaceDefaultParameters(t *testing.T) {
 	assert.NotEqual(t, parsedMessage, originalMessage)
 }
 
+func TestParseDocument_ReplaceEnvInterpolationParameters(t *testing.T) {
+	context := context.NewMockDefault()
+
+	testParserInfo := DocumentParserInfo{
+		OrchestrationDir:  testOrchDir,
+		S3Bucket:          testS3Bucket,
+		S3Prefix:          testS3Prefix,
+		MessageId:         testMessageID,
+		DocumentId:        testDocumentID,
+		DefaultWorkingDir: testWorkingDir,
+	}
+
+	var testDocContent DocContent
+	defaultParamatersDoc := loadFile(t, filepath.Join("testdata", "sampleReplaceEnvParams.json"))
+
+	err := json.Unmarshal([]byte(defaultParamatersDoc), &testDocContent)
+	assert.Nil(t, err)
+	assert.NoError(t, err, "Error occurred when trying to unmarshal test parameters")
+	originalMessage, _ := jsonutil.Marshal(testDocContent)
+
+	pluginsInfo, err := testDocContent.ParseDocument(context, contracts.DocumentInfo{}, testParserInfo, nil)
+	parsedMessage, _ := jsonutil.Marshal(testDocContent)
+
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(pluginsInfo))
+
+	powerShellPluginInfoTest := pluginsInfo[0]
+	propsPowerShell, ok := powerShellPluginInfoTest.Configuration.Properties.(map[string]interface{})
+	if !ok {
+		return
+	}
+	assert.Equal(t, "[Write-Output $env:SSM_Message Write-Output Hello World]", fmt.Sprintf("%v", propsPowerShell["runCommand"]))
+
+	shellPluginInfoTest := pluginsInfo[1]
+	propsShell, ok := shellPluginInfoTest.Configuration.Properties.(map[string]interface{})
+	if !ok {
+		return
+	}
+	assert.Equal(t, "[Write-Output $SSM_Message Write-Output Hello World]", fmt.Sprintf("%v", propsShell["runCommand"]))
+
+	assert.Equal(t, "", powerShellPluginInfoTest.Result.Error)
+	assert.Equal(t, "", shellPluginInfoTest.Result.Error)
+
+	assert.NotNil(t, powerShellPluginInfoTest.Configuration.EnvironmentVariables)
+	assert.NotNil(t, shellPluginInfoTest.Configuration.EnvironmentVariables)
+
+	assert.Equal(t, filepath.Join(testOrchDir, "example"), powerShellPluginInfoTest.Configuration.OrchestrationDirectory)
+	assert.Equal(t, filepath.Join(testOrchDir, "example"), shellPluginInfoTest.Configuration.OrchestrationDirectory)
+
+	assert.Equal(t, testS3Bucket, powerShellPluginInfoTest.Configuration.OutputS3BucketName)
+	assert.Equal(t, testS3Bucket, shellPluginInfoTest.Configuration.OutputS3BucketName)
+
+	assert.Equal(t, path.Join(testS3Prefix, "awsrunPowerShellScript"), powerShellPluginInfoTest.Configuration.OutputS3KeyPrefix)
+	assert.Equal(t, path.Join(testS3Prefix, "awsrunShellScript"), shellPluginInfoTest.Configuration.OutputS3KeyPrefix)
+
+	assert.Equal(t, testMessageID, powerShellPluginInfoTest.Configuration.MessageId)
+	assert.Equal(t, testMessageID, shellPluginInfoTest.Configuration.MessageId)
+
+	assert.Equal(t, testDocumentID, powerShellPluginInfoTest.Configuration.BookKeepingFileName)
+	assert.Equal(t, testDocumentID, shellPluginInfoTest.Configuration.BookKeepingFileName)
+
+	assert.Equal(t, testWorkingDir, powerShellPluginInfoTest.Configuration.DefaultWorkingDirectory)
+	assert.Equal(t, testWorkingDir, shellPluginInfoTest.Configuration.DefaultWorkingDirectory)
+
+	assert.NotEqual(t, parsedMessage, originalMessage)
+}
+
 func TestIsCrossPlatformEnabledForSchema20(t *testing.T) {
 	var schemaVersion = "2.0"
 	isCrossPlatformEnabled := isPreconditionEnabled(schemaVersion)

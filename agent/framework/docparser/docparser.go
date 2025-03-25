@@ -33,6 +33,9 @@ import (
 
 const (
 	preconditionSchemaVersion string = "2.2"
+	shellEnvPrefix                   = "$SSM_"
+	powerShellEnvPrefix              = "$env:SSM_"
+	shellPrefix                      = "$"
 )
 
 // DocumentParserInfo represents the parsed information from the request
@@ -320,6 +323,7 @@ func parsePluginStateForV20Schema(
 			Preconditions:           parsePluginParametersInPreconditions(&docContent, instancePluginConfig.Preconditions, params, log),
 			IsPreconditionEnabled:   isPreconditionEnabled,
 			DefaultWorkingDirectory: defaultWorkingDir,
+			EnvironmentVariables:    getEnvironmentVariableMap(docContent.ShellEnvVariablesParamKeys, docContent.EnvVariablesParamValues),
 		}
 
 		var plugin contracts.PluginState
@@ -329,6 +333,14 @@ func parsePluginStateForV20Schema(
 		pluginsInfo = append(pluginsInfo, plugin)
 	}
 	return
+}
+
+func getEnvironmentVariableMap(environmentVariables map[string]interface{}, environmentVariablesParameters map[string]interface{}) map[string]string {
+	result := make(map[string]string)
+	for k, v := range environmentVariables {
+		result[strings.TrimPrefix(fmt.Sprint(v), shellPrefix)] = fmt.Sprint(environmentVariablesParameters[k])
+	}
+	return result
 }
 
 // parsePluginParametersInPreconditions modifies plugin preconditions as defined in PluginConfig to match the structure
@@ -459,10 +471,22 @@ func getValidatedParameters(context context.T, params map[string]interface{}, do
 	//ValidateParameterNames
 	validParameters := parameters.ValidParameters(log, params)
 
+	//Environment variables
+	docContent.ShellEnvVariablesParamKeys = make(map[string]interface{})
+	docContent.PowerShellEnvVariablesParamKeys = make(map[string]interface{})
+	docContent.EnvVariablesParamValues = make(map[string]interface{})
+
 	// add default values for missing parameters
 	for k, v := range docContent.Parameters {
 		if _, ok := validParameters[k]; !ok {
 			validParameters[k] = v.DefaultVal
+		}
+
+		// Set environment variables based on interpolation type
+		if v.InterpolationType == "ENV_VAR" {
+			docContent.ShellEnvVariablesParamKeys[k] = fmt.Sprintf("%v%v", shellEnvPrefix, k)
+			docContent.PowerShellEnvVariablesParamKeys[k] = fmt.Sprintf("%v%v", powerShellEnvPrefix, k)
+			docContent.EnvVariablesParamValues[k] = validParameters[k]
 		}
 	}
 
@@ -472,7 +496,9 @@ func getValidatedParameters(context context.T, params map[string]interface{}, do
 		return err
 	}
 
-	err := replaceValidatedPluginParameters(context, docContent, validParameters)
+	log.Debugf("Environment variable parameters: %v", docContent.EnvVariablesParamValues)
+
+	err := replaceValidatedPluginParameters(context, docContent, validParameters, docContent.ShellEnvVariablesParamKeys, docContent.PowerShellEnvVariablesParamKeys)
 	return err
 }
 
@@ -480,7 +506,9 @@ func getValidatedParameters(context context.T, params map[string]interface{}, do
 func replaceValidatedPluginParameters(
 	context context.T,
 	docContent *DocContent,
-	params map[string]interface{}) error {
+	params map[string]interface{},
+	shellEnvParams map[string]interface{},
+	powerShellEnvParams map[string]interface{}) error {
 	logger := context.Log()
 	var err error
 
@@ -515,6 +543,15 @@ func replaceValidatedPluginParameters(
 		for index, instancePluginConfig := range mainSteps {
 			updatedMainSteps[index] = instancePluginConfig
 			updatedMainSteps[index].Settings = parameters.ReplaceParameters(instancePluginConfig.Settings, params, logger)
+			// replace env variable constants first
+			switch updatedMainSteps[index].Action {
+			case appconfig.PluginNameAwsRunShellScript:
+				updatedMainSteps[index].Inputs = parameters.ReplaceParameters(instancePluginConfig.Inputs, shellEnvParams, logger)
+			case appconfig.PluginNameAwsRunPowerShellScript:
+				updatedMainSteps[index].Inputs = parameters.ReplaceParameters(instancePluginConfig.Inputs, powerShellEnvParams, logger)
+			}
+
+			// TODO: Look into using updatedMainSteps[index].Inputs as function parameter over instancePluginConfig.Inputs
 			updatedMainSteps[index].Inputs = parameters.ReplaceParameters(instancePluginConfig.Inputs, params, logger)
 
 			logger.Debug("Resolving SSM parameters")
