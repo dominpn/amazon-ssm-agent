@@ -54,7 +54,7 @@ func (suite *TelemetryTestSuite) SetupTest() {
 
 	channelCreator = func(log logger.T, _ identity.IAgentIdentity, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
 		isFound := channelmock.IsExists(filename)
-		fakeChannel := channelmock.NewFakeChannel(log, filewatcherbasedipc.ModeSurveyor, filename)
+		fakeChannel := channelmock.NewFakeChannel(log, filewatcherbasedipc.ModeMaster, filename)
 		return fakeChannel, nil, isFound
 	}
 }
@@ -76,7 +76,7 @@ func (suite *TelemetryTestSuite) TestInitialize() {
 	fakeChannel := telemetryInstance.fileChannel.(*channelmock.FakeChannel)
 
 	assert.Equal(suite.T(), suite.mockContext.ChannelName(), fakeChannel.GetPath())
-	assert.Equal(suite.T(), filewatcherbasedipc.ModeSurveyor, fakeChannel.GetMode())
+	assert.Equal(suite.T(), filewatcherbasedipc.ModeMaster, fakeChannel.GetMode())
 }
 
 // TestTelemetryAlreadyInitialized verifies that the telemetry initialization
@@ -136,7 +136,7 @@ func (suite *TelemetryTestSuite) Test_emitLog() {
 	}
 
 	// create other side of the IPC channel
-	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeRespondent, suite.mockContext.ChannelName())
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeWorker, suite.mockContext.ChannelName())
 	defer receiveIpc.Close()
 
 	msg := <-receiveIpc.GetMessage()
@@ -175,7 +175,7 @@ func (suite *TelemetryTestSuite) Test_emitLogTruncates() {
 	}
 
 	// create other side of the IPC channel
-	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeRespondent, suite.mockContext.ChannelName())
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeWorker, suite.mockContext.ChannelName())
 	defer receiveIpc.Close()
 
 	msg := <-receiveIpc.GetMessage()
@@ -195,7 +195,7 @@ func (suite *TelemetryTestSuite) TestEmitLog() {
 	logger.EmitLog(telemetrylog.ERROR, "This is a test message")
 
 	// create other side of the IPC channel
-	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeRespondent, suite.mockContext.ChannelName())
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeWorker, suite.mockContext.ChannelName())
 	defer receiveIpc.Close()
 
 	msg := <-receiveIpc.GetMessage()
@@ -220,7 +220,7 @@ func (suite *TelemetryTestSuite) TestEmitLogf() {
 	logger.EmitLogf(telemetrylog.ERROR, "This is a test message %v, %v", 1, "hi")
 
 	// create other side of the IPC channel
-	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeRespondent, suite.mockContext.ChannelName())
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeWorker, suite.mockContext.ChannelName())
 
 	msg := <-receiveIpc.GetMessage()
 	defer receiveIpc.Close()
@@ -265,7 +265,7 @@ func (suite *TelemetryTestSuite) Test_emitIntegerMetric() {
 	}
 
 	// create other side of the IPC channel
-	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeRespondent, suite.mockContext.ChannelName())
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeWorker, suite.mockContext.ChannelName())
 	defer receiveIpc.Close()
 
 	msg := <-receiveIpc.GetMessage()
@@ -285,7 +285,7 @@ func (suite *TelemetryTestSuite) TestInt64Counter() {
 	counter := meter.Int64Counter("testCounter", "event")
 
 	// create other side of the IPC channel
-	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeRespondent, suite.mockContext.ChannelName())
+	receiveIpc := channelmock.NewFakeChannel(suite.mockContext.Log(), filewatcherbasedipc.ModeWorker, suite.mockContext.ChannelName())
 	defer receiveIpc.Close()
 
 	metrics := make([]metric.Metric[int64], 0)

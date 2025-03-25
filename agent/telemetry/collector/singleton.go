@@ -51,7 +51,7 @@ var (
 
 // this is for mocking support
 var channelCreator = func(log log.T, identity identity.IAgentIdentity, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
-	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, filewatcherbasedipc.ModeRespondent, filename, false)
+	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, filewatcherbasedipc.ModeWorker, filename, false)
 }
 
 func Initialize(context context.T) (err error) {

@@ -59,7 +59,7 @@ func (suite *singletonTestSuite) SetupTest() {
 
 	channelCreator = func(log logger.T, _ identity.IAgentIdentity, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
 		isFound := channelMock.IsExists(filename)
-		fakeChannel := channelMock.NewFakeChannel(log, filewatcherbasedipc.ModeSurveyor, filename)
+		fakeChannel := channelMock.NewFakeChannel(log, filewatcherbasedipc.ModeMaster, filename)
 		return fakeChannel, nil, isFound
 	}
 }
@@ -106,7 +106,7 @@ func (suite *singletonTestSuite) TestStartCollection() {
 
 	// create sender side of the IPC channel
 	telemetryContext := telemetryContextMocks.NewMockDefault()
-	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeRespondent, telemetryContext.ChannelName())
+	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeWorker, telemetryContext.ChannelName())
 	defer senderIpc.Destroy()
 
 	// set expectations
@@ -209,7 +209,7 @@ func (suite *singletonTestSuite) TestLogsAreTruncated() {
 
 	// create sender side of the IPC channel
 	telemetryContext := telemetryContextMocks.NewMockDefault()
-	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeRespondent, telemetryContext.ChannelName())
+	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeWorker, telemetryContext.ChannelName())
 	defer senderIpc.Destroy()
 
 	// set expectations
@@ -276,7 +276,7 @@ func (suite *singletonTestSuite) TestStartCollectionMalformedMessage() {
 	telemetryContext := telemetryContextMocks.NewMockDefault()
 	mocklog := telemetryContext.Log().(*logMock.Mock)
 
-	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeRespondent, telemetryContext.ChannelName())
+	senderIpc := channelMock.NewFakeChannel(suite.ctx.Log(), filewatcherbasedipc.ModeWorker, telemetryContext.ChannelName())
 	defer senderIpc.Destroy()
 
 	// set expectations
