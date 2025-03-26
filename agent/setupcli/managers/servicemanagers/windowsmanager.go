@@ -19,8 +19,6 @@ package servicemanagers
 
 import (
 	"fmt"
-	"os/exec"
-	"strings"
 
 	"github.com/aws/amazon-ssm-agent/agent/setupcli/managers/common"
 	"golang.org/x/sys/windows/svc"
@@ -32,6 +30,10 @@ const (
 	serviceName = "AmazonSSMAgent"
 )
 
+var checkAgentStatus = func(m *windowsManager) (common.AgentStatus, error) {
+	return m.GetAgentStatus()
+}
+
 type windowsManager struct {
 	managerHelper common.IManagerHelper
 }
@@ -40,16 +42,9 @@ type windowsManager struct {
 func (m *windowsManager) StartAgent() error {
 	output, err := m.managerHelper.RunCommand(netExecPath, "start", serviceName)
 	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			ec := exitError.ExitCode()
-			// NET HELPMSG 2182 : The requested service has already been started.
-			if ec == 2182 {
-				return nil
-			}
-		}
-		output = strings.ToLower(output)
-		if strings.Contains(output, "service has already been started") {
-			// service already running
+		// The command will throw an error if the service is already started, so we want to ignore these type of errors
+		if agentStatus, err := checkAgentStatus(m); err == nil && agentStatus == common.Running {
+			// Service is already running
 			return nil
 		}
 		return fmt.Errorf("windows: failed to start agent with output '%s' and error: %v", output, err)
@@ -61,15 +56,8 @@ func (m *windowsManager) StartAgent() error {
 func (m *windowsManager) StopAgent() error {
 	output, err := m.managerHelper.RunCommand(netExecPath, "stop", serviceName)
 	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			ec := exitError.ExitCode()
-			//NET HELPMSG 3521 : The *** service is not started.
-			if ec == 3521 {
-				return nil
-			}
-		}
-		output = strings.ToLower(output)
-		if strings.Contains(output, "service is not started") {
+		// The command will throw an error if the service is already stopped, so we want to ignore these type of errors
+		if agentStatus, err := checkAgentStatus(m); err == nil && agentStatus == common.Stopped {
 			// Service is already stopped
 			return nil
 		}
@@ -78,7 +66,7 @@ func (m *windowsManager) StopAgent() error {
 	return nil
 }
 
-func (m *windowsManager) windowsServiceStatusToString(state svc.State) string {
+func windowsServiceStatusToString(state svc.State) string {
 	switch state {
 	case svc.Stopped:
 		return "Stopped"
@@ -124,7 +112,7 @@ func (m *windowsManager) GetAgentStatus() (common.AgentStatus, error) {
 		return common.Stopped, nil
 	}
 
-	return common.UndefinedStatus, fmt.Errorf("unexpected service status: %s", m.windowsServiceStatusToString(serviceStatus.State))
+	return common.UndefinedStatus, fmt.Errorf("unexpected service status: %s", windowsServiceStatusToString(serviceStatus.State))
 }
 
 // ReloadManager reloads the service manager configuration files

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/setupcli/managers/common"
 	mhMock "github.com/aws/amazon-ssm-agent/agent/setupcli/managers/common/mocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,7 +36,12 @@ func TestWindowsManager_StartAgent_Success(t *testing.T) {
 
 func TestWindowsManager_StartAgent_ServiceAlreadyStarted_Success(t *testing.T) {
 	helperMock := &mhMock.IManagerHelper{}
-	helperMock.On("RunCommand", netExecPath, "start", serviceName).Return("dssd Service has already been started dsd", fmt.Errorf("err1"))
+	helperMock.On("RunCommand", netExecPath, "start", serviceName).Return("service has already been started", fmt.Errorf("err1"))
+	temp := checkAgentStatus
+	checkAgentStatus = func(_ *windowsManager) (common.AgentStatus, error) {
+		return common.Running, nil
+	}
+	defer func() { checkAgentStatus = temp }()
 	windowsMgr := windowsManager{helperMock}
 	err := windowsMgr.StartAgent()
 	assert.NoError(t, err)
@@ -43,7 +49,25 @@ func TestWindowsManager_StartAgent_ServiceAlreadyStarted_Success(t *testing.T) {
 
 func TestWindowsManager_StartAgent_Failure(t *testing.T) {
 	helperMock := &mhMock.IManagerHelper{}
-	helperMock.On("RunCommand", netExecPath, "start", serviceName).Return("dssd Service has ", fmt.Errorf("err1"))
+	helperMock.On("RunCommand", netExecPath, "start", serviceName).Return("Error", fmt.Errorf("err1"))
+	temp := checkAgentStatus
+	checkAgentStatus = func(_ *windowsManager) (common.AgentStatus, error) {
+		return common.Stopped, nil
+	}
+	defer func() { checkAgentStatus = temp }()
+	windowsMgr := windowsManager{helperMock}
+	err := windowsMgr.StartAgent()
+	assert.Error(t, err)
+}
+
+func TestWindowsManager_StartAgent_StatusFailure(t *testing.T) {
+	helperMock := &mhMock.IManagerHelper{}
+	helperMock.On("RunCommand", netExecPath, "start", serviceName).Return("Error", fmt.Errorf("err1"))
+	temp := checkAgentStatus
+	checkAgentStatus = func(_ *windowsManager) (common.AgentStatus, error) {
+		return "", fmt.Errorf("err1")
+	}
+	defer func() { checkAgentStatus = temp }()
 	windowsMgr := windowsManager{helperMock}
 	err := windowsMgr.StartAgent()
 	assert.Error(t, err)
@@ -57,9 +81,14 @@ func TestWindowsManager_StopAgent_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestWindowsManager_StopAgent_ServiceAlreadyStarted_Success(t *testing.T) {
+func TestWindowsManager_StopAgent_ServiceAlreadyStopped_Success(t *testing.T) {
 	helperMock := &mhMock.IManagerHelper{}
-	helperMock.On("RunCommand", netExecPath, "stop", serviceName).Return("dssd service is not started dsd", fmt.Errorf("err1"))
+	helperMock.On("RunCommand", netExecPath, "stop", serviceName).Return("service is not started", fmt.Errorf("err1"))
+	temp := checkAgentStatus
+	checkAgentStatus = func(_ *windowsManager) (common.AgentStatus, error) {
+		return common.Stopped, nil
+	}
+	defer func() { checkAgentStatus = temp }()
 	windowsMgr := windowsManager{helperMock}
 	err := windowsMgr.StopAgent()
 	assert.NoError(t, err)
@@ -67,7 +96,25 @@ func TestWindowsManager_StopAgent_ServiceAlreadyStarted_Success(t *testing.T) {
 
 func TestWindowsManager_StopAgent_Failure(t *testing.T) {
 	helperMock := &mhMock.IManagerHelper{}
-	helperMock.On("RunCommand", netExecPath, "stop", serviceName).Return("dssd Service has ", fmt.Errorf("err1"))
+	helperMock.On("RunCommand", netExecPath, "stop", serviceName).Return("Error", fmt.Errorf("err1"))
+	temp := checkAgentStatus
+	checkAgentStatus = func(_ *windowsManager) (common.AgentStatus, error) {
+		return common.Running, nil
+	}
+	defer func() { checkAgentStatus = temp }()
+	windowsMgr := windowsManager{helperMock}
+	err := windowsMgr.StopAgent()
+	assert.Error(t, err)
+}
+
+func TestWindowsManager_StopAgent_StatusFailure(t *testing.T) {
+	helperMock := &mhMock.IManagerHelper{}
+	helperMock.On("RunCommand", netExecPath, "stop", serviceName).Return("Error", fmt.Errorf("err1"))
+	temp := checkAgentStatus
+	checkAgentStatus = func(_ *windowsManager) (common.AgentStatus, error) {
+		return "", fmt.Errorf("err1")
+	}
+	defer func() { checkAgentStatus = temp }()
 	windowsMgr := windowsManager{helperMock}
 	err := windowsMgr.StopAgent()
 	assert.Error(t, err)
