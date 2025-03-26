@@ -62,10 +62,14 @@ const (
 	DefaultSsmAssociationFrequencyMinutesMax = 60
 
 	DefaultSsmSelfUpdateFrequencyDays    = 7
-	DefaultSsmSelfUpdateFrequencyDaysMin = 1 //Minimum frequency is 1 day
-	DefaultSsmSelfUpdateFrequencyDaysMax = 7 //Maximum frequency is 7 day
+	DefaultSsmSelfUpdateFrequencyDaysMin = 1 // Minimum frequency is 1 day
+	DefaultSsmSelfUpdateFrequencyDaysMax = 7 // Maximum frequency is 7 day
 
-	//aws-ssm-agent bookkeeping constants
+	DefaultHibernationMaxBackoffIntervalMinutes    = 60
+	DefaultHibernationMaxBackoffIntervalMinutesMin = 5
+	DefaultHibernationMaxBackoffIntervalMinutesMax = 1440
+
+	// aws-ssm-agent bookkeeping constants
 	DefaultLocationOfPending     = "pending"
 	DefaultLocationOfCurrent     = "current"
 	DefaultLocationOfCompleted   = "completed"
@@ -91,7 +95,7 @@ const (
 	// RunCommandLogsRetentionDurationHours, and SessionLogsRetentionDurationHours
 	DefaultPluginOutputRetention = "default"
 
-	//aws-ssm-agent state and orchestration logs duration for Run Command and Association
+	// aws-ssm-agent state and orchestration logs duration for Run Command and Association
 	DefaultAssociationLogsRetentionDurationHours           = 24  // 1 day default retention
 	DefaultRunCommandLogsRetentionDurationHours            = 336 // 14 days default retention
 	DefaultSessionLogsRetentionDurationHours               = 336 // 14 days default retention
@@ -105,28 +109,28 @@ const (
 	SessionLogsDestinationDisk = "disk"
 	SessionLogsDestinationNone = "none"
 
-	//aws-ssm-agent bookkeeping constants for long running plugins
+	// aws-ssm-agent bookkeeping constants for long running plugins
 	LongRunningPluginsLocation         = "longrunningplugins"
 	LongRunningPluginsHealthCheck      = "healthcheck"
 	LongRunningPluginDataStoreLocation = "datastore"
 	LongRunningPluginDataStoreFileName = "store"
 	PluginNameLongRunningPluginInvoker = "lrpminvoker"
 
-	//aws-ssm-agent bookkeeping constants for inventory plugin
+	// aws-ssm-agent bookkeeping constants for inventory plugin
 	InventoryRootDirName         = "inventory"
 	CustomInventoryRootDirName   = "custom"
 	FileInventoryRootDirName     = "file"
 	RoleInventoryRootDirName     = "role"
 	InventoryContentHashFileName = "contentHash"
 
-	//aws-ssm-agent bookkeeping constants for failed sent replies
+	// aws-ssm-agent bookkeeping constants for failed sent replies
 	RepliesRootDirName = "replies"
-	//amazon-ssm-agent bookkeeping constants for failed sent replies
+	// amazon-ssm-agent bookkeeping constants for failed sent replies
 	RepliesMGSRootDirName = "replies_mgs"
-	//amazon-ssm-agent bookkeeping constants for storing received commands
+	// amazon-ssm-agent bookkeeping constants for storing received commands
 	IdempotencyDirName = "idempotency"
 
-	//aws-ssm-agent bookkeeping constants for compliance
+	// aws-ssm-agent bookkeeping constants for compliance
 	ComplianceRootDirName         = "compliance"
 	ComplianceContentHashFileName = "contentHash"
 
@@ -154,7 +158,7 @@ const (
 	defaultProfileKeyAutoRotateDaysMax = 365
 
 	// Permissions defaults
-	//NOTE: Limit READ, WRITE and EXECUTE access to administrators/root.
+	// NOTE: Limit READ, WRITE and EXECUTE access to administrators/root.
 	ReadWriteAccess        = 0600
 	ReadWriteExecuteAccess = 0700
 

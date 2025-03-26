@@ -38,6 +38,8 @@ type SsmCfg struct {
 	AssociationFrequencyMinutes    int
 	AssociationRetryLimit          int
 	CustomInventoryDefaultLocation string
+	// Max back off interval minutes for agent hibernation
+	HibernationMaxBackoffIntervalMinutes int
 	// Hours to retain association logs in the orchestration folder
 	AssociationLogsRetentionDurationHours int
 	// Hours to retain run command logs in the orchestration folder

@@ -106,6 +106,11 @@ func parser(config *SsmagentConfig) {
 		DefaultSsmAssociationFrequencyMinutesMin,
 		DefaultSsmAssociationFrequencyMinutesMax,
 		DefaultSsmAssociationFrequencyMinutes)
+	config.Ssm.HibernationMaxBackoffIntervalMinutes = getNumericValue(
+		config.Ssm.HibernationMaxBackoffIntervalMinutes,
+		DefaultHibernationMaxBackoffIntervalMinutesMin,
+		DefaultHibernationMaxBackoffIntervalMinutesMax,
+		DefaultHibernationMaxBackoffIntervalMinutes)
 	config.Ssm.AssociationLogsRetentionDurationHours = getNumericValueAboveMin(
 		config.Ssm.AssociationLogsRetentionDurationHours,
 		DefaultStateOrchestrationLogsRetentionDurationHoursMin,
@@ -118,9 +123,11 @@ func parser(config *SsmagentConfig) {
 	config.Ssm.SessionLogsDestination = getStringEnum(config.Ssm.SessionLogsDestination,
 		sessionLogsDestinationOptions,
 		SessionLogsDestinationNone)
-	pluginLocalOutputCleanupOptions := []string{PluginLocalOutputCleanupAfterExecution,
+	pluginLocalOutputCleanupOptions := []string{
+		PluginLocalOutputCleanupAfterExecution,
 		PluginLocalOutputCleanupAfterUpload,
-		DefaultPluginOutputRetention}
+		DefaultPluginOutputRetention,
+	}
 	config.Ssm.PluginLocalOutputCleanup = getStringEnum(config.Ssm.PluginLocalOutputCleanup,
 		pluginLocalOutputCleanupOptions,
 		DefaultPluginOutputRetention)

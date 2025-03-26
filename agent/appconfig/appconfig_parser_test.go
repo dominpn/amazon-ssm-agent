@@ -14,11 +14,10 @@
 package appconfig
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
-
-	"io/ioutil"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,12 +30,10 @@ type GetStringValueTest struct {
 	Output       string
 }
 
-var (
-	getStringValueTests = []GetStringValueTest{
-		{"", "test", "test"},
-		{"val", "test", "val"},
-	}
-)
+var getStringValueTests = []GetStringValueTest{
+	{"", "test", "test"},
+	{"val", "test", "val"},
+}
 
 func TestGetStringValue(t *testing.T) {
 	for _, test := range getStringValueTests {
@@ -55,14 +52,12 @@ type GetNumericValueTest struct {
 	Output       int
 }
 
-var (
-	getNumericValueTests = []GetNumericValueTest{
-		{0, 10, 100, 50, 50},   // empty
-		{1, 10, 100, 50, 50},   // less than min
-		{200, 10, 100, 50, 50}, // greater than max
-		{20, 10, 100, 50, 20},  // within range
-	}
-)
+var getNumericValueTests = []GetNumericValueTest{
+	{0, 10, 100, 50, 50},   // empty
+	{1, 10, 100, 50, 50},   // less than min
+	{200, 10, 100, 50, 50}, // greater than max
+	{20, 10, 100, 50, 20},  // within range
+}
 
 func TestGetNumericValue(t *testing.T) {
 	for _, test := range getNumericValueTests {
@@ -74,7 +69,7 @@ func TestGetNumericValue(t *testing.T) {
 // Validate invalid values for json
 func TestInvalidJsonVal(t *testing.T) {
 	path, _ := os.Getwd()
-	var sampleJsonPath = filepath.Join(path, "sample-app-config.json")
+	sampleJsonPath := filepath.Join(path, "sample-app-config.json")
 
 	originalFunc := retrieveAppConfigPath
 	defer func() {
@@ -107,20 +102,23 @@ type GetNumeric64ValueTest struct {
 	Output       int64
 }
 
-var (
-	getNumeric64ValueTests = []GetNumeric64ValueTest{
-		{0, 10, 100000000000000000, 50, 50},                                // empty
-		{1, 10, 100000000000000000, 50, 50},                                // less than min
-		{200000000000000000, 10, 100000000000000000, 50, 50},               // greater than max
-		{30000000000000000, 10, 100000000000000000, 50, 30000000000000000}, // within range
-	}
-)
+var getNumeric64ValueTests = []GetNumeric64ValueTest{
+	{0, 10, 100000000000000000, 50, 50},                                // empty
+	{1, 10, 100000000000000000, 50, 50},                                // less than min
+	{200000000000000000, 10, 100000000000000000, 50, 50},               // greater than max
+	{30000000000000000, 10, 100000000000000000, 50, 30000000000000000}, // within range
+}
 
 func TestGetNumeric64Value(t *testing.T) {
 	for _, test := range getNumeric64ValueTests {
 		output := getNumeric64Value(test.Input, test.MinValue, test.MaxValue, test.DefaultValue)
 		assert.Equal(t, test.Output, output)
 	}
+}
+
+func TestDefaultValue_HibernationMaxBackoffIntervalMinutes(t *testing.T) {
+	agentConfig := DefaultConfig()
+	assert.Equal(t, agentConfig.Ssm.HibernationMaxBackoffIntervalMinutes, DefaultHibernationMaxBackoffIntervalMinutes)
 }
 
 func TestIdentityConsumptionOrder_InvalidConsumptionOrderValue(t *testing.T) {

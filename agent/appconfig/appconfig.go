@@ -90,29 +90,29 @@ func getAppConfigPath() (path string, err error) {
 
 // DefaultConfig returns default ssm agent configuration
 func DefaultConfig() SsmagentConfig {
-
-	var credsProfile = CredentialProfile{
+	credsProfile := CredentialProfile{
 		ShareCreds:        true,
 		KeyAutoRotateDays: defaultProfileKeyAutoRotateDays,
 	}
 	var s3 S3Cfg
-	var mds = MdsCfg{
+	mds := MdsCfg{
 		CommandWorkersLimit:      DefaultCommandWorkersLimit,
 		StopTimeoutMillis:        DefaultStopTimeoutMillis,
 		CommandRetryLimit:        DefaultCommandRetryLimit,
 		CommandWorkerBufferLimit: DefaultCommandWorkerBufferLimit,
 	}
-	var mgs = MgsConfig{
+	mgs := MgsConfig{
 		SessionWorkersLimit:           DefaultSessionWorkersLimit,
 		StopTimeoutMillis:             DefaultStopTimeoutMillis,
 		SessionWorkerBufferLimit:      DefaultSessionWorkerBufferLimit,
 		DeniedPortForwardingRemoteIPs: DefaultDeniedPortForwardingRemoteIPs,
 	}
-	var ssm = SsmCfg{
+	ssm := SsmCfg{
 		HealthFrequencyMinutes:                DefaultSsmHealthFrequencyMinutes,
 		AssociationFrequencyMinutes:           DefaultSsmAssociationFrequencyMinutes,
 		AssociationRetryLimit:                 5,
 		CustomInventoryDefaultLocation:        DefaultCustomInventoryFolder,
+		HibernationMaxBackoffIntervalMinutes:  DefaultHibernationMaxBackoffIntervalMinutes,
 		AssociationLogsRetentionDurationHours: DefaultAssociationLogsRetentionDurationHours,
 		RunCommandLogsRetentionDurationHours:  DefaultRunCommandLogsRetentionDurationHours,
 		SessionLogsRetentionDurationHours:     DefaultSessionLogsRetentionDurationHours,
@@ -120,7 +120,7 @@ func DefaultConfig() SsmagentConfig {
 		PluginLocalOutputCleanup:              DefaultPluginOutputRetention,
 		OrchestrationDirectoryCleanup:         DefaultOrchestrationDirCleanup,
 	}
-	var agent = AgentInfo{
+	agent := AgentInfo{
 		Name:                                    "amazon-ssm-agent",
 		OrchestrationRootDir:                    defaultOrchestrationRootDirName,
 		ContainerMode:                           false,
@@ -135,20 +135,20 @@ func DefaultConfig() SsmagentConfig {
 		GoMaxProcForAgentWorker:                 0,
 	}
 
-	var os = OsInfo{
+	os := OsInfo{
 		Lang:    "en-US",
 		Version: "1",
 	}
-	var identity = IdentityCfg{
+	identity := IdentityCfg{
 		ConsumptionOrder: DefaultIdentityConsumptionOrder,
 		CustomIdentities: []*CustomIdentity{},
 	}
 	var birdwatcher BirdwatcherCfg
-	var kms = KmsConfig{
+	kms := KmsConfig{
 		RequireKMSChallengeResponse: DefaultRequireKMSChallengeResponse,
 	}
 
-	var ssmagentCfg = SsmagentConfig{
+	ssmagentCfg := SsmagentConfig{
 		Profile:     credsProfile,
 		Mds:         mds,
 		Ssm:         ssm,

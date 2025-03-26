@@ -17,6 +17,7 @@
 package hibernation
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -40,6 +41,8 @@ func TestHibernation_ExecuteHibernation_AgentTurnsActive(t *testing.T) {
 	go func(h *Hibernate) {
 		status = h.ExecuteHibernation(ctx)
 		assert.Equal(t, health.Active, status)
+		_, ok := <-h.done
+		assert.False(t, ok)
 	}(hibernate)
 	modeChan <- health.Active
 }
@@ -51,24 +54,46 @@ func TestHibernation_scheduleBackOffStrategy(t *testing.T) {
 	hibernate := NewHibernateMode(healthMock, ctx)
 	hibernate.seelogger = logger.GetLogger(ctx.Log(), "<seelog levels=\"off\"/>")
 	hibernate.schedulePing = fakeScheduler
-	hibernate.currentPingInterval = 1 //second
-	hibernate.maxInterval = 4         //second
+	hibernate.maxInterval = 2 // second
 
-	backOffRate = 2 // reducing time for testing
+	hibernate.setCurrentPingInterval(1)
+	go func() {
+		scheduleBackOffStrategy(hibernate)
+	}()
 
-	go func(h *Hibernate) {
-		scheduleBackOffStrategy(h)
-	}(hibernate)
+	assert.Equal(t, 1, hibernate.getCurrentPingInterval())
+	time.Sleep(time.Duration(2) * time.Second) // backoff rate is 3, at this time it should still be running original wait time
+	assert.Equal(t, 1, hibernate.getCurrentPingInterval())
+	time.Sleep(time.Duration(2) * time.Second) // Second iteration should have been scheduled by this time.
+	assert.Equal(t, 2, hibernate.getCurrentPingInterval())
+	time.Sleep(time.Duration(6) * time.Second)
+	assert.Equal(t, 2, hibernate.getCurrentPingInterval())
+}
 
-	assert.Equal(t, 1, hibernate.currentPingInterval)
-	time.Sleep(time.Duration(2) * time.Second)        //backoff rate is 2 in test
-	assert.Equal(t, 2, hibernate.currentPingInterval) // multiplier is 2
-	time.Sleep(time.Duration(4) * time.Second)
-	assert.Equal(t, 4, hibernate.currentPingInterval)
-	time.Sleep(time.Duration(8) * time.Second)
-	assert.Equal(t, 4, hibernate.currentPingInterval) // maxInterval is 4
+func TestHibernation_alwaysSchedulePing(t *testing.T) {
+	ctx := context.NewMockDefault()
+	healthMock := health.NewHealthCheck(ctx, ssm.NewService(ctx))
+	hibernate := NewHibernateMode(healthMock, ctx)
+	hibernate.seelogger = logger.GetLogger(ctx.Log(), "<seelog levels=\"off\"/>")
+	hibernate.maxInterval = 2
+
+	// Use atomic int for race safe tests.
+	pingScheduleCounter := atomic.Int32{}
+	hibernate.schedulePing = func(m *Hibernate) {
+		// schedulePing are supposed to schedule a set of health pings
+		// Here we abstract that to a single increment of counter
+		pingScheduleCounter.Add(1)
+	}
+	hibernate.setCurrentPingInterval(2)
+	go func() {
+		scheduleBackOffStrategy(hibernate)
+	}()
+
+	time.Sleep(time.Duration(7) * time.Second) // backoff rate is 3*2, wait for 7 to be safe
+	// Despite being at max ping interval, another set of pings is scheduled via schedulePing function.
+	assert.Equal(t, 2, int(pingScheduleCounter.Load()))
 }
 
 func fakeScheduler(*Hibernate) {
-	//Do nothing
+	// Do nothing
 }

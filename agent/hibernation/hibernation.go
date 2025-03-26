@@ -17,6 +17,7 @@
 package hibernation
 
 import (
+	"sync"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
@@ -32,6 +33,7 @@ type IHibernate interface {
 }
 
 type Hibernate struct {
+	sync.RWMutex
 	currentMode  health.AgentState
 	healthModule health.IHealthCheck
 	hibernateJob *scheduler.Job
@@ -43,30 +45,33 @@ type Hibernate struct {
 
 	seelogger seelog.LoggerInterface
 	isLogged  bool
+	done      chan struct{}
 }
 
 // modeChan is a channel that tracks the status of the agent
 var modeChan = make(chan health.AgentState, 10)
-var backOffRate = 3
 
 const (
-	hibernateLogFile   = "hibernate.log"
-	maxBackOffInterval = 60 * 60 //Minute conversion
-	multiplier         = 2
-	initialPingRate    = 5 * 60 //Seconds
+	hibernateLogFile = "hibernate.log"
+	secondsInMinute  = 60
+	multiplier       = 2
+	initialPingRate  = 5 * secondsInMinute // Seconds
+	backoffRate      = 3
 )
 
 // NewHibernateMode creates an object of type NewHibernateMode
 func NewHibernateMode(healthModule health.IHealthCheck, context context.T) *Hibernate {
 	context.Log().Debug("Initializing agent hibernate mode. Switching log to minimal logging...")
+	maxBackoffInterval := context.AppConfig().Ssm.HibernationMaxBackoffIntervalMinutes * secondsInMinute
 	return &Hibernate{
 		healthModule:        healthModule,
 		currentMode:         health.Passive,
 		isLogged:            false,
 		currentPingInterval: initialPingRate,
-		maxInterval:         maxBackOffInterval,
+		maxInterval:         maxBackoffInterval,
 		scheduleBackOff:     scheduleBackOffStrategy,
 		schedulePing:        scheduleEmptyHealthPing,
+		done:                make(chan struct{}),
 	}
 }
 
@@ -75,27 +80,32 @@ func (m *Hibernate) ExecuteHibernation(context context.T) health.AgentState {
 	m.seelogger = logger.GetLogger(context.Log(), getHibernateSeelogConfig())
 	next := time.Duration(initialPingRate) * time.Second
 	m.seelogger.Info("Agent is in hibernate mode. Reducing logging. Logging will be reduced to one log per backoff period")
-	// Wait backoff time and then schedule health pings
+	// Wait for initial ping time and then schedule health pings
 	<-time.After(next)
 	m.scheduleBackOff(m)
 
-loop:
-	// using an infinite loop to block the agent from starting
 	for {
-		// block and wait for health mode to be active
 		status := <-modeChan
-		switch status {
-		case health.Active:
-			//Agent mode is now active. Agent can start. Exit loop
+		if status == health.Active {
+			// Agent mode is now active. Agent can start. Exit loop
+			close(m.done)
 			m.stopEmptyPing()
 			m.seelogger.Close()
-			return status //returning status for testing purposes.
-		case health.Passive:
-			continue loop
-		default:
-			continue loop
+			return status // returning status for testing purposes.
 		}
 	}
+}
+
+func (m *Hibernate) getCurrentPingInterval() int {
+	m.RLock()
+	defer m.RUnlock()
+	return m.currentPingInterval
+}
+
+func (m *Hibernate) setCurrentPingInterval(interval int) {
+	m.Lock()
+	defer m.Unlock()
+	m.currentPingInterval = interval
 }
 
 func (m *Hibernate) healthCheck() {
@@ -115,37 +125,35 @@ func (m *Hibernate) stopEmptyPing() {
 
 func scheduleEmptyHealthPing(m *Hibernate) {
 	var err error
-	if m.hibernateJob, err = scheduler.Every(m.currentPingInterval).Seconds().Run(m.healthCheck); err != nil {
+	if m.hibernateJob, err = scheduler.Every(m.getCurrentPingInterval()).Seconds().Run(m.healthCheck); err != nil {
 		m.seelogger.Errorf("Unable to schedule health update. %v", err)
 	}
-	return
 }
 
 func scheduleBackOffStrategy(m *Hibernate) {
-	// Scheduler to calculate backoffInterval and call this function in that time every backoff return time.
-	// Also stop the current ping scheduler
-	if m.currentPingInterval == m.maxInterval {
-		return
-	}
+	// Observe initial ping rate for an iteration instead of starting
+	// directly from the backed off rate for the first iteration
 	m.stopEmptyPing()
-	m.currentPingInterval = multiplier * m.currentPingInterval
-	if m.currentPingInterval > m.maxInterval {
-		m.currentPingInterval = m.maxInterval
-
-	}
 	m.schedulePing(m)
-	backoffInterval := m.currentPingInterval * backOffRate
-
+	backoffInterval := m.getCurrentPingInterval() * backoffRate
 	next := time.Duration(backoffInterval) * time.Second
-	go func(m *Hibernate) {
-		m.seelogger.Infof("Backing off health check to every %v seconds for %v seconds.", m.currentPingInterval, backoffInterval)
-		select {
-		case <-time.After(next):
-			// recall scheduleEmptyHealthPing to form a timed loop.
-			// loop is broken when currentPingInterval reaches maxInterval
-			m.isLogged = false
-			go m.scheduleBackOff(m)
+	m.seelogger.Infof("Backing off health check to every %v seconds for %v seconds.", m.getCurrentPingInterval(), backoffInterval)
+
+	select {
+	case <-m.done:
+		return
+	case <-time.After(next):
+		// Once backoff reaches the max interval, the scheduler will continue to schedule ping sets at max interval.
+		// This ensure a very low amount of logging remains in the hibernate.log
+		currentInterval := m.getCurrentPingInterval()
+		if currentInterval < m.maxInterval {
+			nextInterval := multiplier * currentInterval
+			if nextInterval > m.maxInterval {
+				nextInterval = m.maxInterval
+			}
+			m.setCurrentPingInterval(nextInterval)
 		}
-	}(m)
-	return
+		m.isLogged = false
+		go m.scheduleBackOff(m)
+	}
 }
