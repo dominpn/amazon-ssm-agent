@@ -93,6 +93,18 @@ func (e *OutOfProcExecuter) Run(
 	e.ctx = e.ctx.With("[" + documentID + "]")
 	log := e.ctx.Log()
 
+	// listen on telemetry from the worker
+	// start the collection before starting the worker to avoid any race conditions in channel creation
+	telemetryCtx := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
+	if !e.ctx.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
+		log.Infof("Agent GlobalEnhancedTelemetry is disabled, hence not starting telemetry collection from worker for documentID %v ", documentID)
+	} else {
+		telemetryErr := collector.StartCollection(telemetryCtx)
+		if telemetryErr != nil {
+			log.Warnf("failed to start listening for telemetry from the worker for documentID %v with error %v", documentID, telemetryErr)
+		}
+	}
+
 	//stopTimer signals messaging routine to stop, it's buffered because it needs to exit if messaging is already stopped and not receiving anymore
 	stopTimer := make(chan bool, 1)
 	//start prepare messaging
@@ -101,21 +113,12 @@ func (e *OutOfProcExecuter) Run(
 	//save doc store immediately in case agent restarts.
 	docStore.Save(*e.docState)
 
-	// listen on telemetry from the worker
-	if !e.ctx.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
-		log.Infof("Agent GlobalEnhancedTelemetry is disabled, hence not starting telemetry collection from worker for documentID %v ", documentID)
-	} else {
-		telemetryCtx := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
-		telemetryErr := collector.StartCollection(telemetryCtx)
-		if telemetryErr != nil {
-			log.Warnf("failed to start listening for telemetry from the worker for documentID %v with error %v", documentID, err)
-		}
-		defer collector.StopCollection(telemetryCtx)
-	}
-
 	if err != nil {
 		log.Errorf("failed to prepare outofproc executer, falling back to InProc Executer")
 		log.WriteEvent(logpkg.AgentTelemetryMessage, "", logpkg.AmazonAgentInProcExecuterStartEvent)
+
+		defer collector.StopCollection(telemetryCtx)
+
 		return e.BasicExecuter.Run(cancelFlag, docStore)
 	} else {
 		//create reply channel
@@ -132,6 +135,9 @@ func (e *OutOfProcExecuter) Run(
 				log.Debug("Executer closed")
 				close(resChan)
 			}()
+
+			defer collector.StopCollection(telemetryCtx)
+
 			e.messaging(log, ipc, resChan, cancelFlag, stopTimer)
 		}(docStore)
 

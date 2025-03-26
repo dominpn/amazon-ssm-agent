@@ -149,6 +149,8 @@ func StartCollection(context telemetryContext.TelemetryContext) (err error) {
 
 	go listenOnChannel(log, channelName, stopSignal, ipc)
 
+	log.Debugf("Telemetry collection started for channel %v", channelName)
+
 	return nil
 }
 
@@ -163,6 +165,8 @@ func StopCollection(context telemetryContext.TelemetryContext) (err error) {
 			err = fmt.Errorf("panic in telemetry collector StopCollection %v", r)
 		}
 	}()
+
+	log.Debugf("Stopping telemetry collection for channel %v", context.ChannelName())
 
 	singletonMutex.RLock()
 	defer singletonMutex.RUnlock()
