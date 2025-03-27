@@ -210,4 +210,8 @@ syntactic-problems:
           method: "httpDownload"
         - package: ".*github.com/aws/amazon-ssm-agent/agent/plugins/downloadcontent/httpresource"
           method: "NewHTTPResource"
-          
+        - package: "golang.org/x/oauth2"
+          method: "NewClient"
+      must-reinit:
+        - package: "golang.org/x/oauth2"
+          method: "NewClient"
