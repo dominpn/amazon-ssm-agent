@@ -44,7 +44,9 @@ var singletonMtx = new(sync.RWMutex)
 type telemetry struct {
 	context context.TelemetryContext
 
-	fileChannel filewatcherbasedipc.IPCChannel
+	// fileChannalMtx protects the fileChannel variable
+	fileChannalMtx *sync.RWMutex
+	fileChannel    filewatcherbasedipc.IPCChannel
 }
 
 func getTelemetry() (*telemetry, error) {
@@ -89,7 +91,7 @@ func Initialize(context context.TelemetryContext) (err error) {
 		return err
 	}
 
-	singleton = &telemetry{context: context, fileChannel: ipc}
+	singleton = &telemetry{context: context, fileChannalMtx: &sync.RWMutex{}, fileChannel: ipc}
 
 	log.Info("Telemetry initialized")
 	return nil
@@ -113,8 +115,12 @@ func Shutdown() {
 }
 
 func (t *telemetry) shutdown() {
+	t.fileChannalMtx.Lock()
+	defer t.fileChannalMtx.Unlock()
+
 	if t.fileChannel != nil {
 		t.fileChannel.Destroy()
+		t.fileChannel = nil
 	}
 }
 
@@ -147,10 +153,14 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 		return err
 	}
 
+	t.fileChannalMtx.RLock()
+	defer t.fileChannalMtx.RUnlock()
+
 	if t.fileChannel == nil {
 		return errors.New("telemetry is not initialized")
 	}
-	return t.fileChannel.Send(string(ipcMessageJson))
+	go t.sendIpcMessage(string(ipcMessageJson))
+	return nil
 }
 
 func (t *telemetry) emitIntegerMetric(namespace, name string, unit metric.Unit, kind metric.Kind, time time.Time, value int64) (err error) {
@@ -187,8 +197,22 @@ func (t *telemetry) emitIntegerMetric(namespace, name string, unit metric.Unit, 
 		return err
 	}
 
+	t.fileChannalMtx.RLock()
+	defer t.fileChannalMtx.RUnlock()
+
 	if t.fileChannel == nil {
 		return errors.New("telemetry is not initialized")
 	}
-	return t.fileChannel.Send(string(ipcMessageJson))
+	go t.sendIpcMessage(string(ipcMessageJson))
+	return nil
+}
+
+// sendIpcMessage sends message to the IPC channel
+func (t *telemetry) sendIpcMessage(message string) {
+	t.fileChannalMtx.RLock()
+	defer t.fileChannalMtx.RUnlock()
+
+	err := t.fileChannel.Send(message)
+
+	t.context.Log().Warnf("Sending telemetry IPC message failed with: %v", err)
 }

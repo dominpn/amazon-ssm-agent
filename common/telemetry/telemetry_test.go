@@ -15,6 +15,7 @@ package telemetry
 import (
 	"encoding/json"
 	"math/rand"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -306,7 +307,8 @@ func (suite *TelemetryTestSuite) TestInt64Counter() {
 		metrics = append(metrics, expectedMetric)
 	}
 
-	for _, expectedMetric := range metrics {
+	receivedMetrics := make([]metric.Metric[int64], 0)
+	for range metrics {
 		msg := <-receiveIpc.GetMessage()
 		suite.T().Logf("TestInt64Counter: received message: %v", msg)
 
@@ -321,9 +323,21 @@ func (suite *TelemetryTestSuite) TestInt64Counter() {
 		err = json.Unmarshal([]byte(actualMessage.Payload), &actualMetric)
 		assert.Nil(suite.T(), err)
 
-		assert.Equal(suite.T(), "testCounter", actualMetric.Name)
-		assert.Len(suite.T(), actualMetric.DataPoints, 1)
-		dataPoint := actualMetric.DataPoints[0]
+		receivedMetrics = append(receivedMetrics, *actualMetric)
+	}
+
+	assert.Len(suite.T(), receivedMetrics, len(metrics))
+
+	// the metrics may be received in any order, so we sort them before comparing
+	// to make the test deterministic
+	sort.Slice(receivedMetrics, func(i, j int) bool {
+		return receivedMetrics[i].DataPoints[0].StartTime.Before(receivedMetrics[j].DataPoints[0].StartTime)
+	})
+
+	for i, expectedMetric := range metrics {
+		assert.Equal(suite.T(), "testCounter", receivedMetrics[i].Name)
+		assert.Len(suite.T(), receivedMetrics[i].DataPoints, 1)
+		dataPoint := receivedMetrics[i].DataPoints[0]
 		assert.Equal(suite.T(), expectedMetric.DataPoints[0].Value, dataPoint.Value)
 	}
 }
