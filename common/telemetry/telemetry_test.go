@@ -290,13 +290,13 @@ func (suite *TelemetryTestSuite) TestInt64Counter() {
 	defer receiveIpc.Close()
 
 	metrics := make([]metric.Metric[int64], 0)
-	now := time.Now()
 
 	for range [10]int{} {
 		val := rand.Int63()
 
 		counter.Add(val)
 
+		now := time.Now()
 		// timestamps cannot be compared since we use time.Now() in actual code which cannot be mocked
 		expectedMetric := metric.Metric[int64]{
 			Name:       "testMetric",
