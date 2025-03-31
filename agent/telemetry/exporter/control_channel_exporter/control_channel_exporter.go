@@ -114,8 +114,8 @@ var controlChannelTooSoontoExportTelemetry = tooSoontoExportTelemetry
 
 var randomPercentage = getRandomPercentage
 
-func getRandomPercentage() int {
-	return rand.IntN(100)
+func getRandomPercentage() float64 {
+	return rand.Float64() * 100
 }
 
 // checkTelemetryExportLuck returns us the result of the "coin toss", whether we got lucky enough to export telemetry or not

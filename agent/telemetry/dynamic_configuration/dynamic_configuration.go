@@ -18,11 +18,11 @@ var lock sync.RWMutex
 type NamespaceConfiguration map[string]DynamicConfiguration
 
 type DynamicConfiguration struct {
-	TelemetryDisabledTill int64 `json:"telemetryDisabledTillEpoch"`
-	PercentageLimit       int   `json:"percentageLimit"`
-	MaxRolls              int   `json:"maxRolls"`
-	MaxRollSize           int64 `json:"maxRollSize"`
-	ExportPeriod          int   `json:"exportPeriodMinutes"`
+	TelemetryDisabledTill int64   `json:"telemetryDisabledTillEpoch"`
+	PercentageLimit       float64 `json:"percentageLimit"`
+	MaxRolls              int     `json:"maxRolls"`
+	MaxRollSize           int64   `json:"maxRollSize"`
+	ExportPeriod          int     `json:"exportPeriodMinutes"`
 }
 
 func NewTelemetryDynamicConfiguration(log log.T, useWatcher bool, configFilePath string) NamespaceConfiguration {
@@ -111,7 +111,7 @@ func GetExportPeriod(namespace string) int {
 
 var PercentageLimit = GetPercentageLimit
 
-func GetPercentageLimit(namespace string) int {
+func GetPercentageLimit(namespace string) float64 {
 	return getConfiguration(namespace).PercentageLimit
 }
 

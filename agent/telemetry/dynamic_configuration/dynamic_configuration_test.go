@@ -73,7 +73,7 @@ func TestNewTelemetryDynamicConfigurationReadsPreExistingConfigFile(t *testing.T
 	NewTelemetryDynamicConfiguration(log, false, filepath.Clean(fakeConfigFilePath))
 	dynamicConfig := GetCachedDynamicConfiguration()
 	assert.Equal(t, int64(10), dynamicConfig["default"].TelemetryDisabledTill)
-	assert.Equal(t, 50, dynamicConfig["default"].PercentageLimit)
+	assert.Equal(t, float64(50), dynamicConfig["default"].PercentageLimit)
 	assert.Equal(t, 15, dynamicConfig["default"].MaxRolls, 15)
 	assert.Equal(t, int64(500), dynamicConfig["default"].MaxRollSize)
 	assert.Equal(t, 15, dynamicConfig["default"].ExportPeriod)
@@ -96,7 +96,7 @@ func TestNewTelemetryDynamicConfigurationWatchesSimpleConfigFileUpdates(t *testi
 
 	dynamicConfig := GetCachedDynamicConfiguration()
 	assert.Equal(t, int64(55), dynamicConfig["default"].TelemetryDisabledTill)
-	assert.Equal(t, 12, dynamicConfig["default"].PercentageLimit)
+	assert.Equal(t, float64(12), dynamicConfig["default"].PercentageLimit)
 	assert.Equal(t, 17, dynamicConfig["default"].MaxRolls)
 	assert.Equal(t, int64(502), dynamicConfig["default"].MaxRollSize)
 	assert.Equal(t, 20, dynamicConfig["default"].ExportPeriod)
@@ -139,13 +139,13 @@ func TestNewTelemetryDynamicConfigurationWatchesConfigFileUpdatesWithNewNamespac
 	dynamicConfig := GetCachedDynamicConfiguration()
 
 	assert.Equal(t, int64(55), dynamicConfig["default"].TelemetryDisabledTill)
-	assert.Equal(t, 12, dynamicConfig["default"].PercentageLimit)
+	assert.Equal(t, float64(12), dynamicConfig["default"].PercentageLimit)
 	assert.Equal(t, 17, dynamicConfig["default"].MaxRolls)
 	assert.Equal(t, int64(502), dynamicConfig["default"].MaxRollSize)
 	assert.Equal(t, 20, dynamicConfig["default"].ExportPeriod)
 
 	assert.Equal(t, int64(89), dynamicConfig["distributor"].TelemetryDisabledTill)
-	assert.Equal(t, 82, dynamicConfig["distributor"].PercentageLimit)
+	assert.Equal(t, float64(82), dynamicConfig["distributor"].PercentageLimit)
 	assert.Equal(t, 87, dynamicConfig["distributor"].MaxRolls)
 	assert.Equal(t, int64(902), dynamicConfig["distributor"].MaxRollSize)
 	assert.Equal(t, 20, dynamicConfig["distributor"].ExportPeriod)
@@ -199,7 +199,7 @@ func TestPercentageLimitWhenConfigInitialisedWithoutNamespace(t *testing.T) {
 
 	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
 
-	assert.Equal(t, 50, PercentageLimit("ssmagent"))
+	assert.Equal(t, float64(50), PercentageLimit("ssmagent"))
 }
 
 func TestExportPeriodWhenConfigInitialisedWithoutNamespace(t *testing.T) {
@@ -413,7 +413,39 @@ func TestPercentageLimitWhenConfigInitialisedWithNamespace(t *testing.T) {
 
 	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
 
-	assert.Equal(t, 82, PercentageLimit("distributor"))
+	assert.Equal(t, float64(82), PercentageLimit("distributor"))
+}
+
+func TestPercentageLimitPrecisionWhenConfigInitialisedWithNamespace(t *testing.T) {
+	// Act
+	Setup()
+	defer Teardown()
+	log := logmocks.NewMockLog()
+
+	os.MkdirAll(filepath.Clean(testingDir), 0755)
+	err := os.WriteFile(filepath.Clean(fakeConfigFilePath), []byte(`{
+		"default": {
+			"telemetryDisabledTillEpoch": 55,
+			"percentageLimit": 0.03412569,
+			"maxRolls": 17,
+			"maxRollSize": 502,
+			"exportPeriodMinutes": 20
+		},
+		"distributor": {
+			"telemetryDisabledTillEpoch": 89,
+			"percentageLimit": 0.06412569,
+			"maxRolls": 87,
+			"maxRollSize": 902,
+			"exportPeriodMinutes": 20
+		}
+	}`), 0644)
+	if err != nil {
+		log.Errorf("Error while opening config file: %v", err)
+	}
+
+	NewTelemetryDynamicConfiguration(log, true, filepath.Clean(fakeConfigFilePath))
+
+	assert.Equal(t, float64(0.06412569), PercentageLimit("distributor"))
 }
 
 func TestExportPeriodWhenConfigInitialisedWithNamespace(t *testing.T) {
