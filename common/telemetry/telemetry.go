@@ -213,6 +213,7 @@ func (t *telemetry) sendIpcMessage(message string) {
 	defer t.fileChannalMtx.RUnlock()
 
 	err := t.fileChannel.Send(message)
-
-	t.context.Log().Warnf("Sending telemetry IPC message failed with: %v", err)
+	if err != nil {
+		t.context.Log().Warnf("Sending telemetry IPC message failed with: %v", err)
+	}
 }
