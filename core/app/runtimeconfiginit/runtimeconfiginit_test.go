@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/backoffconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/common/identity"
@@ -12,6 +13,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig"
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig/mocks"
 	"github.com/cenkalti/backoff/v4"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestNew(t *testing.T) {
@@ -264,6 +266,7 @@ func Test_runtimeConfigInit_initIdentityRuntimeConfig(t *testing.T) {
 
 func Test_runtimeConfigInit_saveIdentityConfigWithRetry(t *testing.T) {
 	icc := &mocks.IIdentityRuntimeConfigClient{}
+	mockLog := logmocks.NewMockLog()
 
 	successConfig := runtimeconfig.IdentityRuntimeConfig{
 		InstanceId:   "InstanceId",
@@ -274,6 +277,8 @@ func Test_runtimeConfigInit_saveIdentityConfigWithRetry(t *testing.T) {
 	icc.On("SaveConfig", failureConfig).Return(fmt.Errorf("SomeError"))
 	icc.On("SaveConfig", successConfig).Return(nil)
 
+	mockLog.On("Debugf", mock.Anything).Return(nil)
+	mockLog.On("Warnf", "Failed to save runtime config: %v", mock.Anything).Return(nil)
 	backoffRetry = func(fun backoff.Operation, _ backoff.BackOff) error {
 		return fun()
 	}
@@ -309,7 +314,7 @@ func Test_runtimeConfigInit_saveIdentityConfigWithRetry(t *testing.T) {
 		{
 			"Success",
 			fields{
-				logmocks.NewMockLog(),
+				mockLog,
 				nil,
 				nil,
 				icc,
@@ -331,6 +336,88 @@ func Test_runtimeConfigInit_saveIdentityConfigWithRetry(t *testing.T) {
 			if err := r.saveIdentityConfigWithRetry(tt.args.currentConfig); (err != nil) != tt.wantErr {
 				t.Errorf("saveIdentityConfigWithRetry() error = %v, wantErr %v", err, tt.wantErr)
 			}
+		})
+	}
+}
+
+func Test_runtimeConfigInit_Init(t *testing.T) {
+	// Store original function
+	originalBackoff := backoffconfig.GetDefaultExponentialBackoff
+	// Restore after test
+	defer func() {
+		getDefaultExponentialBackoff = originalBackoff
+	}()
+
+	mockLog := logmocks.NewMockLog()
+	mockIdentity := mockIdentity.NewDefaultMockAgentIdentity()
+	mockConfigClient := &mocks.IIdentityRuntimeConfigClient{}
+
+	mockConfigClient.On("ConfigExists").Return(true, nil)
+	mockConfigClient.On("GetConfig").Return(runtimeconfig.IdentityRuntimeConfig{}, nil)
+	mockConfigClient.On("SaveConfig", mock.Anything).Return(nil)
+
+	type fields struct {
+		log                  log.T
+		backoffConfig        *backoff.ExponentialBackOff
+		agentIdentity        identity.IAgentIdentity
+		identityConfigClient runtimeconfig.IIdentityRuntimeConfigClient
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "successful_initialization",
+			fields: fields{
+				log:                  mockLog,
+				agentIdentity:        mockIdentity,
+				identityConfigClient: mockConfigClient,
+			},
+			wantErr: false,
+		},
+		{
+			name: "backoff_config_error",
+			fields: fields{
+				log:                  mockLog,
+				agentIdentity:        mockIdentity,
+				identityConfigClient: mockConfigClient,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "backoff_config_error" {
+				getDefaultExponentialBackoff = func() (*backoff.ExponentialBackOff, error) {
+					return nil, fmt.Errorf("mock backoff error")
+				}
+			} else {
+				getDefaultExponentialBackoff = originalBackoff
+			}
+
+			r := &runtimeConfigInit{
+				log:                  tt.fields.log,
+				backoffConfig:        tt.fields.backoffConfig,
+				agentIdentity:        tt.fields.agentIdentity,
+				identityConfigClient: tt.fields.identityConfigClient,
+			}
+
+			err := r.Init()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Init() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if !tt.wantErr {
+				// Verify backoffConfig was set
+				if r.backoffConfig == nil {
+					t.Error("backoffConfig should not be nil on success")
+				}
+			}
+
+			mockConfigClient.AssertExpectations(t)
 		})
 	}
 }

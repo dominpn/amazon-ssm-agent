@@ -90,9 +90,11 @@ func (r *runtimeConfigInit) initIdentityRuntimeConfig() error {
 	return nil
 }
 
+var getDefaultExponentialBackoff = backoffconfig.GetDefaultExponentialBackoff
+
 func (r *runtimeConfigInit) Init() error {
 	var err error
-	r.backoffConfig, err = backoffconfig.GetDefaultExponentialBackoff()
+	r.backoffConfig, err = getDefaultExponentialBackoff()
 	if err != nil {
 		return err
 	}
