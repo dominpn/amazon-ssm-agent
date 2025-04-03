@@ -181,6 +181,10 @@ func TestValidateSourceInput(t *testing.T) {
 	pluginInput.Source = "htt://127.0.0.1:8080/asdasd/"
 	err5 := validateSource(*pluginInput)
 	assert.Equal(t, errorMessage, err5)
+
+	pluginInput.Source = "/file/enumeration"
+	err6 := validateSource(*pluginInput)
+	assert.Equal(t, errorMessage, err6)
 }
 
 // createStubManifest is a helper function to create a stub manifest for testing
