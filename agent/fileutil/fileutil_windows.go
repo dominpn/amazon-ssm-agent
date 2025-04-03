@@ -66,6 +66,10 @@ func GetDiskSpaceInfo() (diskSpaceInfo DiskSpaceInfo, err error) {
 
 // HardenDataFolder sets permission of %PROGRAM_DATA% folder for Windows. In
 // Linux, each components handles the permission of its data.
-func HardenDataFolder(log.T) error {
+func HardenDataFolder(log log.T) error {
+	if hasHardenedACL(appconfig.SSMDataPath) {
+		log.Info("SSM Data Path already hardened")
+		return nil
+	}
 	return Harden(appconfig.SSMDataPath)
 }
