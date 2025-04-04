@@ -1,5 +1,22 @@
 Latest
 ===============
+- Allow custom hibernation max interval configuration
+- Refactor hibernation to fix ping leak and correct interval behavior
+- Remove dependency on s3:GetObject for aws:configurePackage plugin
+- Fix issue where ssm-setup-cli fails to detect whether agent is running or stopped in non-English locales
+- Fix comparison operator issue in aws:domainJoin script when executed in Ubuntu dash
+- Fix IPV6 address for IMDS in documentation and deny rule
+- Add hasHardenedACL check to avoid costly recursive hardening of the data directory on reboot
+- Update golang.org/x/crypto from v0.32.0 to v0.36.0
+- Update golang.org/x/net from v0.34.0 to v0.37.0
+- Update golang.org/x/sys from v0.29.0 to v0.31.0
+- Update golang.org/x/oauth2 from v0.24.0 to v0.28.0
+- Upgrade GoLang version from v1.22 to v1.23
+- Update Argot config and ensure client uses DisableHTTPDowngrade
+- Add unit tests in multiple modules
+
+3.3.1957.0
+===============
 - Add and fix unit tests
 - Add and use BuildSafePath method to prevent path traversal in orchestration directory
 - Add new targets in Argot config and add summary for ssh.Unmarshal function
