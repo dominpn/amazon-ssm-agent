@@ -18,6 +18,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
+	telemetryConfig "github.com/aws/amazon-ssm-agent/common/telemetry/config"
 	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 )
 
@@ -59,9 +60,7 @@ func main() {
 	logger = ctx.Log() // get the logger again. It will have the telemetry namespace
 
 	// initalize telemetry
-	if !ctx.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
-		logger.Info("Agent GlobalEnhancedTelemetry is disabled, hence not initializing telemetry for ssm-document-worker")
-	} else {
+	if telemetryConfig.IsTelemetryEnabled(ctx.Log(), ctx.Identity(), ctx.AppConfig()) {
 		telemetryCtx := telemetryContext.NewTelemetryContext(channelName, logger, agentIdentity)
 		err = telemetry.Initialize(telemetryCtx)
 		if err != nil {

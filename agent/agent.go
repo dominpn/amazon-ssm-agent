@@ -43,6 +43,7 @@ import (
 	agentIdentity "github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/identity/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
+	telemetryConfig "github.com/aws/amazon-ssm-agent/common/telemetry/config"
 	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 )
 
@@ -139,8 +140,8 @@ func start(log log.T, shouldCheckHibernation bool) (ssmAgent agent.ISSMAgent, er
 }
 
 func initializeTelemetry(log log.T, agentIdentity agentIdentity.IAgentIdentity, context context.T) {
-	if !context.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
-		log.Info("Agent GlobalEnhancedTelemetry is disabled, hence skipping telemetry initialisation")
+	if !telemetryConfig.IsTelemetryEnabled(context.Log(), context.Identity(), context.AppConfig()) {
+		log.Info("Telemetry is disabled")
 		return
 	}
 

@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	telemetryConfig "github.com/aws/amazon-ssm-agent/common/telemetry/config"
 	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 
 	"github.com/aws/amazon-ssm-agent/core/executor"
@@ -96,9 +97,7 @@ func (e *OutOfProcExecuter) Run(
 	// listen on telemetry from the worker
 	// start the collection before starting the worker to avoid any race conditions in channel creation
 	telemetryCtx := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
-	if !e.ctx.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
-		log.Infof("Agent GlobalEnhancedTelemetry is disabled, hence not starting telemetry collection from worker for documentID %v ", documentID)
-	} else {
+	if telemetryConfig.IsTelemetryEnabled(e.ctx.Log(), e.ctx.Identity(), e.ctx.AppConfig()) {
 		telemetryErr := collector.StartCollection(telemetryCtx)
 		if telemetryErr != nil {
 			log.Warnf("failed to start listening for telemetry from the worker for documentID %v with error %v", documentID, telemetryErr)

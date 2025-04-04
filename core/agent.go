@@ -29,6 +29,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
 	"github.com/aws/amazon-ssm-agent/agent/proxyconfig"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
+	telemetryConfig "github.com/aws/amazon-ssm-agent/common/telemetry/config"
 	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 	"github.com/aws/amazon-ssm-agent/core/app"
 	"github.com/aws/amazon-ssm-agent/core/app/bootstrap"
@@ -103,9 +104,9 @@ func initializeBasicModules(log log.T) (app.CoreAgent, log.T, error) {
 }
 
 func initializeTelemetry(log log.T, context context.ICoreAgentContext) {
-
-	if !context.AppConfig().Agent.GlobalEnhancedTelemetryEnabled {
-		log.Info("Agent GlobalEnhancedTelemetry is disabled, hence skipping telemetry initialisation")
+	appConfig := context.AppConfig()
+	if appConfig == nil || !telemetryConfig.IsTelemetryEnabled(context.Log(), context.Identity(), *appConfig) {
+		log.Info("Telemetry is disabled")
 		return
 	}
 
