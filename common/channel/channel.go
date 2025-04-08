@@ -62,8 +62,8 @@ func GetChannelCreator(log log.T, appConfig appconfig.SsmagentConfig, identity i
 func canUseNamedPipe(log log.T, appConfig appconfig.SsmagentConfig, identity identity.IAgentIdentity) (useNamedPipe bool) {
 	// named pipes '.Listen' halts randomly on windows 2012, disabling named pipes on windows and using file channel instead
 	// On few mac2.metal instances, socket creation is getting blocked. Hence, permanently falling back to File based IPC for Darwin.
-	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-		log.Infof("Not using named pipe on %v", runtime.GOOS)
+	if getOS() == "windows" || getOS() == "darwin" {
+		log.Infof("Not using named pipe on %v", getOS())
 		return false
 	}
 	if appConfig.Agent.ForceFileIPC {
@@ -100,4 +100,8 @@ func canUseNamedPipe(log log.T, appConfig appconfig.SsmagentConfig, identity ide
 		log.Info("falling back to file based IPC after timeout")
 		return false
 	}
+}
+
+var getOS = func() string {
+	return runtime.GOOS
 }

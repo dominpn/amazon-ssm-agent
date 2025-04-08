@@ -19,6 +19,7 @@ package channel
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -109,5 +110,84 @@ func (suite *IChannelTestSuite) TestIPCSelection_NamedPipe_Panic() {
 	assert.False(suite.T(), output)
 	assert.Condition(suite.T(), func() (success bool) {
 		return endTime.Sub(startTime.Add(10*time.Second)) >= 0
+	})
+}
+
+func (suite *IChannelTestSuite) TestIPCSelection_OSCheck() {
+	// Use a mutex to protect access to getOS
+	var mu sync.Mutex
+	originalGetOS := getOS
+	defer func() {
+		mu.Lock()
+		getOS = originalGetOS
+		mu.Unlock()
+	}()
+
+	mockLog := suite.log.(*logmocks.Mock)
+	mockLog.On("Infof", mock.Anything, mock.Anything).Return()
+
+	testCases := []struct {
+		goos string
+	}{
+		{"windows"},
+		{"darwin"},
+	}
+
+	for _, tc := range testCases {
+		tc := tc // capture range variable
+		suite.Run(fmt.Sprintf("OS_%s", tc.goos), func() {
+			mu.Lock()
+			getOS = func() string {
+				return tc.goos
+			}
+			mu.Unlock()
+
+			output := canUseNamedPipe(suite.log, suite.appconfig, suite.identity)
+			assert.False(suite.T(), output)
+			mockLog := suite.log.(*logmocks.Mock)
+			mockLog.AssertCalled(suite.T(), "Infof", mock.Anything, mock.Anything)
+		})
+	}
+}
+
+func (suite *IChannelTestSuite) TestIPCSelection_CloseError() {
+	// Create a wait group to synchronize the operations
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	channelMock := &mocks.IChannel{}
+	expectedError := fmt.Errorf("failed to close pipe")
+
+	// Modify the Close mock to signal when it's been called
+	channelMock.On("Initialize", mock.Anything).Return(nil)
+	channelMock.On("Listen", mock.Anything).Return(fmt.Errorf("listen error"))
+	channelMock.On("Close").Run(func(args mock.Arguments) {
+		// Signal that Close has been called
+		defer wg.Done()
+	}).Return(expectedError)
+
+	newNamedPipeChannelRef = func(_ log.T, _ identity.IAgentIdentity) IChannel {
+		return channelMock
+	}
+	isDefaultChannelPresentRef = func(_ identity.IAgentIdentity) bool {
+		return false
+	}
+
+	suite.appconfig.Agent.ForceFileIPC = false
+	output := canUseNamedPipe(suite.log, suite.appconfig, suite.identity)
+
+	// Wait for the Close operation to complete
+	wg.Wait()
+
+	assert.False(suite.T(), output)
+	mockLog := suite.log.(*logmocks.Mock)
+	errorArgs := []interface{}{
+		"error while closing named pipe channel %v",
+		[]interface{}{expectedError},
+	}
+
+	mockLog.AssertCalled(suite.T(), "Errorf", errorArgs...)
+	mockLog.AssertCalled(suite.T(), "Info", []interface{}{
+		"falling back to file based IPC as named pipe creation failed",
 	})
 }

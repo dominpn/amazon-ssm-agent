@@ -9,6 +9,7 @@ import (
 	channelmocks "github.com/aws/amazon-ssm-agent/common/channel/mocks"
 	"github.com/aws/amazon-ssm-agent/common/channel/utils"
 	identityMocks "github.com/aws/amazon-ssm-agent/common/identity/mocks"
+	"github.com/aws/amazon-ssm-agent/common/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -143,4 +144,186 @@ func (suite *NamedPipeChannelTestSuite) TestSurveyorListen_Failed() {
 	assert.False(suite.T(), isListenSuccessful, "Listening successful for surveyor")
 	isDialSuccessful := namedPipeChannelConn.IsDialSuccessful()
 	assert.False(suite.T(), isDialSuccessful, "Dialing successful for surveyor")
+}
+
+func TestNamedPipeChannel_Close_ChannelNotInitialized(t *testing.T) {
+	// Create a channel with nil socket (uninitialized state)
+	channel := &namedPipeChannel{
+		socket: nil,
+	}
+
+	// Call Close() and verify it returns ErrIPCChannelClosed
+	err := channel.Close()
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrIPCChannelClosed, err)
+}
+
+func TestNamedPipeChannel_Recv_ErrorPaths(t *testing.T) {
+	tests := []struct {
+		name          string
+		setupChannel  func() *namedPipeChannel
+		expectedError error
+	}{
+		{
+			name: "channel not initialized",
+			setupChannel: func() *namedPipeChannel {
+				return &namedPipeChannel{
+					socket: nil,
+				}
+			},
+			expectedError: ErrIPCChannelClosed,
+		},
+		{
+			name: "dial and listen unsuccessful",
+			setupChannel: func() *namedPipeChannel {
+				return &namedPipeChannel{
+					socket: &channelmocks.Socket{},
+				}
+			},
+			expectedError: ErrDialListenUnSuccessful,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			channel := tt.setupChannel()
+
+			data, err := channel.Recv()
+
+			assert.Nil(t, data)
+			assert.Error(t, err)
+			assert.Equal(t, tt.expectedError, err)
+		})
+	}
+}
+
+func TestNamedPipeChannel_SetOption_ChannelNotInitialized(t *testing.T) {
+	channel := &namedPipeChannel{
+		socket: nil,
+	}
+
+	err := channel.SetOption("some_option", "some_value")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrIPCChannelClosed, err)
+}
+
+func TestNamedPipeChannel_Listen_ChannelNotInitialized(t *testing.T) {
+	channel := &namedPipeChannel{
+		socket: nil,
+	}
+
+	err := channel.Listen("test-address")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrIPCChannelClosed, err)
+}
+
+func TestNamedPipeChannel_Dial_ChannelNotInitialized(t *testing.T) {
+	channel := &namedPipeChannel{
+		socket: nil,
+	}
+
+	err := channel.Dial("test-address")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrIPCChannelClosed, err)
+}
+
+func TestNamedPipeChannel_Send(t *testing.T) {
+	tests := []struct {
+		name               string
+		message            *message.Message
+		isInitialized      bool
+		isListenSuccessful bool
+		isDialSuccessful   bool
+		socketSendError    error
+		expectedError      error
+		setupMock          func(*channelmocks.Socket)
+	}{
+		{
+			name: "neither listen nor dial successful",
+			message: &message.Message{
+				Topic: "test-topic",
+			},
+			isInitialized:      true,
+			isListenSuccessful: false,
+			isDialSuccessful:   false,
+			expectedError:      ErrDialListenUnSuccessful,
+			setupMock:          func(m *channelmocks.Socket) {},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockLog := logmocks.NewMockLog()
+			mockSocket := &channelmocks.Socket{}
+
+			tt.setupMock(mockSocket)
+
+			channel := &namedPipeChannel{
+				log:    mockLog,
+				socket: mockSocket,
+			}
+
+			err := channel.Send(tt.message)
+
+			t.Logf("Test: %s, Error: %v", tt.name, err)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockSocket.AssertExpectations(t)
+		})
+	}
+}
+
+func TestNamedPipeChannel_Send_ErrorPaths(t *testing.T) {
+	tests := []struct {
+		name          string
+		message       *message.Message
+		setupChannel  func() *namedPipeChannel
+		expectedError error
+	}{
+		{
+			name: "channel not initialized",
+			message: &message.Message{
+				Topic: "test-topic",
+			},
+			setupChannel: func() *namedPipeChannel {
+				return &namedPipeChannel{
+					socket: nil,
+				}
+			},
+			expectedError: ErrIPCChannelClosed,
+		},
+		{
+			name: "neither listen nor dial successful",
+			message: &message.Message{
+				Topic: "test-topic",
+			},
+			setupChannel: func() *namedPipeChannel {
+				return &namedPipeChannel{
+					socket: &channelmocks.Socket{},
+				}
+			},
+			expectedError: ErrDialListenUnSuccessful,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			channel := tt.setupChannel()
+
+			err := channel.Send(tt.message)
+
+			assert.Error(t, err)
+			assert.Equal(t, tt.expectedError, err)
+		})
+	}
 }
