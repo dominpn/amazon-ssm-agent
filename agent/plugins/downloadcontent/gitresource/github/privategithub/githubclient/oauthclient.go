@@ -18,6 +18,7 @@ package githubclient
 import (
 	"net/http"
 
+	"github.com/aws/amazon-ssm-agent/agent/network"
 	gitcontext "golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
@@ -37,5 +38,7 @@ func (git OAuthClient) GetGithubOauthClient(token string) *http.Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
-	return oauth2.NewClient(ctx, ts)
+	x := oauth2.NewClient(ctx, ts)
+	x.CheckRedirect = network.DisableHTTPDowngrade
+	return x
 }
