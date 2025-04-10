@@ -16,6 +16,7 @@ package iirprovider
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 const (
@@ -68,4 +70,148 @@ func TestRetrieve_ReturnsCredentials(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
 	assert.Equal(t, expectedResult, result)
+}
+
+func TestEmptyCredentials_StructureValidation(t *testing.T) {
+	// Test that EmptyCredentials returns a credentials.Value with expected properties
+	emptyCredentials := EmptyCredentials()
+
+	// Verify provider name is set correctly
+	assert.Equal(t, ProviderName, emptyCredentials.ProviderName, "Provider name should match")
+
+	// Verify other credential fields are empty
+	assert.Empty(t, emptyCredentials.AccessKeyID, "AccessKeyID should be empty")
+	assert.Empty(t, emptyCredentials.SecretAccessKey, "SecretAccessKey should be empty")
+	assert.Empty(t, emptyCredentials.SessionToken, "SessionToken should be empty")
+}
+
+func TestRetrieve_IMDSClientFailure(t *testing.T) {
+	// Setup
+	logger := log.NewMockLog()
+	ssmConfig, _ := appconfig.Config(true)
+
+	// Mock IMDS client to return an error
+	mockIMDSClient := &iirprovidermocks.IEC2MdsSdkClient{}
+	mockIMDSClient.On("GetMetadata", iirCredentialsPath).Return("", fmt.Errorf("IMDS retrieval failed"))
+
+	roleProvider := &IIRRoleProvider{
+		IMDSClient: mockIMDSClient,
+		Config:     &ssmConfig,
+		Log:        logger,
+	}
+
+	// Execute
+	result, err := roleProvider.Retrieve()
+
+	// Assertions
+	assert.Error(t, err)
+	assert.Equal(t, credentials.Value{ProviderName: ProviderName}, result)
+
+	// Verify log error was called
+	logger.AssertCalled(t, "Errorf", mock.AnythingOfType("string"), mock.Anything)
+}
+
+func TestRetrieve_JSONDecodingFailure(t *testing.T) {
+	// Setup
+	logger := log.NewMockLog()
+	ssmConfig, _ := appconfig.Config(true)
+
+	// Invalid JSON response
+	invalidJSONResponse := `{invalid json}`
+
+	mockIMDSClient := &iirprovidermocks.IEC2MdsSdkClient{}
+	mockIMDSClient.On("GetMetadata", iirCredentialsPath).Return(invalidJSONResponse, nil)
+
+	roleProvider := &IIRRoleProvider{
+		IMDSClient: mockIMDSClient,
+		Config:     &ssmConfig,
+		Log:        logger,
+	}
+
+	// Execute
+	result, err := roleProvider.Retrieve()
+
+	// Assertions
+	assert.Error(t, err)
+	assert.Equal(t, credentials.Value{ProviderName: ProviderName}, result)
+
+	// Verify log error was called
+	logger.AssertCalled(t, "Errorf", mock.AnythingOfType("string"), mock.Anything)
+}
+
+func TestRetrieve_ExpiryWindowCalculation(t *testing.T) {
+	// Setup
+	logger := log.NewMockLog()
+	ssmConfig, _ := appconfig.Config(true)
+
+	expirationTime := time.Now().Add(time.Hour * 6)
+	respCreds := Ec2RoleCreds{
+		AccessKeyID:     testAccessKeyId,
+		SecretAccessKey: testSecretAccessKey,
+		Token:           testSessionToken,
+		Expiration:      expirationTime,
+		Code:            "Success",
+	}
+
+	respJSONBytes, _ := json.Marshal(respCreds)
+
+	mockIMDSClient := &iirprovidermocks.IEC2MdsSdkClient{}
+	mockIMDSClient.On("GetMetadata", iirCredentialsPath).Return(string(respJSONBytes), nil)
+
+	roleProvider := &IIRRoleProvider{
+		IMDSClient: mockIMDSClient,
+		Config:     &ssmConfig,
+		Log:        logger,
+	}
+
+	// Execute
+	result, err := roleProvider.Retrieve()
+
+	// Assertions
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+
+	// Check expiry window calculation (should be half of token lifetime)
+	expectedExpiryWindow := time.Until(expirationTime) / 2
+	assert.InDelta(t, expectedExpiryWindow.Seconds(), roleProvider.ExpiryWindow.Seconds(), 1.0)
+}
+
+func TestRetrieve_UnsuccessfulResponseCode(t *testing.T) {
+	// Setup
+	logger := log.NewMockLog()
+	ssmConfig, _ := appconfig.Config(true)
+
+	respCreds := Ec2RoleCreds{
+		Code:       "Failure",
+		Expiration: time.Now().Add(time.Hour * 6),
+	}
+
+	respJSONBytes, _ := json.Marshal(respCreds)
+
+	mockIMDSClient := &iirprovidermocks.IEC2MdsSdkClient{}
+	mockIMDSClient.On("GetMetadata", iirCredentialsPath).Return(string(respJSONBytes), nil)
+
+	roleProvider := &IIRRoleProvider{
+		IMDSClient: mockIMDSClient,
+		Config:     &ssmConfig,
+		Log:        logger,
+	}
+
+	// Execute
+	result, err := roleProvider.Retrieve()
+
+	// Assertions
+	assert.Error(t, err)
+	assert.Equal(t, credentials.Value{ProviderName: ProviderName}, result)
+	assert.Contains(t, err.Error(), "invalid")
+}
+
+func TestEmptyCredentials_Immutability(t *testing.T) {
+	// Test that modifying returned credentials does not affect original
+	originalCredentials := EmptyCredentials()
+	modifiedCredentials := originalCredentials
+	modifiedCredentials.AccessKeyID = "SomeKey"
+
+	assert.NotEqual(t, originalCredentials, modifiedCredentials, "Original credentials should remain unchanged")
+	assert.Equal(t, ProviderName, originalCredentials.ProviderName, "Original provider name should be preserved")
 }

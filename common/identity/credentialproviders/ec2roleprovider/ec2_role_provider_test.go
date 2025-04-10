@@ -22,7 +22,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
+
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider/stubs"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ssmclient"
@@ -30,6 +32,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ssmec2roleprovider"
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig"
 	runtimeConfigMocks "github.com/aws/amazon-ssm-agent/common/runtimeconfig/mocks"
+
+	//innerProvider "github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider/stubs"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -527,4 +531,132 @@ func TestEC2RoleProvider_GetInnerProvider_ReturnsSsmEc2Provider_WhenCredentialSo
 	}
 
 	assert.Equal(t, ssmProvider, ec2RoleProvider.GetInnerProvider())
+}
+
+func TestEC2RoleProvider_ShareFile_ReturnsDefaultPathWhenSSMCredentialSource(t *testing.T) {
+	// Arrange
+	ec2RoleProvider := &EC2RoleProvider{
+		credentialSource: CredentialSourceSSM,
+	}
+
+	// Act
+	shareFilePath := ec2RoleProvider.ShareFile()
+
+	// Assert
+	assert.Equal(t, appconfig.DefaultEC2SharedCredentialsFilePath, shareFilePath)
+}
+
+func TestEC2RoleProvider_ShareFile_ReturnsEmptyStringForNonSSMSources(t *testing.T) {
+	// Arrange
+	ec2RoleProvider := &EC2RoleProvider{
+		credentialSource: CredentialSourceEC2,
+	}
+
+	// Act
+	shareFilePath := ec2RoleProvider.ShareFile()
+
+	// Assert
+	assert.Equal(t, "", shareFilePath)
+}
+
+func TestEC2RoleProvider_ShareProfile(t *testing.T) {
+	// Arrange
+	ec2RoleProvider := &EC2RoleProvider{}
+	// Act
+	shareProfile := ec2RoleProvider.ShareProfile()
+	// Assert
+	assert.Equal(t, "", shareProfile, "ShareProfile should return an empty string even with SSM credential source")
+}
+
+func TestEC2RoleProvider_SharesCredentials_DefaultBehavior(t *testing.T) {
+	// Explanation: Verify that SharesCredentials returns true by default
+	// This test ensures the default implementation always returns true
+
+	// Arrange
+	ec2RoleProvider := &EC2RoleProvider{}
+
+	// Act
+	result := ec2RoleProvider.SharesCredentials()
+
+	// Assert
+	assert.True(t, result, "SharesCredentials should return true by default")
+}
+
+func TestEC2RoleProvider_ExpiresAt_ReturnsSharedCredentialsExpiry(t *testing.T) {
+	// Arrange
+	now := time.Now()
+	expectedExpiry := now.Add(1 * time.Hour)
+
+	sharedProvider := &stubs.InnerProvider{
+		ProviderName: "SharedCredentialsProvider",
+		Expiry:       expectedExpiry,
+	}
+
+	iprProvider := &stubs.InnerProvider{
+		ProviderName: IPRProviderName,
+		Expiry:       now.Add(2 * time.Hour),
+	}
+
+	innerProviders := &EC2InnerProviders{
+		IPRProvider:               iprProvider,
+		SharedCredentialsProvider: sharedProvider,
+	}
+
+	ec2RoleProvider := &EC2RoleProvider{
+		InnerProviders:   innerProviders,
+		credentialSource: CredentialSourceSSM,
+	}
+
+	// Act
+	actualExpiry := ec2RoleProvider.ExpiresAt()
+
+	// Assert
+	assert.Equal(t, expectedExpiry, actualExpiry)
+}
+
+func TestEC2RoleProvider_IsExpired_True(t *testing.T) {
+	//Arrange
+	sharedProvider := &stubs.InnerProvider{
+		ProviderName: "SharedCredentialsProvider",
+		RetrieveErr:  errors.New("retrieval failed"),
+	}
+	iprProvider := &stubs.InnerProvider{
+		ProviderName: IPRProviderName,
+		RetrieveErr:  errors.New("retrieval failed"),
+	}
+	innerProviders := &EC2InnerProviders{
+		SharedCredentialsProvider: sharedProvider,
+		IPRProvider:               iprProvider,
+	}
+
+	ec2RoleProvider := &EC2RoleProvider{
+		InnerProviders:   innerProviders,
+		credentialSource: CredentialSourceSSM,
+	}
+
+	ec2RoleProviderEc2 := &EC2RoleProvider{
+		InnerProviders:   innerProviders,
+		credentialSource: CredentialSourceEC2,
+	}
+
+	// Act
+	isExpired := ec2RoleProvider.IsExpired()
+	isExpiredEc2 := ec2RoleProviderEc2.IsExpired()
+	// Assert
+	assert.True(t, isExpired)
+	assert.True(t, isExpiredEc2)
+
+}
+
+func TestEc2RoleProvider_CredentialSource(t *testing.T) {
+	// Arrange
+	ec2RoleProvider := &EC2RoleProvider{
+		credentialSource: CredentialSourceEC2,
+	}
+
+	// Act
+	credentialSource := ec2RoleProvider.CredentialSource()
+
+	// Assert
+	assert.Equal(t, CredentialSourceEC2, credentialSource)
 }
