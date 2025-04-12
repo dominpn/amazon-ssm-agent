@@ -205,6 +205,7 @@ func TestEC2IdentityType_IsIdentityEnvironment(t *testing.T) {
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return("", fmt.Errorf("SomeError")).Once()
 	assert.False(t, identity.IsIdentityEnvironment())
 
+	ec2DetectorMocks.On("IsEC2Instance", mock.Anything).Return(false, false).Once()
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return("SomeInstanceId", nil).Once()
 	client.On("RegionWithContext", mock.Anything).Return("SomeRegion", nil).Once()
 	assert.True(t, identity.IsIdentityEnvironment())
