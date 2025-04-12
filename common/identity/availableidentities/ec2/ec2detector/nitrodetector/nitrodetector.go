@@ -34,12 +34,24 @@ type nitroDetector struct {
 	vendorParamKey string
 }
 
-func (d *nitroDetector) IsEc2(log log.T) bool {
-	if strings.ToLower(helper.GetSystemInfo(log, d.vendorParamKey)) != expectedNitroVendor {
-		return false
+var getVendor, getUuid = helper.GetHostInfo, helper.GetHostInfo
+
+func (d *nitroDetector) IsEc2(log log.T) (bool, []string) {
+	var errCodes []string
+	vendorInfo, vendorErrCode := getVendor(log, d.vendorParamKey, "NV")
+	if vendorErrCode != "" {
+		errCodes = append(errCodes, vendorErrCode)
+	}
+	uuidInfo, uuidErrCode := getUuid(log, d.uuidParamKey, "NU")
+	if uuidErrCode != "" {
+		errCodes = append(errCodes, uuidErrCode)
 	}
 
-	return helper.MatchUuid(log, d.uuidParamKey)
+	if len(errCodes) > 0 {
+		return false, errCodes
+	} else {
+		return strings.ToLower(vendorInfo) == expectedNitroVendor && helper.MatchUuid(log, uuidInfo), nil
+	}
 }
 
 func (d *nitroDetector) GetName() string {

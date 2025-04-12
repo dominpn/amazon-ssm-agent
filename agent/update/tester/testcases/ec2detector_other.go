@@ -21,17 +21,14 @@ import (
 	"fmt"
 	"runtime/debug"
 	"strings"
-	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
+	"github.com/aws/amazon-ssm-agent/agent/platform"
 	testCommon "github.com/aws/amazon-ssm-agent/agent/update/tester/common"
 	"github.com/aws/amazon-ssm-agent/common/identity/identity"
-	"github.com/digitalocean/go-smbios/smbios"
 )
 
 const (
-	failedToOpenStream          = "failed to open smbios stream"
-	failedToDecodeStream        = "failed to decode smbios"
 	failedToGetVendorAndVersion = "failed to get vendor and version"
 	failedToGetUuid             = "failed to get uuid"
 	failedQuerySystemHostInfo   = "failed to query system host info"
@@ -70,78 +67,26 @@ func isEc2Instance(info HostInfo) bool {
 	return matchUuid(info.Uuid) && (matchXenEc2(info) || matchNitroEc2(info))
 }
 
-// extractSmbiosHostInfo parses the list of smbios.Structure to a HostInfo based on SMBIOS spec
-func extractSmbiosHostInfo(biosInfoList []*smbios.Structure) (HostInfo, error) {
-	var hostInfo HostInfo
-	// Parser created from SMBIOS spec: https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.1.1.pdf
-	for _, biosItem := range biosInfoList {
-		// Only parse System Information with type 1
-		if biosItem.Header.Type == 1 && len(biosItem.Formatted) >= 4 {
-			// Manufacturer
-			hostInfo.Vendor = extractSmbiosData(biosItem, 0)
-			// Version
-			hostInfo.Version = extractSmbiosData(biosItem, 2)
-			// SerialNumber
-			hostInfo.Uuid = extractSmbiosData(biosItem, 3)
-		}
+func getSmbiosHostInfo(log log.T) (hostInfo HostInfo, err error) {
+	hostInfo = HostInfo{}
+	if hostInfo.Vendor, err = platform.GetSmbiosInfo(log, platform.SmbiosVendorParamKey); err != nil {
+		return
+	}
+	if hostInfo.Version, err = platform.GetSmbiosInfo(log, platform.SmbiosVersionParamKey); err != nil {
+		return
+	}
+	if hostInfo.Uuid, err = platform.GetSmbiosInfo(log, platform.SmbiosUuidParamKey); err != nil {
+		return
 	}
 
 	if hostInfo.Version == "" && hostInfo.Vendor == "" {
 		return hostInfo, errors.New(failedToGetVendorAndVersion)
 	}
-
 	if hostInfo.Uuid == "" {
 		return hostInfo, errors.New(failedToGetUuid)
 	}
 
-	return hostInfo, nil
-}
-
-func extractSmbiosData(biosItem *smbios.Structure, index int) (dataValue string) {
-	dataIndex := int(biosItem.Formatted[index])
-	if dataIndex > 0 && len(biosItem.Strings) >= dataIndex {
-		dataValue = cleanBiosString(biosItem.Strings[dataIndex-1])
-	}
-
-	return dataValue
-}
-
-// streamAndDecode queries streamAndDecode with retries and sleep
-func streamAndDecodeSmbios() ([]*smbios.Structure, error) {
-	rc, _, err := smbios.Stream()
-	if err != nil {
-		return []*smbios.Structure{}, fmt.Errorf("%s: %v", failedToOpenStream, err)
-	}
-	defer rc.Close()
-
-	d := smbios.NewDecoder(rc)
-	biosInfoList, err := d.Decode()
-	if err != nil {
-		return []*smbios.Structure{}, fmt.Errorf("%s: %v", failedToDecodeStream, err)
-	}
-
-	return biosInfoList, nil
-}
-
-// getSmbiosHostInfo queries streamAndDecode with retries and sleep
-func getSmbiosHostInfo(log log.T) (HostInfo, error) {
-	var biosInfoList []*smbios.Structure
-	var err error
-
-	for i := 0; i < maxRetry; i++ {
-		if i != 0 {
-			time.Sleep(sleepBetweenRetry)
-		}
-		biosInfoList, err = streamAndDecodeSmbios()
-
-		if err == nil {
-			return extractSmbiosHostInfo(biosInfoList)
-		}
-
-		log.Warnf("Failed stream and decode try %d/%d with error: %v", i+1, maxRetry, err)
-	}
-
-	return HostInfo{}, err
+	return
 }
 
 func (l *Ec2DetectorTestCase) generateHostInfoResult(info HostInfo, queryErr error, approach approachType) (bool, string) {
@@ -159,9 +104,9 @@ func (l *Ec2DetectorTestCase) generateHostInfoResult(info HostInfo, queryErr err
 			}
 		}
 	} else {
-		if strings.Contains(queryErr.Error(), failedToOpenStream) {
+		if errors.Is(queryErr, platform.ErrOpenSmbiosStream) {
 			errDP = errFailedOpenStream
-		} else if strings.Contains(queryErr.Error(), failedToDecodeStream) {
+		} else if errors.Is(queryErr, platform.ErrDecodeSmbiosStream) {
 			errDP = errFailedDecodeStream
 		} else if strings.Contains(queryErr.Error(), failedQuerySystemHostInfo) {
 			errDP = errFailedQuerySystemHostInfo

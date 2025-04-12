@@ -204,6 +204,11 @@ func (d *runtimeConfigIdentitySelector) SelectAgentIdentity(agentIdentities []id
 	}
 
 	for _, agentIdentity := range agentIdentities {
+		if !agentIdentity.IsIdentityEnvironment() {
+			d.log.Debugf("'%s' identity is not available on this instance", identityKey)
+			continue
+		}
+
 		instanceId, err := agentIdentity.InstanceID()
 		if err != nil || instanceId != d.config.InstanceId {
 			// Failed to get instance id or instance id is not the same as stored in runtime config

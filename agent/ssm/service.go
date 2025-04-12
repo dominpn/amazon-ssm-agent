@@ -16,6 +16,7 @@ package ssm
 import (
 	"fmt"
 	"runtime"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -106,27 +107,6 @@ func NewService(context context.T) Service {
 
 	sess := session.New(awsConfig)
 	sess.Handlers.Build.PushBack(request.MakeAddToUserAgentHandler(appConfig.Agent.Name, appConfig.Agent.Version))
-	sess.Handlers.Build.PushBackNamed(
-		request.NamedHandler{
-			Name: "EC2DetectionResultsHandler",
-			Fn: func(req *request.Request) {
-				// Send the EC2 detection results with the UpdateInstanceInformation request, as part of the User-Agent header
-				if req.Operation.Name == "UpdateInstanceInformation" && ec2DetectionResultsSent.CompareAndSwap(false, true) &&
-					context.Identity().IdentityType() == ec2.IdentityType {
-					ec2DetectorStatus := ec2detector.New(appConfig).IsEC2Instance(context.Log())
-					_, err := context.Identity().InstanceID()
-					imdsStatus := err == nil
-
-					uaHeaderValue := req.HTTPRequest.Header.Get("User-Agent")
-					if len(uaHeaderValue) > 0 {
-						uaHeaderValue = uaHeaderValue + " "
-					}
-					uaHeaderValue = uaHeaderValue + fmt.Sprintf("EC2DetectorStatus:%v|IMDSEC2DetectionStatus:%v", ec2DetectorStatus, imdsStatus)
-					req.HTTPRequest.Header.Set("User-Agent", uaHeaderValue)
-				}
-			},
-		},
-	)
 	ssmService := ssm.New(sess)
 	return NewSSMService(context, ssmService)
 }
@@ -352,6 +332,30 @@ func (svc *sdkService) UpdateEmptyInstanceInformation(
 		params.InstanceId = aws.String(instID)
 	} else {
 		return nil, err
+	}
+
+	// Send the EC2Detector and IMDS EC2 status, and any EC2Dtector errors with the UpdateInstanceInformation request, only once during the Agent startup
+	if ec2DetectionResultsSent.CompareAndSwap(false, true) {
+		var imdsEC2Status bool
+		if svc.context.Identity().IdentityType() == ec2.IdentityType {
+			_, err := svc.context.Identity().InstanceID()
+			imdsEC2Status = err == nil
+		}
+		ec2DetectorStatus, errCodes := ec2detector.New(log).IsEC2Instance()
+
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf("EC2DetectorStatus:%v_IMDSEC2Status:%v", ec2DetectorStatus, imdsEC2Status))
+		if len(errCodes) > 0 {
+			sb.WriteString("_EC2DetectorErrors:")
+			for i, errCode := range errCodes {
+				sb.WriteString(errCode)
+				if i < len(errCodes)-1 {
+					sb.WriteString(",")
+				}
+			}
+		}
+
+		params.AgentStatus = aws.String(sb.String())
 	}
 
 	log.Debug("Calling UpdateInstanceInformation with params", params)

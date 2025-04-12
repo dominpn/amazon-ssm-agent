@@ -218,7 +218,7 @@ func TestGetSystemInfoWithNonExistingParam(t *testing.T) {
 
 	uuid, err := GetSystemInfo(logMock, XenUuidSystemInfoParamKey)
 	assert.Equal(t, "", uuid)
-	assert.Nil(t, err)
+	assert.ErrorIs(t, err, ErrFileNotFound)
 	//make sure we don't cache values for non existing params
 	GetSystemInfo(logMock, XenUuidSystemInfoParamKey)
 	assert.Equal(t, 2, cacheInitCount)

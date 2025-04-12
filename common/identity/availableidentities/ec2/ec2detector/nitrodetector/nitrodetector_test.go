@@ -31,30 +31,74 @@ func TestIsEc2(t *testing.T) {
 	detector := New("", "")
 	logMock := logger.NewMockLog()
 	tempMatchUuid := helper.MatchUuid
-	tempGetSystemInfo := helper.GetSystemInfo
-	defer func() {
+	tempGetVendor := getVendor
+	tempGetUuid := getUuid
+	resetFunc := func() {
 		helper.MatchUuid = tempMatchUuid
-		helper.GetSystemInfo = tempGetSystemInfo
-	}()
+		getVendor = tempGetVendor
+		getUuid = tempGetUuid
+	}
 
-	helper.GetSystemInfo = func(log.T, string) string { return "someothervendor" }
-	assert.False(t, detector.IsEc2(logMock))
+	getVendor = func(log.T, string, string) (string, string) { return "", "NVE" }
+	getUuid = func(log.T, string, string) (string, string) { return "", "NUE" }
+	status, errCodes := detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 2)
 
-	helper.GetSystemInfo = func(log.T, string) string { return fmt.Sprintf("%s%s", expectedNitroVendor, "-somepostfix") }
-	assert.False(t, detector.IsEc2(logMock))
+	getVendor = func(log.T, string, string) (string, string) { return expectedNitroVendor, "" }
+	getUuid = func(log.T, string, string) (string, string) { return "", "NUFNF" }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 1)
 
-	helper.GetSystemInfo = func(log.T, string) string { return fmt.Sprintf("%s%s", "someprefix-", expectedNitroVendor) }
-	assert.False(t, detector.IsEc2(logMock))
+	getVendor = func(log.T, string, string) (string, string) { return expectedNitroVendor, "" }
+	getUuid = func(log.T, string, string) (string, string) { return "", "" }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
 
-	helper.GetSystemInfo = func(log.T, string) string { return expectedNitroVendor }
+	getVendor = func(log.T, string, string) (string, string) { return "someothervendor", "" }
+	getUuid = func(log.T, string, string) (string, string) { return "123", "" }
 	helper.MatchUuid = func(log.T, string) bool { return false }
-	assert.False(t, detector.IsEc2(logMock))
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
 
-	helper.GetSystemInfo = func(log.T, string) string { return expectedNitroVendor }
-	helper.MatchUuid = func(log.T, string) bool { return true }
-	assert.True(t, detector.IsEc2(logMock))
+	getVendor = func(log.T, string, string) (string, string) {
+		return fmt.Sprintf("%s%s", expectedNitroVendor, "-somepostfix"), ""
+	}
+	getUuid = func(log.T, string, string) (string, string) { return "", "" }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
 
-	helper.GetSystemInfo = func(log.T, string) string { return strings.ToUpper(expectedNitroVendor) }
+	getVendor = func(log.T, string, string) (string, string) {
+		return fmt.Sprintf("%s%s", "someprefix-", expectedNitroVendor), ""
+	}
+	getUuid = func(log.T, string, string) (string, string) { return "", "" }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
+
+	getVendor = func(log.T, string, string) (string, string) { return expectedNitroVendor, "" }
+	getUuid = func(log.T, string, string) (string, string) { return "123", "" }
 	helper.MatchUuid = func(log.T, string) bool { return true }
-	assert.True(t, detector.IsEc2(logMock))
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.True(t, status)
+	assert.Equal(t, len(errCodes), 0)
+
+	getVendor = func(log.T, string, string) (string, string) { return strings.ToUpper(expectedNitroVendor), "" }
+	getUuid = func(log.T, string, string) (string, string) { return "123", "" }
+	helper.MatchUuid = func(log.T, string) bool { return true }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.True(t, status)
+	assert.Equal(t, len(errCodes), 0)
 }

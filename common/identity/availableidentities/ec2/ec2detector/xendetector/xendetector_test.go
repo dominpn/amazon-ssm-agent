@@ -30,27 +30,67 @@ func TestIsEc2(t *testing.T) {
 	detector := New("", "")
 	logMock := logger.NewMockLog()
 	tempMatchUuid := helper.MatchUuid
-	tempGetSystemInfo := helper.GetSystemInfo
-	defer func() {
+	tempGetVendor := getVendor
+	tempGetUuid := getUuid
+	resetFunc := func() {
 		helper.MatchUuid = tempMatchUuid
-		helper.GetSystemInfo = tempGetSystemInfo
-	}()
+		getVendor = tempGetVendor
+		getUuid = tempGetUuid
+	}
 
-	helper.GetSystemInfo = func(log.T, string) string { return "someotherversion" }
-	assert.False(t, detector.IsEc2(logMock))
+	getVendor = func(log.T, string, string) (string, string) { return "", "" }
+	getUuid = func(log.T, string, string) (string, string) { return "", "" }
+	status, errCodes := detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
 
-	helper.GetSystemInfo = func(log.T, string) string { return fmt.Sprintf("%s%s", expectedVersionSuffix, "SomeRandomPostfix") }
-	assert.False(t, detector.IsEc2(logMock))
+	getVendor = func(log.T, string, string) (string, string) { return expectedVersionSuffix, "" }
+	getUuid = func(log.T, string, string) (string, string) { return "", "" }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
 
-	helper.GetSystemInfo = func(log.T, string) string { return expectedVersionSuffix }
+	getVendor = func(log.T, string, string) (string, string) { return expectedVersionSuffix, "" }
+	getUuid = func(log.T, string, string) (string, string) { return "123", "" }
 	helper.MatchUuid = func(log.T, string) bool { return false }
-	assert.False(t, detector.IsEc2(logMock))
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
 
-	helper.GetSystemInfo = func(log.T, string) string { return expectedVersionSuffix }
-	helper.MatchUuid = func(log.T, string) bool { return true }
-	assert.True(t, detector.IsEc2(logMock))
+	getVendor = func(log.T, string, string) (string, string) { return "someotherversion", "" }
+	getUuid = func(log.T, string, string) (string, string) { return "", "" }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
 
-	helper.GetSystemInfo = func(log.T, string) string { return fmt.Sprintf("%s%s", "SomeRandomPrefix", expectedVersionSuffix) }
+	getVendor = func(log.T, string, string) (string, string) {
+		return fmt.Sprintf("%s%s", expectedVersionSuffix, "SomeRandomPostfix"), ""
+	}
+	getUuid = func(log.T, string, string) (string, string) { return "", "" }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.False(t, status)
+	assert.Equal(t, len(errCodes), 0)
+
+	getVendor = func(log.T, string, string) (string, string) { return expectedVersionSuffix, "" }
+	getUuid = func(log.T, string, string) (string, string) { return "123", "" }
 	helper.MatchUuid = func(log.T, string) bool { return true }
-	assert.True(t, detector.IsEc2(logMock))
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.True(t, status)
+	assert.Equal(t, len(errCodes), 0)
+
+	getVendor = func(log.T, string, string) (string, string) {
+		return fmt.Sprintf("%s%s", "SomeRandomPrefix", expectedVersionSuffix), ""
+	}
+	getUuid = func(log.T, string, string) (string, string) { return "123", "" }
+	helper.MatchUuid = func(log.T, string) bool { return true }
+	status, errCodes = detector.IsEc2(logMock)
+	resetFunc()
+	assert.True(t, status)
+	assert.Equal(t, len(errCodes), 0)
 }

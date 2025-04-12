@@ -18,6 +18,7 @@
 package platform
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -48,6 +49,10 @@ const (
 var (
 	readAllText = fileutil.ReadAllText
 	fileExists  = fileutil.Exists
+
+	ErrFileNotFound   = errors.New("file not found")
+	ErrFilePermission = errors.New("no sufficient permissions")
+	ErrFileRead       = errors.New("error reading from file")
 )
 
 // this structure is similar to the /etc/os-release file
@@ -257,16 +262,19 @@ func getPlatformDetails(log log.T) (name string, version string, err error) {
 func initSystemInfoCache(log log.T, paramKey string) (string, error) {
 	if !fileExists(paramKey) {
 		log.Warnf("Could not find file %v. Will skip caching the data", paramKey)
-		return "", nil
+		return "", ErrFileNotFound
 	}
 
 	if text, err := readAllText(paramKey); err == nil {
 		data := strings.TrimSpace(text)
 		cache.Put(paramKey, data)
 		return data, nil
+	} else if os.IsPermission(err) {
+		log.Errorf("No sufficient permissions to read file %v, error %v. Will skip caching the data", paramKey, err)
+		return "", errors.Join(ErrFilePermission, err)
 	} else {
 		log.Errorf("Could not read file %v, error %v. Will skip caching the data", paramKey, err)
-		return "", err
+		return "", errors.Join(ErrFileRead, err)
 	}
 }
 

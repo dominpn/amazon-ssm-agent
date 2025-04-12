@@ -24,5 +24,5 @@ import (
 
 func TestAssertDetectorSize(t *testing.T) {
 	assert.Equal(t, 1, len(detectors))
-	assert.Equal(t, "", detectors[0].GetName())
+	assert.Equal(t, "Darwin", detectors[0].GetName())
 }

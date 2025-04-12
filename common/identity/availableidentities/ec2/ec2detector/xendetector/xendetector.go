@@ -29,17 +29,29 @@ const (
 	Name                  = "Xen"
 )
 
+var getVendor, getUuid = helper.GetHostInfo, helper.GetHostInfo
+
 type xenDetector struct {
 	uuidParamKey    string
 	versionParamKey string
 }
 
-func (d *xenDetector) IsEc2(log log.T) bool {
-	if !strings.HasSuffix(strings.ToLower(helper.GetSystemInfo(log, d.versionParamKey)), expectedVersionSuffix) {
-		return false
+func (d *xenDetector) IsEc2(log log.T) (bool, []string) {
+	var errCodes []string
+	versionInfo, versionErrCode := getVendor(log, d.versionParamKey, "XV")
+	if versionErrCode != "" {
+		errCodes = append(errCodes, versionErrCode)
+	}
+	uuidInfo, uuidErrCode := getUuid(log, d.uuidParamKey, "XU")
+	if uuidErrCode != "" {
+		errCodes = append(errCodes, uuidErrCode)
 	}
 
-	return helper.MatchUuid(log, d.uuidParamKey)
+	if len(errCodes) > 0 {
+		return false, errCodes
+	} else {
+		return strings.HasSuffix(strings.ToLower(versionInfo), expectedVersionSuffix) && helper.MatchUuid(log, uuidInfo), nil
+	}
 }
 
 func (d *xenDetector) GetName() string {

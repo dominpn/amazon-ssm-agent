@@ -66,7 +66,10 @@ func ReadAllText(filePath string) (text string, err error) {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	f, _ := os.Open(filePath)
+	f, err := os.Open(filePath)
+	if err != nil {
+		return
+	}
 	defer f.Close()
 	_, err = io.Copy(buf, f)
 	if err != nil {

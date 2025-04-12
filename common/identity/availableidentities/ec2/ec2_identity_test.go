@@ -21,6 +21,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	authregistermocks "github.com/aws/amazon-ssm-agent/agent/ssm/authregister/mocks"
+	ec2detectormocks "github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector/mocks"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/mocks"
 	ec2roleprovidermocks "github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider/mocks"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ssmec2roleprovider"
@@ -193,14 +194,14 @@ func TestEC2IdentityType_Credentials_CompatibilityTestRuntimeConfigNotPresent_Su
 }
 
 func TestEC2IdentityType_IsIdentityEnvironment(t *testing.T) {
+	ec2DetectorMocks := &ec2detectormocks.Ec2Detector{}
 	client := &mocks.IEC2MdsSdkClient{}
-
 	identity := Identity{
-		Log:    logmocks.NewMockLog(),
-		Client: client,
+		Log:         logmocks.NewMockLog(),
+		Client:      client,
+		ec2Detector: ec2DetectorMocks,
 	}
 
-	// Success
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return("", fmt.Errorf("SomeError")).Once()
 	assert.False(t, identity.IsIdentityEnvironment())
 

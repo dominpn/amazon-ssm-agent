@@ -407,6 +407,34 @@ func TestRuntimeConfigIdentitySelector_IdentityTypeMismatch(t *testing.T) {
 	assert.Nil(t, result)
 }
 
+func TestRuntimeConfigIdentitySelector_NotIsEnvironment(t *testing.T) {
+	// Test scenario: Instance ID does not match runtime config
+	mockLog := logmocks.NewMockLog()
+	mockConfigClient := &runtimemocks.IIdentityRuntimeConfigClient{}
+
+	selector := &runtimeConfigIdentitySelector{
+		log:                 mockLog,
+		configClient:        mockConfigClient,
+		isConfigInitialized: false,
+		config: runtimeconfig.IdentityRuntimeConfig{
+			IdentityType: "EC2",
+			InstanceId:   "expected-instance-id",
+		},
+	}
+
+	// Setup mock to return config
+	mockConfigClient.On("GetConfig").Return(selector.config, nil)
+
+	agentIdentity := &mocks.IEC2Identity{}
+	agentIdentity.On("IsIdentityEnvironment").Return(false)
+
+	// Verify that nil is returned when instance ID does not match
+	result := selector.SelectAgentIdentity([]identity.IAgentIdentityInner{agentIdentity}, "EC2")
+
+	assert.Nil(t, result)
+	agentIdentity.AssertNotCalled(t, "InstanceID")
+}
+
 func TestRuntimeConfigIdentitySelector_InstanceIDMismatch(t *testing.T) {
 	// Test scenario: Instance ID does not match runtime config
 	mockLog := logmocks.NewMockLog()
@@ -426,6 +454,7 @@ func TestRuntimeConfigIdentitySelector_InstanceIDMismatch(t *testing.T) {
 	mockConfigClient.On("GetConfig").Return(selector.config, nil)
 
 	agentIdentity := &mocks.IEC2Identity{}
+	agentIdentity.On("IsIdentityEnvironment").Return(true)
 	agentIdentity.On("InstanceID").Return("different-instance-id", nil)
 
 	// Verify that nil is returned when instance ID does not match

@@ -18,15 +18,17 @@ package darwinec2detector
 
 import "github.com/aws/amazon-ssm-agent/agent/log"
 
+const Name = "Darwin"
+
 type darwinEc2Detector struct{}
 
-func (*darwinEc2Detector) IsEc2(_ log.T) bool {
+func (*darwinEc2Detector) IsEc2(_ log.T) (bool, []string) {
 	// Darwin is only supported in EC2, assume we are on EC2
-	return true
+	return true, nil
 }
 
 func (*darwinEc2Detector) GetName() string {
-	return ""
+	return Name
 }
 
 func New() *darwinEc2Detector {

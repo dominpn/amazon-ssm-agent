@@ -20,6 +20,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/ssm/authregister"
+	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider"
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -72,4 +73,5 @@ type Identity struct {
 	AuthRegisterService authregister.IClient
 	shareLock           *sync.RWMutex
 	runtimeConfigClient runtimeconfig.IIdentityRuntimeConfigClient
+	ec2Detector         ec2detector.Ec2Detector
 }

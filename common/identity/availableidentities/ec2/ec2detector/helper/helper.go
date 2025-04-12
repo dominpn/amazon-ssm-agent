@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
-	"github.com/aws/amazon-ssm-agent/agent/platform"
 )
 
 const (
@@ -29,17 +28,10 @@ const (
 	littleEndianEc2UuidRegex = "^[0-9a-f]{4}2[0-9a-f]ec(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"
 )
 
-var (
-	MatchUuid = func(log log.T, uuidParamKey string) bool {
-		uuid := strings.ToLower(GetSystemInfo(log, uuidParamKey))
-		isBigEndianEc2Uuid := regexp.MustCompile(bigEndianEc2UuidRegex).MatchString(uuid)
-		isLittleEndianEc2Uuid := regexp.MustCompile(littleEndianEc2UuidRegex).MatchString(uuid)
+var MatchUuid = func(log log.T, uuidInfo string) bool {
+	uuid := strings.ToLower(uuidInfo)
+	isBigEndianEc2Uuid := regexp.MustCompile(bigEndianEc2UuidRegex).MatchString(uuid)
+	isLittleEndianEc2Uuid := regexp.MustCompile(littleEndianEc2UuidRegex).MatchString(uuid)
 
-		return isBigEndianEc2Uuid || isLittleEndianEc2Uuid
-	}
-
-	GetSystemInfo = func(log log.T, paramKey string) string {
-		paramValue, _ := platform.GetSystemInfo(log, paramKey)
-		return paramValue
-	}
-)
+	return isBigEndianEc2Uuid || isLittleEndianEc2Uuid
+}

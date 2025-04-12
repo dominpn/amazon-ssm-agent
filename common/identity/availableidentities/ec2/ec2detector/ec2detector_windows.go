@@ -23,6 +23,6 @@ import (
 )
 
 func init() {
-	RegisterDetector(nitrodetector.New(platform.BiosSerialNumberParamKey, platform.BiosManufacturerParamKey))
-	RegisterDetector(xendetector.New(platform.BiosSerialNumberParamKey, platform.BiosVersionParamKey))
+	RegisterDetector(nitrodetector.New(platform.SmbiosUuidParamKey, platform.SmbiosVendorParamKey))
+	RegisterDetector(xendetector.New(platform.SmbiosUuidParamKey, platform.SmbiosVersionParamKey))
 }

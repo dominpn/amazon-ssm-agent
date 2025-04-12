@@ -27,8 +27,8 @@ import (
 
 func TestUuidMatcher(t *testing.T) {
 	logMock := logger.NewMockLog()
-	temp := GetSystemInfo
-	defer func() { GetSystemInfo = temp }()
+	temp := GetHostInfo
+	defer func() { GetHostInfo = temp }()
 	// big endian formats
 	testUpperLower(t, logMock, true, "EC2FFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")
 
@@ -60,16 +60,7 @@ func TestUuidMatcher(t *testing.T) {
 }
 
 func testUpperLower(t *testing.T, log log.T, expected bool, testCase string) {
-	setGetSystemInfoMock(testCase)
-	assert.Equal(t, expected, MatchUuid(log, ""))
-	setGetSystemInfoMock(strings.ToLower(testCase))
-	assert.Equal(t, expected, MatchUuid(log, ""))
-	setGetSystemInfoMock(strings.ToUpper(testCase))
-	assert.Equal(t, expected, MatchUuid(log, ""))
-}
-
-func setGetSystemInfoMock(returnValue string) {
-	GetSystemInfo = func(_ log.T, _ string) string {
-		return returnValue
-	}
+	assert.Equal(t, expected, MatchUuid(log, testCase))
+	assert.Equal(t, expected, MatchUuid(log, strings.ToLower(testCase)))
+	assert.Equal(t, expected, MatchUuid(log, strings.ToUpper(testCase)))
 }

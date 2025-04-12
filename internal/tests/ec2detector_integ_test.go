@@ -17,7 +17,6 @@ package tests
 import (
 	"testing"
 
-	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	logger "github.com/aws/amazon-ssm-agent/agent/log/ssmlog"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector"
@@ -40,8 +39,9 @@ func (suite *ec2DetectorTestSuite) TearDownSuite() {
 
 // TestIsEC2Instance verifies that the test is running on ec2 instance (assumes that tests are running on ec2)
 func (suite *ec2DetectorTestSuite) TestIsEC2Instance() {
-	detector := ec2detector.New(appconfig.SsmagentConfig{})
-	assert.True(suite.T(), detector.IsEC2Instance(suite.log), "Expected ec2detector to detect ec2 instance but failed to do so")
+	detector := ec2detector.New(suite.log)
+	ec2DetectorStatus, _ := detector.IsEC2Instance()
+	assert.True(suite.T(), ec2DetectorStatus, "Expected ec2detector to detect ec2 instance but failed to do so")
 	defer func() {
 		suite.log.Flush()
 	}()

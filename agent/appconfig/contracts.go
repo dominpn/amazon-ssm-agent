@@ -146,7 +146,6 @@ type CustomIdentity struct {
 
 // IdentityCfg stores identity consumption order and custom identities
 type IdentityCfg struct {
-	Ec2SystemInfoDetectionResponse string
-	ConsumptionOrder               []string
-	CustomIdentities               []*CustomIdentity
+	ConsumptionOrder []string
+	CustomIdentities []*CustomIdentity
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/managedInstances/registration"
 	"github.com/aws/amazon-ssm-agent/agent/ssm/authregister"
+	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/sharedprovider"
@@ -261,6 +262,7 @@ func NewEC2IdentityWithConfig(log log.T, imdsAwsConfig *aws.Config) *Identity {
 		Config:              &config,
 		shareLock:           &sync.RWMutex{},
 		runtimeConfigClient: runtimeconfig.NewIdentityRuntimeConfigClient(),
+		ec2Detector:         ec2detector.New(log),
 	}
 
 	// Ensure IMDS client is initialized before attempting to get instance info
