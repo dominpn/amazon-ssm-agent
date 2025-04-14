@@ -23,6 +23,9 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/mocks"
 	identitymocks "github.com/aws/amazon-ssm-agent/common/identity/mocks"
 
+	runtimeconfig "github.com/aws/amazon-ssm-agent/common/runtimeconfig"
+	runtimemocks "github.com/aws/amazon-ssm-agent/common/runtimeconfig/mocks"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -300,4 +303,134 @@ func TestIsDefaultIdentityConsumptionOrder(t *testing.T) {
 	testOrder = []string{"SomeIdentity", "AnotherIdentity"}
 	defaultOrder = []string{"SomeIdentity", "AnotherIdentity"}
 	assert.True(t, isDefaultIdentityConsumptionOrder(testOrder, defaultOrder))
+}
+
+func TestNewDefaultAgentIdentitySelector_BasicInstantiation(t *testing.T) {
+	// Create a mock logger
+	mockLog := logmocks.NewMockLog()
+
+	// Call the function to create a default agent identity selector
+	selector := NewDefaultAgentIdentitySelector(mockLog)
+
+	// Assert that the selector is not nil
+	assert.NotNil(t, selector)
+
+	// Type assert to ensure it's the correct type
+	defaultSelector, ok := selector.(*defaultAgentIdentitySelector)
+	assert.True(t, ok)
+	assert.Equal(t, mockLog, defaultSelector.log)
+}
+
+func TestInstanceIDRegionAgentIdentitySelector_BasicInstantiation(t *testing.T) {
+	// Create a mock logger
+	mockLog := logmocks.NewMockLog()
+
+	// Call the function to create a default agent identity selector
+	selector := NewInstanceIDRegionAgentIdentitySelector(mockLog, "i-1234567890", "us-west-2")
+
+	// Assert that the selector is not nil
+	assert.NotNil(t, selector)
+
+	// Type assert to ensure it's the correct type
+	defaultSelector, ok := selector.(*instanceIDRegionAgentIdentitySelector)
+	assert.True(t, ok)
+	assert.Equal(t, mockLog, defaultSelector.log)
+	assert.Equal(t, "i-1234567890", defaultSelector.instanceID)
+	assert.Equal(t, "us-west-2", defaultSelector.region)
+}
+
+func TestInstanceIDCongfigAgentIdentitySelector_BasicInstantiation(t *testing.T) {
+	// Create a mock logger
+	mockLog := logmocks.NewMockLog()
+	// Create a mock config client
+	runtimeconfigClient := runtimeconfig.NewIdentityRuntimeConfigClient()
+	config := runtimeconfig.IdentityRuntimeConfig{}
+
+	// Call the function to create a default agent identity selector
+	selector := NewRuntimeConfigIdentitySelector(mockLog)
+
+	// Assert that the selector is not nil
+	assert.NotNil(t, selector)
+
+	// Type assert to ensure it's the correct type
+	defaultSelector, ok := selector.(*runtimeConfigIdentitySelector)
+	assert.True(t, ok)
+	assert.Equal(t, mockLog, defaultSelector.log)
+	assert.Equal(t, runtimeconfigClient, defaultSelector.configClient)
+	assert.Equal(t, config, defaultSelector.config)
+	assert.False(t, defaultSelector.isConfigInitialized)
+}
+
+func TestRuntimeConfigIdentitySelector_ConfigInitializationFailure(t *testing.T) {
+
+	mockLog := logmocks.NewMockLog()
+	mockConfigClient := &runtimemocks.IIdentityRuntimeConfigClient{}
+
+	selector := &runtimeConfigIdentitySelector{
+		log:                 mockLog,
+		configClient:        mockConfigClient,
+		isConfigInitialized: false,
+	}
+
+	// Setup mock to return error during config retrieval
+	mockConfigClient.On("GetConfig").Return(runtimeconfig.IdentityRuntimeConfig{}, fmt.Errorf("config retrieval error"))
+
+	agentIdentity := &mocks.IEC2Identity{}
+
+	// Verify that nil is returned when config initialization fails
+	result := selector.SelectAgentIdentity([]identity.IAgentIdentityInner{agentIdentity}, "TestIdentity")
+
+	assert.Nil(t, result)
+}
+
+func TestRuntimeConfigIdentitySelector_IdentityTypeMismatch(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockConfigClient := &runtimemocks.IIdentityRuntimeConfigClient{}
+
+	selector := &runtimeConfigIdentitySelector{
+		log:                 mockLog,
+		configClient:        mockConfigClient,
+		isConfigInitialized: false,
+		config: runtimeconfig.IdentityRuntimeConfig{
+			IdentityType: "EC2",
+		},
+	}
+
+	// Setup mock to return config
+	mockConfigClient.On("GetConfig").Return(selector.config, nil)
+
+	agentIdentity := &mocks.IEC2Identity{}
+
+	// Verify that nil is returned when identity type does not match
+	result := selector.SelectAgentIdentity([]identity.IAgentIdentityInner{agentIdentity}, "ECS")
+
+	assert.Nil(t, result)
+}
+
+func TestRuntimeConfigIdentitySelector_InstanceIDMismatch(t *testing.T) {
+	// Test scenario: Instance ID does not match runtime config
+	mockLog := logmocks.NewMockLog()
+	mockConfigClient := &runtimemocks.IIdentityRuntimeConfigClient{}
+
+	selector := &runtimeConfigIdentitySelector{
+		log:                 mockLog,
+		configClient:        mockConfigClient,
+		isConfigInitialized: false,
+		config: runtimeconfig.IdentityRuntimeConfig{
+			IdentityType: "EC2",
+			InstanceId:   "expected-instance-id",
+		},
+	}
+
+	// Setup mock to return config
+	mockConfigClient.On("GetConfig").Return(selector.config, nil)
+
+	agentIdentity := &mocks.IEC2Identity{}
+	agentIdentity.On("InstanceID").Return("different-instance-id", nil)
+
+	// Verify that nil is returned when instance ID does not match
+	result := selector.SelectAgentIdentity([]identity.IAgentIdentityInner{agentIdentity}, "EC2")
+
+	assert.Nil(t, result)
+	agentIdentity.AssertCalled(t, "InstanceID")
 }

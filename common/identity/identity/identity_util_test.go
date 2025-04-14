@@ -16,11 +16,12 @@ package identity
 import (
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
+	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/customidentity"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/onprem"
-
-	"github.com/aws/amazon-ssm-agent/agent/appconfig"
+	identityMocks "github.com/aws/amazon-ssm-agent/common/identity/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -69,4 +70,119 @@ func TestGetCredentialsRefresherIdentity(t *testing.T) {
 	cacher.client = onprem.NewOnPremIdentity(log.NewMockLog(), &appconfig.SsmagentConfig{})
 	_, isCredsRefresher = GetRemoteProvider(cacher)
 	assert.True(t, isCredsRefresher)
+}
+
+func TestGetMetadataIdentity_SuccessfulRetrieval(t *testing.T) {
+	// Create a mock metadata identity
+
+	type mockIdentity struct {
+		identityMocks.IAgentIdentityInner
+		identityMocks.IMetadataIdentity
+	}
+	mockMetadataIdentity := &mockIdentity{}
+
+	// Test successful retrieval of metadata identity
+	result, ok := GetMetadataIdentity(mockMetadataIdentity)
+
+	assert.True(t, ok, "Expected metadata identity to be successfully retrieved")
+	assert.NotNil(t, result, "Retrieved metadata identity should not be nil")
+}
+
+func TestGetMetadataIdentity_NilInput(t *testing.T) {
+	// Test with nil input
+	result, ok := GetMetadataIdentity(nil)
+
+	assert.False(t, ok, "Expected metadata identity retrieval to fail with nil input")
+	assert.Nil(t, result, "Retrieved metadata identity should be nil")
+}
+
+func TestGetRemoteProviderNilIdentity(t *testing.T) {
+	provider, ok := GetRemoteProvider(nil)
+	assert.Nil(t, provider)
+	assert.False(t, ok)
+}
+
+func TestNewCustomIdentity_MultipleValidIdentities(t *testing.T) {
+	// Test creating multiple valid custom identities
+	logger := log.NewMockLog()
+	config := &appconfig.SsmagentConfig{
+		Identity: appconfig.IdentityCfg{
+			CustomIdentities: []*appconfig.CustomIdentity{
+				{
+					InstanceID: "instance1",
+					Region:     "us-east-1",
+				},
+				{
+					InstanceID: "instance2",
+					Region:     "us-west-2",
+				},
+			},
+		},
+	}
+
+	// Call the function
+	identities := newCustomIdentity(logger, config)
+
+	// Verify expectations
+	assert.Len(t, identities, 2, "Should create two custom identities")
+
+	// Verify individual identity details
+	for _, identity := range identities {
+		customIdentity, ok := identity.(*customidentity.Identity)
+		assert.True(t, ok, "Should be a custom identity")
+		assert.NotEmpty(t, customIdentity.CustomIdentity.InstanceID)
+		assert.NotEmpty(t, customIdentity.CustomIdentity.Region)
+	}
+}
+
+func TestNewCustomIdentity_EmptyRegion(t *testing.T) {
+	// Test creating multiple valid custom identities
+	logger := log.NewMockLog()
+	config := &appconfig.SsmagentConfig{
+		Identity: appconfig.IdentityCfg{
+			CustomIdentities: []*appconfig.CustomIdentity{
+				{
+					InstanceID: "instance1",
+					Region:     "",
+				},
+			},
+		},
+	}
+
+	// Call the function
+	logger.On("Warnf",
+		"The Region provided as part of CustomIdentity cannot be empty. Skipping custom identity #%d",
+		0).Once()
+
+	// Call the function
+	identities := newCustomIdentity(logger, config)
+
+	// Verify expectations
+	assert.Len(t, identities, 0)
+}
+
+func TestNewCustomIdentity_EmptyInstance(t *testing.T) {
+	// Test creating multiple valid custom identities
+	logger := log.NewMockLog()
+	config := &appconfig.SsmagentConfig{
+		Identity: appconfig.IdentityCfg{
+			CustomIdentities: []*appconfig.CustomIdentity{
+				{
+					InstanceID: "",
+					Region:     "us-west-2",
+				},
+			},
+		},
+	}
+
+	// Call the function
+	logger.On("Warnf",
+		"The InstanceID provided as part of CustomIdentity cannot be empty. Skipping custom identity #%d",
+		0).Once()
+
+	// Call the function
+	identities := newCustomIdentity(logger, config)
+
+	// Verify expectations
+	assert.Len(t, identities, 0)
 }
