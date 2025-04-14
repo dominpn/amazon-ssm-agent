@@ -53,7 +53,7 @@ type FormatFilter interface {
 // WithContext creates a wrapper logger with context
 func (w *Wrapper) WithContext(context ...string) (contextLogger log.T) {
 	formatFilter := &ContextFormatFilter{Context: context}
-	contextLogger = &Wrapper{Format: formatFilter, M: w.M, Delegate: w.Delegate, EventLogger: w.EventLogger}
+	contextLogger = &Wrapper{TelemetryLogger: w.TelemetryLogger, Format: formatFilter, M: w.M, Delegate: w.Delegate, EventLogger: w.EventLogger}
 	return contextLogger
 }
 

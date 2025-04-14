@@ -95,6 +95,25 @@ func getLevelStr(t *testing.T, level LogLevel) string {
 	return levelStr
 }
 
+// TestWithContextRetainsTelemetryNamespace ensures that telemetry namespace is retained after WithContext creates a new logger
+func TestWithContextRetainsTelemetryNamespace(t *testing.T) {
+	var out bytes.Buffer
+	seelogger, err := seelog.LoggerFromWriterWithMinLevelAndFormat(&out, seelog.TraceLvl, "[%Level] %Msg%n")
+	assert.Nil(t, err)
+
+	loggerInstance := &DelegateLogger{}
+	loggerInstance.BaseLoggerInstance = seelogger
+
+	logger := &Wrapper{M: PkgMutex, Delegate: loggerInstance}
+	assert.Nil(t, logger.TelemetryLogger)
+	logger = logger.WithTelemetryNamespace("testNamespace").(*Wrapper)
+	assert.NotNil(t, logger.TelemetryLogger)
+	before := logger.TelemetryLogger
+
+	logger = logger.WithContext("<some context>").(*Wrapper)
+	assert.Equal(t, before, logger.TelemetryLogger)
+}
+
 // TestLoggerWithoutTelemetry tests that there are no failures when telemetry namespace is not set
 func TestLoggerWithoutTelemetry(t *testing.T) {
 	var out bytes.Buffer
