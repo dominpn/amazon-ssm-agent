@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"runtime/debug"
 	"slices"
 	"sync"
@@ -69,30 +70,40 @@ type collectorT struct {
 	logCollector    LogCollector
 
 	// exporterMtx locks the exporters list below
-	exporterMtx        *sync.RWMutex
-	exporters          []exporter.Exporter
-	exportSchedulerJob *scheduler.Job
+	exporterMtx *sync.RWMutex
+	exporters   []exporter.Exporter
+
+	//exportSchedulerJobMtx locks exportSchedulerJob
+	exportSchedulerJobMtx *sync.RWMutex
+	exportSchedulerJob    *scheduler.Job
+
+	exportSchedulerChannel       chan bool
+	exportSchedulerInitialJitter time.Duration
 }
 
 func NewCollector(context context.T, aggregationPeriod, exportPeriod time.Duration) (Collector, error) {
 	logCollector := rollingLog.NewRollingLogCollector(context, "logs")
-
 	metricCollector, err := hybrid.NewHybridMetricCollector(context, "metrics", int(aggregationPeriod.Seconds()))
 
 	if err != nil {
 		return nil, err
 	}
 
-	c := &collectorT{
-		context:           context,
-		aggregationPeriod: aggregationPeriod,
-		metricCollector:   metricCollector,
-		logCollector:      logCollector,
-		collectorMtx:      &sync.Mutex{},
-		exporterMtx:       &sync.RWMutex{},
-	}
-
 	exportPeriodSeconds := int(exportPeriod.Seconds())
+	// #nosec G404
+	jitter := time.Duration(rand.IntN(exportPeriodSeconds)) * time.Second
+
+	c := &collectorT{
+		context:                      context,
+		aggregationPeriod:            aggregationPeriod,
+		metricCollector:              metricCollector,
+		logCollector:                 logCollector,
+		collectorMtx:                 &sync.Mutex{},
+		exporterMtx:                  &sync.RWMutex{},
+		exportSchedulerJobMtx:        &sync.RWMutex{},
+		exportSchedulerChannel:       make(chan bool),
+		exportSchedulerInitialJitter: jitter,
+	}
 
 	if exportPeriodSeconds <= 0 {
 		return nil, fmt.Errorf("export period is too small")
@@ -100,21 +111,42 @@ func NewCollector(context context.T, aggregationPeriod, exportPeriod time.Durati
 
 	log := context.Log()
 
-	if c.exportSchedulerJob, err = scheduler.Every(exportPeriodSeconds).NotImmediately().Seconds().Run(func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Errorf("Telemetry export panic: %v", r)
-				log.Errorf("Stacktrace:\n%s", debug.Stack())
+	go func() {
+		//Adding random jitter sleep before kicking off scheduler to "spread out" traffic uniformly
+		log.Debugf("Will start telemetry scheduler after %v seconds", c.exportSchedulerInitialJitter)
+
+		select {
+		case <-time.After(c.exportSchedulerInitialJitter):
+			// Select will block till message is ready on either of channels, so we basically sleep for jitter seconds
+		case _, ok := <-c.exportSchedulerChannel:
+			if !ok {
+				// Channel has been closed, indicating graceful termination of goroutine required
+				log.Infof("Shutdown requested for exporter goroutine")
+				return
+			}
+		}
+
+		func() {
+			c.exportSchedulerJobMtx.Lock()
+			defer c.exportSchedulerJobMtx.Unlock()
+
+			if c.exportSchedulerJob, err = scheduler.Every(exportPeriodSeconds).NotImmediately().Seconds().Run(func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Errorf("Telemetry export panic: %v", r)
+						log.Errorf("Stacktrace:\n%s", debug.Stack())
+					}
+				}()
+
+				exportErr := c.export()
+				if exportErr != nil {
+					log.Warnf("Error when exporting telemetry: %v", err)
+				}
+			}); err != nil {
+				log.Errorf("unable to schedule telemetry exporter process: %v", err)
 			}
 		}()
-
-		exportErr := c.export()
-		if exportErr != nil {
-			log.Warnf("Error when exporting telemetry: %v", err)
-		}
-	}); err != nil {
-		return nil, fmt.Errorf("unable to schedule telemetry exporter process: %v", err)
-	}
+	}()
 
 	return c, nil
 }
@@ -255,7 +287,18 @@ func (c *collectorT) Close() error {
 	c.collectorMtx.Lock()
 	defer c.collectorMtx.Unlock()
 
-	c.exportSchedulerJob.Quit <- true
+	func() {
+		c.exportSchedulerJobMtx.Lock()
+		defer c.exportSchedulerJobMtx.Unlock()
+
+		if c.exportSchedulerJob != nil {
+			c.exportSchedulerJob.Quit <- true
+		}
+	}()
+
+	if c.exportSchedulerChannel != nil {
+		close(c.exportSchedulerChannel)
+	}
 
 	errs := make([]error, 0, 2)
 	errs = append(errs, c.metricCollector.Close(), c.logCollector.Close())

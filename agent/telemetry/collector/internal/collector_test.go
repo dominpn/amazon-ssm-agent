@@ -53,7 +53,9 @@ func (suite *collectorTestSuite) TestExportSchedule() {
 	collector := c.(*collectorT)
 	collector.metricCollector = metricCollectorMock
 	collector.logCollector = logCollectorMock
-
+	const exportSchedulerInitialJitterInSeconds = 5
+	collector.exportSchedulerInitialJitter = time.Duration(exportSchedulerInitialJitterInSeconds) * time.Second
+	waitTime := time.Duration(2*exportSchedulerInitialJitterInSeconds) * time.Second
 	exporterMock := exporterMocks.NewExporterMock()
 
 	collector.AddExporter(exporterMock)
@@ -151,6 +153,8 @@ func (suite *collectorTestSuite) TestExportSchedule() {
 
 	exporterMock.On("Export", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
+	// Sleep till exportSchedulerJob becomes available
+	time.Sleep(waitTime)
 	// skip the scheduler wait
 	collector.exportSchedulerJob.SkipWait <- true
 
