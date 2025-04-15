@@ -58,3 +58,7 @@ func (m *Mock) ToPluginOutput() iohandler.IOHandler {
 	args := m.Called()
 	return args.Get(0).(iohandler.IOHandler)
 }
+
+func (m *Mock) PrependTraces(traces []*trace.Trace) {
+	m.Called(traces)
+}
