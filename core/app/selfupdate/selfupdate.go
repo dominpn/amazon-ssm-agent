@@ -163,12 +163,12 @@ func (u *SelfUpdate) updateFromS3WithDelay() {
 	log := u.context.Log()
 	updateDelayFactorInt, err := strconv.Atoi(updateDelayFactor)
 	if err != nil {
-		log.Errorf("updateDelayFactor has non-digits: %v", updateDelayFactor)
+		log.Errorf("updateDelayFactor has non-digits: %d", updateDelayFactor)
 		return
 	}
 	updateDelayBaseInt, err := strconv.Atoi(updateDelayBase)
 	if err != nil {
-		log.Errorf("updateDelayBase has non-digits: %v", updateDelayBase)
+		log.Errorf("updateDelayBase has non-digits: %d", updateDelayBase)
 		return
 	}
 	nextTrigger := time.Duration(rand.Intn(updateDelayFactorInt)+updateDelayBaseInt) * time.Second
