@@ -58,3 +58,42 @@ func (suite *ArtifactTestSuite) TestSha256HashValue() {
 func TestSelfUpdateTestSuite(t *testing.T) {
 	suite.Run(t, new(ArtifactTestSuite))
 }
+
+func (suite *ArtifactTestSuite) TestVerifyHash_Fail() {
+	downloadInput := &DownloadInput{
+		SourceURL:            "mockedSourceUrl",
+		DestinationDirectory: "mockedDestinationUrl",
+		SourceChecksums:      map[string]string{},
+	}
+	downloadOutput := &DownloadOutput{
+		LocalFilePath: "mockedFilePath",
+		IsUpdated:     false,
+		IsHashMatched: false,
+	}
+	hashMatched, err := suite.artifact.VerifyHash(*downloadInput, *downloadOutput)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), hashMatched, true)
+
+	downloadInput.SourceChecksums = map[string]string{"checkSumKey": ""}
+	hashMatched, err = suite.artifact.VerifyHash(*downloadInput, *downloadOutput)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), hashMatched, true)
+
+	downloadInput.SourceChecksums = map[string]string{"checkSumKey": "checkSumValue"}
+	hashMatched, err = suite.artifact.VerifyHash(*downloadInput, *downloadOutput)
+	assert.NotNil(suite.T(), err)
+	assert.Equal(suite.T(), hashMatched, false)
+	assert.EqualError(suite.T(), err, "no supported algorithm was provided for downloadinput {mockedSourceUrl mockedDestinationUrl map[checkSumKey:checkSumValue]}")
+
+	downloadInput.SourceChecksums = map[string]string{"sha256": "checkSumValue"}
+	hashMatched, err = suite.artifact.VerifyHash(*downloadInput, *downloadOutput)
+	assert.NotNil(suite.T(), err)
+	assert.Equal(suite.T(), hashMatched, false)
+	assert.EqualError(suite.T(), err, "failed to verify hash of downloadinput {mockedSourceUrl mockedDestinationUrl map[sha256:checkSumValue]}")
+
+	downloadInput.SourceChecksums = map[string]string{"md5": "checkSumValue"}
+	hashMatched, err = suite.artifact.VerifyHash(*downloadInput, *downloadOutput)
+	assert.NotNil(suite.T(), err)
+	assert.Equal(suite.T(), hashMatched, false)
+	assert.EqualError(suite.T(), err, "failed to verify hash of downloadinput {mockedSourceUrl mockedDestinationUrl map[md5:checkSumValue]}")
+}

@@ -28,7 +28,7 @@ const (
 func TestFetchClusterNameAndTaskIdSuccess(t *testing.T) {
 	metadataResponseOnce = func(client *http.Client, endpoint string, respType string) ([]byte, error) {
 		return []byte("{\"Cluster\": \"clusterName\"," +
-			"\"TaskARN\": \"arn:aws:ecs:us-east-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3\"}"), nil
+			"\"TaskARN\": \"arn:aws:ecs:us-east-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3\", \"AvailabilityZone\": \"mckedZone\"}"), nil
 	}
 	getMetadataEndpoint = func() (string, error) {
 		return fakeV3Endpoint, nil
@@ -72,7 +72,7 @@ func TestFetchContainerIdSuccess(t *testing.T) {
 func TestFetchRegionSuccess(t *testing.T) {
 	metadataResponseOnce = func(client *http.Client, endpoint string, respType string) ([]byte, error) {
 		return []byte("{\"Cluster\": \"clusterName\"," +
-			"\"TaskARN\": \"arn:aws:ecs:us-east-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3\"}"), nil
+			"\"TaskARN\": \"arn:aws:ecs:us-east-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3\", \"AvailabilityZone\": \"mckedZone\"}"), nil
 	}
 	getMetadataEndpoint = func() (string, error) {
 		return fakeV3Endpoint, nil
@@ -93,4 +93,10 @@ func TestMetadataResponseWithRetries(t *testing.T) {
 
 	assert.NotNil(t, err)
 	assert.Equal(t, 4, tmp)
+}
+
+func TestFetchAvailabilityZoneSuccess(t *testing.T) {
+	availabilityZone, err := fetchAvailabilityZone()
+	assert.Nil(t, err)
+	assert.Equal(t, "mckedZone", availabilityZone)
 }

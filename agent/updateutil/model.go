@@ -29,12 +29,15 @@ type UpdatePluginResult struct {
 	StartDateTime time.Time `json:"StartDateTime"`
 }
 
+var ioUtilRead = ioutil.ReadFile
+var ioUtilWrite = ioutil.WriteFile
+
 // LoadUpdatePluginResult loads UpdatePluginResult from local storage
 func LoadUpdatePluginResult(
 	log log.T, updateRoot string) (updateResult *UpdatePluginResult, err error) {
 
 	//Load specified file from file system
-	result, err := ioutil.ReadFile(UpdatePluginResultFilePath(updateRoot))
+	result, err := ioUtilRead(UpdatePluginResultFilePath(updateRoot))
 	if err != nil {
 		return
 	}
@@ -56,7 +59,7 @@ func (util *Utility) SaveUpdatePluginResult(
 		return err
 	}
 
-	err = ioutil.WriteFile(UpdatePluginResultFilePath(updateRoot), jsonData, appconfig.ReadWriteAccess)
+	err = ioUtilWrite(UpdatePluginResultFilePath(updateRoot), jsonData, appconfig.ReadWriteAccess)
 	if err != nil {
 		return err
 	}

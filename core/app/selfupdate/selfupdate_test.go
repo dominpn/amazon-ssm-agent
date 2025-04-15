@@ -16,8 +16,10 @@
 package selfupdate
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -87,10 +89,17 @@ func (suite *SelfUpdateTestSuite) TestLoadScheduleDaysWithinLimit() {
 
 func (suite *SelfUpdateTestSuite) TestGetPlatformNameFailed() {
 	platformNameGetter = func(log log.T) (name string, err error) {
+		return "foo", nil
+	}
+	platformName, err := suite.selfUpdater.getPlatformName(suite.logMock)
+	assert.NotNil(suite.T(), err)
+	assert.EqualError(suite.T(), err, "self update doesn't support this platform")
+	assert.Equal(suite.T(), "foo", platformName)
+	platformNameGetter = func(log log.T) (name string, err error) {
 		return "", fmt.Errorf("Failed to return platform name")
 	}
 
-	platformName, err := suite.selfUpdater.getPlatformName(suite.logMock)
+	platformName, err = suite.selfUpdater.getPlatformName(suite.logMock)
 	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), "", platformName)
 }
@@ -244,4 +253,68 @@ func (suite *SelfUpdateTestSuite) TestLockWithMultipleUpdates() {
 // Execute the test suite
 func TestSelfUpdateTestSuite(t *testing.T) {
 	suite.Run(t, new(SelfUpdateTestSuite))
+}
+
+func (suite *SelfUpdateTestSuite) TestUpadteFromS3Errors() {
+	var errMessage string = "mocked error"
+	workingDir, _ := os.Getwd()
+	lockfilePath := filepath.Join(workingDir, "lockDir")
+	lockFileName = filepath.Join(lockfilePath, "test.lock")
+	err := os.MkdirAll(lockfilePath, 0777)
+	defer func() {
+		os.RemoveAll(lockfilePath)
+	}()
+
+	identityMock := &identityMocks.IAgentIdentity{}
+	identityMock.On("Region").Return("us-west-2", errors.New(errMessage))
+	contextMock := &context.ICoreAgentContext{}
+	contextMock.On("Identity").Return(identityMock)
+	contextMock.On("Log").Return(suite.logMock)
+
+	mockSelfUpdateObj := SelfUpdate{context: contextMock}
+	err = mockSelfUpdateObj.updateFromS3()
+
+	identityMock.On("Region").Return("us-west-2", nil)
+	identityMock.On("InstanceID").Return(nil, errors.New(errMessage))
+	contextMock.On("Identity").Return(identityMock)
+	mockSelfUpdateObj = SelfUpdate{context: contextMock}
+
+	err = mockSelfUpdateObj.updateFromS3()
+	fmt.Println(err)
+}
+
+func (suite *SelfUpdateTestSuite) TestGenerateWarnEventCode() {
+	var errCode string = "500"
+	assert.Equal(suite.T(), suite.selfUpdater.generateWarnEventCode(errCode), "UpdateSucceeded_SelfUpdate_"+errCode)
+}
+
+func fakeExecCommandWithError(command string, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestExecCommandHelperProcess", "-test.error", "--", command}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	return cmd
+}
+
+func (suite *SelfUpdateTestSuite) TestIsAgentInstalledUsingSnapError() {
+	execCommand = fakeExecCommandWithError
+	isAgentInstalled, err := suite.selfUpdater.isAgentInstalledUsingSnap(suite.logMock)
+	assert.NotNil(suite.T(), err)
+	assert.EqualError(suite.T(), err, "exit status 2")
+	assert.Equal(suite.T(), false, isAgentInstalled)
+}
+
+func fakeExecCommand(command string, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestExecCommandHelperProcess", "--", command}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	return cmd
+}
+
+func (suite *SelfUpdateTestSuite) TestIsAgentInstalledUsingSnap() {
+	execCommand = fakeExecCommand
+	isAgentInstalled, err := suite.selfUpdater.isAgentInstalledUsingSnap(suite.logMock)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), true, isAgentInstalled)
 }

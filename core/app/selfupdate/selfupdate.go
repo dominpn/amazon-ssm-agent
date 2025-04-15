@@ -483,7 +483,7 @@ func (u *SelfUpdate) getPlatformName(log log.T) (platformName string, err error)
 }
 
 func (u *SelfUpdate) isAgentInstalledUsingSnap(log log.T) (result bool, err error) {
-	if _, commandErr := exec.Command("snap", "services", "amazon-ssm-agent").Output(); commandErr != nil {
+	if _, commandErr := execCommand("snap", "services", "amazon-ssm-agent").Output(); commandErr != nil {
 		log.Debugf("Error checking 'snap services amazon-ssm-agent' - %v", commandErr)
 		return false, commandErr
 	}

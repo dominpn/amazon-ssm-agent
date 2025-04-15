@@ -215,3 +215,9 @@ func TestIsPlatformUsingSystemDWithPossiblyUsingSystemD(t *testing.T) {
 		assert.Equal(t, result, test.result)
 	}
 }
+
+func TestNew(t *testing.T) {
+	mockCtx := context.NewMockDefault()
+	_, err := New(mockCtx)
+	assert.NotNil(t, err)
+}
