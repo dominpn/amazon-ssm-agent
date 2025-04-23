@@ -27,3 +27,7 @@ func (p *Processor) IsAllowed() bool {
 func (p *Processor) ExecuteTasks() error {
 	return nil
 }
+
+func (p *Processor) EmitSerialPortMessage(msg string) {
+	return
+}

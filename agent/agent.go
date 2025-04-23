@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -74,13 +75,13 @@ func start(log log.T, shouldCheckHibernation bool) (ssmAgent agent.ISSMAgent, er
 
 	context := context.Default(log, config, agentIdentity, "[ssm-agent-worker]")
 
-	//Reset password for default RunAs user if already exists
+	// Reset password for default RunAs user if already exists
 	sessionUtil := &utility.SessionUtil{}
 	if err := sessionUtil.ResetPasswordIfDefaultUserExists(context); err != nil {
 		log.Warnf("Reset password failed, %v", err)
 	}
 
-	//Initializing the health module to send empty health pings to the service.
+	// Initializing the health module to send empty health pings to the service.
 	healthModule := health.NewHealthCheck(context, ssm.NewService(context))
 	hibernateState := hibernation.NewHibernateMode(healthModule, context)
 	messageBusClient = messagebus.NewMessageBus(context)
@@ -109,7 +110,8 @@ func start(log log.T, shouldCheckHibernation bool) (ssmAgent agent.ISSMAgent, er
 	// Health check would include creating a health module and sending empty health pings to the service.
 	// If response is positive, start the agent, else retry and eventually back off (hibernate/passive mode).
 	if status, hibernationErr := healthModule.GetAgentState(); shouldCheckHibernation && status == health.Passive {
-		//Starting hibernate mode
+		// Starting hibernate mode
+		go process.EmitSerialPortMessage(fmt.Sprintf("SSM Agent entering hibernation due to error: <error>%v</error>", hibernationErr.Error()))
 		context.Log().Info("Entering SSM Agent hibernate - ", hibernationErr)
 		go func() {
 			defer func() {

@@ -1,0 +1,47 @@
+// Copyright 2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"). You may not
+// use this file except in compliance with the License. A copy of the
+// License is located at
+//
+// http://aws.amazon.com/apache2.0/
+//
+// or in the "license" file accompanying this file. This file is distributed
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+// either express or implied. See the License for the specific language governing
+// permissions and limitations under the License.
+//
+//go:build linux || windows
+// +build linux windows
+
+// Package serialport implements serial port capabilities
+package serialport
+
+import (
+	"time"
+
+	"github.com/aws/amazon-ssm-agent/agent/log"
+)
+
+// attempt to initialize and open the serial port.
+// since only three minute is allowed to write logs to console during boot,
+// it attempts to open serial port for approximately three minutes.
+func NewSerialPortWithRetry(log log.T) (sp *SerialPort, err error) {
+	retryCount := 0
+	for retryCount < serialPortRetryMaxCount {
+		sp = NewSerialPort(log)
+		if err = sp.OpenPort(); err != nil {
+			log.Errorf("%v. Retrying in %v seconds...", err.Error(), serialPortRetryWaitTime)
+			time.Sleep(serialPortRetryWaitTime * time.Second)
+			retryCount++
+		} else {
+			break
+		}
+
+		// if the retry count hits the maximum count, log the error and return.
+		if retryCount == serialPortRetryMaxCount {
+			return nil, err
+		}
+	}
+	return sp, nil
+}

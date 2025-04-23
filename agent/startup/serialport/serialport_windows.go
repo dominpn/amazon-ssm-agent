@@ -31,7 +31,14 @@ import (
 )
 
 const (
-	kernel32 = "kernel32.dll"
+	kernel32       = "kernel32.dll"
+	defaultComPort = "\\\\.\\COM1"
+
+	// Retry max count for opening serial port
+	serialPortRetryMaxCount = 2
+
+	// Wait time before retrying to open serial port
+	serialPortRetryWaitTime = 1
 )
 
 type SerialPort struct {
@@ -44,7 +51,7 @@ type SerialPort struct {
 }
 
 // NewSerialPort creates a serial port object with predefined parameters.
-func NewSerialPort(log log.T, port string) (sp *SerialPort) {
+func NewSerialPort(log log.T) (sp *SerialPort) {
 	var dcb model.Dcb
 	dcb.DCBlength = uint32(unsafe.Sizeof(dcb))
 	dcb.BaudRate = uint32(115200)
@@ -60,7 +67,7 @@ func NewSerialPort(log log.T, port string) (sp *SerialPort) {
 		dcb:        dcb,
 		handle:     0,
 		fileHandle: nil,
-		port:       port,
+		port:       defaultComPort,
 	}
 }
 
@@ -112,7 +119,6 @@ func (sp *SerialPort) ClosePort() {
 	if err := sp.fileHandle.Close(); err != nil {
 		sp.log.Errorf("Error occurred while closing serial port: %v", err.Error())
 	}
-	return
 }
 
 // WritePort writes messages to serial port, which is then picked up by ICD in EC2 droplet
@@ -124,6 +130,4 @@ func (sp *SerialPort) WritePort(message string) {
 	if err := syscall.WriteFile(sp.handle, []byte(formattedMessage), &done, nil); err != nil {
 		sp.log.Errorf("Error occurred while writing to serial port: %v", err.Error())
 	}
-
-	return
 }

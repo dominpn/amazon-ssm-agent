@@ -30,6 +30,12 @@ import (
 const (
 	comport   = "/dev/ttyS0"
 	comportPV = "/dev/hvc0"
+
+	// Retry max count for opening serial port
+	serialPortRetryMaxCount = 5
+
+	// Wait time before retrying to open serial port
+	serialPortRetryWaitTime = 2
 )
 
 type SerialPort struct {
@@ -48,7 +54,6 @@ func NewSerialPort(log log.T) (sp *SerialPort) {
 // OpenPort opens the serial port which MUST be done before WritePort is called.
 func (sp *SerialPort) openPort(name string) (err error) {
 	fileHandle, err := os.OpenFile(name, syscall.O_RDWR, 0)
-
 	if err != nil {
 		sp.log.Infof("Unable to open serial port %v: %v", name, err.Error())
 		return err
@@ -99,7 +104,6 @@ func (sp *SerialPort) ClosePort() {
 		sp.log.Error("Error occurred while closing serial port: Port must be opened")
 	}
 	sp.fileHandle.Close()
-	return
 }
 
 // WritePort writes messages to serial port, which is then picked up by ICD in EC2 droplet
@@ -110,6 +114,4 @@ func (sp *SerialPort) WritePort(message string) {
 	if _, err := sp.fileHandle.WriteString(formattedMessage); err != nil {
 		sp.log.Errorf("Error occurred while writing to serial port: %v", err.Error())
 	}
-
-	return
 }

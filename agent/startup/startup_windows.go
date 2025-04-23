@@ -25,7 +25,6 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -39,12 +38,6 @@ import (
 )
 
 const (
-	// Retry max count for opening serial port
-	serialPortRetryMaxCount = 2
-
-	// Wait time before retrying to open serial port
-	serialPortRetryWaitTime = 1
-
 	// OS installation options
 	fullServer = "Full"
 	nanoServer = "Nano"
@@ -106,8 +99,6 @@ const (
 		idProperty + "=1001; " + levelProperty + "=2 } " +
 		") | Sort-Object " + timeCreatedProperty + " -Descending"
 
-	defaultComPort = "\\\\.\\COM1"
-
 	// WMI filter to get all AWS driver entries shown in Device Manager
 	getAllPnpEntitiesWhereClause = "Where Service='xenvbd' Or Manufacturer Like 'Intel%' Or Manufacturer='Citrix Systems, Inc.' " +
 		"Or Manufacturer='Amazon Inc.' Or Manufacturer='Amazon Web Services, Inc.'"
@@ -160,9 +151,22 @@ func (p *Processor) IsAllowed() bool {
 	return true
 }
 
-func discoverPort(log log.T, windowsInfo model.WindowsInfo) (port string, err error) {
-	// TODO: Discover correct port to use.
-	return defaultComPort, nil
+// Emit Serial Port Message on Hibernation
+func (p *Processor) EmitSerialPortMessage(msg string) {
+	if !p.IsAllowed() {
+		return
+	}
+	log := p.context.Log()
+	sp, err := serialport.NewSerialPortWithRetry(log)
+	if err != nil {
+		log.Errorf("Error occurred while opening serial port: %v", err.Error())
+		return
+	}
+
+	defer func() {
+		sp.ClosePort()
+	}()
+	sp.WritePort(msg)
 }
 
 // ExecuteTasks opens serial port, write agent verion, AWS driver info and bugchecks in console log.
@@ -173,8 +177,6 @@ func (p *Processor) ExecuteTasks() (err error) {
 			p.context.Log().Errorf("Stacktrace:\n%s", debug.Stack())
 		}
 	}()
-	var sp *serialport.SerialPort
-
 	var driverInfo []model.DriverInfo
 	var bugChecks []string
 
@@ -184,40 +186,15 @@ func (p *Processor) ExecuteTasks() (err error) {
 
 	windowsInfo, windowsInfoError := getWindowsInfo(log)
 
-	port := defaultComPort
-	if windowsInfoError == nil {
-		if port, err = discoverPort(log, windowsInfo); err != nil || port == "" {
-			log.Infof("Could not discover port, %v. Setting to default port: %s", err, defaultComPort)
-			port = defaultComPort
-		}
-	}
-	log.Infof("Opening serial port: %s", port)
-
-	// attempt to initialize and open the serial port.
-	// since only three minute is allowed to write logs to console during boot,
-	// it attempts to open serial port for approximately three minutes.
-	retryCount := 0
-	for retryCount < serialPortRetryMaxCount {
-		sp = serialport.NewSerialPort(log, port)
-		if err = sp.OpenPort(); err != nil {
-			log.Errorf("%v. Retrying in %v seconds...", err.Error(), serialPortRetryWaitTime)
-			time.Sleep(serialPortRetryWaitTime * time.Second)
-			retryCount++
-		} else {
-			break
-		}
-
-		// if the retry count hits the maximum count, log the error and return.
-		if retryCount == serialPortRetryMaxCount {
-			err = errors.New("Timeout: Serial port is in use or not available")
-			log.Errorf("Error occurred while opening serial port: %v", err.Error())
-			return
-		}
+	sp, err := serialport.NewSerialPortWithRetry(log)
+	if err != nil {
+		log.Errorf("Error occurred while opening serial port: %v", err.Error())
+		return
 	}
 
 	// defer is set to close the serial port during unexpected.
 	defer func() {
-		//serial port MUST be closed.
+		// serial port MUST be closed.
 		sp.ClosePort()
 	}()
 
@@ -303,7 +280,6 @@ func getAWSPvPackageInfo(log log.T) (pvPackageInfo model.PvPackageInfo, err erro
 			return
 		}
 	} else if isNano {
-
 		// Create a new error to detect nano servers
 		err = errors.New("is a nano server")
 	}
@@ -313,7 +289,6 @@ func getAWSPvPackageInfo(log log.T) (pvPackageInfo model.PvPackageInfo, err erro
 
 // getAWSNitroEnclavesPackage queries AwsNitroEnclaves information from registry key.
 func getAWSNitroEnclavesPackageInfo(log log.T) (NitroEnclavesPackageInfo model.NitroEnclavesPackageInfo, err error) {
-
 	// this queries the registry for AWS Nitro Enclaves Package version
 	properties := []string{NitroEnclavesName, NitroEnclavesVersionProperty}
 	if err = runPowershell(&NitroEnclavesPackageInfo, getNitroEnclavesPackageVersionCmd, properties, false); err != nil {
