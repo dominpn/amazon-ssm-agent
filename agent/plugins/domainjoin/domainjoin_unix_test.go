@@ -53,7 +53,9 @@ const (
 	testDirectoryOU                = "OU=test,OU=corp,DC=test,DC=com"
 	testDirectoryOUWithSpace       = "OU=test with space,OU=corp,DC=test,DC=com"
 	testDirectoryOUWithSpaceQuoted = "\"OU=test with space,OU=corp,DC=test,DC=com\""
-	testKeepHostName               = true
+	testKeepHostNameBool           = true
+	testKeepHostNameString         = "true"
+	testNotKeepHostNameString      = "FALSE"
 	testSetHostName                = "my_hostname"
 	testSetHostNameNumAppendDigits = "5"
 )
@@ -124,7 +126,7 @@ func generateDomainJoinPluginInputOptionalParamSetHostNameWithAppendDigits(id st
 	}
 }
 
-func generateDomainJoinPluginInputOptionalParamKeepHostName(id string, name string, ou string, ipAddress []string, keepHostName bool) DomainJoinPluginInput {
+func generateDomainJoinPluginInputOptionalParamKeepHostName(id string, name string, ou string, ipAddress []string, keepHostName interface{}) DomainJoinPluginInput {
 	return DomainJoinPluginInput{
 		DirectoryId:    id,
 		DirectoryName:  name,
@@ -134,7 +136,7 @@ func generateDomainJoinPluginInputOptionalParamKeepHostName(id string, name stri
 	}
 }
 
-func generateDomainJoinPluginInputOptionalParamKeepHostNameNoIPs(id string, name string, ou string, keepHostName bool) DomainJoinPluginInput {
+func generateDomainJoinPluginInputOptionalParamKeepHostNameNoIPs(id string, name string, ou string, keepHostName string) DomainJoinPluginInput {
 	return DomainJoinPluginInput{
 		DirectoryId:   id,
 		DirectoryName: name,
@@ -359,7 +361,7 @@ func TestMakeArgumentsAndCommandParts(t *testing.T) {
 	expectedCommandLine = ""
 	assert.Equal(t, expectedCommandLine, commandLine)
 
-	domainJoinInput = generateDomainJoinPluginInputOptionalParamKeepHostName(testDirectoryId, testDirectoryName, "", []string{"172.31.4.141", "172.31.21.240"}, testKeepHostName)
+	domainJoinInput = generateDomainJoinPluginInputOptionalParamKeepHostName(testDirectoryId, testDirectoryName, "", []string{"172.31.4.141", "172.31.21.240"}, testKeepHostNameBool)
 	commandLine, _ = makeArguments(context, "./aws_domainjoin.sh", domainJoinInput)
 	expectedCommandLine = "./aws_domainjoin.sh --directory-id d-0123456789 --directory-name corp.test.com --instance-region us-east-1 --keep-hostname   --dns-addresses 172.31.4.141,172.31.21.240"
 	assert.Equal(t, expectedCommandLine, commandLine)
@@ -373,12 +375,30 @@ func TestMakeArgumentsAndCommandParts(t *testing.T) {
 		"--instance-region",
 		"us-east-1",
 		"--keep-hostname",
-		"my_hostname",
 		"--dns-addresses",
 		"172.31.4.141,172.31.21.240",
 	}
+	assert.Equal(t, expectedCommandParts, commandParts)
 
-	domainJoinInput = generateDomainJoinPluginInputOptionalParamKeepHostNameNoIPs(testDirectoryId, testDirectoryName, "", testKeepHostName)
+	domainJoinInput = generateDomainJoinPluginInputOptionalParamKeepHostName(testDirectoryId, testDirectoryName, "", []string{"172.31.4.141", "172.31.21.240"}, testNotKeepHostNameString)
+	commandLine, _ = makeArguments(context, "./aws_domainjoin.sh", domainJoinInput)
+	expectedCommandLine = "./aws_domainjoin.sh --directory-id d-0123456789 --directory-name corp.test.com --instance-region us-east-1 --dns-addresses 172.31.4.141,172.31.21.240"
+	assert.Equal(t, expectedCommandLine, commandLine)
+	commandParts, _ = makeCommandParts(commandLine)
+	expectedCommandParts = []string{
+		"./aws_domainjoin.sh",
+		"--directory-id",
+		"d-0123456789",
+		"--directory-name",
+		"corp.test.com",
+		"--instance-region",
+		"us-east-1",
+		"--dns-addresses",
+		"172.31.4.141,172.31.21.240",
+	}
+	assert.Equal(t, expectedCommandParts, commandParts)
+
+	domainJoinInput = generateDomainJoinPluginInputOptionalParamKeepHostNameNoIPs(testDirectoryId, testDirectoryName, "", testKeepHostNameString)
 	commandLine, _ = makeArguments(context, "./aws_domainjoin.sh", domainJoinInput)
 	expectedCommandLine = "./aws_domainjoin.sh --directory-id d-0123456789 --directory-name corp.test.com --instance-region us-east-1 --keep-hostname  "
 	assert.Equal(t, expectedCommandLine, commandLine)
