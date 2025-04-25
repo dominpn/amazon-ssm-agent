@@ -117,14 +117,8 @@ func (i *Identity) Credentials() *credentials.Credentials {
 
 // IsIdentityEnvironment returns if instance is a ec2 instance
 func (i *Identity) IsIdentityEnvironment() bool {
-	if ec2DetectorStatus, ec2DetectorTested := i.ec2Detector.IsEC2Instance(); ec2DetectorTested {
-		i.Log.Debugf("EC2Detector detected the EC2 status as: %v", ec2DetectorStatus)
-		return ec2DetectorStatus
-	} else {
-		i.Log.Warnf("EC2Detector couldn't determine the EC2 status, using IMDS as a fallback")
-		_, err := i.InstanceID()
-		return err == nil
-	}
+	_, err := i.InstanceID()
+	return err == nil
 }
 
 // IdentityType returns the identity type of the ec2 instance
