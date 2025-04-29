@@ -1,5 +1,13 @@
 Latest
 ===============
+- Improve unit tests
+- Agent hibernation reason is logged to EC2 system logs
+- Add metrics for the EC2Detector and IMDS EC2 status findings
+- Change Linux DomainJoin plugin parameter KeepHostName to accept both boolean and string
+- Upgrade GoLang to version 1.23.8
+
+3.3.2299.0
+===============
 - Allow custom hibernation max interval configuration
 - Refactor hibernation to fix ping leak and correct interval behavior
 - Remove dependency on s3:GetObject for aws:configurePackage plugin
