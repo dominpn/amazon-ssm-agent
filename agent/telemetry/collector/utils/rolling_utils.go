@@ -48,7 +48,7 @@ func GetLoggerConfig(defaultLogDir, logFile string, maxRolls int, maxFileSize in
 // their full file paths in descending order. This makes sure that the first file has the latest logs
 // and so on.
 func getReverseSortedLogFiles(dirPath, expectedPrefix, expectedRollDelimiter string) ([]string, error) {
-	files, err := listFiles(dirPath, nil)
+	files, err := ListFiles(dirPath, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -137,11 +137,11 @@ func getSubdirNames(dirPath string) ([]string, error) {
 	return subDirs, nil
 }
 
-// listFiles return full paths of the files located in the directory.
-func listFiles(dirPath string, filterFun func(filePath string) bool) ([]string, error) {
+// ListFiles return full paths of the files located in the directory.
+func ListFiles(dirPath string, filterFun func(filePath string) bool) ([]string, error) {
 	dfi, err := os.Open(dirPath)
 	if err != nil {
-		return nil, fmt.Errorf("cannot open directory %s", dirPath)
+		return nil, err
 	}
 	defer dfi.Close()
 
