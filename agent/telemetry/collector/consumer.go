@@ -28,7 +28,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/advisorylock"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/utils"
-	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/emitter"
 
 	"github.com/carlescere/scheduler"
@@ -37,7 +36,7 @@ import (
 type namespaceMessage struct {
 	// The namespace of the telemetry message
 	namespace string
-	message   telemetry.Message
+	message   emitter.Message
 }
 
 // consumer polls on the telemetry pre-ingestion directory
@@ -97,6 +96,9 @@ func (c *consumer) stop() {
 		if c.consumerJob != nil {
 			c.consumerJob.Quit <- true
 		}
+		if c.onMessageChan != nil {
+			close(c.onMessageChan)
+		}
 	})
 }
 
@@ -155,7 +157,7 @@ func (c *consumer) processNamespaceFile(namespaceFile string) (err error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		var m telemetry.Message
+		var m emitter.Message
 		marshalErr := json.Unmarshal([]byte(line), &m)
 		if marshalErr != nil {
 			c.log.Warnf("Could not unmarshal telemetry message: %v", marshalErr)

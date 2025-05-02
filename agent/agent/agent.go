@@ -109,7 +109,10 @@ func (agent *SSMAgent) Stop() {
 	telemetry.Shutdown()
 
 	// stop all telemetry collection
-	telemetryCollector.Shutdown()
+	err := telemetryCollector.StopCollection(log)
+	if err != nil {
+		log.Warnf("Failed to stop telemetry collection : %v", err)
+	}
 
 	log.Info("Bye.")
 	log.Flush()

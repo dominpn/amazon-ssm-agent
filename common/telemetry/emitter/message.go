@@ -11,7 +11,7 @@
 // either express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package telemetry
+package emitter
 
 type MessageType string
 
@@ -22,7 +22,6 @@ const (
 
 // Message that is sent over IPC to the agent worker
 type Message struct {
-	Namespace string      `json:"Namespace"`
-	Type      MessageType `json:"Type"` // either METRIC or LOG
-	Payload   string      `json:"Payload"`
+	Type    MessageType `json:"Type"` // either METRIC or LOG
+	Payload string      `json:"Payload"`
 }

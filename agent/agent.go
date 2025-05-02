@@ -152,23 +152,10 @@ func initializeTelemetry(log log.T, agentIdentity agentIdentity.IAgentIdentity, 
 	if err != nil {
 		log.Warnf("Telemetry failed to initialize with error %v", err)
 	}
-	// initialize telemetry collector
-	err = collector.Initialize(context)
+	// start telemetry collector
+	err = collector.StartCollection(context)
 	if err != nil {
-		log.Warnf("Telemetry collector initialize failed with error %v", err)
-	} else {
-		// listen on telemetry from the core agent
-		coreAgentTelemetryContext := telemetryContext.NewTelemetryContext(telemetry.CoreAgentChannelName, log, context.Identity())
-		err = collector.StartCollection(coreAgentTelemetryContext)
-		if err != nil {
-			log.Warnf("Failed to start listening for telemetry from the core agent with error %v", err)
-		}
-
-		// listen on telemetry from self
-		err = collector.StartCollection(telemetryCtx)
-		if err != nil {
-			log.Warnf("Failed to start listening for telemetry from the agent worker with error %v", err)
-		}
+		log.Warnf("Failed to start telemetry collection with error %v", err)
 	}
 }
 

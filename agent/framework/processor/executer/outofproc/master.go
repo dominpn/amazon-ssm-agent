@@ -15,12 +15,9 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	logpkg "github.com/aws/amazon-ssm-agent/agent/log/logger"
 	"github.com/aws/amazon-ssm-agent/agent/task"
-	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
 
 	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
 	"github.com/aws/amazon-ssm-agent/common/identity"
-	telemetryConfig "github.com/aws/amazon-ssm-agent/common/telemetry/config"
-	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
 
 	"github.com/aws/amazon-ssm-agent/core/executor"
 )
@@ -94,16 +91,6 @@ func (e *OutOfProcExecuter) Run(
 	e.ctx = e.ctx.With("[" + documentID + "]")
 	log := e.ctx.Log()
 
-	// listen on telemetry from the worker
-	// start the collection before starting the worker to avoid any race conditions in channel creation
-	telemetryCtx := telemetryContext.NewTelemetryContext(documentID, log, e.ctx.Identity())
-	if telemetryConfig.IsTelemetryEnabled(e.ctx.Log(), e.ctx.Identity(), e.ctx.AppConfig()) {
-		telemetryErr := collector.StartCollection(telemetryCtx)
-		if telemetryErr != nil {
-			log.Warnf("failed to start listening for telemetry from the worker for documentID %v with error %v", documentID, telemetryErr)
-		}
-	}
-
 	//stopTimer signals messaging routine to stop, it's buffered because it needs to exit if messaging is already stopped and not receiving anymore
 	stopTimer := make(chan bool, 1)
 	//start prepare messaging
@@ -115,8 +102,6 @@ func (e *OutOfProcExecuter) Run(
 	if err != nil {
 		log.Errorf("failed to prepare outofproc executer, falling back to InProc Executer")
 		log.WriteEvent(logpkg.AgentTelemetryMessage, "", logpkg.AmazonAgentInProcExecuterStartEvent)
-
-		defer collector.StopCollection(telemetryCtx)
 
 		return e.BasicExecuter.Run(cancelFlag, docStore)
 	} else {
@@ -134,8 +119,6 @@ func (e *OutOfProcExecuter) Run(
 				log.Debug("Executer closed")
 				close(resChan)
 			}()
-
-			defer collector.StopCollection(telemetryCtx)
 
 			e.messaging(log, ipc, resChan, cancelFlag, stopTimer)
 		}(docStore)

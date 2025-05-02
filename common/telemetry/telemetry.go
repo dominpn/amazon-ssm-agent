@@ -21,10 +21,8 @@ import (
 	"sync"
 	"time"
 
-	logger "github.com/aws/amazon-ssm-agent/agent/log"
-	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
-	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/context"
+	"github.com/aws/amazon-ssm-agent/common/telemetry/emitter"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
@@ -45,8 +43,8 @@ type telemetry struct {
 	context context.TelemetryContext
 
 	// fileChannalMtx protects the fileChannel variable
-	fileChannalMtx *sync.RWMutex
-	fileChannel    filewatcherbasedipc.IPCChannel
+	emitterMtx *sync.RWMutex
+	emitter    *emitter.Emitter
 }
 
 func getTelemetry() (*telemetry, error) {
@@ -58,12 +56,6 @@ func getTelemetry() (*telemetry, error) {
 	}
 
 	return singleton, nil
-}
-
-// this is for mocking support
-var channelCreator = func(log logger.T, identity identity.IAgentIdentity,
-	filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
-	return filewatcherbasedipc.CreateRollingFileWatcherChannel(log, identity, filewatcherbasedipc.ModeMaster, filename, false, 1000)
 }
 
 func Initialize(context context.TelemetryContext) (err error) {
@@ -84,14 +76,8 @@ func Initialize(context context.TelemetryContext) (err error) {
 
 	log := context.Log()
 
-	ipc, err, _ := channelCreator(log, context.Identity(), context.ChannelName())
-
-	if err != nil {
-		log.Errorf(err.Error())
-		return err
-	}
-
-	singleton = &telemetry{context: context, fileChannalMtx: &sync.RWMutex{}, fileChannel: ipc}
+	emitter := emitter.NewEmitter(log)
+	singleton = &telemetry{context: context, emitterMtx: &sync.RWMutex{}, emitter: emitter}
 
 	log.Info("Telemetry initialized")
 	return nil
@@ -114,17 +100,19 @@ func Shutdown() {
 	singleton = nil
 }
 
-func (t *telemetry) shutdown() {
-	t.fileChannalMtx.Lock()
-	defer t.fileChannalMtx.Unlock()
+func (t *telemetry) shutdown() (err error) {
+	t.emitterMtx.Lock()
+	defer t.emitterMtx.Unlock()
 
-	if t.fileChannel != nil {
-		t.fileChannel.Destroy()
-		t.fileChannel = nil
+	if t.emitter != nil {
+		err = t.emitter.Close()
+		t.emitter = nil
 	}
+
+	return err
 }
 
-// emitLog is the internal function which emits logs to the IPC channel
+// emitLog is the internal function which emits logs using [emitter.Emitter].
 func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetrylog.Severity, message string) (err error) {
 	defer func() {
 		if r := recover(); r != nil && singleton != nil {
@@ -142,27 +130,22 @@ func (t *telemetry) emitLog(namespace string, time time.Time, severity telemetry
 		return err
 	}
 
-	ipcMessage := &Message{
-		Namespace: namespace,
-		Type:      LOG,
-		Payload:   string(entryJson),
+	emitterMessage := emitter.Message{
+		Type:    emitter.LOG,
+		Payload: string(entryJson),
 	}
 
-	ipcMessageJson, err := json.Marshal(ipcMessage)
-	if err != nil {
-		return err
-	}
+	t.emitterMtx.Lock()
+	defer t.emitterMtx.Unlock()
 
-	t.fileChannalMtx.RLock()
-	defer t.fileChannalMtx.RUnlock()
-
-	if t.fileChannel == nil {
+	if t.emitter == nil {
 		return errors.New("telemetry is not initialized")
 	}
-	go t.sendIpcMessage(string(ipcMessageJson))
+	go t.emitTelemetryMessage(namespace, emitterMessage)
 	return nil
 }
 
+// emitIntegerMetric is the internal function which emits a metric using [emitter.Emitter].
 func (t *telemetry) emitIntegerMetric(namespace, name string, unit metric.Unit, kind metric.Kind, time time.Time, value int64) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -186,34 +169,32 @@ func (t *telemetry) emitIntegerMetric(namespace, name string, unit metric.Unit, 
 		return err
 	}
 
-	ipcMessage := &Message{
-		Namespace: namespace,
-		Type:      METRIC,
-		Payload:   string(entryJson),
+	message := emitter.Message{
+		Type:    emitter.METRIC,
+		Payload: string(entryJson),
 	}
 
-	ipcMessageJson, err := json.Marshal(ipcMessage)
-	if err != nil {
-		return err
-	}
+	t.emitterMtx.Lock()
+	defer t.emitterMtx.Unlock()
 
-	t.fileChannalMtx.RLock()
-	defer t.fileChannalMtx.RUnlock()
-
-	if t.fileChannel == nil {
+	if t.emitter == nil {
 		return errors.New("telemetry is not initialized")
 	}
-	go t.sendIpcMessage(string(ipcMessageJson))
+	go t.emitTelemetryMessage(namespace, message)
 	return nil
 }
 
-// sendIpcMessage sends message to the IPC channel
-func (t *telemetry) sendIpcMessage(message string) {
-	t.fileChannalMtx.RLock()
-	defer t.fileChannalMtx.RUnlock()
+// emitTelemetryMessage emits the telemetry message using [emitter.Emitter]
+func (t *telemetry) emitTelemetryMessage(namespace string, message emitter.Message) {
+	t.emitterMtx.Lock()
+	defer t.emitterMtx.Unlock()
 
-	err := t.fileChannel.Send(message)
+	if t.emitter == nil {
+		return
+	}
+
+	err := t.emitter.Emit(namespace, message)
 	if err != nil {
-		t.context.Log().Warnf("Sending telemetry IPC message failed with: %v", err)
+		t.context.Log().Warnf("Emitting telemetry message failed with: %v", err)
 	}
 }

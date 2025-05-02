@@ -15,7 +15,6 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
-	"github.com/aws/amazon-ssm-agent/common/telemetry"
 )
 
 func TestNewEmitter(t *testing.T) {
@@ -49,19 +48,19 @@ func TestEmitter_Emit(t *testing.T) {
 	tests := []struct {
 		name      string
 		namespace string
-		message   telemetry.Message
+		message   Message
 		wantErr   bool
 	}{
 		{
 			name:      "should_emitSuccessfully_whenValidInput",
 			namespace: "test1",
-			message:   telemetry.Message{Namespace: "test1", Type: telemetry.LOG, Payload: "test payload"},
+			message:   Message{Type: LOG, Payload: "test payload"},
 			wantErr:   false,
 		},
 		{
 			name:      "should_handleEmptyNamespace_whenNamespaceEmpty",
 			namespace: "",
-			message:   telemetry.Message{Namespace: "test1", Type: telemetry.LOG, Payload: "test payload"},
+			message:   Message{Type: LOG, Payload: "test payload"},
 			wantErr:   true,
 		},
 	}
@@ -85,7 +84,7 @@ func TestEmitter_Emit(t *testing.T) {
 				content, err := os.ReadFile(filePath)
 				require.NoError(t, err, "Failed to read emitted file")
 
-				var decoded telemetry.Message
+				var decoded Message
 				err = json.Unmarshal(content, &decoded)
 				require.NoError(t, err, "Failed to decode JSON: %v", err)
 
@@ -106,21 +105,18 @@ func TestEmitter_EmitMultipleMessages(t *testing.T) {
 	defer emitter.Close()
 
 	namespace := "test-multiple"
-	messages := []telemetry.Message{
+	messages := []Message{
 		{
-			Namespace: namespace,
-			Type:      telemetry.LOG,
-			Payload:   "first message",
+			Type:    LOG,
+			Payload: "first message",
 		},
 		{
-			Namespace: namespace,
-			Type:      telemetry.LOG,
-			Payload:   "second message",
+			Type:    LOG,
+			Payload: "second message",
 		},
 		{
-			Namespace: namespace,
-			Type:      telemetry.LOG,
-			Payload:   "third message",
+			Type:    LOG,
+			Payload: "third message",
 		},
 	}
 
@@ -145,7 +141,7 @@ func TestEmitter_EmitMultipleMessages(t *testing.T) {
 
 	// Verify each message
 	for i, line := range lines {
-		var decoded telemetry.Message
+		var decoded Message
 		err = json.Unmarshal([]byte(line), &decoded)
 		require.NoError(t, err, "Failed to decode JSON line %d: %v", i, err)
 		assert.Equal(t, messages[i], decoded, "Message mismatch at index %d", i)
@@ -164,10 +160,9 @@ func TestEmitter_EmitMultipleMessages(t *testing.T) {
 		require.NoError(t, err, "Failed to close emitter")
 
 		// Try to emit a new message
-		newMessage := telemetry.Message{
-			Namespace: namespace,
-			Type:      telemetry.LOG,
-			Payload:   "message after close",
+		newMessage := Message{
+			Type:    LOG,
+			Payload: "message after close",
 		}
 		err = emitter.Emit(namespace, newMessage)
 		require.NoError(t, err, "Should be able to emit after close")
@@ -195,10 +190,9 @@ func TestEmitter_EmitMultipleMessagesConcurrently(t *testing.T) {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			msg := telemetry.Message{
-				Namespace: namespace,
-				Type:      telemetry.LOG,
-				Payload:   fmt.Sprintf("concurrent message %d", index),
+			msg := Message{
+				Type:    LOG,
+				Payload: fmt.Sprintf("concurrent message %d", index),
 			}
 			err := emitter.Emit(namespace, msg)
 			assert.NoError(t, err, "Failed to emit concurrent message %d", index)
@@ -235,7 +229,7 @@ func TestEmitter_Close(t *testing.T) {
 
 	// Emit some data to create files
 	namespace := "test-close"
-	message := telemetry.Message{Namespace: "test1", Type: telemetry.LOG, Payload: "test payload"}
+	message := Message{Type: LOG, Payload: "test payload"}
 	err := emitter.Emit(namespace, message)
 	require.NoError(t, err, "Failed to emit test data")
 
@@ -254,7 +248,7 @@ func TestEmitter_Close(t *testing.T) {
 	content, err := os.ReadFile(filePath)
 	require.NoError(t, err, "Failed to read emitted file")
 
-	var decoded telemetry.Message
+	var decoded Message
 	err = json.Unmarshal(content, &decoded)
 	require.NoError(t, err, "Failed to decode JSON: %v", err)
 	assert.Equal(t, message, decoded, "Message mismatch")
@@ -273,7 +267,7 @@ func TestEmitter_AutoClose(t *testing.T) {
 
 	// Emit data
 	namespace := "test-autoclose"
-	message := telemetry.Message{Namespace: "test1", Type: telemetry.LOG, Payload: "test payload"}
+	message := Message{Type: LOG, Payload: "test payload"}
 	err := emitter.Emit(namespace, message)
 	if err != nil {
 		t.Fatalf("Failed to emit test data: %v", err)

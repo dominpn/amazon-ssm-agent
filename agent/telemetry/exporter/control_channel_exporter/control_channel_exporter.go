@@ -85,7 +85,7 @@ func (t *controlChannelTelemetryExporter) StartExporter() {
 		}
 	}()
 
-	err := collector.AddExporter(t)
+	err := collector.AddExporter(t.ctx.Log(), t)
 
 	if err != nil {
 		t.ctx.Log().Errorf("Error while adding telemetry exporter: %v", err)
@@ -100,7 +100,7 @@ func (t *controlChannelTelemetryExporter) StopExporter() {
 		}
 	}()
 
-	err := collector.RemoveExporter(t)
+	err := collector.RemoveExporter(t.ctx.Log(), t)
 
 	if err != nil {
 		t.ctx.Log().Errorf("Error while removing telemetry exporter: %v", err)

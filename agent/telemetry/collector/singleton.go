@@ -23,67 +23,37 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector/internal"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/exporter"
-	"github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc"
-	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/telemetry"
-	telemetryContext "github.com/aws/amazon-ssm-agent/common/telemetry/context"
+	"github.com/aws/amazon-ssm-agent/common/telemetry/emitter"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/metric"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 )
 
-var (
-	ctx context.T
+const (
+	// period of in-memory telemetry aggregation before flushing to disk
+	aggregationPeriodSeconds = 10 //  aggregate for 10 seconds
 
-	singleton internal.Collector
+	// period of exporting the telemetry to the attached exporters
+	exportPeriodSeconds = 300 // export every 5 minutes
 
-	// namespace -> filewatcherbasedipc channel mapping
-	listenChannels map[string]filewatcherbasedipc.IPCChannel
-
-	// namespace -> stop signal mapping
-	stopSignals map[string]chan bool
-
-	// WaitGroup to wait until all telemetry collection is stopped during shutdown
-	listenWg *sync.WaitGroup
-
-	// lock to protect all of the variables above
-	singletonMutex = new(sync.RWMutex)
+	// period of polling for the telemetry emitted by all processes
+	consumerPollPeriodSeconds = 120 // poll every 2 minutes
 )
 
-// this is for mocking support
-var channelCreator = func(log log.T, identity identity.IAgentIdentity, filename string) (filewatcherbasedipc.IPCChannel, error, bool) {
-	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, filewatcherbasedipc.ModeWorker, filename, false)
-}
+var (
+	// lock to protect the singleton
+	singletonMutex = new(sync.RWMutex)
+	singleton      *collector
+)
 
-func Initialize(context context.T) (err error) {
-	log := context.Log()
+type collector struct {
+	collector internal.Collector
 
-	defer func() {
-		if r := recover(); r != nil {
-			log.Warnf("Telemetry collector Initialize panic: %v", r)
-			log.Warnf("Stacktrace:\n%s", debug.Stack())
-			err = fmt.Errorf("panic in telemetry collector Initialize %v", r)
-		}
-	}()
+	// a [consumer] instance
+	consumer *consumer
 
-	singletonMutex.Lock()
-	defer singletonMutex.Unlock()
-
-	ctx = context
-
-	// 10 second aggregation
-	// Exports every 5 minutes
-	c, err := internal.NewCollector(context, time.Second*10, time.Minute*5)
-
-	if err != nil {
-		return err
-	}
-
-	singleton = c
-	listenChannels = make(map[string]filewatcherbasedipc.IPCChannel)
-	stopSignals = make(map[string]chan bool)
-	listenWg = new(sync.WaitGroup)
-
-	return nil
+	// WaitGroup to wait until the telemetry collection is stopped in StopCollection
+	listenWg *sync.WaitGroup
 }
 
 func collectMetric(namespace string, metric metric.Metric[float64]) error {
@@ -94,7 +64,7 @@ func collectMetric(namespace string, metric metric.Metric[float64]) error {
 		return fmt.Errorf("telemetry collector not initialized")
 	}
 
-	return singleton.CollectMetric(namespace, metric)
+	return singleton.collector.CollectMetric(namespace, metric)
 }
 
 func collectLog(namespace string, log telemetrylog.Entry) error {
@@ -108,15 +78,17 @@ func collectLog(namespace string, log telemetrylog.Entry) error {
 	// truncate the log body
 	log.Body = telemetry.TruncateLog(log.Body)
 
-	return singleton.CollectLog(namespace, log)
+	return singleton.collector.CollectLog(namespace, log)
 }
 
 // StartCollection starts telemetry collection for a specified telemetry context
 // internally, it creates the receiver end of the telemetry channel and collects the telemetry
 // from it.
-func StartCollection(context telemetryContext.TelemetryContext) (err error) {
-	log := context.Log()
+func StartCollection(context context.T) (err error) {
+	singletonMutex.Lock()
+	defer singletonMutex.Unlock()
 
+	log := context.Log()
 	defer func() {
 		if r := recover(); r != nil {
 			log.Warnf("Telemetry StartCollection panic: %v", r)
@@ -125,38 +97,66 @@ func StartCollection(context telemetryContext.TelemetryContext) (err error) {
 		}
 	}()
 
-	singletonMutex.Lock()
-	defer singletonMutex.Unlock()
-
-	if singleton == nil {
-		return fmt.Errorf("telemetry collector not initialized")
-	}
-
-	ipc, err, _ := channelCreator(log, context.Identity(), context.ChannelName())
-
+	c, err := internal.NewCollector(context, aggregationPeriodSeconds*time.Second, exportPeriodSeconds*time.Second)
 	if err != nil {
-		log.Warnf("Could not initialize telemetry receiver for channel %v with error: %v", context.ChannelName(), err)
 		return err
 	}
 
-	channelName := context.ChannelName()
-	listenChannels[channelName] = ipc
+	consumer := newConsumer(context, consumerPollPeriodSeconds) // poll for telemetry every 2 minutes
+	err = consumer.start()
+	if err != nil {
+		log.Warnf("Could not start telemetry consumerfor with error: %v", err)
+		return err
+	}
 
-	stopSignal := make(chan bool)
-	stopSignals[channelName] = stopSignal
+	listenWg := new(sync.WaitGroup)
+	singleton = &collector{
+		collector: c,
+		consumer:  consumer,
+		listenWg:  listenWg,
+	}
 
 	listenWg.Add(1)
 
-	go listenOnChannel(log, channelName, stopSignal, ipc)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Warnf("Telemetry channel listener panic: %v", r)
+				log.Warnf("Stacktrace:\n%s", debug.Stack())
+			}
+		}()
 
-	log.Debugf("Telemetry collection started for channel %v", channelName)
+		defer listenWg.Done()
+
+		for {
+			message, more := <-consumer.getMessage()
+
+			if !more {
+				// safe close
+				log.Debug("consumer closed, stop telemetry listener")
+				return
+			}
+
+			log.Debugf("Received message from consumer : %v", message)
+			if err := processMessage(message); err != nil {
+				log.Debugf("Error processing telemetry message: %v", err)
+			}
+		}
+	}()
+
+	log.Debugf("Telemetry collection started ")
 
 	return nil
 }
 
 // StopCollection stops telemetry collection for a specified telemetry context
-func StopCollection(context telemetryContext.TelemetryContext) (err error) {
-	log := context.Log()
+func StopCollection(log log.T) (err error) {
+	singletonMutex.RLock()
+	defer singletonMutex.RUnlock()
+
+	if singleton == nil {
+		return fmt.Errorf("telemetry collector is not started")
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -166,113 +166,49 @@ func StopCollection(context telemetryContext.TelemetryContext) (err error) {
 		}
 	}()
 
-	log.Debugf("Stopping telemetry collection for channel %v", context.ChannelName())
+	log.Debugf("Stopping telemetry collection")
 
-	singletonMutex.RLock()
-	defer singletonMutex.RUnlock()
+	singleton.consumer.stop()
 
-	if stopSignals == nil {
-		return fmt.Errorf("telemetry collector not initialized")
-	}
-	stopSignal, ok := stopSignals[context.ChannelName()]
-	if !ok {
-		return fmt.Errorf("telemetry collection for channel %v was not started", context.ChannelName())
-	}
+	// wait for the listener to stop
+	singleton.listenWg.Wait()
 
-	stopSignal <- true
+	// stop the collector
+	singleton.collector.Close()
+
+	singleton = nil
 	return nil
 }
 
-func listenOnChannel(log log.T, channelName string, stopSignal chan bool, ipc filewatcherbasedipc.IPCChannel) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Warnf("Telemetry channel listener panic: %v", r)
-			log.Warnf("Stacktrace:\n%s", debug.Stack())
-		}
-	}()
-
-	defer listenWg.Done()
-
-	defer func() {
-		// in a different goroutine to not block the Shutdown() method due to mutex
-		go registerListenerStopped(log, channelName)
-	}()
-
-	for {
-		select {
-		case <-stopSignal:
-			ipc.Close()
-			return
-
-		case datagram, more := <-ipc.GetMessage():
-			if !more {
-				// safe close
-				log.Debug("ipc channel closed, stop telemetry listener")
-				return
-			}
-
-			log.Debugf("Received datagram from %v: %v", ipc.GetPath(), datagram)
-			if err := processDatagam([]byte(datagram)); err != nil {
-				log.Debugf("Error processing telemetry message: %v", err)
-			}
-		}
-	}
-}
-
-func registerListenerStopped(log log.T, channelName string) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Warnf("Telemetry registerListenerStopped panic: %v", r)
-			log.Warnf("Stacktrace:\n%s", debug.Stack())
-		}
-	}()
-
-	singletonMutex.Lock()
-	defer singletonMutex.Unlock()
-
-	if listenChannels != nil {
-		delete(listenChannels, channelName)
-	}
-	if stopSignals != nil {
-		delete(stopSignals, channelName)
-	}
-}
-
-func processDatagam(datagram []byte) error {
-	var message telemetry.Message
-
-	if err := json.Unmarshal(datagram, &message); err != nil {
-		return err
-	}
-
-	switch message.Type {
-	case telemetry.LOG:
+func processMessage(message namespaceMessage) error {
+	switch message.message.Type {
+	case emitter.LOG:
 		var logEntry telemetrylog.Entry
 
-		if err := json.Unmarshal([]byte(message.Payload), &logEntry); err != nil {
+		if err := json.Unmarshal([]byte(message.message.Payload), &logEntry); err != nil {
 			return err
 		}
 
-		return collectLog(message.Namespace, logEntry)
-	case telemetry.METRIC:
+		return collectLog(message.namespace, logEntry)
+	case emitter.METRIC:
 		var metric metric.Metric[float64]
 
-		if err := json.Unmarshal([]byte(message.Payload), &metric); err != nil {
+		if err := json.Unmarshal([]byte(message.message.Payload), &metric); err != nil {
 			return err
 		}
 
-		return collectMetric(message.Namespace, metric)
+		return collectMetric(message.namespace, metric)
 	default:
-		return fmt.Errorf("unknown message type: %v", message.Type)
+		return fmt.Errorf("unknown message type: %v", message.message.Type)
 	}
 }
 
 // AddExporter adds a new Exporter to the collector with the specified export period
-func AddExporter(exporter exporter.Exporter) (err error) {
+func AddExporter(log log.T, exporter exporter.Exporter) (err error) {
 	defer func() {
-		if r := recover(); r != nil && ctx != nil {
-			ctx.Log().Warnf("Telemetry AddExporter panic: %v", r)
-			ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+		if r := recover(); r != nil {
+			log.Warnf("Telemetry AddExporter panic: %v", r)
+			log.Warnf("Stacktrace:\n%s", debug.Stack())
 			err = fmt.Errorf("panic in singleton collector AddExporter %v", r)
 		}
 	}()
@@ -284,16 +220,16 @@ func AddExporter(exporter exporter.Exporter) (err error) {
 		return fmt.Errorf("cannot add exporter. telemetry collector not initialized")
 	}
 
-	singleton.AddExporter(exporter)
+	singleton.collector.AddExporter(exporter)
 	return nil
 }
 
 // RemoveExporter removes an Exporter from the collector
-func RemoveExporter(exporter exporter.Exporter) (err error) {
+func RemoveExporter(log log.T, exporter exporter.Exporter) (err error) {
 	defer func() {
-		if r := recover(); r != nil && ctx != nil {
-			ctx.Log().Warnf("Telemetry RemoveExporter panic: %v", r)
-			ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+		if r := recover(); r != nil {
+			log.Warnf("Telemetry RemoveExporter panic: %v", r)
+			log.Warnf("Stacktrace:\n%s", debug.Stack())
 			err = fmt.Errorf("panic in singleton collector RemoveExporter %v", r)
 		}
 	}()
@@ -305,42 +241,6 @@ func RemoveExporter(exporter exporter.Exporter) (err error) {
 		return fmt.Errorf("cannot remove exporter. telemetry collector not initialized")
 	}
 
-	singleton.RemoveExporter(exporter)
-	return nil
-}
-
-func Shutdown() (err error) {
-	defer func() {
-		if r := recover(); r != nil && ctx != nil {
-			ctx.Log().Warnf("Telemetry singleton collector Shutdown panic: %v", r)
-			ctx.Log().Warnf("Stacktrace:\n%s", debug.Stack())
-			err = fmt.Errorf("panic in telemetry singleton collector Shutdown %v", r)
-		}
-	}()
-
-	singletonMutex.Lock()
-	defer singletonMutex.Unlock()
-
-	if stopSignals == nil || listenWg == nil {
-		return nil
-	}
-
-	// send the stop signal to remaining IPC listeners
-	for _, stopSignal := range stopSignals {
-		stopSignal <- true
-	}
-
-	// stop the collector
-	singleton.Close()
-
-	// wait for all collections to stop
-	listenWg.Wait()
-
-	singleton = nil
-	listenChannels = nil
-	stopSignals = nil
-	listenWg = nil
-	ctx = nil
-
+	singleton.collector.RemoveExporter(exporter)
 	return nil
 }

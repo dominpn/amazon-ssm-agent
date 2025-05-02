@@ -72,8 +72,8 @@ func (suite *controlChannelExporterTestSuite) TearDownTest() {
 }
 
 func (suite *controlChannelExporterTestSuite) TestStartExporter() {
-	collector.Initialize(suite.ctx)
-	defer collector.Shutdown()
+	collector.StartCollection(suite.ctx)
+	defer collector.StopCollection(suite.ctx.Log())
 
 	suite.exporter.StartExporter()
 
@@ -94,8 +94,8 @@ func (suite *controlChannelExporterTestSuite) TestStartExporterNotInitialized() 
 }
 
 func (suite *controlChannelExporterTestSuite) TestStopExporter() {
-	collector.Initialize(suite.ctx)
-	defer collector.Shutdown()
+	collector.StartCollection(suite.ctx)
+	defer collector.StopCollection(suite.ctx.Log())
 
 	suite.exporter.StopExporter()
 

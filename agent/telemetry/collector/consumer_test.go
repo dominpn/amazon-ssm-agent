@@ -22,7 +22,6 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/advisorylock"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
-	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/emitter"
 
 	"github.com/stretchr/testify/assert"
@@ -39,7 +38,7 @@ func TestNewConsumer(t *testing.T) {
 	assert.NotNil(t, consumer.onMessageChan)
 }
 
-func writeTelemetryForNamespace(t *testing.T, namespace string) (string, []telemetry.Message) {
+func writeTelemetryForNamespace(t *testing.T, namespace string) (string, []emitter.Message) {
 	t.Helper()
 
 	nsFile := filepath.Join(emitter.TelemetryPreIngestionDir, fmt.Sprintf("%s.jsonl", namespace))
@@ -47,13 +46,12 @@ func writeTelemetryForNamespace(t *testing.T, namespace string) (string, []telem
 	require.NoError(t, err)
 	defer f.Close()
 
-	expectedMessages := make([]telemetry.Message, 0, 100)
+	expectedMessages := make([]emitter.Message, 0, 100)
 	for i := range 100 {
 		// Create test message
-		testMessage := telemetry.Message{
-			Namespace: "doesn't matter",
-			Type:      telemetry.LOG,
-			Payload:   fmt.Sprintf("doesn't matter %s %d", namespace, i),
+		testMessage := emitter.Message{
+			Type:    emitter.LOG,
+			Payload: fmt.Sprintf("doesn't matter %s %d", namespace, i),
 		}
 		expectedMessages = append(expectedMessages, testMessage)
 
@@ -158,10 +156,9 @@ func TestProcessNamespaceFile_InvalidJSON(t *testing.T) {
 	defer f.Close()
 
 	// Create test message
-	testMessage := telemetry.Message{
-		Namespace: "doesn't matter",
-		Type:      telemetry.LOG,
-		Payload:   "doesn't matter ",
+	testMessage := emitter.Message{
+		Type:    emitter.LOG,
+		Payload: "doesn't matter ",
 	}
 
 	messageBytes, _ := json.Marshal(testMessage)
@@ -217,10 +214,9 @@ func TestProcessNamespaceFile_Locking(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create test message
-	testMessage := telemetry.Message{
-		Namespace: "test-namespace",
-		Type:      telemetry.LOG,
-		Payload:   "doesn't matter",
+	testMessage := emitter.Message{
+		Type:    emitter.LOG,
+		Payload: "doesn't matter",
 	}
 
 	messageBytes, _ := json.Marshal(testMessage)
@@ -300,10 +296,9 @@ func TestStart(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create test message
-	testMessage := telemetry.Message{
-		Namespace: "test-namespace",
-		Type:      telemetry.LOG,
-		Payload:   "doesn't matter",
+	testMessage := emitter.Message{
+		Type:    emitter.LOG,
+		Payload: "doesn't matter",
 	}
 
 	messageBytes, _ := json.Marshal(testMessage)

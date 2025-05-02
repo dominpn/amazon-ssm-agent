@@ -11,7 +11,6 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
-	"github.com/aws/amazon-ssm-agent/common/telemetry"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/emitter/internal/fileutil/bufio"
 	"github.com/aws/amazon-ssm-agent/common/telemetry/emitter/internal/fileutil/sizelimitedlockedfile"
 )
@@ -183,7 +182,7 @@ func (e *Emitter) unlockedCloseFileForNamespace(namespace string) (err error) {
 }
 
 // Emit emits the telemetry message to the corresponding file for the namespace
-func (e *Emitter) Emit(namespace string, message telemetry.Message) error {
+func (e *Emitter) Emit(namespace string, message Message) error {
 	if namespace == "" {
 		return fmt.Errorf("namespace cannot be empty")
 	}
