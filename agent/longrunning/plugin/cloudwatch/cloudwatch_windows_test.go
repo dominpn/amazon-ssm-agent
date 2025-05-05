@@ -82,7 +82,7 @@ func TestStartSuccess(t *testing.T) {
 		mock.AnythingOfType("string"),
 		mock.AnythingOfType("[]string")).Return(process, 0, nil)
 
-	fileExist = func(filePath string) bool {
+	FileExist = func(filePath string) bool {
 		return true
 	}
 
@@ -109,7 +109,7 @@ func TestStartSuccess(t *testing.T) {
 
 // TestStartFailFileNotExist tests the Start method, which returns error when system cannot find the executable file.
 func TestStartFailFileNotExist(t *testing.T) {
-	fileExist = func(filePath string) bool {
+	FileExist = func(filePath string) bool {
 		return false
 	}
 	ioHandler := &iohandlermocks.MockIOHandler{}
@@ -297,7 +297,7 @@ func TestIsCloudWatchExeRunningTrue(t *testing.T) {
 		mock.AnythingOfType("[]string"),
 		mock.AnythingOfType("map[string]string")).Return(stdout, stderr, 0, []error{})
 
-	fileExist = func(filePath string) bool {
+	FileExist = func(filePath string) bool {
 		return true
 	}
 
@@ -326,7 +326,7 @@ func TestIsCloudWatchExeRunningFalse(t *testing.T) {
 		mock.AnythingOfType("[]string"),
 		mock.AnythingOfType("map[string]string")).Return(stdout, stderr, 0, []error{})
 
-	fileExist = func(filePath string) bool {
+	FileExist = func(filePath string) bool {
 		return true
 	}
 
@@ -361,7 +361,7 @@ func TestGetPidOfCloudWatchExeSuccess(t *testing.T) {
 		mock.AnythingOfType("[]string"),
 		mock.AnythingOfType("map[string]string")).Return(stdout, stderr, 0, []error{})
 
-	fileExist = func(filePath string) bool {
+	FileExist = func(filePath string) bool {
 		return true
 	}
 

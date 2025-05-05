@@ -38,6 +38,13 @@ var (
 	once     sync.Once
 )
 
+// Assign method to global variables to allow unittest to override
+var loadFunc = load
+var MakeDirs = fileutil.MakeDirs
+var FileExist = fileutil.Exists
+var WriteIntoFileWithPermissions = fileutil.WriteIntoFileWithPermissions
+var UnmarshalFile = jsonutil.UnmarshalFile
+
 type CloudWatchConfig interface {
 	GetIsEnabled() bool
 	Enable(engineConfiguration interface{}) error
@@ -76,7 +83,7 @@ func (cwcInstance *CloudWatchConfigImpl) ParseEngineConfiguration() (config stri
 func (cwcInstance *CloudWatchConfigImpl) Update(log log.T) error {
 	var cwConfig CloudWatchConfigImpl
 	var err error
-	if cwConfig, err = load(log); err != nil {
+	if cwConfig, err = loadFunc(log); err != nil {
 		return err
 	}
 
@@ -101,14 +108,14 @@ func (cwcInstance *CloudWatchConfigImpl) Write() error {
 	}
 
 	//verify if parent folder exist
-	if !fileutil.Exists(location) {
-		if err = fileutil.MakeDirs(location); err != nil {
+	if !FileExist(location) {
+		if err = MakeDirs(location); err != nil {
 			return err
 		}
 	}
 
 	//it's fine even if we overwrite the content of previous file
-	if _, err = fileutil.WriteIntoFileWithPermissions(
+	if _, err = WriteIntoFileWithPermissions(
 		fileName,
 		content,
 		os.FileMode(int(appconfig.ReadWriteAccess))); err != nil {
@@ -144,7 +151,7 @@ func load(log log.T) (CloudWatchConfigImpl, error) {
 	var err error
 	var cwConfig CloudWatchConfigImpl
 
-	err = jsonutil.UnmarshalFile(fileName, &cwConfig)
+	err = UnmarshalFile(fileName, &cwConfig)
 
 	// For backward compatibility, check if the engine configuration is read as string due to escaped characters.
 	// If so, unmarshalling it again should correct the format to a tree of maps.

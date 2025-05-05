@@ -69,7 +69,6 @@ type CloudwatchProcessInfo struct {
 
 // Assign method to global variables to allow unittest to override
 // TODO change these to deps.go later
-var fileExist = fileutil.Exists
 var exec = executers.ShellCommandExecuter{}
 var findProcess = os.FindProcess
 var killProcess = func(process *os.Process) error {
@@ -124,7 +123,7 @@ func (p *Plugin) Start(configuration string, orchestrationDir string, cancelFlag
 	log.Infof("CloudWatch Configuration to be applied - %s ", logFormatConfig)
 
 	//check if the exe is located
-	if !fileExist(p.ExeLocation) {
+	if !FileExist(p.ExeLocation) {
 		errorMessage := "unable to locate cloudwatch.exe"
 		log.Errorf(errorMessage)
 		return errors.New(errorMessage)
@@ -147,7 +146,7 @@ func (p *Plugin) Start(configuration string, orchestrationDir string, cancelFlag
 	orchestrationDir = fileutil.BuildPath(orchestrationDir, p.Name)
 	log.Debugf("Cloudwatch specific commands will be run in workingDirectory %v; orchestrationDir %v ", p.WorkingDir, orchestrationDir)
 	// create orchestration dir if needed
-	if !fileExist(orchestrationDir) {
+	if !FileExist(orchestrationDir) {
 		if err = fileutil.MakeDirsWithExecuteAccess(orchestrationDir); err != nil {
 			log.Errorf("Encountered error while creating orchestrationDir directory %s:%s", orchestrationDir, err.Error())
 			return

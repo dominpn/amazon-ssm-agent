@@ -21,24 +21,24 @@ import (
 )
 
 // Mock stands for a mocked fileUtil.
-type fileUtilMock struct {
+type FileUtilMock struct {
 	mock.Mock
 }
 
 // Exists returns true if the given file exists, false otherwise, ignoring any underlying error
-func (f *fileUtilMock) Exists(filePath string) bool {
+func (f *FileUtilMock) Exists(filePath string) bool {
 	args := f.Called(filePath)
 	return args.Get(0).(bool)
 }
 
 // MakeDirs create the directories along the path if missing.
-func (f *fileUtilMock) MakeDirs(destinationDir string) error {
+func (f *FileUtilMock) MakeDirs(destinationDir string) error {
 	args := f.Called(destinationDir)
 	return args.Error(0)
 }
 
 // WriteIntoFileWithPermissions writes into file with given file mode permissions
-func (f *fileUtilMock) WriteIntoFileWithPermissions(absolutePath, content string, perm os.FileMode) (bool, error) {
+func (f *FileUtilMock) WriteIntoFileWithPermissions(absolutePath, content string, perm os.FileMode) (bool, error) {
 	args := f.Called(absolutePath, content, perm)
 	return args.Get(0).(bool), args.Error(1)
 }

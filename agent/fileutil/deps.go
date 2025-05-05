@@ -16,7 +16,6 @@ package fileutil
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 )
 
@@ -60,9 +59,9 @@ type ioUtility interface {
 type ioU struct{}
 
 func (ioU) WriteFile(filename string, data []byte, perm os.FileMode) error {
-	return ioutil.WriteFile(filename, data, perm)
+	return os.WriteFile(filename, data, perm)
 }
 
 func (ioU) TempDir(dir, prefix string) (name string, err error) {
-	return ioutil.TempDir(dir, prefix)
+	return os.MkdirTemp(dir, prefix)
 }
