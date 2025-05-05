@@ -44,7 +44,7 @@ type telemetry struct {
 
 	// fileChannalMtx protects the fileChannel variable
 	emitterMtx *sync.RWMutex
-	emitter    *emitter.Emitter
+	emitter    emitter.Emitter
 }
 
 func getTelemetry() (*telemetry, error) {

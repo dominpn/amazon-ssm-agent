@@ -1,3 +1,16 @@
+// Copyright 2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"). You may not
+// use this file except in compliance with the License. A copy of the
+// License is located at
+//
+// http://aws.amazon.com/apache2.0/
+//
+// or in the "license" file accompanying this file. This file is distributed
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+// either express or implied. See the License for the specific language governing
+// permissions and limitations under the License.
+
 package emitter
 
 import (
@@ -22,9 +35,16 @@ const (
 
 var TelemetryPreIngestionDir = filepath.Join(appconfig.TelemetryDataStorePath, "preingestion")
 
-// Emitter is used to emit telemetry from all the agent processes.
-// Each namespace has its own file which is locked before writing.
-type Emitter struct {
+// Emitter is used to emit telemetry from all the agent processes for consumption by the agent worker.
+type Emitter interface {
+	Emit(namespace string, message Message) error
+	Flush() error
+	Close() error
+}
+
+// emitter implements the [Emitter] interface
+// Each namespace has its own file in [TelemetryPreIngestionDir] which is locked before writing.
+type emitter struct {
 	log log.T
 
 	// maxFileSize is the maximum file size for each namespace in bytes
@@ -58,8 +78,8 @@ func GetTelemetryFilePath(namespace string) string {
 	return filepath.Join(TelemetryPreIngestionDir, fmt.Sprintf("%s.jsonl", namespace))
 }
 
-func NewEmitter(log log.T) (e *Emitter) {
-	return &Emitter{
+func NewEmitter(log log.T) (e Emitter) {
+	return &emitter{
 		log:                  log,
 		maxFileSize:          200 * 1024,       // 200 KiB
 		autoCloseDuration:    time.Second * 20, // auto-close opened files after 20 seconds of inactivity
@@ -72,7 +92,7 @@ func NewEmitter(log log.T) (e *Emitter) {
 }
 
 // openFileIfNeeded opens the file for namespace if needed and restarts its auto-close timer.
-func (e *Emitter) openFileIfNeeded(namespace string) error {
+func (e *emitter) openFileIfNeeded(namespace string) error {
 	e.openNamespaceFileMtx.Lock()
 	defer e.openNamespaceFileMtx.Unlock()
 
@@ -108,7 +128,7 @@ func (e *Emitter) openFileIfNeeded(namespace string) error {
 }
 
 // restartAutoCloseTimer signals any previous running auto-close timer to stop and starts a new one.
-func (e *Emitter) restartAutoCloseTimer(namespace string) {
+func (e *emitter) restartAutoCloseTimer(namespace string) {
 	e.autoCloseTimersMtx.Lock()
 	defer e.autoCloseTimersMtx.Unlock()
 	// stop the previous auto-close timer
@@ -159,7 +179,7 @@ func (e *Emitter) restartAutoCloseTimer(namespace string) {
 }
 
 // closeFileForNamespace closes the file for the namespace if it is open
-func (e *Emitter) closeFileForNamespace(namespace string) (err error) {
+func (e *emitter) closeFileForNamespace(namespace string) (err error) {
 	e.openNamespaceFileMtx.Lock()
 	defer e.openNamespaceFileMtx.Unlock()
 
@@ -168,7 +188,7 @@ func (e *Emitter) closeFileForNamespace(namespace string) (err error) {
 
 // unlockedCloseFileForNamespace closes the file for the namespace if it is open.
 // It does not lock openNamespaceFileMtx. The caller MUST do it.
-func (e *Emitter) unlockedCloseFileForNamespace(namespace string) (err error) {
+func (e *emitter) unlockedCloseFileForNamespace(namespace string) (err error) {
 	if file, ok := e.openNamespaceFiles[namespace]; ok {
 		err = file.Close()
 		if sizelimitedlockedfile.IsSizeLimitReached(err) {
@@ -182,7 +202,7 @@ func (e *Emitter) unlockedCloseFileForNamespace(namespace string) (err error) {
 }
 
 // Emit emits the telemetry message to the corresponding file for the namespace
-func (e *Emitter) Emit(namespace string, message Message) error {
+func (e *emitter) Emit(namespace string, message Message) error {
 	if namespace == "" {
 		return fmt.Errorf("namespace cannot be empty")
 	}
@@ -214,7 +234,7 @@ func (e *Emitter) Emit(namespace string, message Message) error {
 }
 
 // Flush flushes the buffers of all the open namespace files
-func (e *Emitter) Flush() error {
+func (e *emitter) Flush() error {
 	e.openNamespaceFileMtx.RLock()
 	defer e.openNamespaceFileMtx.RUnlock()
 
@@ -231,7 +251,7 @@ func (e *Emitter) Flush() error {
 }
 
 // Close closes all of the open files and auto-close timers
-func (e *Emitter) Close() error {
+func (e *emitter) Close() error {
 	e.autoCloseTimersMtx.Lock()
 	// stop all auto-close timers
 	for _, a := range e.autoCloseTimers {

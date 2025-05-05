@@ -151,13 +151,6 @@ func StartCollection(context context.T) (err error) {
 
 // StopCollection stops telemetry collection for a specified telemetry context
 func StopCollection(log log.T) (err error) {
-	singletonMutex.RLock()
-	defer singletonMutex.RUnlock()
-
-	if singleton == nil {
-		return fmt.Errorf("telemetry collector is not started")
-	}
-
 	defer func() {
 		if r := recover(); r != nil {
 			log.Warnf("Telemetry StopCollection panic: %v", r)
@@ -165,6 +158,13 @@ func StopCollection(log log.T) (err error) {
 			err = fmt.Errorf("panic in telemetry collector StopCollection %v", r)
 		}
 	}()
+
+	singletonMutex.RLock()
+	defer singletonMutex.RUnlock()
+
+	if singleton == nil {
+		return fmt.Errorf("telemetry collector is not started")
+	}
 
 	log.Debugf("Stopping telemetry collection")
 

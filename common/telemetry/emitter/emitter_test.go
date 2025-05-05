@@ -1,3 +1,16 @@
+// Copyright 2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"). You may not
+// use this file except in compliance with the License. A copy of the
+// License is located at
+//
+// http://aws.amazon.com/apache2.0/
+//
+// or in the "license" file accompanying this file. This file is distributed
+// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+// either express or implied. See the License for the specific language governing
+// permissions and limitations under the License.
+
 package emitter
 
 import (
@@ -19,7 +32,7 @@ import (
 
 func TestNewEmitter(t *testing.T) {
 	mockLog := log.NewMockLog()
-	emitter := NewEmitter(mockLog)
+	emitter := NewEmitter(mockLog).(*emitter)
 	defer emitter.Close()
 
 	assert.NotNil(t, emitter, "Expected non-nil emitter")
@@ -101,7 +114,7 @@ func TestEmitter_EmitMultipleMessages(t *testing.T) {
 	defer func() { TelemetryPreIngestionDir = originalPath }()
 
 	mockLog := log.NewMockLog()
-	emitter := NewEmitter(mockLog)
+	emitter := NewEmitter(mockLog).(*emitter)
 	defer emitter.Close()
 
 	namespace := "test-multiple"
@@ -180,7 +193,7 @@ func TestEmitter_EmitMultipleMessagesConcurrently(t *testing.T) {
 	defer func() { TelemetryPreIngestionDir = originalPath }()
 
 	mockLog := log.NewMockLog()
-	emitter := NewEmitter(mockLog)
+	emitter := NewEmitter(mockLog).(*emitter)
 	defer emitter.Close()
 
 	namespace := "test-multiple"
@@ -225,7 +238,7 @@ func TestEmitter_Close(t *testing.T) {
 	defer func() { TelemetryPreIngestionDir = originalPath }()
 
 	mockLog := log.NewMockLog()
-	emitter := NewEmitter(mockLog)
+	emitter := NewEmitter(mockLog).(*emitter)
 
 	// Emit some data to create files
 	namespace := "test-close"
@@ -257,7 +270,7 @@ func TestEmitter_Close(t *testing.T) {
 func TestEmitter_AutoClose(t *testing.T) {
 	// Setup with shorter duration for testing
 	mockLog := log.NewMockLog()
-	emitter := NewEmitter(mockLog)
+	emitter := NewEmitter(mockLog).(*emitter)
 	emitter.autoCloseDuration = time.Millisecond * 100 // Short duration for testing
 
 	// Temporarily override the TelemetryPreIngestionDir
