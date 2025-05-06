@@ -110,12 +110,12 @@ func TestWriteSuccess(t *testing.T) {
 	FileExist = mockFileUtil.Exists
 
 	originalMakeDirs := fileutil.MakeDirs
-	defer func() { MakeDirs = originalMakeDirs }()
-	MakeDirs = mockFileUtil.MakeDirs
+	defer func() { makeDirs = originalMakeDirs }()
+	makeDirs = mockFileUtil.MakeDirs
 
 	originalWriteIntoFileWithPermissions := fileutil.WriteIntoFileWithPermissions
-	defer func() { WriteIntoFileWithPermissions = originalWriteIntoFileWithPermissions }()
-	WriteIntoFileWithPermissions = mockFileUtil.WriteIntoFileWithPermissions
+	defer func() { writeIntoFileWithPermissions = originalWriteIntoFileWithPermissions }()
+	writeIntoFileWithPermissions = mockFileUtil.WriteIntoFileWithPermissions
 
 	err := cwConfig.Write()
 
@@ -162,12 +162,12 @@ func TestWriteFileWriteError(t *testing.T) {
 	FileExist = mockFileUtil.Exists
 
 	originalMakeDirs := fileutil.MakeDirs
-	defer func() { MakeDirs = originalMakeDirs }()
-	MakeDirs = mockFileUtil.MakeDirs
+	defer func() { makeDirs = originalMakeDirs }()
+	makeDirs = mockFileUtil.MakeDirs
 
 	originalWriteIntoFileWithPermissions := fileutil.WriteIntoFileWithPermissions
-	defer func() { WriteIntoFileWithPermissions = originalWriteIntoFileWithPermissions }()
-	WriteIntoFileWithPermissions = mockFileUtil.WriteIntoFileWithPermissions
+	defer func() { writeIntoFileWithPermissions = originalWriteIntoFileWithPermissions }()
+	writeIntoFileWithPermissions = mockFileUtil.WriteIntoFileWithPermissions
 
 	// Execute
 	err := cwConfig.Write()
@@ -311,8 +311,8 @@ func TestLoad(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Temporarily replace jsonutil.UnmarshalFile with mock
 			originalUnmarshalFile := jsonutil.UnmarshalFile
-			defer func() { UnmarshalFile = originalUnmarshalFile }()
-			UnmarshalFile = tc.mockFileRead
+			defer func() { unmarshalFile = originalUnmarshalFile }()
+			unmarshalFile = tc.mockFileRead
 
 			mockLogger := logmocks.NewMockLog()
 			result, err := load(mockLogger)
