@@ -50,9 +50,10 @@ type emitter struct {
 	// maxFileSize is the maximum file size for each namespace in bytes
 	maxFileSize uint64
 
-	// autoCloseDuration is time after which to close the file opened for writing
+	// autoCloseDuration is the period of inactivity after which an opened file will be closed.
 	// Once a file is opened for writing, it stays open until the specified duration.
-	// This is done to avoid having to reopen files when rapidly emitting metrics.
+	// This is done to avoid having to reopen files when rapidly emitting metrics and also to
+	// not keep files open longer than necessary.
 	autoCloseDuration time.Duration
 	// autoCloseTimersMtx protects autoCloseTimers
 	autoCloseTimersMtx *sync.RWMutex
@@ -63,8 +64,13 @@ type emitter struct {
 
 	// openNamespaceFileMtx protects openNamespaceFiles
 	openNamespaceFileMtx *sync.RWMutex
-	// openNamespaceFiles holds namespace -> [bufio.BufferedWriteCloser] mapping
-	openNamespaceFiles map[string]*bufio.BufferedWriteCloser
+	// openNamespaceFiles holds namespace -> [bufio.LineBreakWriter] mapping
+	openNamespaceFiles map[string]*bufio.LineBreakWriter
+
+	// closedMtx locks the "closed" variable
+	closedMtx *sync.RWMutex
+	// closed tells if this emitter was closed
+	closed bool
 }
 
 type autoCloseTimer struct {
@@ -87,7 +93,9 @@ func NewEmitter(log log.T) (e Emitter) {
 		autoCloseTimers:      make(map[string]*autoCloseTimer),
 		autoCloseTimersWg:    sync.WaitGroup{},
 		openNamespaceFileMtx: &sync.RWMutex{},
-		openNamespaceFiles:   make(map[string]*bufio.BufferedWriteCloser),
+		openNamespaceFiles:   make(map[string]*bufio.LineBreakWriter),
+		closedMtx:            &sync.RWMutex{},
+		closed:               false,
 	}
 }
 
@@ -115,10 +123,7 @@ func (e *emitter) openFileIfNeeded(namespace string) error {
 		if err != nil {
 			return err
 		}
-		bufferedWriter, err := bufio.NewBufferedWriteCloser(lf)
-		if err != nil {
-			return err
-		}
+		bufferedWriter := bufio.NewLineBreakWriter(lf)
 		e.openNamespaceFiles[namespace] = bufferedWriter
 	}
 
@@ -203,6 +208,12 @@ func (e *emitter) unlockedCloseFileForNamespace(namespace string) (err error) {
 
 // Emit emits the telemetry message to the corresponding file for the namespace
 func (e *emitter) Emit(namespace string, message Message) error {
+	e.closedMtx.Lock()
+	defer e.closedMtx.Unlock()
+	if e.closed {
+		return fmt.Errorf("emitter is closed")
+	}
+
 	if namespace == "" {
 		return fmt.Errorf("namespace cannot be empty")
 	}
@@ -218,10 +229,16 @@ func (e *emitter) Emit(namespace string, message Message) error {
 
 	// write the message to file
 	e.openNamespaceFileMtx.RLock()
-	defer e.openNamespaceFileMtx.RUnlock()
-	if file, ok := e.openNamespaceFiles[namespace]; ok {
+	file, ok := e.openNamespaceFiles[namespace]
+	e.openNamespaceFileMtx.RUnlock()
+
+	if ok {
 		_, err = file.Write(messageJson)
 		if err != nil {
+			// once a buffered writer throws an error, it will always throw an
+			// error. We need to reset it
+			defer e.closeFileForNamespace(namespace)
+
 			if sizelimitedlockedfile.IsSizeLimitReached(err) {
 				return nil
 			}
@@ -252,6 +269,15 @@ func (e *emitter) Flush() error {
 
 // Close closes all of the open files and auto-close timers
 func (e *emitter) Close() error {
+	e.closedMtx.Lock()
+	defer e.closedMtx.Unlock()
+	if e.closed {
+		return nil
+	}
+	defer func() {
+		e.closed = true
+	}()
+
 	e.autoCloseTimersMtx.Lock()
 	// stop all auto-close timers
 	for _, a := range e.autoCloseTimers {

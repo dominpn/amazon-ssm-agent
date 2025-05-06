@@ -165,25 +165,6 @@ func TestEmitter_EmitMultipleMessages(t *testing.T) {
 	require.NoError(t, err, "Failed to get file info")
 	assert.True(t, fileInfo.Size() <= int64(emitter.maxFileSize),
 		"File size exceeds maximum allowed size")
-
-	// Test message emission after file close
-	t.Run("EmitAfterClose", func(t *testing.T) {
-		// Close the file
-		err = emitter.Close()
-		require.NoError(t, err, "Failed to close emitter")
-
-		// Try to emit a new message
-		newMessage := Message{
-			Type:    LOG,
-			Payload: "message after close",
-		}
-		err = emitter.Emit(namespace, newMessage)
-		require.NoError(t, err, "Should be able to emit after close")
-
-		// Flush to ensure message is written
-		err = emitter.Flush()
-		require.NoError(t, err, "Failed to flush message after close")
-	})
 }
 
 func TestEmitter_EmitMultipleMessagesConcurrently(t *testing.T) {
