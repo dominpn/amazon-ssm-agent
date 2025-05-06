@@ -45,6 +45,8 @@ var (
 	CreateJobObjectW         = kernel32.NewProc("CreateJobObjectW")
 	AssignProcessToJobObject = kernel32.NewProc("AssignProcessToJobObject")
 	SetInformationJobObject  = kernel32.NewProc("SetInformationJobObject")
+	openProcessFn            = syscall.OpenProcess
+	closeHandleFn            = syscall.CloseHandle
 )
 
 var SSMjobObject syscall.Handle
@@ -115,11 +117,11 @@ func createJobObject(jobAttrs *syscall.SecurityAttributes, name *uint16) (handle
 
 // Function AttachProcessToJobObject attached child processes to the SSM agent job object.
 func AttachProcessToJobObject(Pid uint32) (err error) {
-	handle, err := syscall.OpenProcess(processSetQuotaAccess|processTerminateAccess, childprocessNotInheritHandle, Pid)
+	handle, err := openProcessFn(processSetQuotaAccess|processTerminateAccess, childprocessNotInheritHandle, Pid)
 	if err != nil {
 		return err
 	}
-	defer syscall.CloseHandle(handle)
+	defer closeHandleFn(handle)
 
 	r1, _, e1 := AssignProcessToJobObject.Call(
 		uintptr(SSMjobObject),
