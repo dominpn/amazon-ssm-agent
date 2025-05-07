@@ -15,17 +15,26 @@
 package manager
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
+	"github.com/aws/amazon-ssm-agent/agent/framework/processor/executer/iohandler"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/longrunning"
+	managerContracts "github.com/aws/amazon-ssm-agent/agent/longrunning/plugin"
+	contextmock "github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
+
+	"github.com/aws/amazon-ssm-agent/agent/task"
+	identityMocks "github.com/aws/amazon-ssm-agent/common/identity/mocks"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -342,6 +351,334 @@ func TestCheckLegacyCloudWatchLocalConfig_EnableFailure(t *testing.T) {
 	mockCwcInstance.AssertExpectations(t)
 }
 
+func TestEnsureInitialization_SingletonBehavior(t *testing.T) {
+	// Reset the singleton instance and once sync before the test
+	singletonInstance = nil
+	once = sync.Once{}
+
+	// Create a mock context
+	mockContext := contextmock.NewMockDefault()
+
+	// Call EnsureInitialization multiple times
+	EnsureInitialization(mockContext)
+	firstInstance := singletonInstance
+
+	// Call again to ensure same instance is returned
+	EnsureInitialization(mockContext)
+	secondInstance := singletonInstance
+
+	// Verify that both calls result in the same instance
+	assert.Equal(t, firstInstance, secondInstance,
+		"Multiple calls to EnsureInitialization should return the same instance")
+}
+
+func TestGetInstance_SuccessfulRetrieval(t *testing.T) {
+	// Setup: Ensure manager is initialized
+	context := contextmock.NewMockDefault()
+	EnsureInitialization(context)
+
+	// Act: Retrieve the singleton instance
+	manager, err := GetInstance()
+
+	// Assert
+	assert.NotNil(t, manager, "Manager instance should not be nil")
+	assert.Nil(t, err, "No error should be returned when manager is initialized")
+	assert.Equal(t, singletonInstance, manager, "Retrieved instance should match the singleton instance")
+}
+
+func TestGetInstance_Uninitialized(t *testing.T) {
+	// Reset singleton instance to simulate uninitialized state
+	originalSingleton := singletonInstance
+	defer func() { singletonInstance = originalSingleton }()
+	singletonInstance = nil
+
+	// Act: Attempt to retrieve instance
+	manager, err := GetInstance()
+
+	// Assert
+	assert.Nil(t, manager, "Manager should be nil when not initialized")
+	assert.NotNil(t, err, "Error should be returned when manager is not initialized")
+	assert.EqualError(t, err, "lrpm isn't initialized yet", "Error message should match expected")
+}
+
+func TestGetRegisteredPlugins_BasicRetrieval(t *testing.T) {
+	// Create a mock context
+	mockContext := contextmock.NewMockDefault()
+
+	// Ensure manager is initialized
+	EnsureInitialization(mockContext)
+
+	// Get the manager instance
+	manager, err := GetInstance()
+	assert.Nil(t, err)
+	assert.NotNil(t, manager)
+
+	// Retrieve registered plugins
+	registeredPlugins := manager.GetRegisteredPlugins()
+
+	// Verify that the returned map is not nil
+	assert.NotNil(t, registeredPlugins)
+}
+
+func TestModuleName_ReturnsCorrectName(t *testing.T) {
+	// Create a mock context for the manager
+	mockContext := contextmock.NewMockDefault()
+
+	// Ensure manager is initialized
+	EnsureInitialization(mockContext)
+
+	// Get the manager instance
+	manager, err := GetInstance()
+	assert.Nil(t, err, "Manager initialization should not return an error")
+
+	// Verify the module name
+	assert.Equal(t, Name, manager.ModuleName(),
+		"ModuleName should return the predefined constant Name")
+}
+
+func TestModuleExecute_NoRunningPlugins(t *testing.T) {
+	// Test scenario: No previously running plugins, no CloudWatch configuration
+	mockLog := logmocks.NewMockLog()
+	mockContext := contextmock.NewMockDefaultWithOwnLogMock(mockLog)
+
+	// Mock datastore to return empty map
+	mockDataStore := &MockedDataStore{}
+	mockDataStore.On("Read").Return(map[string]managerContracts.PluginInfo{}, nil)
+
+	manager := &Manager{
+		context:           mockContext,
+		dataStore:         mockDataStore,
+		runningPlugins:    map[string]managerContracts.PluginInfo{},
+		registeredPlugins: map[string]managerContracts.Plugin{},
+	}
+
+	// Execute and verify
+	err := manager.ModuleExecute()
+	assert.Nil(t, err)
+	mockLog.AssertNumberOfCalls(t, "Infof", 2)
+}
+
+func TestModuleExecute_DataStoreReadError(t *testing.T) {
+	// Test scenario: Error reading from datastore
+	mockLog := logmocks.NewMockLog()
+	mockContext := contextmock.NewMockDefaultWithOwnLogMock(mockLog)
+
+	// Mock datastore to return an error
+	mockDataStore := &MockedDataStore{}
+	mockDataStore.On("Read").Return(nil, errors.New("datastore read error"))
+
+	manager := &Manager{
+		context:           mockContext,
+		dataStore:         mockDataStore,
+		runningPlugins:    map[string]managerContracts.PluginInfo{},
+		registeredPlugins: map[string]managerContracts.Plugin{},
+	}
+
+	// Execute and verify
+	err := manager.ModuleExecute()
+	assert.Nil(t, err)
+
+	mockDataStore.AssertExpectations(t)
+	mockLog.AssertNumberOfCalls(t, "Errorf", 1)
+}
+
+func TestModuleExecute_RunningPluginWithNoConfig(t *testing.T) {
+	// Test scenario: Running plugin with no configuration
+	mockLog := logmocks.NewMockLog()
+	mockContext := contextmock.NewMockDefaultWithOwnLogMock(mockLog)
+
+	// Mock datastore to return a plugin with no configuration
+	mockDataStore := &MockedDataStore{}
+	mockDataStore.On("Read").Return(map[string]managerContracts.PluginInfo{
+		"TestPlugin": {Name: "TestPlugin", Configuration: ""},
+	}, nil)
+
+	manager := &Manager{
+		context:        mockContext,
+		dataStore:      mockDataStore,
+		runningPlugins: map[string]managerContracts.PluginInfo{},
+		registeredPlugins: map[string]managerContracts.Plugin{
+			"TestPlugin": {
+				Handler: &MockPluginHandler{},
+				Info:    managerContracts.PluginInfo{Name: "TestPlugin"},
+			},
+		},
+	}
+
+	// Execute and verify
+	err := manager.ModuleExecute()
+	assert.Nil(t, err)
+
+	mockDataStore.AssertExpectations(t)
+
+	mockLog.AssertNumberOfCalls(t, "Infof", 2)
+}
+
+func TestModuleStop_NormalShutdown(t *testing.T) {
+	// Setup
+	mockContext := contextmock.NewMockDefault()
+
+	// Create a manager instance with mocked dependencies
+	manager := &Manager{
+		context:           mockContext,
+		runningPlugins:    make(map[string]managerContracts.PluginInfo),
+		registeredPlugins: make(map[string]managerContracts.Plugin),
+	}
+
+	// Execute
+	err := manager.ModuleStop()
+
+	// Assertions
+	assert.Nil(t, err, "ModuleStop should complete without error")
+}
+
+func TestStopLongRunningPlugins_SuccessfulStop(t *testing.T) {
+	// Create a mock context
+	mockContext := contextmock.NewMockDefault()
+
+	// Create a mock manager with running plugins
+	manager := &Manager{
+		context: mockContext,
+		runningPlugins: map[string]managerContracts.PluginInfo{
+			"TestPlugin1": {Name: "TestPlugin1"},
+			"TestPlugin2": {Name: "TestPlugin2"},
+		},
+		registeredPlugins: map[string]managerContracts.Plugin{
+			"TestPlugin1": {
+				Handler: &MockPluginHandler{},
+				Info:    managerContracts.PluginInfo{Name: "TestPlugin1"},
+			},
+			"TestPlugin2": {
+				Handler: &MockPluginHandler{},
+				Info:    managerContracts.PluginInfo{Name: "TestPlugin2"},
+			},
+		},
+	}
+
+	// Expect Stop to be called on each plugin handler
+	mockHandler1 := manager.registeredPlugins["TestPlugin1"].Handler.(*MockPluginHandler)
+	mockHandler1.On("Stop", mock.Anything).Return(nil)
+
+	mockHandler2 := manager.registeredPlugins["TestPlugin2"].Handler.(*MockPluginHandler)
+	mockHandler2.On("Stop", mock.Anything).Return(nil)
+
+	// Call the method under test
+	manager.stopLongRunningPlugins()
+
+	// Assert that Stop was called on each plugin
+	mockHandler1.AssertExpectations(t)
+	mockHandler2.AssertExpectations(t)
+}
+
+func TestStopLongRunningPlugins_PartialStopFailure(t *testing.T) {
+	// Create a mock context
+	mockContext := contextmock.NewMockDefault()
+
+	// Create a mock manager with running plugins
+	manager := &Manager{
+		context: mockContext,
+		runningPlugins: map[string]managerContracts.PluginInfo{
+			"SuccessPlugin": {Name: "SuccessPlugin"},
+			"FailingPlugin": {Name: "FailingPlugin"},
+		},
+		registeredPlugins: map[string]managerContracts.Plugin{
+			"SuccessPlugin": {
+				Handler: &MockPluginHandler{},
+				Info:    managerContracts.PluginInfo{Name: "SuccessPlugin"},
+			},
+			"FailingPlugin": {
+				Handler: &MockPluginHandler{},
+				Info:    managerContracts.PluginInfo{Name: "FailingPlugin"},
+			},
+		},
+	}
+
+	// Setup mock handlers with different behaviors
+	successHandler := manager.registeredPlugins["SuccessPlugin"].Handler.(*MockPluginHandler)
+	successHandler.On("Stop", mock.Anything).Return(nil)
+
+	failingHandler := manager.registeredPlugins["FailingPlugin"].Handler.(*MockPluginHandler)
+	failingHandler.On("Stop", mock.Anything).Return(fmt.Errorf("stop failed"))
+
+	// Call the method under test
+	manager.stopLongRunningPlugins()
+
+	// Assert expectations
+	successHandler.AssertExpectations(t)
+	failingHandler.AssertExpectations(t)
+
+}
+
+func TestStopLongRunningPlugins_PanicRecovery(t *testing.T) {
+	// Create a mock context
+	mockContext := contextmock.NewMockDefault()
+
+	// Create a mock manager with a plugin that will cause a panic
+	manager := &Manager{
+		context: mockContext,
+		runningPlugins: map[string]managerContracts.PluginInfo{
+			"PanicPlugin": {Name: "PanicPlugin"},
+		},
+		registeredPlugins: map[string]managerContracts.Plugin{
+			"PanicPlugin": {
+				Handler: &MockPluginHandler{},
+				Info:    managerContracts.PluginInfo{Name: "PanicPlugin"},
+			},
+		},
+	}
+
+	// Setup mock handler to cause a panic
+	panicHandler := manager.registeredPlugins["PanicPlugin"].Handler.(*MockPluginHandler)
+	panicHandler.On("Stop", mock.Anything).Run(func(args mock.Arguments) {
+		panic("unexpected error")
+	})
+
+	// Call the method under test
+	manager.stopLongRunningPlugins()
+
+	// Assert that panic was logged and recovered
+	panicHandler.AssertExpectations(t)
+}
+
+func TestEnsurePluginRegistered_NewPlugin(t *testing.T) {
+	// Setup
+	context := contextmock.NewMockDefault()
+	manager := &Manager{
+		context: context,
+		registeredPlugins: map[string]managerContracts.Plugin{
+			"TestPlugin": {
+				Handler: &MockPluginHandler{},
+				Info:    managerContracts.PluginInfo{Name: "TestPlugin1"},
+			},
+		},
+	}
+
+	// Execute
+	err := manager.EnsurePluginRegistered("TestPlugin", manager.registeredPlugins["TestPlugin"])
+
+	// Assertions
+	assert.Nil(t, err)
+	assert.Len(t, manager.registeredPlugins, 1)
+	assert.Equal(t, manager.registeredPlugins["TestPlugin"], manager.registeredPlugins["TestPlugin"])
+}
+
+func TestConfigCloudWatch_NilInstanceID(t *testing.T) {
+	agentIdentity := identityMocks.IAgentIdentity{}
+	mockLog := logmocks.NewMockLog()
+	expectedError := errors.New("failed to get instance ID")
+
+	agentIdentity.On("InstanceID").Return("", expectedError)
+
+	context := contextmock.NewMockDefaultWithIdentityAndLog(&agentIdentity, mockLog)
+
+	manager := &Manager{
+		context: context,
+	}
+	manager.configCloudWatch()
+
+	mockLog.AssertNumberOfCalls(t, "Errorf", 1)
+}
+
 /*
  *	Mocks
  */
@@ -381,6 +718,23 @@ func (m *MockedCwcInstance) Disable() error {
 	return args.Error(0)
 }
 
+func (m *MockedCwcInstance) Stop(cancelFlag task.CancelFlag) error {
+	args := m.Called(cancelFlag)
+	return args.Error(0)
+}
+
+// Implement other required methods for the interface
+func (m *MockedCwcInstance) Start(configuration, orchestrationDir string, cancelFlag task.CancelFlag, out iohandler.IOHandler) error {
+	args := m.Called(configuration, orchestrationDir, cancelFlag, out)
+	return args.Error(0)
+}
+
+func (m *MockedCwcInstance) IsRunning() bool {
+	args := m.Called()
+	return args.Bool(0)
+
+}
+
 type MockedFileSysUtil struct {
 	mock.Mock
 }
@@ -418,4 +772,39 @@ type MockedEc2ConfigXmlParser struct {
 func (m *MockedEc2ConfigXmlParser) IsCloudWatchEnabled() (bool, error) {
 	args := m.Called()
 	return args.Bool(0), args.Error(1)
+}
+
+type MockedDataStore struct {
+	mock.Mock
+}
+
+func (m *MockedDataStore) Read() (map[string]managerContracts.PluginInfo, error) {
+	args := m.Called()
+	return args.Get(0).(map[string]managerContracts.PluginInfo), args.Error(1)
+}
+
+func (m *MockedDataStore) Write(pluginInfoMap map[string]managerContracts.PluginInfo) error {
+	args := m.Called(pluginInfoMap)
+	return args.Error(0)
+}
+
+type MockPluginHandler struct {
+	mock.Mock
+}
+
+func (m *MockPluginHandler) Stop(cancelFlag task.CancelFlag) error {
+	args := m.Called(cancelFlag)
+	return args.Error(0)
+}
+
+// Implement other required methods for the interface
+func (m *MockPluginHandler) Start(configuration, orchestrationDir string, cancelFlag task.CancelFlag, out iohandler.IOHandler) error {
+	args := m.Called(configuration, orchestrationDir, cancelFlag, out)
+	return args.Error(0)
+}
+
+func (m *MockPluginHandler) IsRunning() bool {
+	args := m.Called()
+	return args.Bool(0)
+
 }

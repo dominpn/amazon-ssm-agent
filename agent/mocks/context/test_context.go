@@ -105,6 +105,24 @@ func NewMockDefaultWithContext(context []string) *Mock {
 	return ctx
 }
 
+func NewMockDefaultWithIdentityAndLog(identity identity.IAgentIdentity, log log.T) *Mock {
+	ctx := new(Mock)
+	config := appconfig.SsmagentConfig{}
+	agentIdentity := identity
+	appconst := appconfig.AppConstants{
+		MinHealthFrequencyMinutes: appconfig.DefaultSsmHealthFrequencyMinutesMin,
+		MaxHealthFrequencyMinutes: appconfig.DefaultSsmHealthFrequencyMinutesMax,
+	}
+	ctx.On("Log").Return(log)
+	ctx.On("AppConfig").Return(config)
+	ctx.On("With", mock.AnythingOfType("string")).Return(ctx)
+	ctx.On("CurrentContext").Return([]string{})
+	ctx.On("Identity").Return(agentIdentity)
+	ctx.On("AppConstants").Return(&appconst)
+	return ctx
+
+}
+
 // AppConfig mocks the Config function.
 func (m *Mock) AppConfig() appconfig.SsmagentConfig {
 	args := m.Called()
