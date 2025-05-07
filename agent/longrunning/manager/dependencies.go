@@ -24,6 +24,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/longrunning/plugin"
 )
 
+var getDataStoreLocationFunc = getDataStoreLocation
+
 // dataStoreT defines the operations that manager uses to interact with its data-store
 type dataStoreT interface {
 	Write(data map[string]plugin.PluginInfo) error
@@ -38,16 +40,17 @@ type ds struct {
 
 // Write writes new data in the data-store
 func (d ds) Write(data map[string]plugin.PluginInfo) error {
-	location, fileName, err := getDataStoreLocation(d.context)
+	location, fileName, err := getDataStoreLocationFunc(d.context)
 	if err != nil {
 		return err
 	}
+
 	return d.dsImpl.Write(data, location, fileName)
 }
 
 // Read reads data from the data-store
 func (d ds) Read() (map[string]plugin.PluginInfo, error) {
-	_, fileName, err := getDataStoreLocation(d.context)
+	_, fileName, err := getDataStoreLocationFunc(d.context)
 	if err != nil {
 		return nil, err
 	}
