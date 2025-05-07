@@ -12,6 +12,7 @@ import (
 )
 
 var lrpName = appconfig.PluginNameCloudWatch
+var getInstance = GetInstance
 
 func CreateResult(msg string, status contracts.ResultStatus, res *contracts.PluginResult) {
 	res.Output = msg
@@ -37,7 +38,7 @@ func Invoke(context context.T, pluginID string, res *contracts.PluginResult, orc
 	res.StandardOutput = ""
 	res.Output = ""
 	log := context.Log()
-	lrpm, err = GetInstance()
+	lrpm, err = getInstance()
 	var pluginsMap = lrpm.GetRegisteredPlugins()
 	if _, ok := pluginsMap[lrpName]; !ok {
 		log.Errorf("Given plugin - %s is not registered", lrpName)
@@ -97,7 +98,6 @@ func enablePlugin(context context.T, orchestrationDirectory string, pluginID str
 	out := iohandler.NewDefaultIOHandler(context, ioConfig)
 	defer out.Close()
 	out.Init(appconfig.PluginNameCloudWatch)
-
 	//start the plugin with the new configuration
 	if err := lrpm.StartPlugin(lrpName, property, orchestrationDirectory, cancelFlag, out); err != nil {
 		log.Errorf("Unable to start the plugin - %s: %s", lrpName, err.Error())

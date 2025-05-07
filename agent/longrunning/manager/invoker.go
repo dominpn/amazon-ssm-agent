@@ -30,6 +30,8 @@ import (
 //todo: we are passing m.Context to p.Handler.Start & p.Handler.Stop -> we might want have to change StartPlugin and StopPlugin to accept context directly
 //todo: honor the cancel flag for both Start and Stop plugin functions
 
+var instance = cloudwatch.Instance()
+
 // StopPlugin stops a given plugin from executing
 func (m *Manager) StopPlugin(name string, cancelFlag task.CancelFlag) (err error) {
 
@@ -47,19 +49,19 @@ func (m *Manager) StopPlugin(name string, cancelFlag task.CancelFlag) (err error
 		if err = p.Handler.Stop(cancelFlag); err != nil {
 			// check if cloud watch exe process has been terminated manually
 			if p.Handler.IsRunning() {
+
 				log.Errorf("Failed to stop long running plugin - %s because of %s", name, err)
 				return
 			}
 		}
 		//remove the entry from the map of running plugins
 		delete(m.runningPlugins, name)
-
 		if err = m.dataStore.Write(m.runningPlugins); err != nil {
 			log.Errorf("Failed to update datastore - because of %s", err)
 		}
 
 		// Update the config file to "IsEnabled": "false"
-		if err = cloudwatch.Instance().Disable(); err != nil {
+		if err = instance.Disable(); err != nil {
 			log.Errorf("Failed to update config file - because of %s", err)
 		}
 
@@ -113,7 +115,8 @@ func (m *Manager) StartPlugin(name, configuration string, orchestrationDir strin
 	var engineConfigurationParser cloudwatch.EngineConfigurationParser
 	json.Unmarshal([]byte(p.Info.Configuration), &engineConfigurationParser)
 	log.Debugf("unmarshal engine configuration parser: %v", engineConfigurationParser)
-	if err = cloudwatch.Instance().Enable(engineConfigurationParser.EngineConfiguration); err != nil {
+	log.Debugf("instance is %v", cloudwatch.Instance().GetIsEnabled())
+	if err = instance.Enable(engineConfigurationParser.EngineConfiguration); err != nil {
 		log.Errorf("Failed to update config file - because of %s", err)
 	}
 
