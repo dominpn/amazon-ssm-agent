@@ -58,7 +58,7 @@ func TestOpenFile(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			filePath := filepath.Join(tempDir, tc.name)
-			file, err := OpenFile(filePath, tc.flag, tc.perm, tc.maxSize)
+			file, err := OpenFile(filePath, tc.flag, tc.perm, 5, tc.maxSize)
 
 			if tc.expectError {
 				assert.Error(t, err)
@@ -117,7 +117,7 @@ func TestWriteSizeLimitedLockedFile(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			filePath := filepath.Join(tempDir, tc.name)
-			file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, tc.maxSize)
+			file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, 5, tc.maxSize)
 			assert.NoError(t, err)
 			defer file.Close()
 
@@ -149,7 +149,7 @@ func TestMultipleWrites(t *testing.T) {
 	filePath := filepath.Join(tempDir, "multiple_writes")
 	maxSize := uint64(10)
 
-	file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, maxSize)
+	file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, 5, maxSize)
 	assert.NoError(t, err)
 	defer file.Close()
 
@@ -218,7 +218,7 @@ func TestWriteLock(t *testing.T) {
 	filePath := filepath.Join(tempDir, "lock_test_file")
 	writeData := []byte("test data")
 
-	lf, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644, 100*1024)
+	lf, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644, 5, 100*1024)
 	require.NoError(t, err)
 	defer func() {
 		err := lf.Close()
@@ -253,6 +253,54 @@ func TestWriteLock(t *testing.T) {
 	assert.Equal(t, append(writeData, writeData...), fileContent)
 }
 
+func TestWriteLockTimeout(t *testing.T) {
+	// Create a temporary directory for test files
+	tempDir, err := os.MkdirTemp("", "sizelimitedlockedfile-test")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	filePath := filepath.Join(tempDir, "lock_test_file")
+	writeData := []byte("test data")
+
+	lf, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644, 2, 100*1024)
+	require.NoError(t, err)
+	defer func() {
+		err := lf.Close()
+		require.NoError(t, err)
+	}()
+
+	otherHandle, err := os.Open(filePath)
+	require.NoError(t, err)
+	defer otherHandle.Close()
+
+	err = advisorylock.Lock(otherHandle)
+	require.NoError(t, err)
+	defer func() {
+		err = advisorylock.Unlock(otherHandle)
+		require.NoError(t, err)
+	}()
+
+	done := make(chan struct{})
+	go func() {
+		t.Helper()
+		defer close(done)
+		t.Log("Starting to write")
+		n, err := lf.Write(writeData)
+		assert.ErrorContains(t, err, "timed out when acquiring advisory lock for file")
+		assert.Equal(t, 0, n)
+	}()
+
+	logMsg := fmt.Sprintf("(fd = %d)", lf.f.Fd())
+	select {
+	case <-done:
+		t.Fatalf("%s did not block as expected", logMsg)
+	case <-time.After(1900 * time.Millisecond):
+		t.Logf("%s is blocked as expected", logMsg)
+	}
+
+	<-done
+}
+
 func TestClose(t *testing.T) {
 	// Create a temporary directory for test files
 	tempDir, err := os.MkdirTemp("", "sizelimitedlockedfile-test")
@@ -261,7 +309,7 @@ func TestClose(t *testing.T) {
 
 	filePath := filepath.Join(tempDir, "close_test")
 
-	file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, 1024)
+	file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, 5, 1024)
 	assert.NoError(t, err)
 
 	// Write some data
@@ -321,7 +369,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("Empty write", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "empty_write")
-		file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, 10)
+		file, err := OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644, 5, 10)
 		assert.NoError(t, err)
 		defer file.Close()
 
@@ -334,7 +382,7 @@ func TestEdgeCases(t *testing.T) {
 		nonExistentDir := filepath.Join(tempDir, "non-existent-dir")
 		filePath := filepath.Join(nonExistentDir, "test")
 
-		_, err := OpenFile(filePath, os.O_RDWR, 0644, 10) // Note: not using O_CREATE
+		_, err := OpenFile(filePath, os.O_RDWR, 0644, 5, 10) // Note: not using O_CREATE
 		assert.Error(t, err)
 	})
 }

@@ -14,7 +14,9 @@ package sizelimitedlockedfile
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/advisorylock"
 )
@@ -22,17 +24,18 @@ import (
 var errSizeLimitReached = errors.New("size limit reached")
 
 type File struct {
-	maxSize uint64
-	f       *os.File
+	lockTimeoutSeconds uint
+	maxSize            uint64
+	f                  *os.File
 }
 
 // OpenFile opens a file for which all Write operations are locked with an advisory lock and there is a limit on the file size.
-func OpenFile(name string, flag int, perm os.FileMode, maxSize uint64) (*File, error) {
+func OpenFile(name string, flag int, perm os.FileMode, lockTimeoutSeconds uint, maxSize uint64) (*File, error) {
 	f, err := os.OpenFile(name, flag, perm)
 	if err != nil {
 		return nil, err
 	}
-	return &File{maxSize, f}, nil
+	return &File{lockTimeoutSeconds, maxSize, f}, nil
 }
 
 // Fd is the same as [os.File.Fd]
@@ -42,9 +45,19 @@ func (lf *File) Fd() uintptr {
 
 // Write fails with an error if writing the given bytes would make the file bigger than the specified file limit.
 func (lf *File) Write(b []byte) (n int, err error) {
-	err = advisorylock.Lock(lf.f)
-	if err != nil {
-		return 0, err
+	doneLock := make(chan bool)
+	go func() {
+		err = advisorylock.Lock(lf.f)
+		close(doneLock)
+	}()
+
+	select {
+	case <-doneLock:
+		if err != nil {
+			return 0, err
+		}
+	case <-time.After(time.Duration(lf.lockTimeoutSeconds) * time.Second):
+		return 0, fmt.Errorf("timed out when acquiring advisory lock for file")
 	}
 	defer func() {
 		unlockErr := advisorylock.Unlock(lf.f)

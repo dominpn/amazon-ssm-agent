@@ -23,6 +23,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/advisorylock"
@@ -31,6 +32,10 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/telemetry/emitter"
 
 	"github.com/carlescere/scheduler"
+)
+
+const (
+	advisoryLockTimeoutSeconds = 5
 )
 
 type namespaceMessage struct {
@@ -133,7 +138,7 @@ func (c *consumer) processNamespaceFile(namespaceFile string) (err error) {
 	}
 	namespace := strings.Split(filepath.Base(namespaceFile), ".jsonl")[0]
 
-	nf, err := os.OpenFile(namespaceFile, os.O_RDWR, 0640)
+	nf, err := os.OpenFile(namespaceFile, os.O_RDWR, 0)
 	if err != nil {
 		return fmt.Errorf("could not open file for namespace %s: %v", namespace, err)
 	}
@@ -143,7 +148,19 @@ func (c *consumer) processNamespaceFile(namespaceFile string) (err error) {
 		}
 	}()
 
-	advisorylock.Lock(nf)
+	doneLock := make(chan bool)
+	go func() {
+		err = advisorylock.Lock(nf)
+		close(doneLock)
+	}()
+	select {
+	case <-doneLock:
+		if err != nil {
+			return err
+		}
+	case <-time.After(time.Duration(advisoryLockTimeoutSeconds) * time.Second):
+		return fmt.Errorf("timed out when acquiring advisory lock for file %s", namespaceFile)
+	}
 	defer advisorylock.Unlock(nf)
 
 	defer func() {

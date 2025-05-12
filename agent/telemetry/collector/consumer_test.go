@@ -198,7 +198,7 @@ func TestProcessNamespaceFile_InvalidJSON(t *testing.T) {
 	assert.Equal(t, int64(0), fi.Size())
 }
 
-// TestPoll_NonExistentDirectory makes sure that the processNamespaceFile method
+// TestProcessNamespaceFile_Locking makes sure that the processNamespaceFile method
 // acquires the advisory lock
 func TestProcessNamespaceFile_Locking(t *testing.T) {
 	// Setup
@@ -274,6 +274,51 @@ func TestProcessNamespaceFile_Locking(t *testing.T) {
 		t.Fatal("received unexpected message")
 	case <-time.After(10 * time.Millisecond):
 	}
+}
+
+// TestProcessNamespaceFile_LockingTimeout tests that the [advisorylock.Lock] times out
+// after [advisoryLockTimeoutSeconds].
+func TestProcessNamespaceFile_LockingTimeout(t *testing.T) {
+	// Setup
+	mockCtx := context.NewMockDefault()
+
+	consumer := newConsumer(mockCtx, 5)
+
+	// Create temporary test file
+	tmpDir := t.TempDir()
+	nsFile := filepath.Join(tmpDir, "test-namespace.jsonl")
+
+	f, err := os.OpenFile(nsFile, os.O_RDWR|os.O_CREATE, 0600)
+	assert.NoError(t, err)
+
+	// Create test message
+	testMessage := emitter.Message{
+		Type:    emitter.LOG,
+		Payload: "doesn't matter",
+	}
+
+	messageBytes, _ := json.Marshal(testMessage)
+	_, err = f.Write(append(messageBytes, '\n'))
+	assert.NoError(t, err)
+
+	advisorylock.RLock(f)
+	defer advisorylock.Unlock(f)
+
+	processingDone := make(chan struct{})
+	go func() {
+		t.Helper()
+		defer close(processingDone)
+		err := consumer.processNamespaceFile(nsFile)
+		assert.ErrorContains(t, err, "timed out when acquiring advisory lock for file")
+	}()
+
+	select {
+	case <-processingDone:
+		t.Fatal("Did not block as expected")
+	case <-time.After(4900 * time.Millisecond):
+	}
+
+	<-processingDone
 }
 
 // TestStart tests that start method starts the poll job

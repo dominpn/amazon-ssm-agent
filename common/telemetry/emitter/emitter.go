@@ -29,6 +29,7 @@ import (
 )
 
 const (
+	advisoryLockTimeoutSeconds = 5
 	preIngestionDirPermission  = 0750
 	preIngestionFilePermission = 0640
 )
@@ -119,7 +120,7 @@ func (e *emitter) openFileIfNeeded(namespace string) error {
 				return err
 			}
 		}
-		lf, err = sizelimitedlockedfile.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, preIngestionFilePermission, e.maxFileSize)
+		lf, err = sizelimitedlockedfile.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, preIngestionFilePermission, advisoryLockTimeoutSeconds, e.maxFileSize)
 		if err != nil {
 			return err
 		}
