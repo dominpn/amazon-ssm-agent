@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 echo "Run checkstyle script"
-
 # run gofmt
 echo "Run 'gofmt'"
 unformatted=$(gofmt -l `pwd`/agent/)
@@ -34,7 +33,7 @@ if [[ -n $unformatted ]]; then
 fi
 
 echo "Run 'goimports'"
-unformatted=$(Tools/bin/goimports -l `pwd`/agent/)
+unformatted=$(goimports -l `pwd`/agent/)
 if [[ -n $unformatted ]]; then
 	echo >&2 "Error: Found files not formatted by goimports"
 	for f in $unformatted; do
@@ -44,7 +43,7 @@ if [[ -n $unformatted ]]; then
 	exit 1
 fi
 
-unformatted=$(Tools/bin/goimports -l `pwd`/core/)
+unformatted=$(goimports -l `pwd`/core/)
 if [[ -n $unformatted ]]; then
 	echo >&2 "Error: Found files not formatted by goimports"
 	for f in $unformatted; do
@@ -54,7 +53,7 @@ if [[ -n $unformatted ]]; then
 	exit 1
 fi
 
-unformatted=$(Tools/bin/goimports -l `pwd`/common/)
+unformatted=$(goimports -l `pwd`/common/)
 if [[ -n $unformatted ]]; then
 	echo >&2 "Error: Found files not formatted by goimports"
 	for f in $unformatted; do

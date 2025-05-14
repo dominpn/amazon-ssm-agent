@@ -250,7 +250,7 @@ copy-package-dep: copy-src pre-build
 	$(COPY) -r $(GO_SPACE)/LICENSE $(GO_SPACE)/bin/package_dep/
 	$(COPY) -r $(GO_SPACE)/VERSION $(GO_SPACE)/bin/package_dep/
 
-	cd $(GO_SPACE) && zip -q -y -r $(GO_SPACE)/bin/gosrc.zip go.mod go.sum agent common core extra vendor && cd -
+	cd $(GO_SPACE) && zip -q -y -r $(GO_SPACE)/bin/gosrc.zip go.mod go.sum agent common core extra vendor makefile Tools && cd -
 
 .PHONY: remove-prepacked-folder
 remove-prepacked-folder:
