@@ -3,6 +3,8 @@ package dockercontainer
 import (
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/framework/processor/executer/iohandler"
 	iohandlermocks "github.com/aws/amazon-ssm-agent/agent/framework/processor/executer/iohandler/mock"
@@ -15,7 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/twinj/uuid"
-	"testing"
 )
 
 type CommandTester func(p *Plugin, mockCancelFlag *taskmocks.MockCancelFlag, mockExecuter *executers.MockCommandExecuter, mockIOHandler *iohandlermocks.MockIOHandler)

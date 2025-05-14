@@ -17,8 +17,9 @@ package utility
 
 import (
 	"fmt"
-	"github.com/aws/amazon-ssm-agent/agent/log"
 	"os/user"
+
+	"github.com/aws/amazon-ssm-agent/agent/log"
 )
 
 var (

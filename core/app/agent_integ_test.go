@@ -17,16 +17,17 @@
 package app
 
 import (
+	"net/http"
+	"os"
+	"testing"
+	"time"
+
 	logPkg "github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	identity2 "github.com/aws/amazon-ssm-agent/common/identity/identity"
 	"github.com/aws/amazon-ssm-agent/core/app/registrar"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"net/http"
-	"os"
-	"testing"
-	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"

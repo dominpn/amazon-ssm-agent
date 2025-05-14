@@ -19,10 +19,11 @@ package utility
 import (
 	"context"
 	"fmt"
-	"github.com/aws/amazon-ssm-agent/agent/log"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/aws/amazon-ssm-agent/agent/log"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 )

@@ -16,9 +16,10 @@
 package utility
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os/user"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_IsRunningElevatedPermissions_Success(t *testing.T) {

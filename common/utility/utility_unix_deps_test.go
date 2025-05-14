@@ -16,9 +16,10 @@
 package utility
 
 import (
-	"github.com/stretchr/testify/mock"
 	"io/fs"
 	"time"
+
+	"github.com/stretchr/testify/mock"
 )
 
 type MockFileInfo struct {

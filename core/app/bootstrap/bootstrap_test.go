@@ -17,6 +17,8 @@ import (
 	"errors"
 	"testing"
 
+	"runtime"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
@@ -27,7 +29,6 @@ import (
 	fileSystemMock "github.com/aws/amazon-ssm-agent/core/workerprovider/longrunningprovider/datastore/filesystem/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"runtime"
 )
 
 func TestBootstrap(t *testing.T) {

@@ -19,11 +19,12 @@ package verificationmanagers
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/setupcli/managers/common"
-	"io/ioutil"
-	"path/filepath"
 )
 
 var (

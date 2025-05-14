@@ -17,7 +17,6 @@ package utility
 
 import (
 	"fmt"
-	"github.com/aws/amazon-ssm-agent/agent/log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -25,6 +24,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/aws/amazon-ssm-agent/agent/log"
 )
 
 const (

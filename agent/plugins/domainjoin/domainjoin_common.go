@@ -17,6 +17,7 @@ package domainjoin
 
 import (
 	"fmt"
+
 	"github.com/google/shlex"
 )
 

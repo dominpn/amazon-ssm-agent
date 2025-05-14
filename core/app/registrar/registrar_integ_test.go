@@ -17,16 +17,17 @@
 package registrar
 
 import (
+	"net/http"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/ssm/authregister"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/mocks"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"sync"
-	"testing"
-	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/stretchr/testify/assert"

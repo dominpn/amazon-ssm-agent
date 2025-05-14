@@ -16,13 +16,14 @@
 package utility
 
 import (
-	mocklog "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"os"
 	"os/exec"
 	"os/user"
 	"syscall"
 	"testing"
 	"time"
+
+	mocklog "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 
 	"github.com/stretchr/testify/assert"
 )
