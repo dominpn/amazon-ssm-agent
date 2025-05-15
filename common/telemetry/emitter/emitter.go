@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -156,6 +157,13 @@ func (e *emitter) restartAutoCloseTimer(namespace string) {
 	go func() {
 		defer e.autoCloseTimersWg.Done()
 
+		defer func() {
+			if r := recover(); r != nil {
+				e.log.Warnf("Telemetry emitter auto-close map cleaner panic: %v", r)
+				e.log.Warnf("Stacktrace:\n%s", debug.Stack())
+			}
+		}()
+
 		// delete the entry from the map if it's the latest
 		defer func() {
 			e.autoCloseTimersMtx.Lock()
@@ -171,6 +179,13 @@ func (e *emitter) restartAutoCloseTimer(namespace string) {
 
 	// start the auto-close timer
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				e.log.Warnf("Telemetry emitter auto-close panic: %v", r)
+				e.log.Warnf("Stacktrace:\n%s", debug.Stack())
+			}
+		}()
+
 		defer close(a.done)
 
 		select {

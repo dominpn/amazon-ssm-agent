@@ -186,6 +186,13 @@ func (t *telemetry) emitIntegerMetric(namespace, name string, unit metric.Unit, 
 
 // emitTelemetryMessage emits the telemetry message using [emitter.Emitter]
 func (t *telemetry) emitTelemetryMessage(namespace string, message emitter.Message) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.context.Log().Warnf("Telemetry emitTelemetryMessage panic: %v", r)
+			t.context.Log().Warnf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
 	t.emitterMtx.Lock()
 	defer t.emitterMtx.Unlock()
 

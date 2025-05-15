@@ -103,12 +103,14 @@ func TestPoll_Success(t *testing.T) {
 	select {
 	case <-done:
 		// verify that the files are truncated
-		fi, err := os.Stat(ns1File)
-		assert.NoError(t, err)
-		assert.Equal(t, int64(0), fi.Size())
-		fi, err = os.Stat(ns2File)
-		assert.NoError(t, err)
-		assert.Equal(t, int64(0), fi.Size())
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			fi, err := os.Stat(ns1File)
+			assert.NoError(c, err)
+			assert.Equal(c, int64(0), fi.Size())
+			fi, err = os.Stat(ns2File)
+			assert.NoError(c, err)
+			assert.Equal(c, int64(0), fi.Size())
+		}, 200*time.Millisecond, 10*time.Millisecond)
 	case <-time.After(time.Second):
 		t.Fatal("Timeout waiting for message")
 	}
@@ -193,9 +195,11 @@ func TestProcessNamespaceFile_InvalidJSON(t *testing.T) {
 	}
 
 	// verify that the file is truncated
-	fi, err := os.Stat(nsFile)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(0), fi.Size())
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		fi, err := os.Stat(nsFile)
+		assert.NoError(c, err)
+		assert.Equal(c, int64(0), fi.Size())
+	}, 200*time.Millisecond, 10*time.Millisecond)
 }
 
 // TestProcessNamespaceFile_Locking makes sure that the processNamespaceFile method
@@ -258,10 +262,13 @@ func TestProcessNamespaceFile_Locking(t *testing.T) {
 	// processing should complete after the file is unlocked
 	select {
 	case <-done:
-		// verify that the file is truncated
-		fi, err := f.Stat()
-		assert.NoError(t, err)
-		assert.Equal(t, int64(0), fi.Size())
+		// needs some time for the run to finish
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			// verify that the file is truncated
+			fi, err := os.Stat(nsFile)
+			assert.NoError(c, err)
+			assert.Equal(c, int64(0), fi.Size())
+		}, 200*time.Millisecond, 10*time.Millisecond)
 	case <-time.After(time.Second):
 		t.Fatal("Unexpectedly still blocked")
 	}
@@ -415,10 +422,13 @@ func TestStop(t *testing.T) {
 
 	select {
 	case <-done:
-		// verify that the file is truncated
-		fi, err := os.Stat(nsFile)
-		assert.NoError(t, err)
-		assert.Equal(t, int64(0), fi.Size())
+		// needs some time for the run to finish
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			// verify that the file is truncated
+			fi, err := os.Stat(nsFile)
+			assert.NoError(c, err)
+			assert.Equal(c, int64(0), fi.Size())
+		}, 200*time.Millisecond, 10*time.Millisecond)
 	case <-time.After(10 * time.Millisecond):
 		t.Fatal("Poll did not stop as expected")
 	}
