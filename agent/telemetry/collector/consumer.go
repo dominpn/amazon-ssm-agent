@@ -148,18 +148,9 @@ func (c *consumer) processNamespaceFile(namespaceFile string) (err error) {
 		}
 	}()
 
-	doneLock := make(chan bool)
-	go func() {
-		err = advisorylock.Lock(nf)
-		close(doneLock)
-	}()
-	select {
-	case <-doneLock:
-		if err != nil {
-			return err
-		}
-	case <-time.After(time.Duration(advisoryLockTimeoutSeconds) * time.Second):
-		return fmt.Errorf("timed out when acquiring advisory lock for file %s", namespaceFile)
+	err = advisorylock.Lock(nf, time.Duration(advisoryLockTimeoutSeconds)*time.Second)
+	if err != nil {
+		return err
 	}
 	defer advisorylock.Unlock(nf)
 

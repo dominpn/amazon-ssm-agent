@@ -216,6 +216,7 @@ func TestProcessNamespaceFile_Locking(t *testing.T) {
 
 	f, err := os.OpenFile(nsFile, os.O_RDWR|os.O_CREATE, 0600)
 	assert.NoError(t, err)
+	defer f.Close()
 
 	// Create test message
 	testMessage := emitter.Message{
@@ -237,7 +238,8 @@ func TestProcessNamespaceFile_Locking(t *testing.T) {
 	}()
 
 	// acquire the lock
-	advisorylock.RLock(f)
+	err = advisorylock.RLock(f, time.Second)
+	assert.NoError(t, err)
 
 	processingDone := make(chan struct{})
 	go func() {
@@ -297,6 +299,7 @@ func TestProcessNamespaceFile_LockingTimeout(t *testing.T) {
 
 	f, err := os.OpenFile(nsFile, os.O_RDWR|os.O_CREATE, 0600)
 	assert.NoError(t, err)
+	defer f.Close()
 
 	// Create test message
 	testMessage := emitter.Message{
@@ -308,7 +311,8 @@ func TestProcessNamespaceFile_LockingTimeout(t *testing.T) {
 	_, err = f.Write(append(messageBytes, '\n'))
 	assert.NoError(t, err)
 
-	advisorylock.RLock(f)
+	err = advisorylock.RLock(f, time.Second)
+	assert.NoError(t, err)
 	defer advisorylock.Unlock(f)
 
 	processingDone := make(chan struct{})
@@ -316,7 +320,7 @@ func TestProcessNamespaceFile_LockingTimeout(t *testing.T) {
 		t.Helper()
 		defer close(processingDone)
 		err := consumer.processNamespaceFile(nsFile)
-		assert.ErrorContains(t, err, "timed out when acquiring advisory lock for file")
+		assert.ErrorContains(t, err, "timed out")
 	}()
 
 	select {
@@ -346,6 +350,7 @@ func TestStart(t *testing.T) {
 	nsFile := filepath.Join(emitter.TelemetryPreIngestionDir, "test-namespace.jsonl")
 	f, err := os.OpenFile(nsFile, os.O_RDWR|os.O_CREATE, 0600)
 	assert.NoError(t, err)
+	defer f.Close()
 
 	// Create test message
 	testMessage := emitter.Message{
@@ -367,6 +372,7 @@ func TestStart(t *testing.T) {
 	}()
 
 	consumer.start()
+	defer consumer.stop()
 
 	consumer.consumerJob.SkipWait <- true
 

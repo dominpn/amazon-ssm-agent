@@ -229,7 +229,7 @@ func TestWriteLock(t *testing.T) {
 	require.NoError(t, err)
 	defer otherHandle.Close()
 
-	err = advisorylock.Lock(otherHandle)
+	err = advisorylock.Lock(otherHandle, time.Second)
 	require.NoError(t, err)
 
 	join := verifyWriteBlocks(t, lf, writeData)
@@ -273,7 +273,7 @@ func TestWriteLockTimeout(t *testing.T) {
 	require.NoError(t, err)
 	defer otherHandle.Close()
 
-	err = advisorylock.Lock(otherHandle)
+	err = advisorylock.Lock(otherHandle, time.Second)
 	require.NoError(t, err)
 	defer func() {
 		err = advisorylock.Unlock(otherHandle)
@@ -286,7 +286,7 @@ func TestWriteLockTimeout(t *testing.T) {
 		defer close(done)
 		t.Log("Starting to write")
 		n, err := lf.Write(writeData)
-		assert.ErrorContains(t, err, "timed out when acquiring advisory lock for file")
+		assert.ErrorContains(t, err, "timed out")
 		assert.Equal(t, 0, n)
 	}()
 

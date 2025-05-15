@@ -25,13 +25,13 @@ import (
 
 func lockHelper(t *testing.T, f *os.File) {
 	t.Helper()
-	err := Lock(f)
+	err := Lock(f, time.Second)
 	require.NoError(t, err)
 }
 
 func rLockHelper(t *testing.T, f *os.File) {
 	t.Helper()
-	err := RLock(f)
+	err := RLock(f, time.Second)
 	require.NoError(t, err)
 }
 
@@ -151,12 +151,45 @@ func TestLockBlocksRLock(t *testing.T) {
 	unlockHelper(t, otherHandle)
 }
 
+func TestLockTimeout(t *testing.T) {
+	fileHandle := createTempFileHelper(t)
+	defer removeFileHelper(t, fileHandle)
+
+	otherHandle := openFileHelper(t, fileHandle.Name())
+	defer otherHandle.Close()
+
+	err := Lock(otherHandle, time.Second)
+	require.NoError(t, err)
+	defer func() {
+		err = Unlock(otherHandle)
+		require.NoError(t, err)
+	}()
+
+	done := make(chan struct{})
+	go func() {
+		t.Helper()
+		defer close(done)
+		err := Lock(fileHandle, 2*time.Second)
+		assert.ErrorContains(t, err, "timed out")
+	}()
+
+	logMsg := fmt.Sprintf("(fd = %d)", fileHandle.Fd())
+	select {
+	case <-done:
+		t.Fatalf("%s did not block as expected", logMsg)
+	case <-time.After(1900 * time.Millisecond):
+		t.Logf("%s is blocked as expected", logMsg)
+	}
+
+	<-done
+}
+
 func TestWrapErr(t *testing.T) {
 	fileHandle := createTempFileHelper(t)
 	removeFileHelper(t, fileHandle)
 
 	// try to lock a non existent file
-	err := Lock(fileHandle)
+	err := Lock(fileHandle, time.Second)
 	assert.Error(t, err)
 
 	pathErr := err.(*os.PathError)

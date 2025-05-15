@@ -14,7 +14,6 @@ package sizelimitedlockedfile
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"time"
 
@@ -45,19 +44,9 @@ func (lf *File) Fd() uintptr {
 
 // Write fails with an error if writing the given bytes would make the file bigger than the specified file limit.
 func (lf *File) Write(b []byte) (n int, err error) {
-	doneLock := make(chan bool)
-	go func() {
-		err = advisorylock.Lock(lf.f)
-		close(doneLock)
-	}()
-
-	select {
-	case <-doneLock:
-		if err != nil {
-			return 0, err
-		}
-	case <-time.After(time.Duration(lf.lockTimeoutSeconds) * time.Second):
-		return 0, fmt.Errorf("timed out when acquiring advisory lock for file")
+	err = advisorylock.Lock(lf.f, time.Duration(lf.lockTimeoutSeconds)*time.Second)
+	if err != nil {
+		return 0, err
 	}
 	defer func() {
 		unlockErr := advisorylock.Unlock(lf.f)

@@ -288,26 +288,29 @@ func (suite *TelemetryTestSuite) TestInt64Counter() {
 		}
 
 		metrics = append(metrics, expectedMetric)
+
+		// add some delay to ensure that the timestamps are distinct enough to be sorted
+		time.Sleep(2 * time.Millisecond)
 	}
 	assert.EventuallyWithT(suite.T(), func(c *assert.CollectT) {
-		assert.Len(suite.T(), me.GetAllMessages(), 1)
-		assert.Len(suite.T(), me.GetMessages("testNamespace"), len(metrics))
+		assert.Len(c, me.GetAllMessages(), 1)
+		assert.Len(c, me.GetMessages("testNamespace"), len(metrics))
 
 		receivedMetrics := make([]metric.Metric[int64], 0)
 		for i := range metrics {
 			msg := me.GetMessages("testNamespace")[i]
 			suite.T().Logf("TestInt64Counter: received message: %v", msg)
 
-			assert.Equal(suite.T(), emitter.METRIC, msg.Type)
+			assert.Equal(c, emitter.METRIC, msg.Type)
 
 			var actualMetric *metric.Metric[int64]
 			err := json.Unmarshal([]byte(msg.Payload), &actualMetric)
-			assert.Nil(suite.T(), err)
+			assert.Nil(c, err)
 
 			receivedMetrics = append(receivedMetrics, *actualMetric)
 		}
 
-		assert.Len(suite.T(), receivedMetrics, len(metrics))
+		assert.Len(c, receivedMetrics, len(metrics))
 
 		// the metrics may be received in any order, so we sort them before comparing
 		// to make the test deterministic
@@ -316,10 +319,10 @@ func (suite *TelemetryTestSuite) TestInt64Counter() {
 		})
 
 		for i, expectedMetric := range metrics {
-			assert.Equal(suite.T(), "testCounter", receivedMetrics[i].Name)
-			assert.Len(suite.T(), receivedMetrics[i].DataPoints, 1)
+			assert.Equal(c, "testCounter", receivedMetrics[i].Name)
+			assert.Len(c, receivedMetrics[i].DataPoints, 1)
 			dataPoint := receivedMetrics[i].DataPoints[0]
-			assert.Equal(suite.T(), expectedMetric.DataPoints[0].Value, dataPoint.Value)
+			assert.Equal(c, expectedMetric.DataPoints[0].Value, dataPoint.Value)
 		}
 	}, 2*time.Second, 5*time.Millisecond)
 

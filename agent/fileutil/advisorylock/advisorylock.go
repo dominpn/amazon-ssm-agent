@@ -15,17 +15,18 @@ package advisorylock
 import (
 	"io/fs"
 	"os"
+	"time"
 )
 
-// Lock locks the given file with an advisory WRITE lock, blocking until it can be
-// locked.
-func Lock(f *os.File) error {
-	return lock(f, writeLock)
+// Lock locks the given file with an advisory WRITE lock, blocking for maximum timeout time
+// until it can be locked.
+func Lock(f *os.File, timeout time.Duration) error {
+	return lock(f, writeLock, timeout)
 }
 
-// RLock locks the given file with an advisory READ lock, blocking until it can be locked.
-func RLock(f *os.File) error {
-	return lock(f, readLock)
+// RLock locks the given file with an advisory READ lock, blocking for maximum timeout time
+func RLock(f *os.File, timeout time.Duration) error {
+	return lock(f, readLock, timeout)
 }
 
 // Unlock removes an advisory lock placed on f by this process.

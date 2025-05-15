@@ -16,8 +16,10 @@
 package advisorylock
 
 import (
+	"errors"
 	"os"
 	"syscall"
+	"time"
 )
 
 type lockType int16
@@ -27,16 +29,25 @@ const (
 	writeLock lockType = syscall.LOCK_EX
 )
 
-func lock(f *os.File, lt lockType) (err error) {
+func lock(f *os.File, lt lockType, timeout time.Duration) (err error) {
+	startTime := time.Now()
 	for {
-		err = syscall.Flock(int(f.Fd()), int(lt))
-		if err != syscall.EINTR {
+		err = syscall.Flock(int(f.Fd()), int(lt)|syscall.LOCK_NB)
+		if err != syscall.EINTR && err != syscall.EWOULDBLOCK {
 			break
 		}
+
+		// Check if timeout has elapsed
+		if time.Since(startTime) > timeout {
+			return wrapErr(lt.String(), f, errors.New("timed out"))
+		}
+
+		// Sleep a bit before retrying to avoid CPU overload
+		time.Sleep(10 * time.Millisecond)
 	}
 	return wrapErr(lt.String(), f, err)
 }
 
 func unlock(f *os.File) error {
-	return lock(f, syscall.LOCK_UN)
+	return lock(f, syscall.LOCK_UN, 0)
 }

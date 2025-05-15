@@ -16,7 +16,9 @@
 package advisorylock
 
 import (
+	"errors"
 	"os"
+	"time"
 
 	"golang.org/x/sys/windows"
 )
@@ -33,9 +35,29 @@ const (
 	allBytes = ^uint32(0)
 )
 
-func lock(f *os.File, lt lockType) error {
+func lock(f *os.File, lt lockType, timeout time.Duration) (err error) {
 	ol := new(windows.Overlapped)
-	err := windows.LockFileEx(windows.Handle(f.Fd()), uint32(lt), reserved, allBytes, allBytes, ol)
+	startTime := time.Now()
+
+	for {
+		err = windows.LockFileEx(windows.Handle(f.Fd()), uint32(lt)|windows.LOCKFILE_FAIL_IMMEDIATELY, reserved, allBytes, allBytes, ol)
+		if err == nil {
+			break
+		}
+
+		if err != windows.ERROR_LOCK_VIOLATION {
+			return wrapErr(lt.String(), f, err)
+		}
+
+		// Check if timeout has elapsed
+		if time.Since(startTime) >= timeout {
+			return wrapErr(lt.String(), f, errors.New("timed out"))
+		}
+
+		// Sleep a bit before retrying to avoid CPU overload
+		time.Sleep(10 * time.Millisecond)
+	}
+
 	return wrapErr(lt.String(), f, err)
 }
 
