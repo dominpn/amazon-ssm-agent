@@ -66,7 +66,7 @@ func EvictCache() {
 func getDefaultConfiguration() DynamicConfiguration {
 	return DynamicConfiguration{
 		TelemetryDisabledTill: 0,
-		PercentageLimit:       5,
+		PercentageLimit:       1,
 		MaxRolls:              10,
 		MaxRollSize:           2048,
 		ExportPeriod:          5,
