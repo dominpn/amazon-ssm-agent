@@ -183,3 +183,283 @@ func TestAppendFormat(t *testing.T) {
 	assert.Contains(t, output.GetStdout(), testStringFormatted)
 	assert.Contains(t, output.GetStderr(), testStringFormatted)
 }
+
+func TestCloseWithBothWriters(t *testing.T) {
+	// Create a mock context
+	mockContext := context.NewMockDefault()
+
+	// Create a mock multi-writer for stdout
+	mockStdoutWriter := new(multiwritermock.MockDocumentIOMultiWriter)
+	mockStderrWriter := new(multiwritermock.MockDocumentIOMultiWriter)
+
+	// Set expectations for Close() method on both writers
+	mockStdoutWriter.On("Close").Return(nil)
+	mockStderrWriter.On("Close").Return(nil)
+
+	output := NewDefaultIOHandler(mockContext, contracts.IOConfiguration{})
+	output.StderrWriter = mockStderrWriter
+	output.StdoutWriter = mockStdoutWriter
+
+	// Create DefaultIOHandler with mock writers
+
+	// Call Close method
+	output.Close()
+
+	// Verify that Close was called on both writers
+	mockStdoutWriter.AssertCalled(t, "Close")
+	mockStderrWriter.AssertCalled(t, "Close")
+
+}
+
+func TestStringMethodWithSpecialExitCode(t *testing.T) {
+	// Test scenario where exit code is 168 (special success code)
+	output := DefaultIOHandler{
+		ExitCode: contracts.ExitWithSuccess,
+		stdout:   "Standard output message",
+		stderr:   "Error message that should be removed",
+	}
+
+	result := output.String()
+
+	// Verify that stderr is empty for this special exit code
+	assert.Equal(t, "Standard output message", result)
+}
+
+func TestSetOutputWithSimpleString(t *testing.T) {
+	// Create a mock context
+	mockContext := context.NewMockDefault()
+
+	// Create a new DefaultIOHandler
+	output := NewDefaultIOHandler(mockContext, contracts.IOConfiguration{})
+
+	// Set a simple string output
+	testOutput := "Test Output String"
+	output.SetOutput(testOutput)
+
+	// Verify the output is correctly set
+	assert.Equal(t, testOutput, output.GetOutput())
+}
+
+func TestSetOutputWithComplexType(t *testing.T) {
+	// Create a mock context
+	mockContext := context.NewMockDefault()
+
+	// Create a new DefaultIOHandler
+	output := NewDefaultIOHandler(mockContext, contracts.IOConfiguration{})
+
+	// Create a complex type (map)
+	testOutput := map[string]interface{}{
+		"key1": "value1",
+		"key2": 42,
+	}
+	output.SetOutput(testOutput)
+
+	// Verify the output is correctly set
+	assert.Equal(t, testOutput, output.GetOutput())
+}
+
+func TestSetOutputNil(t *testing.T) {
+	// Create a mock context
+	mockContext := context.NewMockDefault()
+
+	// Create a new DefaultIOHandler with some predefined stdout and stderr
+	output := NewDefaultIOHandler(mockContext, contracts.IOConfiguration{})
+	output.SetStdout("Standard Output")
+	output.SetStderr("Standard Error")
+
+	// Set nil output
+	output.SetOutput(nil)
+
+	// Verify the output falls back to stdout + stderr
+	expectedOutput := output.String()
+	assert.Equal(t, expectedOutput, output.GetOutput())
+}
+
+func TestSetStatusVariousStates(t *testing.T) {
+	// Test cases covering different result status scenarios
+	testCases := []struct {
+		name           string
+		inputStatus    contracts.ResultStatus
+		expectedStatus contracts.ResultStatus
+	}{
+		{
+			name:           "Set Status to Success",
+			inputStatus:    contracts.ResultStatusSuccess,
+			expectedStatus: contracts.ResultStatusSuccess,
+		},
+		{
+			name:           "Set Status to Failed",
+			inputStatus:    contracts.ResultStatusFailed,
+			expectedStatus: contracts.ResultStatusFailed,
+		},
+		{
+			name:           "Set Status to InProgress",
+			inputStatus:    contracts.ResultStatusInProgress,
+			expectedStatus: contracts.ResultStatusInProgress,
+		},
+		{
+			name:           "Set Status to Cancelled",
+			inputStatus:    contracts.ResultStatusCancelled,
+			expectedStatus: contracts.ResultStatusCancelled,
+		},
+		{
+			name:           "Set Status to SuccessAndReboot",
+			inputStatus:    contracts.ResultStatusSuccessAndReboot,
+			expectedStatus: contracts.ResultStatusSuccessAndReboot,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a new DefaultIOHandler
+			output := DefaultIOHandler{}
+
+			// Set the status
+			output.SetStatus(tc.inputStatus)
+
+			// Verify the status was set correctly
+			assert.Equal(t, tc.expectedStatus, output.Status,
+				"Status should match the input status")
+		})
+	}
+}
+
+func TestGetExitCodeDefault(t *testing.T) {
+	// Create a new DefaultIOHandler
+	output := DefaultIOHandler{
+		ExitCode: 0, // Default exit code
+	}
+
+	// Verify the exit code is retrieved correctly
+	assert.Equal(t, 0, output.GetExitCode(),
+		"GetExitCode should return the default exit code")
+}
+
+func TestGetIOConfigBasic(t *testing.T) {
+	// Create a mock context
+	mockContext := context.NewMockDefault()
+
+	// Define a sample IOConfiguration
+	sampleConfig := contracts.IOConfiguration{
+		OrchestrationDirectory: "/test/orchestration",
+		OutputS3BucketName:     "test-bucket",
+		OutputS3KeyPrefix:      "test-prefix",
+		CloudWatchConfig: contracts.CloudWatchConfiguration{
+			LogGroupName:    "test-log-group",
+			LogStreamPrefix: "test-stream-prefix",
+		},
+	}
+
+	// Create DefaultIOHandler with the sample configuration
+	output := NewDefaultIOHandler(mockContext, sampleConfig)
+
+	// Retrieve the IOConfig
+	retrievedConfig := output.GetIOConfig()
+
+	// Assert that the retrieved configuration matches the original
+	assert.Equal(t, sampleConfig, retrievedConfig, "Retrieved IOConfig should match the original configuration")
+}
+
+func TestGetStderrBasic(t *testing.T) {
+	// Create a new DefaultIOHandler
+	output := DefaultIOHandler{
+		stderr: "Sample error message",
+	}
+
+	// Verify stderr retrieval
+	assert.Equal(t, "Sample error message", output.GetStderr(),
+		"GetStderr should return the exact stderr string")
+}
+
+func TestGetStdoutWriter_Initialized(t *testing.T) {
+	// Create a mock context
+	mockContext := context.NewMockDefault()
+
+	// Create an IO configuration
+	ioConfig := contracts.IOConfiguration{
+		OrchestrationDirectory: "/test/path",
+	}
+
+	// Create a new DefaultIOHandler
+	output := NewDefaultIOHandler(mockContext, ioConfig)
+
+	// Initialize the handler
+	output.Init()
+
+	// Get the stdout writer
+	stdoutWriter := output.GetStdoutWriter()
+
+	// Assert that the writer is not nil
+	assert.NotNil(t, stdoutWriter, "GetStdoutWriter should return a non-nil writer")
+}
+
+func TestGetStderrWriterBasic(t *testing.T) {
+	// Create a mock context
+	mockContext := context.NewMockDefault()
+
+	// Create an IOConfiguration
+	ioConfig := contracts.IOConfiguration{
+		OrchestrationDirectory: "/test/path",
+	}
+
+	// Create a new DefaultIOHandler
+	output := NewDefaultIOHandler(mockContext, ioConfig)
+
+	// Initialize the handler to set up writers
+	output.Init()
+
+	// Get the stderr writer
+	stderrWriter := output.GetStderrWriter()
+
+	// Assert that the writer is not nil
+	assert.NotNil(t, stderrWriter, "StderrWriter should not be nil after initialization")
+}
+
+func TestSetExitCode_BasicScenario(t *testing.T) {
+	// Create a new DefaultIOHandler
+	output := DefaultIOHandler{}
+
+	// Set an exit code
+	testExitCode := 42
+	output.SetExitCode(testExitCode)
+
+	// Verify the exit code was set correctly
+	assert.Equal(t, testExitCode, output.ExitCode,
+		"SetExitCode should correctly set the exit code")
+}
+
+func TestMarkAsCancelled(t *testing.T) {
+	// Create a new DefaultIOHandler
+	output := DefaultIOHandler{}
+
+	// Call MarkAsCancelled
+	output.MarkAsCancelled()
+
+	// Verify exit code is set to 1
+	assert.Equal(t, output.ExitCode, 1, "Exit code should be set to 1 when cancelled")
+
+	// Verify status is set to Cancelled
+	assert.Equal(t, output.Status, contracts.ResultStatusCancelled, "Status should be set to Cancelled")
+
+	// Verify status properties
+	assert.False(t, output.Status.IsSuccess(), "Cancelled status should not be considered successful")
+	assert.False(t, output.Status.IsReboot(), "Cancelled status should not trigger reboot")
+}
+
+func TestMarkAsShutdown(t *testing.T) {
+	// Create a new DefaultIOHandler
+	output := DefaultIOHandler{}
+
+	// Call MarkAsShutdown
+	output.MarkAsShutdown()
+
+	// Verify exit code is set to 1
+	assert.Equal(t, output.ExitCode, 1, "Exit code should be 1 for shutdown")
+
+	// Verify status is set to Cancelled
+	assert.Equal(t, output.Status, contracts.ResultStatusCancelled, "Status should be Cancelled")
+
+	// Additional checks for shutdown state
+	assert.False(t, output.Status.IsSuccess(), "Shutdown status should not be considered successful")
+	assert.False(t, output.Status.IsReboot(), "Shutdown status should not trigger reboot")
+}

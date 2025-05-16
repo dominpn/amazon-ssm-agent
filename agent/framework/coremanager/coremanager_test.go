@@ -13,11 +13,14 @@
 package coremanager
 
 import (
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/agentlogstocloudwatch/cloudwatchlogspublisher"
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	moduleMock "github.com/aws/amazon-ssm-agent/agent/contracts/mocks"
 	"github.com/aws/amazon-ssm-agent/agent/framework/coremodules"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
@@ -31,11 +34,13 @@ import (
 // Setting up the CoreManagerTestSuite struct
 type CoreManagerTestSuite struct {
 	suite.Suite
-	contextMock *context.Mock
-	logMock     *log.Mock
-	coreManager ICoreManager
-	moduleMock  *moduleMock.ICoreModuleWrapper
-	rebootMock  *rebootMock.IRebootType
+	contextMock         *context.Mock
+	logMock             *log.Mock
+	coreManager         ICoreManager
+	moduleMock          *moduleMock.ICoreModuleWrapper
+	rebootMock          *rebootMock.IRebootType
+	coreModulesMock     coremodules.ModuleRegistry
+	cloudwatchPublisher *cloudwatchlogspublisher.CloudWatchPublisher
 }
 
 // Initialize mock struct and objects in test suite.
@@ -133,4 +138,87 @@ func (suite *CoreManagerTestSuite) TestCoreManager_Stop() {
 
 func TestCoreManagerTestSuite(t *testing.T) {
 	suite.Run(t, new(CoreManagerTestSuite))
+}
+
+func (suite *CoreManagerTestSuite) TestInitializeBookkeepingLocations() {
+
+	tests := []struct {
+		name            string
+		shortInstanceID string
+		setupFn         func(string) error
+		expectedResult  bool
+		expectedDirs    []string // List of directories that should exist
+	}{
+		{
+			name:            "Success case - all directories created",
+			shortInstanceID: "test-instance",
+			setupFn:         func(string) error { return nil },
+			expectedResult:  true,
+			expectedDirs: []string{
+				filepath.Join("test-instance", appconfig.DefaultDocumentRootDirName, appconfig.DefaultLocationOfState, appconfig.DefaultLocationOfPending),
+				filepath.Join("test-instance", appconfig.DefaultDocumentRootDirName, appconfig.DefaultLocationOfState, appconfig.DefaultLocationOfCurrent),
+				filepath.Join("test-instance", appconfig.DefaultDocumentRootDirName, appconfig.DefaultLocationOfState, appconfig.DefaultLocationOfCorrupt),
+				filepath.Join("test-instance", appconfig.LongRunningPluginsLocation, appconfig.LongRunningPluginDataStoreLocation),
+				filepath.Join("test-instance", appconfig.RepliesRootDirName),
+				filepath.Join("test-instance", appconfig.RepliesMGSRootDirName),
+				filepath.Join("test-instance", appconfig.LongRunningPluginsLocation, appconfig.LongRunningPluginsHealthCheck),
+				filepath.Join("test-instance", appconfig.InventoryRootDirName),
+				filepath.Join("test-instance", appconfig.InventoryRootDirName, appconfig.CustomInventoryRootDirName),
+				filepath.Join("test-instance", appconfig.InventoryRootDirName, appconfig.FileInventoryRootDirName),
+				filepath.Join("test-instance", appconfig.InventoryRootDirName, appconfig.RoleInventoryRootDirName),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			tempDir, err := os.MkdirTemp("", "test-bookkeeping-*")
+			if err != nil {
+				suite.T().Fatalf("Failed to create temp directory: %v", err)
+			}
+			defer os.RemoveAll(tempDir) // Clean up after test
+			// Create a temporary directory for testing
+
+			// Store original paths
+			originalDataStorePath := appconfig.DefaultDataStorePath
+
+			// Override paths for testing
+			appconfig.DefaultDataStorePath = tempDir
+
+			// Restore original paths after test
+			defer func() {
+				appconfig.DefaultDataStorePath = originalDataStorePath
+			}()
+
+			if err := tt.setupFn(tempDir); err != nil {
+				suite.T().Fatalf("Failed to setup test: %v", err)
+			}
+
+			// Run the function
+			result := initializeBookkeepingLocations(suite.logMock, tt.shortInstanceID)
+
+			// Verify result
+			suite.Equal(tt.expectedResult, result)
+
+			// Verify directories
+			for _, expectedDir := range tt.expectedDirs {
+				fullPath := filepath.Join(tempDir, expectedDir)
+				exists, err := directoryExists(fullPath)
+				suite.NoError(err)
+				suite.True(exists, "Directory should exist: %s", fullPath)
+			}
+		})
+	}
+}
+
+// Helper function to check if directory exists
+func directoryExists(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return info.IsDir(), nil
 }

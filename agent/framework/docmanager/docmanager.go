@@ -39,6 +39,14 @@ const (
 type validString func(string) bool
 type modifyString func(string) string
 
+var (
+	moveFileFunc          = fileutil.MoveFile
+	joinPathFunc          = filepath.Join
+	deleteFileFunc        = fileutil.DeleteFile
+	fileExistsFunc        = fileutil.Exists
+	getDirectoryNamesFunc = fileutil.GetDirectoryNames
+)
+
 type DocumentMgr interface {
 	MoveDocumentState(fileName, srcLocationFolder, dstLocationFolder string)
 	PersistDocumentState(fileName, locationFolder string, state contracts.DocumentState)
@@ -84,7 +92,7 @@ func (d *DocumentFileMgr) MoveDocumentState(fileName, srcLocationFolder, dstLoca
 		d.stateLocation,
 		dstLocationFolder)
 
-	if s, err := fileutil.MoveFile(fileName, absoluteSource, absoluteDestination); s && err == nil {
+	if s, err := moveFileFunc(fileName, absoluteSource, absoluteDestination); s && err == nil {
 		log.Debugf("moved file %v from %v to %v successfully", fileName, srcLocationFolder, dstLocationFolder)
 	} else {
 		log.Debugf("moving file %v from %v to %v failed with error %v", fileName, srcLocationFolder, dstLocationFolder, err)
@@ -98,8 +106,7 @@ func (d *DocumentFileMgr) PersistDocumentState(fileName, locationFolder string, 
 	if err != nil {
 		log.Errorf("Failed to get short instanceID for PersistDocumentState: %v", err)
 	}
-
-	absoluteFileName := path.Join(path.Join(d.dataStorePath,
+	absoluteFileName := joinPathFunc(joinPathFunc(d.dataStorePath,
 		instanceID,
 		d.rootDirName,
 		d.stateLocation,
@@ -134,7 +141,7 @@ func (d *DocumentFileMgr) GetDocumentState(fileName, locationFolder string) cont
 		d.stateLocation,
 		locationFolder)
 
-	absoluteFileName := path.Join(filepath, fileName)
+	absoluteFileName := joinPathFunc(filepath, fileName)
 
 	var commandState contracts.DocumentState
 	var count, retryLimit int = 0, 3
@@ -188,7 +195,7 @@ func (d *DocumentFileMgr) RemoveDocumentState(commandID, locationFolder string) 
 
 	absoluteFileName := docStateFileName(commandID, instanceID, locationFolder)
 
-	err = fileutil.DeleteFile(absoluteFileName)
+	err = deleteFileFunc(absoluteFileName)
 	if err != nil {
 		log.Errorf("encountered error %v while deleting file %v", err, absoluteFileName)
 	} else {
@@ -210,12 +217,12 @@ func DocumentStateDir(instanceID, locationFolder string) string {
 func orchestrationDir(instanceID, orchestrationRootDirName string, folderType string) string {
 	switch folderType {
 	case appconfig.DefaultSessionRootDirName:
-		return path.Join(appconfig.DefaultDataStorePath,
+		return joinPathFunc(appconfig.DefaultDataStorePath,
 			instanceID,
 			appconfig.DefaultSessionRootDirName,
 			orchestrationRootDirName)
 	default:
-		return path.Join(appconfig.DefaultDataStorePath,
+		return joinPathFunc(appconfig.DefaultDataStorePath,
 			instanceID,
 			appconfig.DefaultDocumentRootDirName,
 			orchestrationRootDirName)
@@ -228,12 +235,12 @@ func getOrchestrationDirectoryNames(log log.T, instanceID, orchestrationRootDirN
 	// Form the path for orchestration logs dir
 	orchestrationRootDir = orchestrationDir(instanceID, orchestrationRootDirName, folderType)
 
-	if !fileutil.Exists(orchestrationRootDir) {
+	if !fileExistsFunc(orchestrationRootDir) {
 		log.Debugf("Orchestration root directory doesn't exist: %v", orchestrationRootDir)
 		return orchestrationRootDir, []string{}, nil
 	}
 
-	dirNames, err = fileutil.GetDirectoryNames(orchestrationRootDir)
+	dirNames, err = getDirectoryNamesFunc(orchestrationRootDir)
 	return orchestrationRootDir, dirNames, err
 }
 
@@ -251,7 +258,7 @@ func isAssociationRunDirName(dirName string) (matched bool) {
 
 // cleanupAssociationDirectory cleans up association directory by deleting expired association run directories from it.
 func cleanupAssociationDirectory(log log.T, deletedCount int, commandOrchestrationPath string, retentionDurationHours int) (canDeleteDirectory bool, deletedCountAfter int) {
-	subdirNames, err := fileutil.GetDirectoryNames(commandOrchestrationPath)
+	subdirNames, err := getDirectoryNamesFunc(commandOrchestrationPath)
 	if err != nil {
 		log.Infof("Error reading association orchestration directory %v: %v", commandOrchestrationPath, err)
 		return false, deletedCount

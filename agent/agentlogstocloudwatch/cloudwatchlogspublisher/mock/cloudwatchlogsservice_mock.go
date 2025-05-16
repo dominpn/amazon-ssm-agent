@@ -13,7 +13,7 @@
 
 // cloudwatchlogspublisher_mock implements the mocks required for testing cloudwatchlogspublisher
 
-package cloudwatchlogspublisher_mock
+package cloudwatchlogspublisher
 
 import (
 	"github.com/aws/amazon-ssm-agent/agent/agentlogstocloudwatch/cloudwatchlogspublisher/cloudwatchlogsinterface"
