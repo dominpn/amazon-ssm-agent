@@ -146,13 +146,13 @@ func (suite *TelemetryTestSuite) Test_emitLogTruncates() {
 
 	now := time.Now()
 
-	err := telemetryInstance.emitLog("testNamespace", now, telemetrylog.ERROR, strings.Repeat("🙂", 350))
+	err := telemetryInstance.emitLog("testNamespace", now, telemetrylog.ERROR, strings.Repeat("🙂", 550))
 	assert.Nil(suite.T(), err)
 
 	expectedLogEntry := &telemetrylog.Entry{
 		Time:     now,
 		Severity: telemetrylog.ERROR,
-		Body:     strings.Repeat("🙂", 200),
+		Body:     strings.Repeat("🙂", 400),
 	}
 
 	entryJson, err := json.Marshal(expectedLogEntry)

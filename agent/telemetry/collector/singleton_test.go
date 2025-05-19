@@ -185,7 +185,7 @@ func (suite *singletonTestSuite) TestLogsAreTruncated() {
 	sentLogEntry := &telemetrylog.Entry{
 		Time:     now.UTC(),
 		Severity: telemetrylog.ERROR,
-		Body:     strings.Repeat("A🙂", 200),
+		Body:     strings.Repeat("A🙂", 400),
 	}
 	entryJson, err := json.Marshal(sentLogEntry)
 	assert.NoError(suite.T(), err)
@@ -201,7 +201,7 @@ func (suite *singletonTestSuite) TestLogsAreTruncated() {
 	assert.NoError(suite.T(), err)
 
 	expectedLogEntry := *sentLogEntry                 // make a copy
-	expectedLogEntry.Body = strings.Repeat("A🙂", 100) // 2 * 100 characters = 200 expected characters
+	expectedLogEntry.Body = strings.Repeat("A🙂", 200) // 2 * 200 characters = 400 expected characters
 
 	// skip the wait
 	singleton.consumer.consumerJob.SkipWait <- true

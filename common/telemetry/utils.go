@@ -13,7 +13,7 @@
 
 package telemetry
 
-const MaxLogBodySize = 200
+const MaxLogBodySize = 400
 
 func TruncateLog(logBody string) string {
 	bodyRune := []rune(logBody)
