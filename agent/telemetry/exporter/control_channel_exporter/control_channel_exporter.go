@@ -140,7 +140,8 @@ func tooSoontoExportTelemetry(log log.T, namespace string) bool {
 	lastEmittedDataStore := datastores.TelemetryLastEmittedDataStore()
 	lastEmittedTimeStamp := lastEmittedDataStore.Read(namespace)
 	exportPeriod := dynamicconfiguration.ExportPeriod(namespace)
-	checkResult := (time.Now().Unix() - lastEmittedTimeStamp) < int64(exportPeriod*60)
+	// Giving 5 seconds of grace period
+	checkResult := (time.Now().Unix() - lastEmittedTimeStamp) < int64(exportPeriod*60)-5
 	log.Debugf("TooSoonToExportTelemetry checkResult: %d", checkResult)
 	return checkResult
 }
