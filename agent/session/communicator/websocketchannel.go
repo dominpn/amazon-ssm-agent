@@ -79,8 +79,8 @@ func (webSocketChannel *WebSocketChannel) Initialize(context context.T,
 	region string,
 	signer *v4.Signer,
 	onMessageHandler func([]byte),
-	onErrorHandler func(error)) error {
-
+	onErrorHandler func(error),
+) error {
 	hostName := mgsconfig.GetMgsEndpoint(context, region)
 	if hostName == "" {
 		return fmt.Errorf("no MGS endpoint found")
@@ -128,7 +128,6 @@ func (webSocketChannel *WebSocketChannel) SetSubProtocol(subProtocol string) {
 
 // getV4SignatureHeader gets the signed header.
 func (webSocketChannel *WebSocketChannel) getV4SignatureHeader(log log.T, Url string) (http.Header, error) {
-
 	request, err := http.NewRequest("GET", Url, nil)
 
 	if webSocketChannel.Signer != nil {
@@ -149,7 +148,6 @@ func (webSocketChannel *WebSocketChannel) SetChannelToken(token string) {
 
 // Open upgrades the http connection to a websocket connection.
 func (webSocketChannel *WebSocketChannel) Open(log log.T, dialer *websocket.Dialer) error {
-
 	// initialize the write mutex
 	webSocketChannel.writeLock = &sync.Mutex{}
 
@@ -202,7 +200,7 @@ func (webSocketChannel *WebSocketChannel) Open(log log.T, dialer *websocket.Dial
 					webSocketChannel.OnError(err)
 					break
 				} else if retryCount >= mgsconfig.RetryAttempt {
-					log.Warnf("Reach the retry limit %v for receive messages. Error: %v", mgsconfig.RetryAttempt, err.Error())
+					log.TelemetryWarnf("Reach the retry limit %v for receive messages. Error: %v", mgsconfig.RetryAttempt, err.Error())
 					webSocketChannel.OnError(err)
 					break
 				}
@@ -215,7 +213,6 @@ func (webSocketChannel *WebSocketChannel) Open(log log.T, dialer *websocket.Dial
 			} else if messageType != websocket.TextMessage && messageType != websocket.BinaryMessage {
 				// We only accept text messages which are interpreted as UTF-8 or binary encoded text.
 				log.Errorf("Invalid message type %d. We only accept UTF-8 or binary encoded text", messageType)
-
 			} else {
 				retryCount = 0
 
@@ -229,7 +226,6 @@ func (webSocketChannel *WebSocketChannel) Open(log log.T, dialer *websocket.Dial
 
 // StartPings starts the pinging process to keep the websocket channel alive.
 func (webSocketChannel *WebSocketChannel) StartPings(log log.T, pingInterval time.Duration) {
-
 	go func(done chan bool) {
 		log.Info("Starting websocket pinger")
 		defer log.Info("Ending websocket pinger")
@@ -262,7 +258,6 @@ func (webSocketChannel *WebSocketChannel) StartPings(log log.T, pingInterval tim
 
 // Close closes the corresponding connection.
 func (webSocketChannel *WebSocketChannel) Close(log log.T) error {
-
 	log.Info("Closing websocket channel connection to: " + webSocketChannel.Url)
 
 	// Send signal to stop receiving message

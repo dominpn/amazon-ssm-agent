@@ -13,6 +13,14 @@
 package telemetrylog
 
 type TelemetryLog interface {
+	// TelemetryWarn formats message using the default formats for its operands
+	// , emits log telemetry, and writes to log with level Warn.
+	TelemetryWarn(v ...interface{}) error
+
+	// TelemetryWarnf formats message according to format specifier, emits log telemetry,
+	// and writes to log with level Warn.
+	TelemetryWarnf(format string, params ...interface{}) error
+
 	// TelemetryError formats message using the default formats for its operands
 	// , emits log telemetry, and writes to log with level Error.
 	TelemetryError(v ...interface{}) error

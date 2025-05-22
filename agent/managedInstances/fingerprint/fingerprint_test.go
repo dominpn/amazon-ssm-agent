@@ -114,11 +114,9 @@ func TestIsSimilarHardwareHash(t *testing.T) {
 			fmt.Sprintf("Test case %v did not return %t.", test, test.expected),
 		)
 	}
-
 }
 
 func TestIsSimilarHardwareHash_WritesFingerprintDiagnosticsInLog(t *testing.T) {
-
 	logger := NewFakeLog(1)
 
 	originalFingerprint := map[string]string{
@@ -214,7 +212,6 @@ func TestGenerateFingerprint_GenerateNewWhenNoneSaved(t *testing.T) {
 	// Assert
 	assert.NoError(t, err, "expected no error from the call")
 	assert.NotEmpty(t, actual, "expected the instance to generate a fingerprint")
-
 }
 
 func TestGenerateFingerprint_ReturnSavedWhenMatched(t *testing.T) {
@@ -247,7 +244,6 @@ func TestGenerateFingerprint_ReturnSavedWhenMatched(t *testing.T) {
 	// Assert
 	assert.NoError(t, err, "expected no error from the call")
 	assert.Equal(t, sampleFingerprint, actual, "expected the instance to generate a fingerprint")
-
 }
 
 func TestGenerateFingerprint_ReturnUpdated_WhenHardwareHashesDontMatch(t *testing.T) {
@@ -292,10 +288,10 @@ func TestGenerateFingerprint_ReturnsError_WhenInvalidCharactersInHardwareHash(t 
 	vaultMock := &fpFsVaultMock{}
 	vault = vaultMock
 
-	//Act
+	// Act
 	fingerprint, err := generateFingerprint(logmocks.NewMockLog())
 
-	//Assert
+	// Assert
 	assert.Error(t, err)
 	assert.Empty(t, fingerprint)
 }
@@ -359,7 +355,7 @@ func TestIsValidHardwareHash_ReturnsHashIsInvalid(t *testing.T) {
 	sampleHash := make(map[string]string)
 	sampleHash[hardwareID] = invalidUTF8String
 
-	//Act
+	// Act
 	isValid := isValidHardwareHash(sampleHash)
 
 	// Assert
@@ -434,7 +430,19 @@ func (f *fakeLog) Warn(v ...interface{}) error {
 	return errors.New("Warning: " + message)
 }
 
+func (f *fakeLog) TelemetryWarn(v ...interface{}) error {
+	message := concat(v...)
+	f.warnMessages = append(f.warnMessages, message)
+	return errors.New("Warning: " + message)
+}
+
 func (f *fakeLog) Warnf(format string, params ...interface{}) error {
+	message := fmt.Sprintf(format, params...)
+	f.warnMessages = append(f.warnMessages, message)
+	return errors.New("Warning: " + message)
+}
+
+func (f *fakeLog) TelemetryWarnf(format string, params ...interface{}) error {
 	message := fmt.Sprintf(format, params...)
 	f.warnMessages = append(f.warnMessages, message)
 	return errors.New("Warning: " + message)

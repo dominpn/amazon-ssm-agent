@@ -43,11 +43,11 @@ type Message struct {
 type MessagingBackend interface {
 	Accept() <-chan string
 	Stop() <-chan int
-	//Process a given datagram, should not be blocked
+	// Process a given datagram, should not be blocked
 	Process(string) error
-	//Sets input channel to nil.
+	// Sets input channel to nil.
 	Close()
-	//Sets stop channel to nil.
+	// Sets stop channel to nil.
 	CloseStop()
 	// Get backend state
 	GetBackendState() int32
@@ -101,11 +101,10 @@ func stopIdleInitWorkerBackend(log log.T, backend MessagingBackend) {
 // Messaging implements the duplex transmission between master and worker, it send datagram it received to data backend,
 // TODO ipc should not be destroyed within this worker, destroying ipc object should be done in its caller: Executer
 func Messaging(log log.T, ipc filewatcherbasedipc.IPCChannel, backend MessagingBackend, stopTimer chan bool) (err error) {
-
 	defer func() {
 		if msg := recover(); msg != nil {
-			log.Errorf("messaging worker panic: %v", msg)
-			log.Errorf("Stacktrace:\n%s", debug.Stack())
+			log.TelemetryErrorf("messaging worker panic: %v", msg)
+			log.TelemetryErrorf("Stacktrace:\n%s", debug.Stack())
 		}
 	}()
 
@@ -113,33 +112,33 @@ func Messaging(log log.T, ipc filewatcherbasedipc.IPCChannel, backend MessagingB
 	go stopIdleInitWorkerBackend(log, backend)
 	requestedStop := false
 	inboundClosed := false
-	//TODO add timer, if IPC is unresponsive to Close(), force return
+	// TODO add timer, if IPC is unresponsive to Close(), force return
 	for {
 		select {
 		case <-stopTimer:
-			log.Error("ipc messaging received timedout signal!")
+			log.TelemetryError("ipc messaging received timedout signal!")
 			err = errors.New("ipc messaging received timeout signal")
-			//messaging already timed out, close ipc and wait for done
+			// messaging already timed out, close ipc and wait for done
 			ipc.Close()
 
 		case signal, more := <-backend.Stop():
-			//stopChannel is closed, stop transmission
+			// stopChannel is closed, stop transmission
 			if !more {
 				ipc.Close()
 				backend.CloseStop()
 				break
 			}
-			//soft stop, safely close IPC
+			// soft stop, safely close IPC
 			if signal == stopTypeShutdown {
 				log.Info("requested shutdown, prepare to stop messaging")
 				requestedStop = true
-				//TODO add timer, and if inbound has not closed within a given period, force return
+				// TODO add timer, and if inbound has not closed within a given period, force return
 				if inboundClosed {
 					ipc.Close()
 				}
 				break
 			} else if signal == stopTypeTerminate {
-				//hard stop, remove the channel and force return
+				// hard stop, remove the channel and force return
 				log.Info("requested terminate messaging worker, destroying the channel")
 				ipc.Destroy()
 				return
@@ -153,26 +152,26 @@ func Messaging(log log.T, ipc filewatcherbasedipc.IPCChannel, backend MessagingB
 				// Set channel to nil by calling Close function. Receive on closed channel is non blocking
 				// and leads to endless loop causing cpu usage spike
 				backend.Close()
-				//if inbound channel from backend breaks, still continue messaging to send outbound messages
+				// if inbound channel from backend breaks, still continue messaging to send outbound messages
 				break
 			}
 
 			log.Debugf("sending datagram to %v: %v", ipc.GetPath(), datagram)
 			if err = ipc.Send(datagram); err != nil {
-				//this is fatal error, force return
+				// this is fatal error, force return
 				log.Errorf("failed to send message to ipc channel: %v", err)
 				return
 			}
 		case datagram, more := <-ipc.GetMessage():
 			if !more {
-				//safe close
+				// safe close
 				log.Debug("ipc channel closed, stop messaging worker")
 				return
 			}
 
 			log.Debugf("received datagram from %v: %v", ipc.GetPath(), datagram)
 			if err = backend.Process(datagram); err != nil {
-				//encountered error in databackend, it's up to the backend to decide whether close or not
+				// encountered error in databackend, it's up to the backend to decide whether close or not
 				log.Errorf("messaging pipeline process datagram encountered error: %v", err)
 			}
 

@@ -49,14 +49,13 @@ var channelCreator = func(log log.T, identity identity.IAgentIdentity, mode file
 }
 
 var processFinder = func(log log.T, procinfo contracts.OSProcInfo, executor executor.IExecutor) bool {
-	//If ProcInfo is not initailized
-	//pid 0 is reserved for kernel on both linux and windows, so the assumption is safe here
+	// If ProcInfo is not initailized
+	// pid 0 is reserved for kernel on both linux and windows, so the assumption is safe here
 	if procinfo.Pid == 0 {
 		return false
 	}
 
 	isRunning, err := executor.IsPidRunning(procinfo.Pid)
-
 	if err != nil {
 		log.Errorf("Failed to query for running process: %v", err)
 		return false
@@ -81,22 +80,23 @@ func NewOutOfProcExecuter(ctx context.T) *OutOfProcExecuter {
 // Run() prepare the ipc channel, create a data processing backend and start messaging with docment worker
 func (e *OutOfProcExecuter) Run(
 	cancelFlag task.CancelFlag,
-	docStore executer.DocumentStore) chan contracts.DocumentResult {
+	docStore executer.DocumentStore,
+) chan contracts.DocumentResult {
 	docState := docStore.Load()
 	e.docState = &docState
 	e.cancelFlag = cancelFlag
 	documentID := docState.DocumentInformation.DocumentID
 
-	//update context with the document id
+	// update context with the document id
 	e.ctx = e.ctx.With("[" + documentID + "]")
 	log := e.ctx.Log()
 
-	//stopTimer signals messaging routine to stop, it's buffered because it needs to exit if messaging is already stopped and not receiving anymore
+	// stopTimer signals messaging routine to stop, it's buffered because it needs to exit if messaging is already stopped and not receiving anymore
 	stopTimer := make(chan bool, 1)
-	//start prepare messaging
-	//if anything fails during the prep stage, use in-proc Runner
+	// start prepare messaging
+	// if anything fails during the prep stage, use in-proc Runner
 	ipc, err := e.initialize(stopTimer)
-	//save doc store immediately in case agent restarts.
+	// save doc store immediately in case agent restarts.
 	docStore.Save(*e.docState)
 
 	if err != nil {
@@ -105,16 +105,16 @@ func (e *OutOfProcExecuter) Run(
 
 		return e.BasicExecuter.Run(cancelFlag, docStore)
 	} else {
-		//create reply channel
+		// create reply channel
 		resChan := make(chan contracts.DocumentResult, len(e.docState.InstancePluginsInformation)+1)
-		//launch the messaging go-routine
+		// launch the messaging go-routine
 		go func(store executer.DocumentStore) {
 			defer func() {
 				if msg := recover(); msg != nil {
 					log.Errorf("Executer go-routine panic: %v", msg)
 					log.Errorf("Stacktrace:\n%s", debug.Stack())
 				}
-				//save the overall result and signal called that Executer is done
+				// save the overall result and signal called that Executer is done
 				store.Save(*e.docState)
 				log.Debug("Executer closed")
 				close(resChan)
@@ -131,18 +131,17 @@ func (e *OutOfProcExecuter) Run(
 // ipc worker and data backend act as 2 threads exchange raw json messages, and messaging protocol happened in data backend, data backend is self-contained and exit when command finishes accordingly
 // Executer however does hold a timer to the worker to forcefully termniate both of them
 func (e *OutOfProcExecuter) messaging(log log.T, ipc filewatcherbasedipc.IPCChannel, resChan chan contracts.DocumentResult, cancelFlag task.CancelFlag, stopTimer chan bool) {
-
 	// backup current time in case outofproc execution failed and cannot correctly return PluginResult
 	backupStartTime := time.Now()
 
-	//handoff reply functionalities to data backend.
+	// handoff reply functionalities to data backend.
 	backend := messaging.NewExecuterBackend(log, resChan, e.docState, cancelFlag)
 
-	//handoff the data backend to messaging worker
+	// handoff the data backend to messaging worker
 	if err := messaging.Messaging(log, ipc, backend, stopTimer); err != nil {
-		//the messaging worker encountered error, either ipc run into error or data backend throws error
-		log.Errorf("messaging worker encountered error: %v", err)
-		log.Errorf("document state during messaging worker error: %v", e.docState.DocumentInformation.DocumentStatus)
+		// the messaging worker encountered error, either ipc run into error or data backend throws error
+		log.TelemetryErrorf("messaging worker encountered error: %v", err)
+		log.TelemetryErrorf("document state during messaging worker error: %v", e.docState.DocumentInformation.DocumentStatus)
 		if e.docState.DocumentInformation.DocumentStatus == contracts.ResultStatusInProgress ||
 			e.docState.DocumentInformation.DocumentStatus == "" ||
 			e.docState.DocumentInformation.DocumentStatus == contracts.ResultStatusNotStarted ||
@@ -152,7 +151,7 @@ func (e *OutOfProcExecuter) messaging(log log.T, ipc filewatcherbasedipc.IPCChan
 			errMsg := fmt.Sprintf("document process failed unexpectedly: %s , check [ssm-document-worker]/[ssm-session-worker] log for crash reason", err)
 			resChan <- e.generateUnexpectedFailResult(errMsg, backupStartTime)
 		}
-		//destroy the channel
+		// destroy the channel
 		ipc.Destroy()
 	}
 }
@@ -197,7 +196,7 @@ func (e *OutOfProcExecuter) initialize(stopTimer chan bool) (ipc filewatcherbase
 	ipc, err, found = channelCreator(log, e.ctx.Identity(), filewatcherbasedipc.ModeMaster, documentID)
 
 	if err != nil {
-		log.Errorf("failed to create ipc channel: %v", err)
+		log.TelemetryErrorf("failed to create ipc channel: %v", err)
 		return
 	}
 	if found {
@@ -208,7 +207,7 @@ func (e *OutOfProcExecuter) initialize(stopTimer chan bool) (ipc filewatcherbase
 			log.Infof("found orphan process: %v, start time: %v", procInfo.Pid, procInfo.StartTime)
 			stopTime = defaultOrphanProcessTimeout
 		} else {
-			log.Infof("process: %v not found, treat as exited", procInfo.Pid)
+			log.TelemetryWarnf("process: %v not found, treat as exited", procInfo.Pid)
 			stopTime = defaultZombieProcessTimeout
 		}
 		go timeoutOrCancel(stopTimer, stopTime, e.cancelFlag)
@@ -223,7 +222,7 @@ func (e *OutOfProcExecuter) initialize(stopTimer chan bool) (ipc filewatcherbase
 		var process proc.OSProcess
 		if process, err = processCreator(workerName, []string{documentID}); err != nil {
 			log.Errorf("start process: %v error: %v", workerName, err)
-			//make sure close the channel
+			// make sure close the channel
 			ipc.Destroy()
 			return
 		} else {
@@ -233,7 +232,7 @@ func (e *OutOfProcExecuter) initialize(stopTimer chan bool) (ipc filewatcherbase
 			Pid:       process.Pid(),
 			StartTime: process.StartTime(),
 		}
-		//TODO add command timeout as well, in case process get stuck
+		// TODO add command timeout as well, in case process get stuck
 		go e.WaitForProcess(stopTimer, process)
 
 	}
@@ -266,13 +265,13 @@ func (e *OutOfProcExecuter) WaitForProcess(stopTimer chan bool, process proc.OSP
 	} else {
 		log.Debugf("process: %v exited successfully, trying to stop messaging worker", process.Pid())
 	}
-	//waitReturned = true
+	// waitReturned = true
 	timeout(stopTimer, defaultZombieProcessTimeout)
 }
 
 func timeoutOrCancel(stopTimer chan bool, duration time.Duration, cancelFlag task.CancelFlag) {
 	stopChan := make(chan bool, 1)
-	//TODO refactor cancelFlag.Wait() to return channel instead of blocking call
+	// TODO refactor cancelFlag.Wait() to return channel instead of blocking call
 	go func() {
 		cancelFlag.Wait()
 		stopChan <- true

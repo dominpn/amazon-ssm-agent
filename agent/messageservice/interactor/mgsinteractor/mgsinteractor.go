@@ -323,8 +323,8 @@ func (mgs *MGSInteractor) listenIncomingAgentMessages() {
 	defer func() {
 		log.Debug("listen incoming messages thread in MGS interactor ended")
 		if r := recover(); r != nil {
-			log.Errorf("listen incoming messages panic: \n%v", r)
-			log.Errorf("Stacktrace:\n%s", debug.Stack())
+			log.TelemetryErrorf("listen incoming messages panic: \n%v", r)
+			log.TelemetryErrorf("Stacktrace:\n%s", debug.Stack())
 			time.Sleep(2 * time.Second)
 			go mgs.listenIncomingAgentMessages()
 		}

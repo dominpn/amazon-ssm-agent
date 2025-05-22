@@ -42,7 +42,6 @@ type Wrapper struct {
 
 // FormatFilter can modify the format and or parameters to be passed to a logger.
 type FormatFilter interface {
-
 	// Filter modifies parameters that will be passed to log.Debug, log.Info, etc.
 	Filter(params ...interface{}) (newParams []interface{})
 
@@ -110,6 +109,19 @@ func (w *Wrapper) Warnf(format string, params ...interface{}) error {
 
 	w.M.RLock()
 	defer w.M.RUnlock()
+	return w.Delegate.BaseLoggerInstance.Warnf(format, params...)
+}
+
+// TelemetryWarnf emits log telemetry and formats message according to format specifier
+// and writes to log with level = Warn.
+func (w *Wrapper) TelemetryWarnf(format string, params ...interface{}) error {
+	format, params = w.Format.Filterf(format, params...)
+
+	w.M.RLock()
+	defer w.M.RUnlock()
+
+	w.emitTelemetryLogf(telemetryLog.WARN, format, params...)
+
 	return w.Delegate.BaseLoggerInstance.Warnf(format, params...)
 }
 
@@ -198,6 +210,19 @@ func (w *Wrapper) Warn(v ...interface{}) error {
 	return w.Delegate.BaseLoggerInstance.Warn(v...)
 }
 
+// TelemetryWarn emits log telemetry and formats message using the default formats for its operands
+// and writes to log with level Warn.
+func (w *Wrapper) TelemetryWarn(v ...interface{}) error {
+	v = w.Format.Filter(v...)
+
+	w.M.RLock()
+	defer w.M.RUnlock()
+
+	w.emitTelemetryLog(telemetryLog.WARN, v...)
+
+	return w.Delegate.BaseLoggerInstance.Warn(v...)
+}
+
 // Error formats message using the default formats for its operands
 // and writes to log with level = Error
 func (w *Wrapper) Error(v ...interface{}) error {
@@ -281,8 +306,8 @@ func (w *Wrapper) Close() {
 	if w.EventLogger == nil {
 		return
 	}
-	//Will revisit later
-	//w.EventLogger.Close()
+	// Will revisit later
+	// w.EventLogger.Close()
 }
 
 // Closed checks if logger is closed
