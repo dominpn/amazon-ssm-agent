@@ -1,6 +1,14 @@
 Latest
 ===============
 - Improve unit tests
+- Add setup for emitting telemetry logs and metrics
+- Add initial selection of error logs to emit to telemetry
+- Simplify checkstyle and import organization in build scripts
+- Update golang.org/x/net from v0.37.0 to v0.38.0
+
+3.3.2471.0
+===============
+- Improve unit tests
 - Agent hibernation reason is logged to EC2 system logs
 - Add metrics for the EC2Detector and IMDS EC2 status findings
 - Change Linux DomainJoin plugin parameter KeepHostName to accept both boolean and string
