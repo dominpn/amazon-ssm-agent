@@ -134,7 +134,7 @@ func readCurrentDynamicConfiguration(log log.T, configFilePath string) (configMa
 
 	configBytes, err := os.ReadFile(configFilePath)
 	if err != nil {
-		log.Errorf("Error reading dynamic configuration file:", err)
+		log.Warnf("Unable to reading dynamic configuration file:", err)
 		return nil, err
 	}
 	// Parse the JSON data into a map
@@ -200,7 +200,6 @@ func replaceDynamicConfiguration(log log.T, configFilePath string) {
 	log.Debug("Dynamic configuration file updated. Replacing old configuration by updating cache")
 
 	dynamicConfiguration, err := readCurrentDynamicConfiguration(log, configFilePath)
-
 	if err != nil {
 		log.Errorf("Failed to read dynamic configuration file, skipping cache update: %v", err)
 		return
