@@ -36,8 +36,10 @@ const (
 	maxOrchestrationDirectoryDeletions int = 1000
 )
 
-type validString func(string) bool
-type modifyString func(string) string
+type (
+	validString  func(string) bool
+	modifyString func(string) string
+)
 
 var (
 	moveFileFunc          = fileutil.MoveFile
@@ -97,7 +99,6 @@ func (d *DocumentFileMgr) MoveDocumentState(fileName, srcLocationFolder, dstLoca
 	} else {
 		log.Debugf("moving file %v from %v to %v failed with error %v", fileName, srcLocationFolder, dstLocationFolder, err)
 	}
-
 }
 
 func (d *DocumentFileMgr) PersistDocumentState(fileName, locationFolder string, state contracts.DocumentState) {
@@ -146,8 +147,14 @@ func (d *DocumentFileMgr) GetDocumentState(fileName, locationFolder string) cont
 	var commandState contracts.DocumentState
 	var count, retryLimit int = 0, 3
 
-	if fileExists, _ := fileutil.LocalFileExist(absoluteFileName); !fileExists {
-		log.Warnf("file not found in the docState directory %v", absoluteFileName)
+	isPrivileged, err := fileutil.IsPrivilegedAccessOnly(absoluteFileName)
+	if !isPrivileged {
+		if os.IsNotExist(err) {
+			log.Errorf("file does not exist: %v", absoluteFileName)
+		} else {
+			log.Errorf("file has incorrect access privilege: %v, error: %v", absoluteFileName, err)
+		}
+		d.MoveDocumentState(fileName, locationFolder, appconfig.DefaultLocationOfCorrupt)
 		return commandState
 	}
 
@@ -160,7 +167,7 @@ func (d *DocumentFileMgr) GetDocumentState(fileName, locationFolder string) cont
 			time.Sleep(500 * time.Millisecond)
 			continue
 		} else {
-			//logging interim state as read from the file
+			// logging interim state as read from the file
 			jsonString, err := jsonutil.Marshal(commandState)
 			if err != nil {
 				log.Errorf("encountered error with message %v while marshalling %v to string", err, commandState)
@@ -179,7 +186,6 @@ func (d *DocumentFileMgr) GetDocumentState(fileName, locationFolder string) cont
 
 			d.MoveDocumentState(fileName, locationFolder, appconfig.DefaultLocationOfCorrupt)
 		}
-
 	}
 
 	return commandState
@@ -317,9 +323,11 @@ func isLegacyAssociationDirectory(log log.T, commandOrchestrationPath string) (b
 }
 
 // Global variables to throttle the impact of constantly rechecking the stale orchestration files
-var cleanupLock sync.Mutex
-var inCleanup = make(map[string]bool)
-var nextCleanup = make(map[string]time.Time) // okay that these will default to start of epoch
+var (
+	cleanupLock sync.Mutex
+	inCleanup   = make(map[string]bool)
+	nextCleanup = make(map[string]time.Time) // okay that these will default to start of epoch
+)
 
 func getLock(name string) bool {
 	cleanupLock.Lock()
@@ -404,7 +412,6 @@ func DeleteOldOrchestrationDirectories(log log.T, instanceID, orchestrationRootD
 
 	updateTime(orchestrationRootDirName)
 	log.Debugf("Completed orchestration directory clean up of %v items", deletedCount)
-
 }
 
 // DeleteSessionOrchestrationDirectories deletes expired orchestration directories based on session retentionDurationHours.
@@ -470,7 +477,6 @@ func DeleteSessionOrchestrationDirectories(log log.T, instanceID, orchestrationR
 // isOlderThan checks whether the file is older than the retention duration
 func isOlderThan(log log.T, fileFullPath string, retentionDurationHours int) bool {
 	modificationTime, err := fileutil.GetFileModificationTime(fileFullPath)
-
 	if err != nil {
 		log.Debugf("Failed to get modification time %v", err)
 		return false

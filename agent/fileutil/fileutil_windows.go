@@ -18,6 +18,7 @@
 package fileutil
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 	"unsafe"
@@ -62,6 +63,17 @@ func GetDiskSpaceInfo() (diskSpaceInfo DiskSpaceInfo, err error) {
 		FreeBytes:  freeBytes,
 		TotalBytes: totalBytes,
 	}, nil
+}
+
+func IsPrivilegedAccessOnly(path string) (bool, error) {
+	if !Exists(path) {
+		return false, os.ErrNotExist
+	}
+
+	if hasHardenedACL(path) {
+		return true, nil
+	}
+	return false, fmt.Errorf("file does not have correct access permissions")
 }
 
 // HardenDataFolder sets permission of %PROGRAM_DATA% folder for Windows. In
