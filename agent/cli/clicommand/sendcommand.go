@@ -33,6 +33,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	"github.com/aws/amazon-ssm-agent/common/utility"
 	"github.com/twinj/uuid"
 )
 
@@ -89,6 +90,11 @@ func (c *SendOfflineCommand) Execute(subcommands []string, parameters map[string
 	// return validation errors if any were found
 	if len(validation) > 0 {
 		return errors.New(strings.Join(validation, "\n")), ""
+	}
+
+	err := utility.IsRunningElevatedPermissions()
+	if err != nil {
+		return err, ""
 	}
 
 	agentIdentity, err := cliutil.GetAgentIdentity()
@@ -163,7 +169,7 @@ func (SendOfflineCommand) loadContent(agentIdentity identity.IAgentIdentity, raw
 		err := json.Unmarshal([]byte(rawContent), &content)
 		return err, content
 	}
-	var url = rawContent
+	url := rawContent
 	// TODO:MF: Write a URI loader utility - artifact really doesn't do that job
 	if strings.HasPrefix(strings.ToLower(url), "file://") {
 		url = url[7:]
