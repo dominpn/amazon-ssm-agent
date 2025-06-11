@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"sync"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -156,23 +157,47 @@ var GetDynamicConfigFolderPath = func() string {
 	return appconfig.DynamicConfigFolderPath
 }
 
-func saveDynamicConfiguration(log log.T, configMap NamespaceConfiguration, configFilePath string) error {
-	err := os.MkdirAll(GetDynamicConfigFolderPath(), 0755)
+func saveDynamicConfiguration(log log.T, configMap NamespaceConfiguration, configFilePath string) (err error) {
+	err = os.MkdirAll(GetDynamicConfigFolderPath(), 0700)
 	if err != nil {
 		log.Errorf("Failed to create directory: %v", err)
+		return
 	}
 
 	configBytes, err := json.Marshal(configMap)
 	if err != nil {
 		log.Errorf("Error marshaling dynamic configuration map:", err)
-		return err
+		return
 	}
 	err = os.WriteFile(configFilePath, configBytes, 0600)
 	if err != nil {
 		log.Errorf("Error saving dynamic configuration file to disk:", err)
-		return err
+		return
 	}
 	return nil
+}
+
+func hardenDynamicConfigFolderPermissions(log log.T) {
+	// Skip on windows as the permission system is different
+	// And already hardened recursively at SSMDataPath level
+	if runtime.GOOS == "windows" {
+		return
+	}
+	folderPath := GetDynamicConfigFolderPath()
+	info, err := os.Stat(folderPath)
+	if err != nil {
+		log.Errorf("Failed to stat dynamic config folder: %v", err)
+		return
+	}
+
+	currentPerms := info.Mode().Perm()
+	if currentPerms != 0700 {
+		log.Warnf("Updating dynamic config folder permissions from %o to 0700", currentPerms)
+		err = os.Chmod(folderPath, 0700)
+		if err != nil {
+			log.Errorf("Failed to harden dynamic config folder permissions: %v", err)
+		}
+	}
 }
 
 func getInitialDynamicConfiguration(log log.T, configFilePath string) NamespaceConfiguration {
@@ -181,6 +206,8 @@ func getInitialDynamicConfiguration(log log.T, configFilePath string) NamespaceC
 		// Either file does not exist or corrupted config failed to be deserialized to in-memory map
 		dynamicConfiguration = populateDynamicConfigurationWithDefaults()
 		saveDynamicConfiguration(log, dynamicConfiguration, configFilePath)
+	} else {
+		hardenDynamicConfigFolderPermissions(log)
 	}
 	return dynamicConfiguration
 }
