@@ -46,6 +46,7 @@ var (
 	joinPathFunc          = filepath.Join
 	deleteFileFunc        = fileutil.DeleteFile
 	fileExistsFunc        = fileutil.Exists
+	isPrivilegedFile      = fileutil.IsPrivilegedAccessOnly
 	getDirectoryNamesFunc = fileutil.GetDirectoryNames
 )
 
@@ -147,7 +148,7 @@ func (d *DocumentFileMgr) GetDocumentState(fileName, locationFolder string) cont
 	var commandState contracts.DocumentState
 	var count, retryLimit int = 0, 3
 
-	isPrivileged, err := fileutil.IsPrivilegedAccessOnly(absoluteFileName)
+	isPrivileged, err := isPrivilegedFile(absoluteFileName)
 	if !isPrivileged {
 		if os.IsNotExist(err) {
 			log.Errorf("file does not exist: %v", absoluteFileName)

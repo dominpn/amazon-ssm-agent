@@ -268,7 +268,7 @@ func TestPersistDocumentState(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		//SetUp
+		// SetUp
 		mockContext := contextmocks.NewMockDefaultWithIdentityAndLog(
 			&identityMocks.IAgentIdentity{},
 			logmocks.NewMockLog(),
@@ -322,13 +322,13 @@ func TestPersistDocumentState(t *testing.T) {
 			docMgr.PersistDocumentState("test.json", "testfolder", overwriteState)
 		}
 
-		//Assert
+		// Assert
 		for method, count := range tt.expectedLogCalls {
 			mockLog.AssertNumberOfCalls(t, method, count)
 		}
 
 		if tt.overwriteTest {
-			//Assert schema version
+			// Assert schema version
 			content, err := os.ReadFile(testFilePath)
 			if err != nil {
 				t.Fatalf("Failed to read test file: %v", err)
@@ -342,12 +342,10 @@ func TestPersistDocumentState(t *testing.T) {
 			assert.Equal(t, "1", parsedContent["SchemaVersion"], "Schema version should be 1")
 
 		}
-
 	}
-
 }
 
-func TestGetDocumentStateSucess(t *testing.T) {
+func TestGetDocumentStateSuccess(t *testing.T) {
 	mockContext := contextmocks.NewMockDefaultWithIdentityAndLog(
 		&identityMocks.IAgentIdentity{},
 		logmocks.NewMockLog(),
@@ -367,10 +365,16 @@ func TestGetDocumentStateSucess(t *testing.T) {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
 	defer testFile.Close()
+
 	originalJoinPath := joinPathFunc
+	originalIsPrivilegeFile := isPrivilegedFile
 	defer func() { joinPathFunc = originalJoinPath }()
+	defer func() { isPrivilegedFile = originalIsPrivilegeFile }()
 	joinPathFunc = func(elem ...string) string {
 		return testFile.Name()
+	}
+	isPrivilegedFile = func(path string) (bool, error) {
+		return true, nil
 	}
 
 	testState := contracts.DocumentState{
@@ -383,7 +387,7 @@ func TestGetDocumentStateSucess(t *testing.T) {
 	jsonContent, err := json.Marshal(testState)
 	assert.NoError(t, err)
 
-	err = os.WriteFile(testFile.Name(), jsonContent, 0644)
+	err = os.WriteFile(testFile.Name(), jsonContent, 0600)
 	assert.NoError(t, err)
 	docMgr := NewDocumentFileMgr(
 		mockContext,
@@ -392,9 +396,12 @@ func TestGetDocumentStateSucess(t *testing.T) {
 		appconfig.DefaultLocationOfState,
 	)
 	// Execute
-	docMgr.GetDocumentState("test.json", "testfolder")
+	commandState := docMgr.GetDocumentState("test.json", "testfolder")
+	assert.Equal(t, contracts.DocumentType("Association"), commandState.DocumentType)
+	assert.Equal(t, "schema", commandState.SchemaVersion)
 	mockLog.AssertNumberOfCalls(t, "Tracef", 1)
 }
+
 func TestDocumentStateDirBasicFunctionality(t *testing.T) {
 	// Test basic functionality with a typical instance ID and location folder
 	instanceID := "i-1234567890abcdef0"
@@ -563,6 +570,7 @@ func TestIsAssociationRunDirName(t *testing.T) {
 		})
 	}
 }
+
 func TestIsOlderThan_NormalCase(t *testing.T) {
 	// Create a temporary directory
 	tempDir, err := os.MkdirTemp("", "test-older-than")
@@ -660,7 +668,7 @@ func TestRemoveDocumentState(t *testing.T) {
 				return fileutil.DeleteFile(testFile.Name())
 			}
 		}
-		//Execute
+		// Execute
 		mockIdentity.On("ShortInstanceID").Return(tt.instanceIDReturn, tt.instanceIDError)
 		docMgr := NewDocumentFileMgr(
 			mockContext,
@@ -857,6 +865,7 @@ func TestIsLegacyAssociationDirectory_ValidAssociationRunDir(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, isLegacy, "Directory with valid association run directory should be considered legacy")
 }
+
 func TestDeleteOldOrchestrationDirectoriesSuccess(t *testing.T) {
 	mockContext := contextmocks.NewMockDefaultWithIdentityAndLog(
 		&identityMocks.IAgentIdentity{},
@@ -890,11 +899,12 @@ func TestDeleteOldOrchestrationDirectoriesSuccess(t *testing.T) {
 	// Call the function
 	DeleteOldOrchestrationDirectories(mockLog, "", tempDir, 24, 24)
 
-	//Assert
+	// Assert
 	remainingDirs, err := fileutil.GetDirectoryNames(tempDir)
 	assert.NoError(t, err)
 	assert.Len(t, remainingDirs, 0, "All directories should be deleted")
 }
+
 func TestDeleteSessionOrchestrationDirectoriesSuccess(t *testing.T) {
 	mockContext := contextmocks.NewMockDefaultWithIdentityAndLog(
 		&identityMocks.IAgentIdentity{},
@@ -928,11 +938,10 @@ func TestDeleteSessionOrchestrationDirectoriesSuccess(t *testing.T) {
 	// Call the function
 	DeleteSessionOrchestrationDirectories(mockLog, "", tempDir, 24)
 
-	//Assert
+	// Assert
 	remainingDirs, err := fileutil.GetDirectoryNames(tempDir)
 	assert.NoError(t, err)
 	assert.Len(t, remainingDirs, 0, "All directories should be deleted")
-
 }
 
 // Helper Functions
