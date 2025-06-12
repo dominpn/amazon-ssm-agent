@@ -121,6 +121,11 @@ func TestDefaultValue_HibernationMaxBackoffIntervalMinutes(t *testing.T) {
 	assert.Equal(t, agentConfig.Ssm.HibernationMaxBackoffIntervalMinutes, DefaultHibernationMaxBackoffIntervalMinutes)
 }
 
+func TestDefaultValue_SessionHandshakeTimeoutSeconds(t *testing.T) {
+	agentConfig := DefaultConfig()
+	assert.Equal(t, agentConfig.Ssm.SessionHandshakeTimeoutSeconds, DefaultSessionHandshakeTimeoutSeconds)
+}
+
 func TestIdentityConsumptionOrder_InvalidConsumptionOrderValue(t *testing.T) {
 	agentConfig := DefaultConfig()
 	agentConfig.Identity.ConsumptionOrder = []string{"EC2", "InvalidValue"}

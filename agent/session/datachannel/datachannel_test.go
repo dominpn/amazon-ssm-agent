@@ -46,7 +46,7 @@ import (
 )
 
 var (
-	mockContext                                = contextmocks.NewMockDefault()
+	mockContext                                = contextmocks.NewMockDefaultWithDefaultConfig()
 	mockLog                                    = logmocks.NewMockLog()
 	mockService                                = &serviceMock.Service{}
 	mockWsChannel                              = &communicatorMocks.IWebSocketChannel{}

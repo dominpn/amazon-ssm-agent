@@ -53,6 +53,26 @@ func NewMockDefault() *Mock {
 	return ctx
 }
 
+// Fork the NewMockDefault method and use DefaultConfig() for the configuration.
+func NewMockDefaultWithDefaultConfig() *Mock {
+	ctx := new(Mock)
+	log := logmocks.NewMockLog()
+	config := appconfig.DefaultConfig()
+	agentIdentity := identityMocks.NewDefaultMockAgentIdentity()
+	appconst := appconfig.AppConstants{
+		MinHealthFrequencyMinutes: appconfig.DefaultSsmHealthFrequencyMinutesMin,
+		MaxHealthFrequencyMinutes: appconfig.DefaultSsmHealthFrequencyMinutesMax,
+	}
+	ctx.On("Log").Return(log)
+	ctx.On("AppConfig").Return(config)
+	ctx.On("With", mock.AnythingOfType("string")).Return(ctx)
+	ctx.On("WithTelemetryNamespace", mock.AnythingOfType("string")).Return(ctx)
+	ctx.On("CurrentContext").Return([]string{})
+	ctx.On("Identity").Return(agentIdentity)
+	ctx.On("AppConstants").Return(&appconst)
+	return ctx
+}
+
 func NewMockDefaultWithConfig(config appconfig.SsmagentConfig) *Mock {
 	ctx := new(Mock)
 	log := logmocks.NewMockLog()

@@ -47,6 +47,8 @@ type SsmCfg struct {
 	RunCommandLogsRetentionDurationHours int
 	// Hours to retain session logs in the orchestration folder
 	SessionLogsRetentionDurationHours int
+	// Session handshake timeout in seconds
+	SessionHandshakeTimeoutSeconds int
 	// Configure where you want Session Manager to write session data
 	SessionLogsDestination string
 	// Configure when after execution it is safe to delete local plugin output files in orchestration folder

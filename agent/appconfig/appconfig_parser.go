@@ -114,6 +114,11 @@ func parser(config *SsmagentConfig) {
 		config.Ssm.RunCommandLogsRetentionDurationHours,
 		DefaultStateOrchestrationLogsRetentionDurationHoursMin,
 		DefaultRunCommandLogsRetentionDurationHours)
+	config.Ssm.SessionHandshakeTimeoutSeconds = getNumericValue(
+		config.Ssm.SessionHandshakeTimeoutSeconds,
+		DefaultSessionHandshakeTimeoutSecondsMin,
+		DefaultSessionHandshakeTimeoutSecondsMax,
+		DefaultSessionHandshakeTimeoutSeconds)
 	sessionLogsDestinationOptions := []string{SessionLogsDestinationDisk, SessionLogsDestinationNone}
 	config.Ssm.SessionLogsDestination = getStringEnum(config.Ssm.SessionLogsDestination,
 		sessionLogsDestinationOptions,

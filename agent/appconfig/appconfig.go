@@ -119,6 +119,7 @@ func DefaultConfig() SsmagentConfig {
 		SessionLogsDestination:                SessionLogsDestinationNone,
 		PluginLocalOutputCleanup:              DefaultPluginOutputRetention,
 		OrchestrationDirectoryCleanup:         DefaultOrchestrationDirCleanup,
+		SessionHandshakeTimeoutSeconds:        DefaultSessionHandshakeTimeoutSeconds,
 	}
 	agent := AgentInfo{
 		Name:                                    "amazon-ssm-agent",

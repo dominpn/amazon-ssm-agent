@@ -105,6 +105,10 @@ const (
 	DefaultAuditExpirationDayMax = 30 // 30 days max audit files count
 	DefaultAuditExpirationDayMin = 3  // 3 days min audit files count
 
+	DefaultSessionHandshakeTimeoutSeconds    = 15 // default timeout value as 15s
+	DefaultSessionHandshakeTimeoutSecondsMax = 60 // 60s as the max
+	DefaultSessionHandshakeTimeoutSecondsMin = 1  // 1s as the min
+
 	// log destination for session manager
 	SessionLogsDestinationDisk = "disk"
 	SessionLogsDestinationNone = "none"

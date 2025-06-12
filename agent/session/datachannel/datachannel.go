@@ -45,11 +45,9 @@ import (
 )
 
 const (
-	schemaVersion  = 1
-	sequenceNumber = 0
-	messageFlags   = 3
-	// Timeout period before a handshake operation expires on the agent.
-	handshakeTimeout                        = 15 * time.Second
+	schemaVersion                           = 1
+	sequenceNumber                          = 0
+	messageFlags                            = 3
 	clientVersionWithoutOutputSeparation    = "1.2.295"
 	firstVersionWithOutputSeparationFeature = "1.2.312.0"
 )
@@ -975,7 +973,10 @@ func (dataChannel *DataChannel) PerformHandshake(log log.T,
 	dataChannel.handshake.handshakeStartTime = time.Now()
 	dataChannel.encryptionEnabled = encryptionEnabled
 
-	log.Info("Initiating Handshake")
+	// Timeout period before a handshake operation expires on the agent
+	handshakeTimeout := time.Duration(dataChannel.context.AppConfig().Ssm.SessionHandshakeTimeoutSeconds) * time.Second
+
+	log.Info(fmt.Sprintf("Initiating Handshake with HandshakeTimeout: %v", handshakeTimeout))
 	handshakeRequestPayload :=
 		dataChannel.buildHandshakeRequestPayload(log, dataChannel.encryptionEnabled, sessionTypeRequest)
 	if err := dataChannel.sendHandshakeRequest(log, handshakeRequestPayload); err != nil {

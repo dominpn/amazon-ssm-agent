@@ -189,6 +189,10 @@ To set up your own custom configuration for the agent:
         * Default: 336
     * SessionLogsRetentionDurationHours (int)
         * Default: 336
+    * SessionHandshakeTimeoutSeconds (int) - This allows customer to override the default session handshake timeout.
+        * Default: 15
+        * Min: 1
+        * Max: 60
     * SessionLogsDestination (string) - Configure where you want Session Manager to write session data.
         * Default: "none" - Don't write session data anywhere when CloudWatch and S3 logging are disabled.
         * OptionalValue: "disk" - Write session data to disk.
