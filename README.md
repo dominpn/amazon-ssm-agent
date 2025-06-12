@@ -223,6 +223,8 @@ To set up your own custom configuration for the agent:
         * Default: false
     * TelemetryMetricsToSSM (boolean)
         * Default: true
+    * GlobalEnhancedTelemetryEnabled (boolean)
+        * Default: true
     * AuditExpirationDay (int)
         * Default: 7
     * LongRunningWorkerMonitorIntervalSeconds (int)
