@@ -1,5 +1,13 @@
 Latest
 ===============
+- Add file privilege check before processing document state file
+- Storing AWS document interpolation ENV_VAR types as environment variables
+- Throw explicit error when running local cli as non-priviledged user
+- Harden telemetry dynamic config folder permissions
+- Add configuration option for HandshakeTimeout
+
+3.3.2656.0
+===============
 - Improve unit tests
 - Add setup for emitting telemetry logs and metrics
 - Add initial selection of error logs to emit to telemetry
