@@ -35,7 +35,7 @@ const (
 	serialPortRetryMaxCount = 5
 
 	// Wait time before retrying to open serial port
-	serialPortRetryWaitTime = 2
+	serialPortRetryWaitTime = 5
 )
 
 type SerialPort struct {

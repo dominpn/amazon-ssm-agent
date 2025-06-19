@@ -35,10 +35,10 @@ const (
 	defaultComPort = "\\\\.\\COM1"
 
 	// Retry max count for opening serial port
-	serialPortRetryMaxCount = 2
+	serialPortRetryMaxCount = 5
 
 	// Wait time before retrying to open serial port
-	serialPortRetryWaitTime = 1
+	serialPortRetryWaitTime = 5
 )
 
 type SerialPort struct {

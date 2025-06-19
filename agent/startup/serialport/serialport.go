@@ -18,6 +18,7 @@
 package serialport
 
 import (
+	"runtime/debug"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -44,4 +45,27 @@ func NewSerialPortWithRetry(log log.T) (sp *SerialPort, err error) {
 		}
 	}
 	return sp, nil
+}
+
+// EmitSerialPortMessage sends a message to the serial port.
+// This function is intended to be used by components that need to log to the serial port.
+func EmitSerialPortMessage(log log.T, msg string) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Serial port message panic: %v", r)
+			log.Errorf("Stacktrace:\n%s", debug.Stack())
+		}
+	}()
+
+	sp, err := NewSerialPortWithRetry(log)
+	if err != nil {
+		log.Errorf("Error occurred while opening serial port: %v", err.Error())
+		return
+	}
+
+	defer func() {
+		sp.ClosePort()
+	}()
+
+	sp.WritePort(msg)
 }

@@ -33,6 +33,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
 	"github.com/aws/amazon-ssm-agent/agent/managedInstances/sharedCredentials"
+	"github.com/aws/amazon-ssm-agent/agent/startup/serialport"
 	"github.com/aws/amazon-ssm-agent/agent/versionutil"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
@@ -100,6 +101,9 @@ type credentialsRefresher struct {
 
 	getCurrentTimeFunc func() time.Time
 	timeAfterFunc      func(time.Duration) <-chan time.Time
+
+	// Track if we've already logged credential failure to serial port
+	hasLoggedCredentialFailure sync.Once
 }
 
 func NewCredentialRefresher(context agentctx.ICoreAgentContext) ICredentialRefresher {
@@ -117,6 +121,7 @@ func NewCredentialRefresher(context agentctx.ICoreAgentContext) ICredentialRefre
 		timeAfterFunc:                time.After,
 		endpointHelper:               newEndPointHelper(context.Log().WithContext("[EndpointHelper]"), *context.AppConfig()),
 		appConfig:                    context.AppConfig(),
+		hasLoggedCredentialFailure:   sync.Once{},
 	}
 }
 
@@ -212,6 +217,16 @@ func (c *credentialsRefresher) retrieveCredsWithRetry(ctx context.Context) (cred
 		c.log.Errorf("Unexpected identity retrieved: %v. Stopping credential refresher.", c.agentIdentity.IdentityType())
 		return credentials.Value{}, true
 	}
+
+	// Log credential failure to serial port only once
+	logCredentialFailureToSerialPort := func(err error) {
+		c.hasLoggedCredentialFailure.Do(func() {
+			c.log.Info("Logging credential failure to serial port")
+			fullErrorMessage := fmt.Sprintf("SSM Agent unable to acquire credentials: <error>%v</error>", err)
+			go serialport.EmitSerialPortMessage(c.log, fullErrorMessage)
+		})
+	}
+
 	for {
 		creds, err := c.provider.RemoteRetrieve(ctx)
 		if err == nil {
@@ -221,6 +236,9 @@ func (c *credentialsRefresher) retrieveCredsWithRetry(ctx context.Context) (cred
 		// this will log as debug when the credential refresher retries exceeds 3
 		logMessage := fmt.Sprintf("Retrieve credentials produced error: %v", err)
 		c.minLog(seelog.ErrorLvl, logMessage, retryCount)
+
+		// Log to serial port on first failure
+		logCredentialFailureToSerialPort(err)
 
 		var sleepDuration time.Duration
 		// initialize default sleep duration

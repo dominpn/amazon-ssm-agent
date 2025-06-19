@@ -38,6 +38,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/session/utility"
 	"github.com/aws/amazon-ssm-agent/agent/ssm"
 	"github.com/aws/amazon-ssm-agent/agent/startup"
+	"github.com/aws/amazon-ssm-agent/agent/startup/serialport"
 	"github.com/aws/amazon-ssm-agent/agent/telemetry/collector"
 	dynamicConfiguration "github.com/aws/amazon-ssm-agent/agent/telemetry/dynamic_configuration"
 	agentIdentity "github.com/aws/amazon-ssm-agent/common/identity"
@@ -121,7 +122,7 @@ func start(log log.T, shouldCheckHibernation bool) (ssmAgent agent.ISSMAgent, er
 	// If response is positive, start the agent, else retry and eventually back off (hibernate/passive mode).
 	if status, hibernationErr := healthModule.GetAgentState(); shouldCheckHibernation && status == health.Passive {
 		// Starting hibernate mode
-		go process.EmitSerialPortMessage(fmt.Sprintf("SSM Agent entering hibernation due to error: <error>%v</error>", hibernationErr.Error()))
+		go serialport.EmitSerialPortMessage(context.Log(), fmt.Sprintf("SSM Agent entering hibernation due to error: <error>%v</error>", hibernationErr.Error()))
 		context.Log().Info("Entering SSM Agent hibernate - ", hibernationErr)
 		go func() {
 			defer func() {

@@ -151,24 +151,6 @@ func (p *Processor) IsAllowed() bool {
 	return true
 }
 
-// Emit Serial Port Message on Hibernation
-func (p *Processor) EmitSerialPortMessage(msg string) {
-	if !p.IsAllowed() {
-		return
-	}
-	log := p.context.Log()
-	sp, err := serialport.NewSerialPortWithRetry(log)
-	if err != nil {
-		log.Errorf("Error occurred while opening serial port: %v", err.Error())
-		return
-	}
-
-	defer func() {
-		sp.ClosePort()
-	}()
-	sp.WritePort(msg)
-}
-
 // ExecuteTasks opens serial port, write agent verion, AWS driver info and bugchecks in console log.
 func (p *Processor) ExecuteTasks() (err error) {
 	defer func() {
