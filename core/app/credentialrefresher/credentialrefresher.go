@@ -221,7 +221,6 @@ func (c *credentialsRefresher) retrieveCredsWithRetry(ctx context.Context) (cred
 	// Log credential failure to serial port only once
 	logCredentialFailureToSerialPort := func(err error) {
 		c.hasLoggedCredentialFailure.Do(func() {
-			c.log.Info("Logging credential failure to serial port")
 			fullErrorMessage := fmt.Sprintf("SSM Agent unable to acquire credentials: <error>%v</error>", err)
 			go serialport.EmitSerialPortMessage(c.log, fullErrorMessage)
 		})
