@@ -55,5 +55,7 @@ func (sp *SerialPort) WritePort(message string) {
 
 // EmitSerialPortMessage is a stub implementation for unsupported platforms
 func EmitSerialPortMessage(log log.T, msg string) {
-	log.Debugf("Serial port logging not supported on this platform. Message: %s", msg)
+	// Create serial port specific logger context
+	serialLog := log.WithContext("[SerialPort]")
+	serialLog.Debugf("Serial port logging not supported on this platform. Message: %s", msg)
 }

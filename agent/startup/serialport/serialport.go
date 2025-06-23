@@ -50,16 +50,19 @@ func NewSerialPortWithRetry(log log.T) (sp *SerialPort, err error) {
 // EmitSerialPortMessage sends a message to the serial port.
 // This function is intended to be used by components that need to log to the serial port.
 func EmitSerialPortMessage(log log.T, msg string) {
+	// Create serial port specific logger context
+	serialLog := log.WithContext("[SerialPort]")
+	
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorf("Serial port message panic: %v", r)
-			log.Errorf("Stacktrace:\n%s", debug.Stack())
+			serialLog.Errorf("Serial port message panic: %v", r)
+			serialLog.Errorf("Stacktrace:\n%s", debug.Stack())
 		}
 	}()
 
-	sp, err := NewSerialPortWithRetry(log)
+	sp, err := NewSerialPortWithRetry(serialLog)
 	if err != nil {
-		log.Errorf("Error occurred while opening serial port: %v", err.Error())
+		serialLog.Errorf("Error occurred while opening serial port: %v", err.Error())
 		return
 	}
 
