@@ -52,7 +52,7 @@ func NewSerialPortWithRetry(log log.T) (sp *SerialPort, err error) {
 func EmitSerialPortMessage(log log.T, msg string) {
 	// Create serial port specific logger context
 	serialLog := log.WithContext("[SerialPort]")
-	
+
 	defer func() {
 		if r := recover(); r != nil {
 			serialLog.Errorf("Serial port message panic: %v", r)
