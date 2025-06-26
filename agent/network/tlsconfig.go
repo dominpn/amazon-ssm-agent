@@ -73,6 +73,8 @@ func GetDefaultTLSConfig(log log.T, appConfig appconfig.SsmagentConfig) *tls.Con
 		} else if cert != nil {
 			if !certPool.AppendCertsFromPEM(cert) {
 				log.Debugf("Failed to append custom certificate to certificate pool")
+			} else {
+				log.Debugf("Appended custom certificate to certificate pool")
 			}
 		}
 

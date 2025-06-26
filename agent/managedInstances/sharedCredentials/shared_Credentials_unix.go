@@ -24,6 +24,13 @@ import (
 	alt_user "github.com/aws/amazon-ssm-agent/agent/managedInstances/user"
 )
 
+// For testing
+const defaultMethod = "default"
+
+var findingCurrentUserMethod = defaultMethod
+var err error
+var usr *user.User
+
 func getPlatformSpecificHomeLocation() string {
 	// Look for credentials in the following order
 	// 1. AWS_SHARED_CREDENTIALS_FILE
@@ -40,9 +47,11 @@ func getPlatformSpecificHomeLocation() string {
 	}
 
 	// 2. use cgo
-	usr, err := user.Current()
-	if err == nil && usr.HomeDir != "" {
-		return usr.HomeDir
+	if findingCurrentUserMethod == defaultMethod {
+		usr, err := user.Current()
+		if err == nil && usr.HomeDir != "" {
+			return usr.HomeDir
+		}
 	}
 
 	// 3. use own implementation
