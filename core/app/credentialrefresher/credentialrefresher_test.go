@@ -823,6 +823,7 @@ func Test_credentialsRefresher_retrieveCredsWithRetry_OnpremRetry2000TimesNoExit
 	mockLog.On("Error", mock.Anything).Times(2000)
 	mockLog.On("WithContext", mock.Anything).Return(mockLog)
 	// Add expectations for serial port logging calls (handles both success and failure scenarios)
+	mockLog.On("Debugf", mock.Anything, mock.Anything).Return().Maybe()
 	mockLog.On("Infof", mock.Anything, mock.Anything).Return().Maybe()
 	mockLog.On("Errorf", mock.Anything, mock.Anything).Return(mock.AnythingOfType("error")).Maybe()
 	provider.On("RemoteRetrieve", mock.Anything).Return(credentials.Value{}, nil).Once()
@@ -868,6 +869,7 @@ func Test_credentialsRefresher_retrieveCredsWithRetry_EC2Retry2000TimesNoExitUnt
 	mockLog.On("Debug", mock.Anything).Times(1997 * 2)
 	mockLog.On("WithContext", mock.Anything).Return(mockLog)
 	// Add expectations for serial port logging calls (handles both success and failure scenarios)
+	mockLog.On("Debugf", mock.Anything, mock.Anything).Return().Maybe()
 	mockLog.On("Infof", mock.Anything, mock.Anything).Return().Maybe()
 	mockLog.On("Errorf", mock.Anything, mock.Anything).Return(mock.AnythingOfType("error")).Maybe()
 
