@@ -131,6 +131,6 @@ func IsPrivilegedAccessOnly(path string) (bool, error) {
 
 // HardenDataFolder sets permission of %PROGRAM_DATA% folder for Windows. In
 // Linux, each components handles the permission of its data.
-func HardenDataFolder(log log.T) error {
+func HardenDataFolder(log log.T, instanceID string) error {
 	return nil // do nothing
 }
