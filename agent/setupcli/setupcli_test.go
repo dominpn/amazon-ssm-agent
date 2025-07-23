@@ -548,3 +548,25 @@ func TestMain_InstallAgent_AlreadyInstalledVersion_Onprem_Success(t *testing.T) 
 	// version should be blank when version flag not passed
 	assert.Equal(t, "", version)
 }
+
+func Test_hasAgentAlreadyInstalledOrNewer_works(t *testing.T) {
+	defer func() { ssmSetupCliVersion = agentVersioning.Version }()
+
+	// Older version is installed, should return false that it is not already installed
+	ssmSetupCliVersion = "3.2.0.0"
+	installedOrNewer, err := hasAgentAlreadyInstalledOrNewer("3.1.0.0")
+	assert.NoError(t, err)
+	assert.False(t, installedOrNewer)
+
+	// Same version installed as the setupcli, should return true that it is already installed
+	ssmSetupCliVersion = "3.2.0.0"
+	installedOrNewer, err = hasAgentAlreadyInstalledOrNewer("3.2.0.0")
+	assert.NoError(t, err)
+	assert.True(t, installedOrNewer)
+
+	// Newer agent version is installed than the setupcli is, should return true that it is already installed
+	ssmSetupCliVersion = "3.2.0.0"
+	installedOrNewer, err = hasAgentAlreadyInstalledOrNewer("3.3.0.0")
+	assert.NoError(t, err)
+	assert.True(t, installedOrNewer)
+}

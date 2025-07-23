@@ -80,6 +80,7 @@ var (
 	getDownloadManager      = managers.GetDownloadManager
 	startAgent              = servicemanagers.StartAgent
 	hasElevatedPermissions  = utilityCmn.IsRunningElevatedPermissions
+	ssmSetupCliVersion      = agentVersioning.Version
 
 	osExecutable         = os.Executable
 	evalSymLinks         = filepath.EvalSymlinks
@@ -127,6 +128,8 @@ func main() {
 			log.Close()
 		}()
 
+		log.Infof("ssm-setup-cli -version: %v", ssmSetupCliVersion)
+
 		// set & verify params needed for greengrass
 		setVerifyGreenGrassParams(log)
 
@@ -153,7 +156,7 @@ func main() {
 			log.Flush()
 			log.Close()
 		}()
-		log.Infof("ssm-setup-cli -version: %v", agentVersioning.Version)
+		log.Infof("ssm-setup-cli -version: %v", ssmSetupCliVersion)
 
 		// set proxy values
 		common.SetProxyConfig(log)
@@ -220,8 +223,8 @@ func performGreengrassSteps(log log.T, packageManager packagemanagers.IPackageMa
 				reInstallAgent = true
 			} else {
 				log.Infof("Agent version installed is %s", version)
-				if isVersionAlreadyInstalled, err := hasAgentAlreadyInstalled(version); err != nil || !isVersionAlreadyInstalled {
-					log.Warnf("Installed version is older/higher than expected Agent Version or Failed to compare, attempting to reinstall the agent: %w", err)
+				if isVersionAlreadyInstalled, err := hasAgentAlreadyInstalledOrNewer(version); err != nil || !isVersionAlreadyInstalled {
+					log.Warnf("Installed version is older than expected Agent Version %s or Failed to compare, attempting to reinstall the agent: %w", ssmSetupCliVersion, err)
 					reInstallAgent = true
 				} else if isVersionAlreadyInstalled {
 					osExit(0, log, "Version is already installed, not attempting to install agent")
@@ -682,13 +685,13 @@ func setParams() {
 	flag.Parse()
 }
 
-func hasAgentAlreadyInstalled(versionStr string) (bool, error) {
-	val, err := versionutil.VersionCompare(versionStr, agentVersioning.Version)
+func hasAgentAlreadyInstalledOrNewer(versionStr string) (bool, error) {
+	val, err := versionutil.VersionCompare(versionStr, ssmSetupCliVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to compare with already installed agent version: %w", err)
 	}
 
-	return val == 0, nil
+	return val >= 0, nil
 }
 
 func getExecutableFolderPath() (string, error) {
