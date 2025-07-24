@@ -65,5 +65,9 @@
     "Kms": {
         "Endpoint": "",
         "RequireKMSChallengeResponse": false
+    },
+    "CloudWatchLogs": {
+        "Endpoint": "",
+        "Region": ""
     }
 }

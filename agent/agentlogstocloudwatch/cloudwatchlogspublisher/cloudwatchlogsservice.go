@@ -100,6 +100,16 @@ func createCloudWatchStopPolicy() *sdkutil.StopPolicy {
 // createCloudWatchClient creates a client to call CloudWatchLogs APIs
 func createCloudWatchClient(context context.T) cloudwatchlogsinterface.CloudWatchLogsClient {
 	config := sdkutil.AwsConfig(context, "logs")
+
+	// Get CloudWatch Logs specific configuration
+	appConfig := context.AppConfig()
+	if appConfig.CloudWatchLogs.Endpoint != "" {
+		config.Endpoint = aws.String(appConfig.CloudWatchLogs.Endpoint)
+	}
+	if appConfig.CloudWatchLogs.Region != "" {
+		config.Region = aws.String(appConfig.CloudWatchLogs.Region)
+	}
+
 	return createCloudWatchClientWithConfig(context, config)
 }
 
@@ -111,7 +121,7 @@ func createCloudWatchClientWithCredentials(context context.T, id, secret string)
 
 // createCloudWatchClientWithConfig creates a client to call CloudWatchLogs APIs using the passed aws config
 func createCloudWatchClientWithConfig(context context.T, config *aws.Config) cloudwatchlogsinterface.CloudWatchLogsClient {
-	//Adding the AWS SDK Retrier with Exponential Backoff
+	// Adding the AWS SDK Retrier with Exponential Backoff
 	config = request.WithRetryer(config, client.DefaultRetryer{
 		NumMaxRetries: maxRetries,
 	})
@@ -155,8 +165,8 @@ func (service *CloudWatchLogsService) SetCloudWatchMessage(
 	targetId string,
 	runAsUser string,
 	sessionId string,
-	sessionOwner string) {
-
+	sessionOwner string,
+) {
 	service.CloudWatchMessage = CloudWatchMessage{
 		EventVersion: aws.String(eventVersion),
 		AwsRegion:    aws.String(awsRegion),
@@ -185,12 +195,12 @@ func (service *CloudWatchLogsService) CreateLogGroup(logGroup string) (err error
 	log := service.context.Log()
 	service.CreateNewServiceIfUnHealthy()
 
-	//Creating the parameters for the API Call
+	// Creating the parameters for the API Call
 	params := &cloudwatchlogs.CreateLogGroupInput{
 		LogGroupName: aws.String(logGroup),
 	}
 
-	//Calling the API
+	// Calling the API
 	if _, err = service.cloudWatchLogsClient.CreateLogGroup(params); err != nil {
 		// Cast err to awserr.Error to get the Code
 		errorCode := sdkutil.GetAwsErrorCode(err)
@@ -222,13 +232,13 @@ func (service *CloudWatchLogsService) CreateLogStream(logGroup, logStream string
 	log := service.context.Log()
 	service.CreateNewServiceIfUnHealthy()
 
-	//Creating the parameters for the API Call
+	// Creating the parameters for the API Call
 	params := &cloudwatchlogs.CreateLogStreamInput{
 		LogGroupName:  aws.String(logGroup),
 		LogStreamName: aws.String(logStream),
 	}
 
-	//Calling the API
+	// Calling the API
 	if _, err = service.cloudWatchLogsClient.CreateLogStream(params); err != nil {
 		// Cast err to awserr.Error to get the Code
 		errorCode := sdkutil.GetAwsErrorCode(err)
@@ -254,7 +264,6 @@ func (service *CloudWatchLogsService) CreateLogStream(logGroup, logStream string
 		}
 	}
 	return
-
 }
 
 // DescribeLogGroups calls the DescribeLogGroups API to get the details of log groups of account
@@ -287,7 +296,6 @@ func (service *CloudWatchLogsService) DescribeLogGroups(logGroupPrefix, nextToke
 	log.Debugf("DescribeLogGroups Response:%v", response)
 
 	return
-
 }
 
 // DescribeLogStreams calls the DescribeLogStreams API to get the details of the log streams present
@@ -322,7 +330,6 @@ func (service *CloudWatchLogsService) DescribeLogStreams(logGroup, logStreamPref
 	log.Debugf("DescribeLogStreams Response:%v", response)
 
 	return
-
 }
 
 // getLogGroupDetails Calls the DescribeLogGroups API to get the details of the loggroup specified. Returns nil if not found
@@ -336,7 +343,6 @@ func (service *CloudWatchLogsService) getLogGroupDetails(logGroup string) (logGr
 	// Continue calling  the API until we find the group or next batch of groups is not present
 	for nextBatchPresent {
 		describeLogGroupsOutput, err := service.DescribeLogGroups(logGroup, nextToken)
-
 		if err != nil {
 			log.Errorf("Error in calling DescribeLogGroups:%v", err)
 			return nil, err
@@ -395,7 +401,6 @@ func (service *CloudWatchLogsService) getLogStreamDetails(logGroupName, logStrea
 	// Continue calling  the API until we find the stream or next batch of streams is not present
 	for nextBatchPresent {
 		describeLogStreamsOutput, err := service.DescribeLogStreams(logGroupName, logStreamName, nextToken)
-
 		if err != nil {
 			log.Errorf("Error in calling DescribeLogStreams:%v", err)
 			return
@@ -438,7 +443,6 @@ func (service *CloudWatchLogsService) PutLogEvents(messages []*cloudwatchlogs.In
 
 	// Calling the API
 	response, err := service.cloudWatchLogsClient.PutLogEvents(params)
-
 	if err != nil {
 
 		// Handle the common AWS errors and update the stop policy accordingly
@@ -508,7 +512,8 @@ func (service *CloudWatchLogsService) StreamData(
 	isLogStreamCreated bool,
 	fileCompleteSignal chan bool,
 	cleanupControlCharacters bool,
-	structuredLogs bool) (success bool) {
+	structuredLogs bool,
+) (success bool) {
 	log := service.context.Log()
 	log.Infof("Uploading logs at %s to CloudWatch", absoluteFilePath)
 	defer func() {
@@ -618,7 +623,8 @@ func (service *CloudWatchLogsService) getNextMessage(
 	lastKnownLineUploadedToCWL *int64,
 	currentLineNumber *int64,
 	cleanupControlCharacters bool,
-	structuredLogs bool) (allEvents []*cloudwatchlogs.InputLogEvent, eof bool) {
+	structuredLogs bool,
+) (allEvents []*cloudwatchlogs.InputLogEvent, eof bool) {
 	log := service.context.Log()
 	// Open file to read.
 	file, err := os.Open(absoluteFilePath)

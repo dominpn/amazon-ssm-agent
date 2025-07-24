@@ -112,6 +112,12 @@ type S3Cfg struct {
 	LogKey    string
 }
 
+// CloudWatchLogsCfg represents configuration for CloudWatch Logs
+type CloudWatchLogsCfg struct {
+	Endpoint string
+	Region   string
+}
+
 // BirdwatcherCfg represents configuration related to ConfigurePackage Birdwatcher integration
 type BirdwatcherCfg struct {
 	ForceEnable bool
@@ -119,16 +125,17 @@ type BirdwatcherCfg struct {
 
 // SsmagentConfig stores agent configuration values.
 type SsmagentConfig struct {
-	Profile     CredentialProfile
-	Mds         MdsCfg
-	Ssm         SsmCfg
-	Mgs         MgsConfig
-	Agent       AgentInfo
-	Os          OsInfo
-	S3          S3Cfg
-	Birdwatcher BirdwatcherCfg
-	Kms         KmsConfig
-	Identity    IdentityCfg
+	Profile        CredentialProfile
+	Mds            MdsCfg
+	Ssm            SsmCfg
+	Mgs            MgsConfig
+	Agent          AgentInfo
+	Os             OsInfo
+	S3             S3Cfg
+	CloudWatchLogs CloudWatchLogsCfg
+	Birdwatcher    BirdwatcherCfg
+	Kms            KmsConfig
+	Identity       IdentityCfg
 }
 
 // AppConstants represents some run time constant variable for various module.
