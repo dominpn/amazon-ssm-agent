@@ -20,17 +20,16 @@ import (
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/twinj/uuid"
 )
 
 func TestSerializeAndDeserializeAgentMessageWithAcknowledgeContent(t *testing.T) {
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	uid := uuid.NewV4()
+	messageId := uuid.New().String()
 
 	acknowledgeContent := AcknowledgeContent{
 		MessageType:         messageType,
-		MessageId:           uid.String(),
+		MessageId:           messageId,
 		SequenceNumber:      sequenceNumber,
 		IsSequentialMessage: true,
 	}
@@ -43,7 +42,7 @@ func TestSerializeAndDeserializeAgentMessageWithAcknowledgeContent(t *testing.T)
 		CreatedDate:    uint64(time.Now().UnixNano() / 1000000),
 		SequenceNumber: 0,
 		Flags:          3,
-		MessageId:      uid,
+		MessageId:      uuid.New(),
 		Payload:        acknowledgeContentBytes,
 	}
 
@@ -55,7 +54,7 @@ func TestSerializeAndDeserializeAgentMessageWithAcknowledgeContent(t *testing.T)
 
 	assert.Nil(t, err)
 	assert.Equal(t, messageType, deserializedAcknowledgeContent.MessageType)
-	assert.Equal(t, uid.String(), deserializedAcknowledgeContent.MessageId)
+	assert.Equal(t, messageId, deserializedAcknowledgeContent.MessageId)
 	assert.Equal(t, sequenceNumber, deserializedAcknowledgeContent.SequenceNumber)
 	assert.True(t, deserializedAcknowledgeContent.IsSequentialMessage)
 }

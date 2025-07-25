@@ -17,6 +17,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"os/exec"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -24,7 +26,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/model"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/pluginutil"
-	"github.com/twinj/uuid"
 )
 
 var (
@@ -56,7 +57,7 @@ $result = "[" + $result + "]"
 )
 
 func randomString(length int) string {
-	return uuid.NewV4().String()[:length]
+	return uuid.New().String()[:length]
 }
 
 func mark(s string) string {

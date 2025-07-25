@@ -27,11 +27,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/platform"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/model"
-	"github.com/twinj/uuid"
 )
 
 type InventoryApplicationFile struct {
@@ -69,7 +70,7 @@ var (
 )
 
 func randomString(length int) string {
-	return uuid.NewV4().String()[:length]
+	return uuid.New().String()[:length]
 }
 
 func mark(s string) string {

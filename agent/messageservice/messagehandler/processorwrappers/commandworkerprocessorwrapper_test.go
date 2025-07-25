@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/framework/processor"
@@ -11,7 +13,6 @@ import (
 	contextmocks "github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/twinj/uuid"
 )
 
 var (
@@ -112,12 +113,11 @@ func (suite *CommandProcessorWrapperTestSuite) TestListenReply() {
 		Status:     contracts.ResultStatusInProgress,
 	}
 	pluginResults[""] = &pluginResult
-	messageId := uuid.NewV4()
 	result := contracts.DocumentResult{
 		Status:          contracts.ResultStatusInProgress,
 		PluginResults:   pluginResults,
 		LastPlugin:      "",
-		MessageID:       messageId.String(),
+		MessageID:       uuid.New().String(),
 		AssociationID:   "",
 		NPlugins:        1,
 		DocumentName:    "documentName",

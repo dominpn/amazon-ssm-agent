@@ -1,6 +1,6 @@
 module github.com/aws/amazon-ssm-agent
 
-go 1.23
+go 1.23.0
 
 replace github.com/aws/aws-sdk-go => ./extra/aws-sdk-go
 
@@ -20,6 +20,7 @@ require (
 	github.com/go-git/go-git/v5 v5.13.1
 	github.com/google/go-github/v61 v61.0.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
+	github.com/google/uuid v1.6.0
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/gorilla/websocket v1.4.2
 	github.com/hectane/go-acl v0.0.0-20151103031024-7f56832555fc // Don't update -- breaks
@@ -27,7 +28,6 @@ require (
 	github.com/nightlyone/lockfile v0.0.0
 	github.com/pborman/ansi v1.0.0
 	github.com/stretchr/testify v1.10.0
-	github.com/twinj/uuid v0.0.0-20151029044442-89173bcdda19 // Don't update -- breaks
 	github.com/xtaci/smux v1.5.15
 	github.com/yusufpapurcu/wmi v1.2.4
 	go.nanomsg.org/mangos/v3 v3.3.0

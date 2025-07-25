@@ -28,6 +28,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/session/communicator"
@@ -41,7 +43,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/versionutil"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gorilla/websocket"
-	"github.com/twinj/uuid"
 )
 
 const (
@@ -275,8 +276,7 @@ func (dataChannel *DataChannel) getWsChannelOnErrorHandler(mgsService service.Se
 	log log.T) func(error) {
 
 	return func(err error) {
-		uuid.SwitchFormat(uuid.CleanHyphen)
-		requestId := uuid.NewV4().String()
+		requestId := uuid.New().String()
 		callable := func() (channel interface{}, err error) {
 			tokenValue, err := getDataChannelToken(log, mgsService, sessionId, requestId, clientId)
 			if err != nil {
@@ -315,8 +315,7 @@ func (dataChannel *DataChannel) SetWebSocket(context context.T,
 	onMessageHandler func(input []byte)) error {
 
 	log := context.Log()
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	requestId := uuid.NewV4().String()
+	requestId := uuid.New().String()
 
 	log.Infof("Setting up datachannel for session: %s, requestId: %s, clientId: %s", sessionId, requestId, clientId)
 	tokenValue, err := getDataChannelToken(log, mgsService, sessionId, requestId, clientId)
@@ -351,8 +350,7 @@ func (dataChannel *DataChannel) Open(log log.T) error {
 	}
 
 	// finalize handshake
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	uid := uuid.NewV4().String()
+	uid := uuid.New().String()
 
 	openDataChannelInput := service.OpenDataChannelInput{
 		MessageSchemaVersion: aws.String(mgsConfig.MessageSchemaVersion),
@@ -438,15 +436,13 @@ func (dataChannel *DataChannel) SendStreamDataMessage(log log.T, payloadType mgs
 		flag = 1
 	}
 
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	messageId := uuid.NewV4()
 	agentMessage := &mgsContracts.AgentMessage{
 		MessageType:    mgsContracts.OutputStreamDataMessage,
 		SchemaVersion:  1,
 		CreatedDate:    uint64(time.Now().UnixNano() / 1000000),
 		SequenceNumber: dataChannel.StreamDataSequenceNumber,
 		Flags:          flag,
-		MessageId:      messageId,
+		MessageId:      uuid.New(),
 		PayloadType:    uint32(payloadType),
 		Payload:        inputData,
 	}
@@ -575,15 +571,13 @@ func (dataChannel *DataChannel) SendAgentSessionStateMessage(log log.T, sessionS
 
 // sendAgentMessage sends agent message for given messageType and content
 func (dataChannel *DataChannel) sendAgentMessage(log log.T, messageType string, messageContent []byte) error {
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	messageId := uuid.NewV4()
 	agentMessage := &mgsContracts.AgentMessage{
 		MessageType:    messageType,
 		SchemaVersion:  schemaVersion,
 		CreatedDate:    uint64(time.Now().UnixNano() / 1000000),
 		SequenceNumber: sequenceNumber,
 		Flags:          messageFlags,
-		MessageId:      messageId,
+		MessageId:      uuid.New(),
 		Payload:        messageContent,
 	}
 

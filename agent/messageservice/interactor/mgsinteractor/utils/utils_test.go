@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/google/uuid"
+
 	logger "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	model "github.com/aws/amazon-ssm-agent/agent/runcommand/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/session/contracts"
 	"github.com/stretchr/testify/assert"
-	"github.com/twinj/uuid"
 )
 
 func TestGenerateAgentJobReplyPayload(t *testing.T) {
 	log := logger.NewMockLog()
-	uuid := uuid.NewV4()
+	uuid := uuid.New()
 	messageID := "messageid"
 	sendReplyPayload := model.SendReplyPayload{}
 	agentMsg, err := GenerateAgentJobReplyPayload(log, uuid, messageID, sendReplyPayload, SendCommandTopic)

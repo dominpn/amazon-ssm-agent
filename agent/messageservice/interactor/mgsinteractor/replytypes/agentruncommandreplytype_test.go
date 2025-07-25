@@ -24,9 +24,9 @@ import (
 	mgsUtils "github.com/aws/amazon-ssm-agent/agent/messageservice/interactor/mgsinteractor/utils"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/twinj/uuid"
 )
 
 type AgentRunCommandReplyTestSuite struct {
@@ -41,7 +41,7 @@ func TestAgentRunCommandReplyTestSuite(t *testing.T) {
 func (suite *AgentRunCommandReplyTestSuite) TestAgentRunCommandReply_InitializeSuccess() {
 	ctx := context.NewMockDefault()
 	docResult := contracts.DocumentResult{ResultType: contracts.RunCommandResult}
-	uuid := uuid.NewV4()
+	uuid := uuid.New()
 	agentComplete := NewAgentRunCommandReplyType(ctx, docResult, uuid, 0)
 	assert.Equal(suite.T(), uuid.String(), agentComplete.GetMessageUUID().String())
 	assert.Equal(suite.T(), 1, agentComplete.GetBackOffSecond())
@@ -53,7 +53,7 @@ func (suite *AgentRunCommandReplyTestSuite) TestAgentRunCommandReply_InitializeS
 func (suite *AgentRunCommandReplyTestSuite) TestAgentRunCommandReply_RetryNumberCheck() {
 	ctx := context.NewMockDefault()
 	docResult := contracts.DocumentResult{ResultType: contracts.RunCommandResult}
-	uuid := uuid.NewV4()
+	uuid := uuid.New()
 	agentComplete := NewAgentRunCommandReplyType(ctx, docResult, uuid, 2)
 	assert.Equal(suite.T(), uuid.String(), agentComplete.GetMessageUUID().String())
 	assert.Equal(suite.T(), 1, agentComplete.GetBackOffSecond())
@@ -66,7 +66,7 @@ func (suite *AgentRunCommandReplyTestSuite) TestAgentRunCommandReply_AgentMessag
 	ctx := context.NewMockDefault()
 	outputMsgId := "messageId"
 	docResult := contracts.DocumentResult{MessageID: "messageId", ResultType: contracts.RunCommandResult}
-	uuid := uuid.NewV4()
+	uuid := uuid.New()
 	agentComplete := NewAgentRunCommandReplyType(ctx, docResult, uuid, 0)
 	agentMessage, err := agentComplete.ConvertToAgentMessage()
 	assert.Nil(suite.T(), err)
@@ -83,7 +83,7 @@ func (suite *AgentRunCommandReplyTestSuite) TestAgentCommandReply_HugePayloadGre
 	pluginResult := make(map[string]*contracts.PluginResult)
 	pluginResult["test"] = &contracts.PluginResult{Output: strings.Repeat("a", 120000)}
 	docResult := contracts.DocumentResult{MessageID: "messageId", ResultType: contracts.RunCommandResult, PluginResults: pluginResult}
-	uuid := uuid.NewV4()
+	uuid := uuid.New()
 	agentComplete := NewAgentRunCommandReplyType(ctx, docResult, uuid, 0)
 	agentMessage, err := agentComplete.ConvertToAgentMessage()
 	errorString := fmt.Sprintf("dropping reply message %v because it is too large to send over control channel", uuid.String())
@@ -97,7 +97,7 @@ func (suite *AgentRunCommandReplyTestSuite) TestAgentCommandReply_HugePayloadGre
 	pluginResult := make(map[string]*contracts.PluginResult)
 	pluginResult["test"] = &contracts.PluginResult{Output: strings.Repeat("a", 80000)}
 	docResult := contracts.DocumentResult{MessageID: "messageId", ResultType: contracts.RunCommandResult, PluginResults: pluginResult}
-	uuid := uuid.NewV4()
+	uuid := uuid.New()
 	agentComplete := NewAgentRunCommandReplyType(ctx, docResult, uuid, 0)
 	agentMessage, err := agentComplete.ConvertToAgentMessage()
 	assert.Nil(suite.T(), err)

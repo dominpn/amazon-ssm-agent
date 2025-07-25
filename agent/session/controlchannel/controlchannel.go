@@ -23,6 +23,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/network"
@@ -38,7 +40,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gorilla/websocket"
-	"github.com/twinj/uuid"
 )
 
 type IControlChannel interface {
@@ -91,8 +92,7 @@ func (controlChannel *ControlChannel) SetWebSocket(context context.T,
 	mgsService service.Service, ableToOpenMGSConnection *uint32) error {
 
 	log := context.Log()
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	uid := uuid.NewV4().String()
+	uid := uuid.New().String()
 
 	log.Infof("Setting up websocket for controlchannel for instance: %s, requestId: %s", controlChannel.ChannelId, uid)
 	tokenValue, err := getControlChannelToken(context, mgsService, controlChannel.ChannelId, uid, ableToOpenMGSConnection)
@@ -106,8 +106,7 @@ func (controlChannel *ControlChannel) SetWebSocket(context context.T,
 	}
 	onErrorHandler := func(err error) {
 		callable := func() (channel interface{}, err error) {
-			uuid.SwitchFormat(uuid.CleanHyphen)
-			requestId := uuid.NewV4().String()
+			requestId := uuid.New().String()
 			tokenValue, err := getControlChannelToken(context, mgsService, controlChannel.ChannelId, requestId, ableToOpenMGSConnection)
 			if err != nil {
 				return controlChannel, err
@@ -224,8 +223,7 @@ func (controlChannel *ControlChannel) Open(context context.T, ableToOpenMGSConne
 		return fmt.Errorf("failed to connect controlchannel with error: %s", err)
 	}
 
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	uid := uuid.NewV4().String()
+	uid := uuid.New().String()
 
 	openControlChannelInput := service.OpenControlChannelInput{
 		MessageSchemaVersion: aws.String(mgsConfig.MessageSchemaVersion),

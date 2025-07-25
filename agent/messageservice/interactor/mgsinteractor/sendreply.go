@@ -33,8 +33,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/carlescere/scheduler"
 	"github.com/fsnotify/fsnotify"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/twinj/uuid"
 )
 
 const (

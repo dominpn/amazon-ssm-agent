@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
@@ -38,7 +40,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssmmds"
 	"github.com/aws/aws-sdk-go/service/ssmmds/ssmmdsiface"
-	"github.com/twinj/uuid"
 )
 
 // FailureType is used for failure types.
@@ -142,8 +143,8 @@ func NewMdsSdkService(context context.T, msgSvc ssmmdsiface.SsmmdsAPI, tr *http.
 
 // GetMessages calls the GetMessages MDS API.
 func (mds *sdkService) GetMessages(log log.T, instanceID string) (messages *ssmmds.GetMessagesOutput, err error) {
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	uid := uuid.NewV4().String()
+	uid := uuid.New().String()
+	log.Error("Uid - ", uid)
 	params := &ssmmds.GetMessagesInput{
 		Destination:                aws.String(instanceID), // Required
 		MessagesRequestId:          aws.String(uid),        // Required
@@ -244,8 +245,7 @@ func (mds *sdkService) SendReplyWithInput(log log.T, sendReply *ssmmds.SendReply
 
 // SendReply transforms payload into SendReplyInput object and calls SendReplyWithInput.
 func (mds *sdkService) SendReply(log log.T, messageID string, payload string) (err error) {
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	replyID := uuid.NewV4().String()
+	replyID := uuid.New().String()
 	replyInput := ssmmds.SendReplyInput{
 		MessageId: aws.String(messageID), // Required
 		Payload:   aws.String(payload),   // Required

@@ -31,9 +31,9 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/executers"
 	taskmocks "github.com/aws/amazon-ssm-agent/agent/mocks/task"
 	"github.com/aws/amazon-ssm-agent/agent/task"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/twinj/uuid"
 )
 
 type TestCase struct {
@@ -166,7 +166,7 @@ func testExecute(t *testing.T, testCase TestCase) {
 		assert.Nil(t, err)
 
 		//Create messageId which is in the format of aws.ssm.<commandID>.<InstanceID>
-		commandID := uuid.NewV4().String()
+		commandID := uuid.New().String()
 
 		// call plugin
 		p.Execute(

@@ -10,7 +10,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	messageContracts "github.com/aws/amazon-ssm-agent/agent/runcommand/contracts"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 type CommandTopic string

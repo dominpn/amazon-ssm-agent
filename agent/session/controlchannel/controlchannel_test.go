@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
@@ -36,7 +38,6 @@ import (
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/twinj/uuid"
 )
 
 var (
@@ -224,7 +225,7 @@ func TestGetControlChannelTokenReportsBadMGSConnectionStatusIfCannotGetToken(t *
 	mockServiceForGetControlChannelTest.On("CreateControlChannel", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New(""))
 	var ableToOpenMGSConnection uint32
 	atomic.StoreUint32(&ableToOpenMGSConnection, 1)
-	getControlChannelToken(mockContext, mockServiceForGetControlChannelTest, mock.Anything, uuid.NewV4().String(), &ableToOpenMGSConnection)
+	getControlChannelToken(mockContext, mockServiceForGetControlChannelTest, mock.Anything, uuid.New().String(), &ableToOpenMGSConnection)
 	assert.False(t, atomic.LoadUint32(&ableToOpenMGSConnection) != 0)
 	assert.Equal(t, len(ssmconnectionchannel.GetMDSSwitchChannel()), 0)
 	assert.Equal(t, ssmconnectionchannel.GetConnectionChannel(), contracts.MDS)
@@ -236,7 +237,7 @@ func TestGetControlChannelTokenHandlesNilAbleToOpenMGSConnection(t *testing.T) {
 	mockServiceForGetControlChannelTest.On("CreateControlChannel", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New(""))
 
 	var ableToOpenMGSConnection *uint32 = nil
-	getControlChannelToken(mockContext, mockServiceForGetControlChannelTest, mock.Anything, uuid.NewV4().String(), ableToOpenMGSConnection)
+	getControlChannelToken(mockContext, mockServiceForGetControlChannelTest, mock.Anything, uuid.New().String(), ableToOpenMGSConnection)
 	mockServiceForGetControlChannelTest.AssertCalled(t, "CreateControlChannel", mock.Anything, mock.Anything, mock.Anything)
 }
 

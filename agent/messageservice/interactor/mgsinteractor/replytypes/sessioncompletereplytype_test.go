@@ -24,9 +24,9 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/twinj/uuid"
 )
 
 type SessionCompleteReplyTestSuite struct {
@@ -53,7 +53,7 @@ func TestSessionCompleteReplyTestSuite(t *testing.T) {
 func (suite *SessionCompleteReplyTestSuite) TestName() {
 	ctx := context.NewMockDefault()
 	docResult := contracts.DocumentResult{ResultType: contracts.SessionResult}
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	sessionComplete := NewSessionCompleteType(ctx, docResult, uuidVal, 0)
 	assert.Equal(suite.T(), sessionComplete.GetName(), contracts.SessionResult)
 }
@@ -61,7 +61,7 @@ func (suite *SessionCompleteReplyTestSuite) TestName() {
 func (suite *SessionCompleteReplyTestSuite) TestSessionCompleteReply_BasicInitializationCheck() {
 	ctx := context.NewMockDefault()
 	docResult := contracts.DocumentResult{ResultType: contracts.SessionResult}
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	sessionComplete := NewSessionCompleteType(ctx, docResult, uuidVal, 0)
 	assert.Equal(suite.T(), uuidVal.String(), sessionComplete.GetMessageUUID().String())
 	assert.Equal(suite.T(), 1, sessionComplete.GetBackOffSecond())
@@ -73,7 +73,7 @@ func (suite *SessionCompleteReplyTestSuite) TestSessionCompleteReply_BasicInitia
 func (suite *SessionCompleteReplyTestSuite) TestSessionCompleteReply_InitializeWithRetryNumberCheck() {
 	ctx := context.NewMockDefault()
 	docResult := contracts.DocumentResult{ResultType: contracts.SessionResult}
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	sessionComplete := NewSessionCompleteType(ctx, docResult, uuidVal, 1)
 	assert.Equal(suite.T(), uuidVal.String(), sessionComplete.GetMessageUUID().String())
 	assert.Equal(suite.T(), 1, sessionComplete.GetBackOffSecond())
@@ -87,7 +87,7 @@ func (suite *SessionCompleteReplyTestSuite) TestSessionCompleteReply_AgentMessag
 	plugInResults := make(map[string]*contracts.PluginResult)
 	plugInResults["testPlugin"] = &contracts.PluginResult{Status: contracts.ResultStatusSuccess}
 	docResult := contracts.DocumentResult{ResultType: contracts.SessionResult, LastPlugin: "testPlugin", PluginResults: plugInResults}
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	agentComplete := NewSessionCompleteType(ctx, docResult, uuidVal, 0)
 
 	agentMessage, err := agentComplete.ConvertToAgentMessage()
@@ -129,7 +129,7 @@ func (suite *SessionCompleteReplyTestSuite) TestSessionCompleteReply_BuildAgentT
 		DocumentVersion: "1",
 	}
 	ctx := context.NewMockDefault()
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	agentComplete := NewSessionCompleteType(ctx, result, uuidVal, 0).(*SessionCompleteReplyType)
 
 	payloadInterface := agentComplete.formatAgentTaskCompletePayload(log, result.LastPlugin, pluginResults, result.MessageID, utils.SessionCompleteTopic)
@@ -174,7 +174,7 @@ func (suite *SessionCompleteReplyTestSuite) TestBuildAgentTaskCompleteWhenPlugin
 	}
 
 	ctx := context.NewMockDefault()
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	agentComplete := NewSessionCompleteType(ctx, result, uuidVal, 0).(*SessionCompleteReplyType)
 
 	payloadInterface := agentComplete.formatAgentTaskCompletePayload(log, result.LastPlugin, pluginResults, result.MessageID, utils.SessionCompleteTopic)
@@ -215,7 +215,7 @@ func (suite *SessionCompleteReplyTestSuite) TestBuildAgentTaskCompleteWhenPlugin
 		DocumentVersion: "1",
 	}
 	ctx := context.NewMockDefault()
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	agentComplete := NewSessionCompleteType(ctx, result, uuidVal, 0).(*SessionCompleteReplyType)
 
 	payloadInterface := agentComplete.formatAgentTaskCompletePayload(log, result.LastPlugin, pluginResults, result.MessageID, utils.SessionCompleteTopic)
@@ -255,7 +255,7 @@ func (suite *SessionCompleteReplyTestSuite) TestBuildAgentTaskComplete() {
 		DocumentVersion: "1",
 	}
 	ctx := context.NewMockDefault()
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	agentComplete := NewSessionCompleteType(ctx, result, uuidVal, 0).(*SessionCompleteReplyType)
 	payloadInterface := agentComplete.formatAgentTaskCompletePayload(log, result.LastPlugin, pluginResults, result.MessageID, utils.SessionCompleteTopic)
 

@@ -25,7 +25,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/messageservice/interactor/mgsinteractor/utils"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 // SessionCompleteReplyType defines methods and properties to handle the AgentComplete reply

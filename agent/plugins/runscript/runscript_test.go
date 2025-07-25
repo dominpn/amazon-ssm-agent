@@ -17,6 +17,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/executers"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
@@ -35,7 +37,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/twinj/uuid"
 )
 
 type TestCase struct {
@@ -376,7 +377,7 @@ func testExecuteMultiInput(t *testing.T, testCases []TestCase) {
 		pluginProperties := arrayPropertyBuilder(t, testCases)
 
 		//Create messageId which is in the format of aws.ssm.<commandID>.<InstanceID>
-		commandID := uuid.NewV4().String()
+		commandID := uuid.New().String()
 
 		// call plugin
 		p.Execute(
@@ -408,7 +409,7 @@ func testExecute(t *testing.T, testCase TestCase) {
 		pluginProperties := singleValuePropertyBuilder(t, testCase)
 
 		//Create messageId which is in the format of aws.ssm.<commandID>.<InstanceID>
-		commandID := uuid.NewV4().String()
+		commandID := uuid.New().String()
 
 		// call plugin
 		p.Execute(
@@ -440,7 +441,7 @@ func testExecuteWithEnvironment(t *testing.T, testCase TestCase) {
 		pluginProperties := singleValuePropertyBuilder(t, testCase)
 
 		//Create messageId which is in the format of aws.ssm.<commandID>.<InstanceID>
-		commandID := uuid.NewV4().String()
+		commandID := uuid.New().String()
 
 		// call plugin
 		p.Execute(

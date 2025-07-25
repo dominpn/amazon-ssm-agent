@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ssm-agent/agent/cli/cliutil"
-	"github.com/twinj/uuid"
 )
 
 // TODO:MF: make errors more like ssm-cli: error: <arg type>: <error>?
@@ -29,7 +28,6 @@ import (
 // https://docs.aws.amazon.com/cli/latest/topic/return-codes.html
 func RunCommand(args []string, out io.Writer) (exitCode int) {
 
-	uuid.SwitchFormat(uuid.CleanHyphen)
 	if len(args) < 2 {
 		displayUsage(out)
 		// Customer doesn't provide enough arguments

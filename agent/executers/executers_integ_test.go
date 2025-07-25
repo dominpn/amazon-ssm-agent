@@ -36,8 +36,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/agent/task"
 	identityMocks "github.com/aws/amazon-ssm-agent/common/identity/mocks"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/twinj/uuid"
 )
 
 const (
@@ -385,21 +385,20 @@ func prepareTestStartCommand(t *testing.T) (commandInvoker CommandInvoker, cance
 	cancelFlag = task.NewChanneledCancelFlag()
 	commandInvoker = func(commands []string) (stdout io.Reader, stderr io.Reader, exitCode int, errs []error) {
 		// run command and output to temp files
-		uuid.SwitchFormat(uuid.CleanHyphen)
 		orchestrationDir, err := ioutil.TempDir("", "TestAsyncExecute")
 		if err != nil {
 			t.Fatal(err)
 		}
 		defer fileutil.DeleteDirectory(orchestrationDir)
 
-		stdoutFilePath := filepath.Join(orchestrationDir, uuid.NewV4().String())
+		stdoutFilePath := filepath.Join(orchestrationDir, uuid.New().String())
 		stdoutWriter, err := os.OpenFile(stdoutFilePath, appconfig.FileFlagsCreateOrAppend, appconfig.ReadWriteAccess)
 		if err != nil {
 			t.Fatal(err)
 		}
 		defer os.Remove(stdoutFilePath)
 
-		stderrFilePath := filepath.Join(orchestrationDir, uuid.NewV4().String())
+		stderrFilePath := filepath.Join(orchestrationDir, uuid.New().String())
 		stderrWriter, err := os.OpenFile(stderrFilePath, appconfig.FileFlagsCreateOrAppend, appconfig.ReadWriteAccess)
 		if err != nil {
 			t.Fatal(err)

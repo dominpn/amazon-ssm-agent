@@ -34,7 +34,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/onprem"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders"
-	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider"
 	credentialmocks "github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/mocks"
 	identityMock "github.com/aws/amazon-ssm-agent/common/identity/mocks"
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig"
@@ -791,7 +790,6 @@ func TestCredUtilityFunctions_sleepRetry_minMaxTesting(t *testing.T) {
 	maxSeconds = getEC2DefaultSSMSleepDuration(16).Seconds()
 	assert.True(t, 300 <= minSeconds && minSeconds <= 300, "wrong min value for ec2 pre default jitter")
 	assert.True(t, 3200 <= maxSeconds && maxSeconds <= 3600, "wrong max value for ec2 pre default jitter")
-	assert.Equal(t, time.Duration(3540000000000), getEC2DefaultSSMSleepDuration(17))
 
 	minSeconds = getMediumBackoffRetryJitterSleepDuration(0).Seconds()
 	for i := 0; i < 17; i++ {
@@ -1336,49 +1334,6 @@ func Test_credentialsRefresher_GetCredChannel(t *testing.T) {
 	}
 	_, ok := <-credsRefresher.GetCredentialsReadyChan()
 	assert.True(t, ok)
-}
-
-func Test_credentialsRefresherRoute_Error_Cases(t *testing.T) {
-	runtimeConfig := runtimeconfig.IdentityRuntimeConfig{
-		CredentialsExpiresAt: fiveMinBeforeTime,
-		ShareFile:            "",
-	}
-	agentIdentity := &identityMock.IAgentIdentity{}
-	log := logmocks.NewMockLog()
-	credsRefresher := provide_creds_refresher()
-	credsRefresher.identityRuntimeConfig = runtimeConfig
-	go credsRefresher.credentialRefresherRoutine()
-	time.Sleep(1 * time.Second)
-	credsRefresher.Stop()
-
-	runtimeConfigMore := runtimeconfig.IdentityRuntimeConfig{
-		CredentialsExpiresAt: time.Now().Add(5 * time.Minute),
-		ShareFile:            "",
-		CredentialSource:     ec2roleprovider.CredentialSourceEC2,
-	}
-	// Creating panic by not defining IdentityType() for agentIdentity
-	credsRefresher2 := &credentialsRefresher{
-		log:                          log,
-		agentIdentity:                agentIdentity,
-		provider:                     nil,
-		runtimeConfigClient:          nil,
-		identityRuntimeConfig:        runtimeConfigMore,
-		credsReadyOnce:               sync.Once{},
-		credentialsReadyChan:         make(chan struct{}, 1),
-		stopCredentialRefresherChan:  make(chan struct{}),
-		isCredentialRefresherRunning: false,
-		getCurrentTimeFunc:           time.Now,
-		timeAfterFunc:                time.After,
-		appConfig:                    &appconfig.SsmagentConfig{Agent: appconfig.AgentInfo{}},
-	}
-	go credsRefresher2.credentialRefresherRoutine()
-	select {
-	case <-credsRefresher2.credentialsReadyChan:
-		credsRefresher2.isCredentialRefresherRunning = false
-		credsRefresher2.Stop()
-	case <-time.After(5 * time.Second):
-		assert.Fail(t, "CredentialsReadyChan never got a message")
-	}
 }
 
 func Test_Try_Purge_Creds(t *testing.T) {

@@ -26,6 +26,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
@@ -35,7 +37,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/carlescere/scheduler"
 	"github.com/gorilla/websocket"
-	"github.com/twinj/uuid"
 )
 
 const (
@@ -328,7 +329,7 @@ func (a *AuditLogTelemetry) sendChannelContract(payload []byte, messageType stri
 	log := a.ctx.Log()
 	agentMessage := &mgsContracts.AgentMessage{
 		MessageType:    messageType,
-		MessageId:      uuid.NewV4(),
+		MessageId:      uuid.New(),
 		SchemaVersion:  1,
 		CreatedDate:    uint64(time.Now().UnixNano() / 1000000),
 		SequenceNumber: 0,

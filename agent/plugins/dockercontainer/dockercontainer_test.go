@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/framework/processor/executer/iohandler"
 	iohandlermocks "github.com/aws/amazon-ssm-agent/agent/framework/processor/executer/iohandler/mock"
@@ -16,7 +18,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/task"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/twinj/uuid"
 )
 
 type CommandTester func(p *Plugin, mockCancelFlag *taskmocks.MockCancelFlag, mockExecuter *executers.MockCommandExecuter, mockIOHandler *iohandlermocks.MockIOHandler)
@@ -44,7 +45,7 @@ func makeConfig() *contracts.IOConfiguration {
 func getDefaultInput() *DockerContainerPluginInput {
 	return &DockerContainerPluginInput{
 		Action:           "Create",
-		ID:               uuid.NewV4().String(),
+		ID:               uuid.New().String(),
 		WorkingDirectory: "",
 		TimeoutSeconds:   "",
 		Container:        "testContainer",

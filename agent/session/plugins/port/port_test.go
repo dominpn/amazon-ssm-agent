@@ -33,10 +33,10 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/task"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	identityMock "github.com/aws/amazon-ssm-agent/common/identity/mocks"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"github.com/twinj/uuid"
 )
 
 var (

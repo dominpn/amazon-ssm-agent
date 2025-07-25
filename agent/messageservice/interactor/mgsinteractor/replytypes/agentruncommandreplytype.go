@@ -20,7 +20,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/messageservice/interactor/mgsinteractor/utils"
 	"github.com/aws/amazon-ssm-agent/agent/runcommand"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 // NewAgentRunCommandReplyType returns new Agent Run Command reply type

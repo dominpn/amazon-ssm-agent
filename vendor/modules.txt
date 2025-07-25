@@ -241,6 +241,9 @@ github.com/google/go-querystring/query
 # github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 ## explicit; go 1.13
 github.com/google/shlex
+# github.com/google/uuid v1.6.0
+## explicit
+github.com/google/uuid
 # github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 ## explicit
 github.com/gorhill/cronexpr
@@ -310,9 +313,6 @@ github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
-# github.com/twinj/uuid v0.0.0-20151029044442-89173bcdda19
-## explicit
-github.com/twinj/uuid
 # github.com/xanzy/ssh-agent v0.3.3
 ## explicit; go 1.16
 github.com/xanzy/ssh-agent

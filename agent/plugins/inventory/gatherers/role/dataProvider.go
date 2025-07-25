@@ -21,13 +21,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/model"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/pluginutil"
-	"github.com/twinj/uuid"
 )
 
 var (
@@ -122,7 +123,7 @@ type Result struct {
 }
 
 func randomString(length int) string {
-	return uuid.NewV4().String()[:length]
+	return uuid.New().String()[:length]
 }
 
 func mark(s string) string {

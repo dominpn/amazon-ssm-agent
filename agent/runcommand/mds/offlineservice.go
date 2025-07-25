@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
@@ -29,7 +31,6 @@ import (
 	messageContracts "github.com/aws/amazon-ssm-agent/agent/runcommand/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/times"
 	"github.com/aws/aws-sdk-go/service/ssmmds"
-	"github.com/twinj/uuid"
 )
 
 type offlineService struct {
@@ -42,7 +43,6 @@ type offlineService struct {
 
 // NewOfflineService initializes a service that looks for work in a local command folder
 func NewOfflineService(log log.T, topicPrefix string) (Service, error) {
-	uuid.SwitchFormat(uuid.CleanHyphen)
 	// Create and harden local document folder if needed
 	err := fileutil.MakeDirs(appconfig.LocalCommandRoot)
 	if err != nil {
@@ -76,10 +76,10 @@ func (ols *offlineService) GetMessages(log log.T, instanceID string) (messages *
 		docPath = filepath.Join(ols.newCommandDir, docName)
 		log.Debugf("Found local command document %v | %v", docName, docPath)
 
-		requestUuid := uuid.NewV4().String()
+		requestUuid := uuid.New().String()
 		messages.MessagesRequestId = &requestUuid // TODO:MF: Can this be the same as the commandID?
 
-		commandID := uuid.NewV4().String()
+		commandID := uuid.New().String()
 		messageID := fmt.Sprintf("aws.ssm.%v.%v", commandID, instanceID)
 
 		// Parse file

@@ -28,8 +28,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/twinj/uuid"
 )
 
 var (
@@ -61,9 +61,10 @@ func TestGetV4Signer(t *testing.T) {
 
 func TestCreateControlChannel(t *testing.T) {
 	service := getService()
+	requestId := uuid.New().String()
 	createControlChannelInput := &CreateControlChannelInput{
 		MessageSchemaVersion: aws.String(mgsConfig.MessageSchemaVersion),
-		RequestId:            aws.String(uuid.NewV4().String()),
+		RequestId:            aws.String(requestId),
 	}
 	mgsConfig.GetMgsEndpoint = func(context context.T, region string) string {
 		return mgsHost
@@ -83,10 +84,12 @@ func TestCreateControlChannel(t *testing.T) {
 
 func TestCreateDataChannel(t *testing.T) {
 	service := getService()
+	requestId := uuid.New().String()
+	clientId := uuid.New().String()
 	createDataChannelInput := &CreateDataChannelInput{
 		MessageSchemaVersion: aws.String(mgsConfig.MessageSchemaVersion),
-		RequestId:            aws.String(uuid.NewV4().String()),
-		ClientId:             aws.String(uuid.NewV4().String()),
+		RequestId:            aws.String(requestId),
+		ClientId:             aws.String(clientId),
 	}
 	mgsConfig.GetMgsEndpoint = func(context context.T, region string) string {
 		return mgsHost

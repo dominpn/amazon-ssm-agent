@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
@@ -21,7 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"github.com/twinj/uuid"
 )
 
 type SendReplyTestSuite struct {
@@ -47,13 +48,13 @@ func (suite *SendReplyTestSuite) TestSendReplyToMGS() {
 	mgsInteractor.controlChannel = mockControlChannel
 
 	msg := mgsContracts.AcknowledgeTaskContent{
-		MessageId: uuid.NewV4().String(), // generate random one
+		MessageId: uuid.New().String(), // generate random one
 		Topic:     mgsContracts.TaskCompleteMessage,
 	}
 	ackByte, err := json.Marshal(msg)
 	assert.Nil(suite.T(), err)
 	agentMessage := mgsContracts.AgentMessage{
-		MessageId:   uuid.NewV4(),
+		MessageId:   uuid.New(),
 		Payload:     ackByte,
 		MessageType: mgsContracts.TaskAcknowledgeMessage,
 	}
@@ -61,7 +62,7 @@ func (suite *SendReplyTestSuite) TestSendReplyToMGS() {
 	replyTypeMock.On("ConvertToAgentMessage").Return(&agentMessage, nil)
 	replyTypeMock.On("IncrementRetries").Return(1)
 	replyTypeMock.On("GetNumberOfContinuousRetries").Return(4)
-	replyTypeMock.On("GetMessageUUID").Return(uuid.NewV4())
+	replyTypeMock.On("GetMessageUUID").Return(uuid.New())
 	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{})
 	replyTypeMock.On("GetRetryNumber").Return(1)
 
@@ -85,13 +86,13 @@ func (suite *SendReplyTestSuite) TestTaskAgentCompleteWithRetry() {
 	mgsInteractor.controlChannel = mockControlChannel
 
 	msg := mgsContracts.AcknowledgeTaskContent{
-		MessageId: uuid.NewV4().String(), // generate random one
+		MessageId: uuid.New().String(), // generate random one
 		Topic:     mgsContracts.TaskCompleteMessage,
 	}
 	ackByte, err := json.Marshal(msg)
 	assert.Nil(suite.T(), err)
 	agentMessage := mgsContracts.AgentMessage{
-		MessageId:   uuid.NewV4(),
+		MessageId:   uuid.New(),
 		Payload:     ackByte,
 		MessageType: mgsContracts.TaskAcknowledgeMessage,
 	}
@@ -100,7 +101,7 @@ func (suite *SendReplyTestSuite) TestTaskAgentCompleteWithRetry() {
 	replyTypeMock.On("ConvertToAgentMessage").Return(&agentMessage, nil)
 	replyTypeMock.On("IncrementRetries").Return(1)
 	replyTypeMock.On("GetNumberOfContinuousRetries").Return(4)
-	replyTypeMock.On("GetMessageUUID").Return(uuid.NewV4())
+	replyTypeMock.On("GetMessageUUID").Return(uuid.New())
 	replyTypeMock.On("ShouldPersistData").Return(false)
 	replyTypeMock.On("GetBackOffSecond").Return(0)
 	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{})
@@ -128,18 +129,18 @@ func (suite *SendReplyTestSuite) TestTaskAgentCompleteWithSecondRetryAckReceive(
 	mgsInteractor.controlChannel = mockControlChannel
 
 	msg := mgsContracts.AcknowledgeTaskContent{
-		MessageId: uuid.NewV4().String(), // generate random one
+		MessageId: uuid.New().String(), // generate random one
 		Topic:     mgsContracts.TaskCompleteMessage,
 	}
 	ackByte, err := json.Marshal(msg)
 
 	assert.Nil(suite.T(), err)
 	agentMessage := mgsContracts.AgentMessage{
-		MessageId:   uuid.NewV4(),
+		MessageId:   uuid.New(),
 		Payload:     ackByte,
 		MessageType: mgsContracts.TaskAcknowledgeMessage,
 	}
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	replyTypeMock := &replytypesmock.IReplyType{}
 	replyTypeMock.On("ConvertToAgentMessage").Return(&agentMessage, nil)
 	replyTypeMock.On("IncrementRetries").Return(1)
@@ -169,13 +170,13 @@ func (suite *SendReplyTestSuite) TestProcessReply_checkForWarningErrors_SkipRetr
 	mgsInteractor := suite.getMGSInteractorRef(sendMessageErr)
 
 	msg := mgsContracts.AcknowledgeTaskContent{
-		MessageId: uuid.NewV4().String(), // generate random one
+		MessageId: uuid.New().String(), // generate random one
 		Topic:     mgsContracts.TaskCompleteMessage,
 	}
 	ackByte, err := json.Marshal(msg)
 	assert.Nil(suite.T(), err)
 
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	replyTypeMock, reply := suite.getReplyWithRetry(ackByte, uuidVal)
 
 	ackChanPresent := true
@@ -194,7 +195,7 @@ func (suite *SendReplyTestSuite) TestProcessReply_checkForWarningErrors_SkipRetr
 
 func (suite *SendReplyTestSuite) getReplyWithRetry(ackByte []byte, uuidVal uuid.UUID) (*replytypesmock.IReplyType, *agentReplyLocalContract) {
 	agentMessage := mgsContracts.AgentMessage{
-		MessageId:   uuid.NewV4(),
+		MessageId:   uuid.New(),
 		Payload:     ackByte,
 		MessageType: mgsContracts.TaskAcknowledgeMessage,
 	}
@@ -228,18 +229,18 @@ func (suite *SendReplyTestSuite) TestTaskAgentCompleteWithNormalAckReceive() {
 	mgsInteractor.controlChannel = mockControlChannel
 
 	msg := mgsContracts.AcknowledgeTaskContent{
-		MessageId: uuid.NewV4().String(), // generate random one
+		MessageId: uuid.New().String(), // generate random one
 		Topic:     mgsContracts.TaskCompleteMessage,
 	}
 	ackByte, err := json.Marshal(msg)
 
 	assert.Nil(suite.T(), err)
 	agentMessage := mgsContracts.AgentMessage{
-		MessageId:   uuid.NewV4(),
+		MessageId:   uuid.New(),
 		Payload:     ackByte,
 		MessageType: mgsContracts.TaskAcknowledgeMessage,
 	}
-	uuidVal := uuid.NewV4()
+	uuidVal := uuid.New()
 	replyTypeMock := &replytypesmock.IReplyType{}
 	replyTypeMock.On("ConvertToAgentMessage").Return(&agentMessage, nil)
 	replyTypeMock.On("IncrementRetries").Return(1)
@@ -463,7 +464,7 @@ func (suite *SendReplyTestSuite) getDocumentResultObject() AgentResultLocalStore
 	}
 	reply := AgentResultLocalStoreData{
 		AgentResult: result,
-		ReplyId:     uuid.NewV4().String(),
+		ReplyId:     uuid.New().String(),
 		RetryNumber: 0,
 	}
 	return reply

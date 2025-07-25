@@ -16,6 +16,7 @@ package testutils
 
 import (
 	"crypto/sha256"
+	"github.com/google/uuid"
 	"net/http"
 	"time"
 
@@ -30,7 +31,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssmmds/ssmmdsiface"
 	mdssdkmock "github.com/aws/aws-sdk-go/service/ssmmds/ssmmdsiface/mocks"
 	"github.com/stretchr/testify/mock"
-	"github.com/twinj/uuid"
 )
 
 func NewMdsSdkMock() *mdssdkmock.SsmmdsAPI {
@@ -48,8 +48,7 @@ func NewMdsService(context context.T, msgSvc ssmmdsiface.SsmmdsAPI, sendMdsSdkRe
 
 func GenerateEmptyMessage(context context.T) (*ssmmds.GetMessagesOutput, error) {
 	instanceID, _ := context.Identity().InstanceID()
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	var testMessageId = uuid.NewV4().String()
+	var testMessageId = uuid.New().String()
 	msgs := make([]*ssmmds.Message, 0)
 	messagesOutput := ssmmds.GetMessagesOutput{
 		Destination:       &instanceID,
@@ -61,10 +60,9 @@ func GenerateEmptyMessage(context context.T) (*ssmmds.GetMessagesOutput, error) 
 }
 
 func GenerateMessages(context context.T, messageContent string) (*ssmmds.GetMessagesOutput, error) {
-	uuid.SwitchFormat(uuid.CleanHyphen)
 	instanceID, _ := context.Identity().InstanceID()
 	// mock GetMessagesOutput to return one message
-	var testMessageId = uuid.NewV4().String()
+	var testMessageId = uuid.New().String()
 	msgs := make([]*ssmmds.Message, 1)
 	mdsMessage, err := createMDSMessage(messageContent, instanceID)
 	msgs[0] = mdsMessage
@@ -86,8 +84,7 @@ func createMDSMessage(messageContent string, instanceID string) (*ssmmds.Message
 	if err != nil {
 		return nil, err
 	}
-	uuid.SwitchFormat(uuid.CleanHyphen)
-	payload.CommandID = uuid.NewV4().String()
+	payload.CommandID = uuid.New().String()
 	msgContent, err := jsonutil.Marshal(payload)
 	if err != nil {
 		return nil, err

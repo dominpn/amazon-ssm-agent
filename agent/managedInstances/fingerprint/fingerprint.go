@@ -29,8 +29,9 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/log"
-	"github.com/twinj/uuid"
 )
 
 type hwInfo struct {
@@ -146,16 +147,15 @@ func generateFingerprint(log log.T) (fingerprint string, err error) {
 		log.Warnf("Error while fetching fingerprint data from vault: %s", err)
 	}
 
-	uuid.SwitchFormat(uuid.CleanHyphen)
 	// check if this is the first time we are generating the fingerprint
 	// or if there is no match
 	if !hasFingerprint(savedHwInfo) {
 		// generate new fingerprint
 		log.Info("No initial fingerprint detected, generating fingerprint file...")
-		fingerprint = uuid.NewV4().String()
+		fingerprint = uuid.New().String()
 	} else if !isSimilarHardwareHash(log, savedHwInfo.HardwareHash, hardwareHash, savedHwInfo.SimilarityThreshold) {
 		log.Info("Calculated hardware difference, regenerating fingerprint...")
-		fingerprint = uuid.NewV4().String()
+		fingerprint = uuid.New().String()
 	} else {
 		return savedHwInfo.Fingerprint, nil
 	}

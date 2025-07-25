@@ -19,7 +19,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 type ReplyTypeGenerator func(ctx context.T, res contracts.DocumentResult, replyId uuid.UUID, retryNumber int) IReplyType

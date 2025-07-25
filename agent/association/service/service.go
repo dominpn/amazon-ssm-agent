@@ -32,7 +32,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/times"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/twinj/uuid"
 )
 
 const (
@@ -123,7 +122,6 @@ func (s *AssociationService) CreateNewServiceIfUnHealthy(context context.T) {
 // ListInstanceAssociations will get the Association and related document string
 func (s *AssociationService) ListInstanceAssociations(log log.T, instanceID string) ([]*model.InstanceAssociation, error) {
 
-	uuid.SwitchFormat(uuid.CleanHyphen)
 	results := []*model.InstanceAssociation{}
 
 	response, err := s.ssmSvc.ListInstanceAssociations(log, instanceID, nil)

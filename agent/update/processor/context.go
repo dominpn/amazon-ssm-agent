@@ -34,7 +34,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/updateutil/updateconstants"
 	"github.com/aws/amazon-ssm-agent/agent/updateutil/updatemanifest"
 	"github.com/aws/amazon-ssm-agent/common/identity"
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 // UpdateState represents the state of update process
@@ -260,7 +260,7 @@ func persistPayload(log log.T, updateDetail *UpdateDetail, identity identity.IAg
 		RetryNumber int
 	}{
 		AgentResult: agentResult,
-		ReplyId:     uuid.NewV4().String(),
+		ReplyId:     uuid.New().String(),
 		RetryNumber: 0,
 	})
 

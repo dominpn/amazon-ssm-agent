@@ -24,6 +24,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/cli/cliutil"
 	"github.com/aws/amazon-ssm-agent/agent/context"
@@ -34,7 +36,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/utility"
-	"github.com/twinj/uuid"
 )
 
 const (
@@ -207,7 +208,7 @@ func (SendOfflineCommand) validateContent(content contracts.DocumentContent) err
 
 // submitCommandDocument
 func (SendOfflineCommand) submitCommandDocument(content string) (error, string) {
-	documentName := uuid.NewV4().String()
+	documentName := uuid.New().String()
 	documentPath := filepath.Join(appconfig.LocalCommandRoot, documentName)
 
 	if err := fileutil.MakeDirs(appconfig.LocalCommandRoot); err != nil {

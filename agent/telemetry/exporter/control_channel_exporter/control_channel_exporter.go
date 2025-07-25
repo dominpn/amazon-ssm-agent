@@ -20,6 +20,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -33,8 +35,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/telemetry/telemetrylog"
 
 	"github.com/gorilla/websocket"
-
-	"github.com/twinj/uuid"
 )
 
 const (
@@ -220,7 +220,7 @@ func (t *controlChannelTelemetryExporter) sendChannelContract(payload []byte, me
 	log := t.ctx.Log()
 	agentMessage := &mgsContracts.AgentMessage{
 		MessageType:    messageType,
-		MessageId:      uuid.NewV4(),
+		MessageId:      uuid.New(),
 		SchemaVersion:  1,
 		CreatedDate:    uint64(time.Now().UnixNano() / 1000000), //nolint:gosec
 		SequenceNumber: 0,

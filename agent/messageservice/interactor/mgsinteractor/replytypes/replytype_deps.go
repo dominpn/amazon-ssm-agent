@@ -3,7 +3,7 @@ package replytypes
 import (
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 // IReplyType is interface implemented by replytyes

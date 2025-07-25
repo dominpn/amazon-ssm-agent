@@ -32,11 +32,11 @@ import (
 	controlChannelMock "github.com/aws/amazon-ssm-agent/agent/session/controlchannel/mocks"
 	"github.com/aws/amazon-ssm-agent/agent/session/service"
 	"github.com/aws/amazon-ssm-agent/agent/ssmconnectionchannel"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"github.com/twinj/uuid"
 )
 
 var (
@@ -223,7 +223,7 @@ func (suite *MGSInteractorTestSuite) TestListenTaskAcknowledgeMsgDoesExist() {
 	ackByte, err := json.Marshal(msg)
 	assert.Nil(suite.T(), err)
 	agentMessage := mgsContracts.AgentMessage{
-		MessageId:   uuid.NewV4(),
+		MessageId:   uuid.New(),
 		Payload:     ackByte,
 		MessageType: mgsContracts.TaskAcknowledgeMessage,
 	}
@@ -242,13 +242,13 @@ func (suite *MGSInteractorTestSuite) TestListenTaskAcknowledgeMsgDoesNotExist() 
 	ackChan := make(chan bool, 1)
 	mgsInteractor.sendReplyProp.replyAckChan.Store(messageId, ackChan)
 	msg := mgsContracts.AcknowledgeTaskContent{
-		MessageId: uuid.NewV4().String(), // generate random one
+		MessageId: uuid.New().String(), // generate random one
 		Topic:     mgsContracts.TaskCompleteMessage,
 	}
 	ackByte, err := json.Marshal(msg)
 	assert.Nil(suite.T(), err)
 	agentMessage := mgsContracts.AgentMessage{
-		MessageId:   uuid.NewV4(),
+		MessageId:   uuid.New(),
 		Payload:     ackByte,
 		MessageType: mgsContracts.TaskAcknowledgeMessage,
 	}
@@ -313,7 +313,7 @@ func (suite *MGSInteractorTestSuite) TestAgentJobSendAcknowledgeWhenMessageHandl
 		CreatedDate:    createdDate,
 		SequenceNumber: 1,
 		Flags:          2,
-		MessageId:      uuid.NewV4(),
+		MessageId:      uuid.New(),
 		Payload:        payload,
 	}
 	mgsInteractor.processAgentJobMessage(agentMessage)
@@ -349,7 +349,7 @@ func (suite *MGSInteractorTestSuite) TestAgentJobSendAcknowledgeWhenMessageParsi
 		CreatedDate:    createdDate,
 		SequenceNumber: 1,
 		Flags:          2,
-		MessageId:      uuid.NewV4(),
+		MessageId:      uuid.New(),
 		Payload:        payload,
 	}
 	mgsInteractor.processAgentJobMessage(agentMessage)
