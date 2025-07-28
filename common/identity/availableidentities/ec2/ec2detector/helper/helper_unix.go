@@ -25,7 +25,7 @@ import (
 )
 
 var GetHostInfo = func(log log.T, paramKey, errCodePrefix string) (string, string) {
-	errCodePrefix = errCodePrefix + "-"
+	errCodePrefix = errCodePrefix + "."
 	paramValue, err := platform.GetSystemInfo(log, paramKey)
 	if errCode := checkError(err); errCode != "" {
 		return "", errCodePrefix + errCode
