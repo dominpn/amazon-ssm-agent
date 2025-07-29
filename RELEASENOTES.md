@@ -1,5 +1,17 @@
 Latest
 ===============
+- Migrate from twinj/uuid to google/uuid library
+- Allow newer agent versions to be installed when deploying on Greengrass
+- Harden function to remove non-admin run command documents in execution path
+- Fix macOS credential refresher test issue due to missing Debugf from serialport skip file
+- Enhance testability of custom certificate usage in debug SSM Agent builds
+- Decouple serial port from startup and add credential refresher serialport logging
+- Add GlobalEnhancedTelemetryEnabled config to README
+- Add cloudwatch logs endpoint configuration to optional config for agent
+- Update Greengrass component version
+
+3.3.2746.0
+===============
 - Add file privilege check before processing document state file
 - Storing AWS document interpolation ENV_VAR types as environment variables
 - Throw explicit error when running local cli as non-priviledged user
