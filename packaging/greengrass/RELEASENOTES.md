@@ -1,3 +1,8 @@
+1.3.2
+===============
+- Includes Amazon SSM Agent version [3.3](https://github.com/aws/amazon-ssm-agent/releases/latest)
+- Prevent downgrade when installed version is greater than version packaged with Greengrass component
+
 1.3.1
 ===============
 - Includes Amazon SSM Agent version [3.3](https://github.com/aws/amazon-ssm-agent/releases/latest)
