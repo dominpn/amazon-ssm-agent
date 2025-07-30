@@ -1,6 +1,6 @@
 module github.com/aws/amazon-ssm-agent
 
-go 1.23.0
+go 1.23
 
 replace github.com/aws/aws-sdk-go => ./extra/aws-sdk-go
 
