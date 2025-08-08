@@ -55,6 +55,8 @@ type SsmCfg struct {
 	PluginLocalOutputCleanup string
 	// Configure only when it is safe to delete orchestration folder after document execution. This config overrides PluginLocalOutputCleanup when set.
 	OrchestrationDirectoryCleanup string
+	// Max sleep duration in seconds for credential retry before attempting to refresh credentials on failure
+	CredentialRetryMaxSleepSeconds int
 }
 
 // AgentInfo represents metadata for amazon-ssm-agent

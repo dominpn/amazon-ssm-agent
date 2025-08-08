@@ -57,6 +57,11 @@ const (
 	DefaultSsmHealthFrequencyMinutesMin = 5
 	DefaultSsmHealthFrequencyMinutesMax = 60
 
+	// SSM max sleep duration for credential retry in seconds
+	DefaultCredentialRetryMaxSleepSeconds    = 1800
+	DefaultCredentialRetryMaxSleepSecondsMin = 60
+	DefaultCredentialRetryMaxSleepSecondsMax = 1800
+
 	DefaultSsmAssociationFrequencyMinutes    = 10
 	DefaultSsmAssociationFrequencyMinutesMin = 5
 	DefaultSsmAssociationFrequencyMinutesMax = 60

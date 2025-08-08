@@ -14,6 +14,7 @@
 package appconfig
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -163,4 +164,50 @@ func TestIdentityCredentialsValue_InvalidCredentialsProviderToDefault(t *testing
 	agentConfig.Identity.CustomIdentities[0].CredentialsProvider = DefaultCustomIdentityCredentialsProvider
 	parser(&agentConfig)
 	assert.Equal(t, agentConfig.Identity.CustomIdentities[0].CredentialsProvider, DefaultCustomIdentityCredentialsProvider)
+}
+
+func TestDefaultValue_CredentialRetryMaxSleepSeconds(t *testing.T) {
+	agentConfig := DefaultConfig()
+	assert.Equal(t, agentConfig.Ssm.CredentialRetryMaxSleepSeconds, DefaultCredentialRetryMaxSleepSeconds)
+	assert.Equal(t, agentConfig.Ssm.CredentialRetryMaxSleepSeconds, 1800)
+}
+
+func TestCredentialRetryMaxSleepSecondsOverride(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    int
+		expected int
+	}{
+		{"below minimum: 30sec", 30, DefaultCredentialRetryMaxSleepSeconds},
+		{"at minimum: 60sec", 60, 60},
+		{"within rang 300sec", 300, 300},
+		{"within rang 900sec", 900, 900},
+		{"at maximum: 1800sec", 1800, 1800},
+		{"above maximum", 3600, DefaultCredentialRetryMaxSleepSeconds},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			path, _ := os.Getwd()
+			sampleJsonPath := filepath.Join(path, "test-credential-retry-config.json")
+
+			originalFunc := retrieveAppConfigPath
+			defer func() {
+				os.Remove(sampleJsonPath)
+				retrieveAppConfigPath = originalFunc
+			}()
+
+			tempJson := []byte(fmt.Sprintf(`{ "Ssm": { "CredentialRetryMaxSleepSeconds": %d } }`, test.input))
+			if err := ioutil.WriteFile(sampleJsonPath, tempJson, ReadWriteAccess); err != nil {
+				return
+			}
+
+			retrieveAppConfigPath = func() (string, error) {
+				return sampleJsonPath, nil
+			}
+			outputJsonConfig, _ := Config(true)
+
+			assert.Equal(t, test.expected, outputJsonConfig.Ssm.CredentialRetryMaxSleepSeconds)
+		})
+	}
 }

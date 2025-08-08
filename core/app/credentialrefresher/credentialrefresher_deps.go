@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/onprem"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -16,8 +17,7 @@ const (
 	ErrCodeMachineFingerprintDoesNotMatch = ssm.ErrCodeMachineFingerprintDoesNotMatch
 	ErrAllOtherAWSErrors                  = "ErrAllOtherAWSErrors"
 	ErrAllOtherNonAWSErrors               = "ErrAllOtherNonAWSErrors"
-	maxSleepDurationSeconds               = 1800 // 30 minutes cap on sleep duration.
-	maxSleepDurationJitterSeconds         = 300  // 5 minutes jitter on max sleep
+	maxSleepDurationJitterSeconds         = 300 // 5 minutes jitter on max default sleep (30 Minutes)
 )
 
 type getBackoffDurationFunc func(attemptNumber int) time.Duration
@@ -45,10 +45,13 @@ var onPremErrorCodeGetBackoffDurationMap = map[string]getBackoffDurationFunc{
 
 // getDefaultBackoffRetryJitterSleepDuration returns sleep duration with 2^retry_count formula with 20% of it value as jitter
 func getDefaultBackoffRetryJitterSleepDuration(retryCount int) time.Duration {
+	config, _ := appconfig.Config(false)
+	maxSleepDurationSeconds := config.Ssm.CredentialRetryMaxSleepSeconds
 	expBackoff := math.Pow(2, float64(retryCount))
 	sleepTimeInSeconds := int(expBackoff) + rand.Intn(int(math.Ceil(expBackoff*0.2)))
 	if sleepTimeInSeconds > maxSleepDurationSeconds {
-		sleepTimeInSeconds = maxSleepDurationSeconds - rand.Intn(maxSleepDurationJitterSeconds)
+		maxAllowedSleepDurationJitterSeconds := int(math.Min(float64(maxSleepDurationJitterSeconds), float64(maxSleepDurationSeconds)))
+		sleepTimeInSeconds = maxSleepDurationSeconds - rand.Intn(maxAllowedSleepDurationJitterSeconds)
 	}
 	return time.Duration(sleepTimeInSeconds) * time.Second
 }
@@ -56,10 +59,13 @@ func getDefaultBackoffRetryJitterSleepDuration(retryCount int) time.Duration {
 // getMediumBackoffRetryJitterSleepDuration returns sleep duration with 2^retry_count formula with 20% of it value as jitter
 // with additional 10-20 seconds added to it.
 func getMediumBackoffRetryJitterSleepDuration(retryCount int) time.Duration {
+	config, _ := appconfig.Config(false)
+	maxSleepDurationSeconds := config.Ssm.CredentialRetryMaxSleepSeconds
 	expBackoff := math.Pow(2, float64(retryCount))
 	sleepTimeInSeconds := int(expBackoff) + rand.Intn(int(math.Ceil(expBackoff*0.2))) + 10 + rand.Intn(10)
 	if sleepTimeInSeconds > maxSleepDurationSeconds {
-		sleepTimeInSeconds = maxSleepDurationSeconds - rand.Intn(maxSleepDurationJitterSeconds)
+		maxAllowedSleepDurationJitterSeconds := int(math.Min(float64(maxSleepDurationJitterSeconds), float64(maxSleepDurationSeconds)))
+		sleepTimeInSeconds = maxSleepDurationSeconds - rand.Intn(maxAllowedSleepDurationJitterSeconds)
 	}
 	return time.Duration(sleepTimeInSeconds) * time.Second
 }

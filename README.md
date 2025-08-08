@@ -204,6 +204,10 @@ To set up your own custom configuration for the agent:
         * Default: "" - Don't delete orchestration folder after execution
         * OptionalValue: "clean-success" - Deletes the orchestration folder only for successful document executions.
         * OptionalValue: "clean-success-failed" - Deletes the orchestration folder for successful and failed document executions.
+    * CredentialRetryMaxSleepSeconds (int) - Maximum credential retry backoff duration in seconds before attempting to refresh credentials on failure.
+        * Default: 1800 (30 minutes)
+        * Min: 60 (1 minute)
+        * Max: 1800 (30 minutes)
 * Mgs - represents configuration for Message Gateway service
     * Region (string)
     * Endpoint (string)

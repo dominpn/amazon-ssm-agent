@@ -120,6 +120,7 @@ func DefaultConfig() SsmagentConfig {
 		PluginLocalOutputCleanup:              DefaultPluginOutputRetention,
 		OrchestrationDirectoryCleanup:         DefaultOrchestrationDirCleanup,
 		SessionHandshakeTimeoutSeconds:        DefaultSessionHandshakeTimeoutSeconds,
+		CredentialRetryMaxSleepSeconds:        DefaultCredentialRetryMaxSleepSeconds,
 	}
 	agent := AgentInfo{
 		Name:                                    "amazon-ssm-agent",

@@ -22,7 +22,8 @@
         "SessionHandshakeTimeoutSeconds" : 15,
         "SessionLogsDestination": "none",
         "PluginLocalOutputCleanup": "",
-        "OrchestrationDirectoryCleanup": ""
+        "OrchestrationDirectoryCleanup": "",
+        "CredentialRetryMaxSleepSeconds": 1800
     },
     "Mgs": {
         "Region": "",
