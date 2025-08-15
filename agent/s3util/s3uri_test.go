@@ -32,6 +32,7 @@ var (
 		// {bucket, url, AmazonS3URL{IsValidS3URI, IsPathStyle, Bucket, Key, Region}},
 		{"abc", "https://abc.s3.mock-region.amazonaws.com/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
 		{"abc", "https://abc.s3.mock-region.amazonaws.com.cn/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
+		{"abc", "https://abc.s3.mock-region.amazonaws.eu/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
 		{"abc", "https://abc.s3.mock-region.c2s.ic.gov/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
 		{"abc", "https://abc.s3.mock-region.sc2s.sgov.gov/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
 		{"abc", "https://abc.s3.mock-region.cloud.adc-e.uk/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
@@ -241,6 +242,17 @@ var (
 				"mybucket",
 				"mykey",
 				"us-isof-south-1",
+			},
+		},
+		{
+			"mybucket",
+			"https://bucket.vpce-05a18c86214d4f28c-6p280e25.s3.eusc-de-east-1.vpce.amazonaws.eu/mybucket/mykey",
+			AmazonS3URL{
+				true,
+				true,
+				"mybucket",
+				"mykey",
+				"eusc-de-east-1",
 			},
 		},
 	}
