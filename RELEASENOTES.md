@@ -1,5 +1,10 @@
 Latest
 ===============
+- Add EU sovereign cloud S3 endpoint for DownloadContent plugin
+- Add configurable credential rotation max backoff interval
+
+3.3.2958.0
+===============
 - Migrate from twinj/uuid to google/uuid library
 - Allow newer agent versions to be installed when deploying on Greengrass
 - Harden function to remove non-admin run command documents in execution path
