@@ -211,7 +211,6 @@ func (i *Identity) Register(ctx context.Context) error {
 	err = backoffRetry(func() (err error) {
 		return updateServerInfo(instanceId, region, publicKey, privateKey, keyType, IdentityType, registration.EC2RegistrationVaultKey)
 	}, backoffConfig)
-
 	if err != nil {
 		return fmt.Errorf("failed to update EC2 local registration info after successful registration. %w", err)
 	}
@@ -282,7 +281,7 @@ func NewEC2IdentityWithConfig(log log.T, imdsAwsConfig *aws.Config) *Identity {
 // NewEC2Identity initializes the ec2 identity
 func NewEC2Identity(log log.T) *Identity {
 	awsConfig := &aws.Config{}
-	awsConfig = awsConfig.WithMaxRetries(3).WithEC2MetadataEnableFallback(false)
+	awsConfig = awsConfig.WithMaxRetries(8).WithEC2MetadataEnableFallback(false)
 	return NewEC2IdentityWithConfig(log, awsConfig)
 }
 
