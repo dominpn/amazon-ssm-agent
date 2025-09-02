@@ -144,7 +144,6 @@ func NewMdsSdkService(context context.T, msgSvc ssmmdsiface.SsmmdsAPI, tr *http.
 // GetMessages calls the GetMessages MDS API.
 func (mds *sdkService) GetMessages(log log.T, instanceID string) (messages *ssmmds.GetMessagesOutput, err error) {
 	uid := uuid.New().String()
-	log.Error("Uid - ", uid)
 	params := &ssmmds.GetMessagesInput{
 		Destination:                aws.String(instanceID), // Required
 		MessagesRequestId:          aws.String(uid),        // Required
