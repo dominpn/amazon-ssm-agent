@@ -17,6 +17,7 @@ package birdwatcherservice
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"reflect"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/artifact"
+	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/birdwatcher"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/birdwatcher/archive"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/birdwatcher/birdwatcherarchive"
@@ -32,6 +34,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/envdetect"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/packageservice"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/trace"
+	"github.com/aws/amazon-ssm-agent/agent/s3util"
 	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
@@ -245,13 +248,39 @@ func getFileFromManifest(ds *PackageService, packageName string, version string,
 	return file, nil
 }
 
+func transformS3EndpointIfDualStack(log log.T, ds *PackageService, s3Url string) (string, error) {
+	log.Debugf("Source URL before dualstack transformation: %v", s3Url)
+	ssmconfig := ds.Context.AppConfig()
+	if !ssmconfig.Agent.UseDualStackEndpoint {
+		log.Debugf("Dualstack endpoint use is disabled, hence not transforming S3 Url")
+		return s3Url, nil
+	}
+
+	var fileURL *url.URL
+	fileURL, err := url.Parse(s3Url)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse S3 URL: %v", err)
+	}
+	amazonS3URL := s3util.ParseAmazonS3URL(log, fileURL)
+	transformedUrl := artifact.ConvertToS3DualStackURL(s3Url, amazonS3URL)
+	log.Debugf("Source URL after dualstack transformation: %v", transformedUrl)
+
+	return transformedUrl, nil
+}
+
 func downloadFile(ds *PackageService, tracer trace.Tracer, file *archive.File, packageName string, version string, isRecursiveRetry bool) (string, error) {
+	log := tracer.CurrentTrace().Logger
 	if ds == nil || ds.packageArchive == nil || file == nil {
 		return "", fmt.Errorf("Either package service does not exist or does not have archive information or the file information does not exist")
 	}
 	sourceUrl, err := ds.packageArchive.GetFileDownloadLocation(file, packageName, version)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get file download location: %v", err)
+	}
+
+	sourceUrl, err = transformS3EndpointIfDualStack(log, ds, sourceUrl)
+	if err != nil {
+		return "", fmt.Errorf("failed to transform s3 endpoint for dualstack: %v", err)
 	}
 	downloadInput := artifact.DownloadInput{
 		SourceURL:            sourceUrl,
@@ -260,7 +289,6 @@ func downloadFile(ds *PackageService, tracer trace.Tracer, file *archive.File, p
 		SourceChecksums: file.Info.Checksums,
 	}
 
-	log := tracer.CurrentTrace().Logger
 	downloadOutput, downloadErr := birdwatcher.Networkdep.Download(ds.Context, downloadInput)
 	if downloadErr != nil || downloadOutput == nil || downloadOutput.LocalFilePath == "" {
 		errMessage := fmt.Sprintf("failed to download installation package reliably, %v", downloadInput.SourceURL)

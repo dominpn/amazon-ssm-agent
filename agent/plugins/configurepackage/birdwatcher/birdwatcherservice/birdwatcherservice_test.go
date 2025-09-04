@@ -21,6 +21,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/artifact"
+	appcontext "github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/birdwatcher"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/birdwatcher/archive"
@@ -619,7 +620,9 @@ func TestDownloadManifest(t *testing.T) {
 			mockedCollector.On("CollectData", mock.Anything).Return(envdata, nil).Once()
 			cache := packageservice.ManifestCacheMemNew()
 			testArchive.SetManifestCache(cache)
-			ds := &PackageService{facadeClient: &testdata.facadeClient, manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive}
+
+			contextMock := appcontext.NewMockDefault()
+			ds := &PackageService{facadeClient: &testdata.facadeClient, manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive, Context: contextMock}
 
 			_, result, isSameAsCache, err := ds.DownloadManifest(tracer, testdata.packageName, testdata.packageVersion)
 
@@ -731,7 +734,8 @@ func TestDownloadDocument(t *testing.T) {
 			}
 
 			testArchive := documentarchive.NewDocumentArchive(&facadeMock, nil, &documentDescription, &cache, manifestStr)
-			ds := &PackageService{facadeClient: &facadeMock, manifestCache: &cache, collector: &mockedCollector, packageArchive: testArchive}
+			contextMock := appcontext.NewMockDefault()
+			ds := &PackageService{facadeClient: &facadeMock, manifestCache: &cache, collector: &mockedCollector, packageArchive: testArchive, Context: contextMock}
 
 			_, manifestVersion, isSameAsCache, err := ds.DownloadManifest(tracer, testdata.packageName, testdata.packageVersion)
 
@@ -807,7 +811,8 @@ func TestDownloadManifestSameAsCacheManifest(t *testing.T) {
 		cache := packageservice.ManifestCacheMemNew()
 
 		testArchive.SetManifestCache(cache)
-		ds := &PackageService{facadeClient: &testdata.facadeClient, manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive}
+		contextMock := appcontext.NewMockDefault()
+		ds := &PackageService{facadeClient: &testdata.facadeClient, manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive, Context: contextMock}
 
 		// first call has empty cache and is expected to come back with isSameAsCache == false
 		_, result, isSameAsCache, err := ds.DownloadManifest(tracer, testdata.packageName, testdata.packageVersion)
@@ -873,8 +878,8 @@ func TestDownloadManifestDifferentFromCacheManifest(t *testing.T) {
 	testArchive.SetManifestCache(cache)
 	err := cache.WriteManifest("packagearn", "1234", []byte(cachedManifestStr))
 	assert.NoError(t, err)
-
-	ds := &PackageService{facadeClient: &testdata.facadeClient, manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive}
+	contextMock := appcontext.NewMockDefault()
+	ds := &PackageService{facadeClient: &testdata.facadeClient, manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive, Context: contextMock}
 
 	_, result, isSameAsCache, err := ds.DownloadManifest(tracer, testdata.packageName, testdata.packageVersion)
 
@@ -1054,7 +1059,8 @@ func TestDownloadFile(t *testing.T) {
 			testArchive := birdwatcherarchive.New(&facade.FacadeStub{}, context)
 
 			mockedCollector := envdetect2.CollectorMock{}
-			ds := &PackageService{manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive}
+			contextMock := appcontext.NewMockDefault()
+			ds := &PackageService{manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive, Context: contextMock}
 
 			result, err := downloadFile(ds, tracer, testdata.file, packagename, version, true)
 			if testdata.expectedErr {
@@ -1180,7 +1186,9 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 			testArchive := documentarchive.NewDocumentArchive(&facadeClient, testdata.attachments, &documentDescription, cache, "manifestStr")
 
 			mockedCollector := envdetect2.CollectorMock{}
-			ds := &PackageService{manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive}
+
+			contextMock := appcontext.NewMockDefault()
+			ds := &PackageService{manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive, Context: contextMock}
 
 			result, err := downloadFile(ds, tracer, testdata.file, packagename, version, true)
 			if testdata.expectedErr {
@@ -1258,7 +1266,8 @@ func TestDownloadArtifact(t *testing.T) {
 				&ec2infradetect.Ec2Infrastructure{"instanceID", "region", "", "availabilityZone", "instanceType"},
 			}, nil).Twice()
 			testArchive.SetManifestCache(cache)
-			ds := &PackageService{manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive}
+			contextMock := appcontext.NewMockDefault()
+			ds := &PackageService{manifestCache: cache, collector: &mockedCollector, packageArchive: testArchive, Context: contextMock}
 			birdwatcher.Networkdep = &testdata.network
 
 			result, err := ds.DownloadArtifact(tracer, testdata.packageName, testdata.packageVersion)
@@ -1268,6 +1277,97 @@ func TestDownloadArtifact(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, "agent.zip", result)
+			}
+		})
+	}
+}
+
+func TestTransformS3EndpointToDualStack(t *testing.T) {
+
+	data := []struct {
+		name                 string
+		inputUrl             string
+		configError          error
+		expectedUrl          string
+		expectedErr          bool
+		description          string
+		useDualStackEndpoint bool
+	}{
+		{
+			name:                 "transform IPv4 to dualstack endpoint when dualstack enabled",
+			inputUrl:             "https://s3.us-west-2.amazonaws.com/bucket/key",
+			configError:          nil,
+			expectedUrl:          "https://s3.dualstack.us-west-2.amazonaws.com/bucket/key",
+			expectedErr:          false,
+			description:          "Should transform IPv4 S3 endpoint to dualstack when dualstack is enabled",
+			useDualStackEndpoint: true,
+		},
+		{
+			name:                 "no transformation when dualstack disabled",
+			inputUrl:             "https://s3.us-west-2.amazonaws.com/bucket/key",
+			configError:          nil,
+			expectedUrl:          "https://s3.us-west-2.amazonaws.com/bucket/key",
+			expectedErr:          false,
+			description:          "Should not transform when dualstack is disabled",
+			useDualStackEndpoint: false,
+		},
+		{
+			name:                 "no transformation when URL doesn't contain IPv4 endpoint",
+			inputUrl:             "https://s3.dualstack.us-west-2.amazonaws.com/bucket/key",
+			configError:          nil,
+			expectedUrl:          "https://s3.dualstack.us-west-2.amazonaws.com/bucket/key",
+			expectedErr:          false,
+			description:          "Should not transform when URL already contains dualstack endpoint",
+			useDualStackEndpoint: false,
+		},
+		{
+			name:                 "transform with different region when dualstack enabled",
+			inputUrl:             "https://s3.eu-central-1.amazonaws.com/bucket/key",
+			configError:          nil,
+			expectedUrl:          "https://s3.dualstack.eu-central-1.amazonaws.com/bucket/key",
+			expectedErr:          false,
+			description:          "Should transform IPv4 to dualstack for different regions when dualstack is enabled",
+			useDualStackEndpoint: true,
+		},
+		{
+			name:                 "no transformation for non-S3 URL",
+			inputUrl:             "https://example.com/bucket/key",
+			configError:          nil,
+			expectedUrl:          "https://example.com/bucket/key",
+			expectedErr:          false,
+			description:          "Should not transform non-S3 URLs when dualstack is enabled",
+			useDualStackEndpoint: true,
+		},
+		{
+			name:                 "no transformation for VPCE URL",
+			inputUrl:             "https://vpce-1a2b3c4d.s3.us-east-1.vpce.amazonaws.com/bucket/key",
+			configError:          nil,
+			expectedUrl:          "https://vpce-1a2b3c4d.s3.us-east-1.vpce.amazonaws.com/bucket/key",
+			expectedErr:          false,
+			description:          "Should not transform VPCE URLs when dualstack is enabled",
+			useDualStackEndpoint: true,
+		},
+	}
+
+	for _, testdata := range data {
+		t.Run(testdata.name, func(t *testing.T) {
+			contextMock := appcontext.NewMockDefaultWithConfig(appconfig.SsmagentConfig{
+				Agent: appconfig.AgentInfo{
+					UseDualStackEndpoint: testdata.useDualStackEndpoint,
+				},
+				S3: appconfig.S3Cfg{
+					LogBucket: "bucket",
+					LogKey:    "key",
+				},
+			})
+			ds := &PackageService{Context: contextMock}
+			result, err := transformS3EndpointIfDualStack(log.NewMockLog(), ds, testdata.inputUrl)
+
+			if testdata.expectedErr {
+				assert.Error(t, err, testdata.description)
+			} else {
+				assert.NoError(t, err, testdata.description)
+				assert.Equal(t, testdata.expectedUrl, result, testdata.description)
 			}
 		})
 	}

@@ -425,7 +425,7 @@ func Download(context context.T, input DownloadInput) (output DownloadOutput, er
 				log.Info("An error occurred when attempting s3 download. Attempting http/https download as fallback.")
 				s3HttpURL := input.SourceURL
 				if context.AppConfig().Agent.UseDualStackEndpoint {
-					s3HttpURL = convertToS3DualStackURL(input.SourceURL, amazonS3URL)
+					s3HttpURL = ConvertToS3DualStackURL(input.SourceURL, amazonS3URL)
 				}
 				tempOutput, err = httpDownload(context, s3HttpURL, output.LocalFilePath, input.ExpectedBucketOwner)
 			}
@@ -601,7 +601,7 @@ func Md5HashValue(log log.T, filePath string) (hash string, err error) {
 }
 
 // convertToDualStackURL converts a regional non-VPCE S3 URL to use dual-stack endpoint
-func convertToS3DualStackURL(originalURL string, amazonS3URL s3util.AmazonS3URL) string {
+func ConvertToS3DualStackURL(originalURL string, amazonS3URL s3util.AmazonS3URL) string {
 	// Convert to dual-stack format
 	// Path-style: https://s3.us-east-1.amazonaws.com/mybucket/a/b/c -> https://s3.dualstack.us-east-1.amazonaws.com/mybucket/a/b/c
 	// Virtual-hosted-style: https://mybucket.s3.us-east-1.amazonaws.com/a/b/c -> https://mybucket.s3.dualstack.us-east-1.amazonaws.com/a/b/c

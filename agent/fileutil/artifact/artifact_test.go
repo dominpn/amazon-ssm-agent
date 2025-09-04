@@ -83,7 +83,7 @@ func TestConvertToS3DualStackURL(t *testing.T) {
 			assert.NoError(t, err)
 
 			s3URL := s3util.ParseAmazonS3URL(logger, parsedURL)
-			result := convertToS3DualStackURL(tc.originalURL, s3URL)
+			result := ConvertToS3DualStackURL(tc.originalURL, s3URL)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
