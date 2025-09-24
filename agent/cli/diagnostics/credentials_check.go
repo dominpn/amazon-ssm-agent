@@ -47,7 +47,17 @@ func (credentialsCheckQuery) GetPriority() int {
 }
 
 func (q credentialsCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
-	agentIdentity, err := cliutil.GetAgentIdentity()
+	agentConfig, err := cliutil.GetAgentConfig()
+
+	if err != nil {
+		return diagnosticsutil.DiagnosticOutput{
+			Check:  q.GetName(),
+			Status: diagnosticsutil.DiagnosticsStatusSkipped,
+			Note:   credentialsCheckStrNoCreds,
+		}
+	}
+
+	agentIdentity, err := cliutil.GetAgentIdentity(agentConfig)
 
 	if err != nil {
 		return diagnosticsutil.DiagnosticOutput{
@@ -67,6 +77,8 @@ func (q credentialsCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
 	}
 
 	client := sts.New(awsSession)
+	client.Endpoint = "https://" + agentIdentity.GetServiceEndpoint("sts")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	callerResp, err := client.GetCallerIdentityWithContext(ctx, &sts.GetCallerIdentityInput{})

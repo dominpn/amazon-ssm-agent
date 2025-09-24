@@ -86,7 +86,12 @@ func (c *GetOfflineCommand) Execute(subcommands []string, parameters map[string]
 		return errors.New(strings.Join(validation, "\n")), ""
 	}
 
-	agentIdentity, err := cliutil.GetAgentIdentity()
+	agentConfig, err := cliutil.GetAgentConfig()
+	if err != nil {
+		return err, ""
+	}
+
+	agentIdentity, err := cliutil.GetAgentIdentity(agentConfig)
 	if err != nil {
 		return err, ""
 	}

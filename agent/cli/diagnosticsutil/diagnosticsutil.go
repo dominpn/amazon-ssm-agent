@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/cli/cliutil"
 	agentContext "github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
@@ -59,7 +58,12 @@ func RegisterDiagnosticQuery(diagnosticQuery DiagnosticQuery) {
 
 // GetAwsSession create a single session and shares the session cross diagnostics queries
 func GetAwsSession(agentIdentity identity.IAgentIdentity, service string) (*session.Session, error) {
-	awsConfig := sdkutil.AwsConfig(agentContext.Default(logger.NewSilentLogger(), appconfig.DefaultConfig(), agentIdentity), service)
+	agentConfig, err := cliutil.GetAgentConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	awsConfig := sdkutil.AwsConfig(agentContext.Default(logger.NewSilentLogger(), agentConfig, agentIdentity), service)
 	return session.NewSession(awsConfig)
 }
 
@@ -67,7 +71,13 @@ func IsOnPremRegistration() bool {
 	// Only wait for 2 seconds, if instance is onprem this is instant
 	isOnPremChan := make(chan bool, 1)
 	go func() {
-		agentIdentity, identityErr := cliutil.GetAgentIdentity()
+		agentConfig, configErr := cliutil.GetAgentConfig()
+		if configErr != nil {
+			isOnPremChan <- false
+			return
+		}
+
+		agentIdentity, identityErr := cliutil.GetAgentIdentity(agentConfig)
 
 		isOnPremChan <- identityErr == nil && identity2.IsOnPremInstance(agentIdentity)
 	}()

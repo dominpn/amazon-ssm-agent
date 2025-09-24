@@ -48,7 +48,8 @@ func (q onpremCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
 		}
 	}
 
-	agentIdentity, _ := cliutil.GetAgentIdentity()
+	agentConfig, _ := cliutil.GetAgentConfig()
+	agentIdentity, _ := cliutil.GetAgentIdentity(agentConfig)
 	instanceId, _ := agentIdentity.InstanceID()
 	region, _ := agentIdentity.Region()
 	return diagnosticsutil.DiagnosticOutput{

@@ -233,7 +233,16 @@ func (q connectivityCheckQuery) dialWithoutProxy(address string) diagnosticsutil
 }
 
 func (q connectivityCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
-	agentIdentity, err := cliutil.GetAgentIdentity()
+	agentConfig, err := cliutil.GetAgentConfig()
+	if err != nil {
+		return diagnosticsutil.DiagnosticOutput{
+			Check:  q.GetName(),
+			Status: diagnosticsutil.DiagnosticsStatusFailed,
+			Note:   err.Error(),
+		}
+	}
+
+	agentIdentity, err := cliutil.GetAgentIdentity(agentConfig)
 
 	if err != nil {
 		return diagnosticsutil.DiagnosticOutput{
@@ -243,7 +252,38 @@ func (q connectivityCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
 		}
 	}
 
-	address := agentIdentity.GetServiceEndpoint(q.service)
+	// Check for service-specific endpoint overrides
+	var address string
+	switch q.service {
+	case "ssm":
+		if agentConfig.Ssm.Endpoint != "" {
+			address = agentConfig.Ssm.Endpoint
+		}
+	case "ec2messages":
+		if agentConfig.Mds.Endpoint != "" {
+			address = agentConfig.Mds.Endpoint
+		}
+	case "ssmmessages":
+		if agentConfig.Mgs.Endpoint != "" {
+			address = agentConfig.Mgs.Endpoint
+		}
+	case "s3":
+		if agentConfig.S3.Endpoint != "" {
+			address = agentConfig.S3.Endpoint
+		}
+	case "kms":
+		if agentConfig.Kms.Endpoint != "" {
+			address = agentConfig.Kms.Endpoint
+		}
+	case "logs":
+		if agentConfig.CloudWatchLogs.Endpoint != "" {
+			address = agentConfig.CloudWatchLogs.Endpoint
+		}
+	}
+
+	if address == "" {
+		address = agentIdentity.GetServiceEndpoint(q.service)
+	}
 
 	proxyMap := proxyconfig.GetProxyConfig()
 	if isProxyDefined(proxyMap) {

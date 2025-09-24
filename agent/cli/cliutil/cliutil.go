@@ -17,6 +17,7 @@ package cliutil
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
 	"sync"
@@ -39,7 +40,10 @@ const (
 	flagPrefix = "--"
 )
 
-// package variables to store agent identity state
+// package variables to store agent config and agent identity state
+var agentConfig appconfig.SsmagentConfig
+var agentConfigErr error
+
 var agentIdentity identity.IAgentIdentity
 var agentIdentityErr error
 var agentIdentityOnce sync.Once
@@ -112,11 +116,19 @@ func ValidUrl(s string) bool {
 	return false
 }
 
+// GetAgentConfig returns the agent config
+func GetAgentConfig() (appconfig.SsmagentConfig, error) {
+	agentConfig, agentConfigErr = appconfig.Config(false)
+	if agentConfigErr != nil {
+		log.Printf("Failed to load app config for ssm cli. Err: %v", agentConfigErr)
+	}
+	return agentConfig, agentConfigErr
+}
+
 // GetAgentIdentity returns the agent identity and only initializes it once
-func GetAgentIdentity() (identity.IAgentIdentity, error) {
+func GetAgentIdentity(config appconfig.SsmagentConfig) (identity.IAgentIdentity, error) {
 	agentIdentityOnce.Do(func() {
 		log := logger.NewSilentLogger()
-		config := appconfig.DefaultConfig()
 
 		selector := identity2.NewRuntimeConfigIdentitySelector(log)
 		agentIdentity, agentIdentityErr = identity2.NewAgentIdentity(log, &config, selector)

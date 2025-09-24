@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/cli/cliutil"
 	"github.com/aws/amazon-ssm-agent/agent/cli/diagnosticsutil"
 	"github.com/aws/amazon-ssm-agent/agent/log/logger"
@@ -58,9 +57,17 @@ func (versionQuery) GetPriority() int {
 
 func (versionQuery) getLatestVersion(resChan chan versionRegionResponse) {
 	log := logger.NewSilentLogger()
-	config := appconfig.DefaultConfig()
+	agentConfig, err := cliutil.GetAgentConfig()
+	if err != nil {
+		resChan <- versionRegionResponse{
+			"",
+			"",
+			err,
+		}
+		return
+	}
 
-	agentIdentity, err := cliutil.GetAgentIdentity()
+	agentIdentity, err := cliutil.GetAgentIdentity(agentConfig)
 	// Failed to get identity of the running agent
 	if err != nil {
 		resChan <- versionRegionResponse{
@@ -86,7 +93,7 @@ func (versionQuery) getLatestVersion(resChan chan versionRegionResponse) {
 	// Construct the path to the latest version file
 	s3Url += "latest/VERSION"
 
-	tr := network.GetDefaultTransport(log, config)
+	tr := network.GetDefaultTransport(log, agentConfig)
 	client := &http.Client{
 		Transport: tr,
 		Timeout:   30 * time.Second,
