@@ -250,3 +250,100 @@ func TestIsRegionValid(t *testing.T) {
 	maxLengthRegion := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-1"
 	assert.True(t, e.isRegionValid(maxLengthRegion))
 }
+func TestGetServiceEndpoint_DualStack_AWS(t *testing.T) {
+	logger := log.NewMockLog()
+	config := appconfig.SsmagentConfig{
+		Agent: appconfig.AgentInfo{
+			UseDualStackEndpoint: true,
+		},
+	}
+
+	helper := NewEndpointHelper(logger, config)
+
+	// Test SSM service
+	endpoint := helper.GetServiceEndpoint("ssm", "us-west-2")
+	assert.Equal(t, "ssm.us-west-2.api.aws", endpoint)
+
+	// Test S3 service (special case)
+	endpoint = helper.GetServiceEndpoint("s3", "us-west-2")
+	assert.Equal(t, "s3.dualstack.us-west-2.amazonaws.com", endpoint)
+
+	// Test EC2 service
+	endpoint = helper.GetServiceEndpoint("ec2", "us-east-1")
+	assert.Equal(t, "ec2.us-east-1.api.aws", endpoint)
+}
+
+func TestGetServiceEndpoint_DualStack_China(t *testing.T) {
+	logger := log.NewMockLog()
+	config := appconfig.SsmagentConfig{
+		Agent: appconfig.AgentInfo{
+			UseDualStackEndpoint: true,
+		},
+	}
+
+	helper := NewEndpointHelper(logger, config)
+
+	// Test SSM service in China
+	endpoint := helper.GetServiceEndpoint("ssm", "cn-north-1")
+	assert.Equal(t, "ssm.cn-north-1.api.amazonwebservices.com.cn", endpoint)
+
+	// Test S3 service in China (uses same domain as regular endpoints)
+	endpoint = helper.GetServiceEndpoint("s3", "cn-north-1")
+	assert.Equal(t, "s3.dualstack.cn-north-1.amazonaws.com.cn", endpoint)
+}
+
+func TestGetServiceEndpoint_DualStack_GovCloud(t *testing.T) {
+	logger := log.NewMockLog()
+	config := appconfig.SsmagentConfig{
+		Agent: appconfig.AgentInfo{
+			UseDualStackEndpoint: true,
+		},
+	}
+
+	helper := NewEndpointHelper(logger, config)
+
+	// Test SSM service in GovCloud (uses same domain as standard AWS)
+	endpoint := helper.GetServiceEndpoint("ssm", "us-gov-west-1")
+	assert.Equal(t, "ssm.us-gov-west-1.api.aws", endpoint)
+
+	// Test S3 service in GovCloud
+	endpoint = helper.GetServiceEndpoint("s3", "us-gov-west-1")
+	assert.Equal(t, "s3.dualstack.us-gov-west-1.amazonaws.com", endpoint)
+}
+
+func TestGetServiceEndpoint_DualStack_ISO(t *testing.T) {
+	logger := log.NewMockLog()
+	config := appconfig.SsmagentConfig{
+		Agent: appconfig.AgentInfo{
+			UseDualStackEndpoint: true,
+		},
+	}
+
+	helper := NewEndpointHelper(logger, config)
+
+	// Test SSM service in ISO partition
+	endpoint := helper.GetServiceEndpoint("ssm", "us-iso-east-1")
+	assert.Equal(t, "ssm.us-iso-east-1.api.aws.ic.gov", endpoint)
+
+	// Test S3 service in ISO partition (uses same domain as regular endpoints)
+	endpoint = helper.GetServiceEndpoint("s3", "us-iso-east-1")
+	assert.Equal(t, "s3.dualstack.us-iso-east-1.c2s.ic.gov", endpoint)
+}
+
+func TestGetServiceEndpoint_Standard_Fallback(t *testing.T) {
+	logger := log.NewMockLog()
+	config := appconfig.SsmagentConfig{
+		Agent: appconfig.AgentInfo{
+			UseDualStackEndpoint: false, // Standard endpoints
+		},
+	}
+
+	helper := NewEndpointHelper(logger, config)
+
+	// Test that standard endpoints still work
+	endpoint := helper.GetServiceEndpoint("ssm", "us-west-2")
+	assert.Equal(t, "ssm.us-west-2.amazonaws.com", endpoint)
+
+	endpoint = helper.GetServiceEndpoint("s3", "us-west-2")
+	assert.Equal(t, "s3.us-west-2.amazonaws.com", endpoint)
+}

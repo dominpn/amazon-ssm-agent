@@ -50,7 +50,8 @@
         "TelemetryMetricsToSSM": true,
         "GlobalEnhancedTelemetryEnabled": true,
         "AuditExpirationDay" : 7,
-        "LongRunningWorkerMonitorIntervalSeconds": 60
+        "LongRunningWorkerMonitorIntervalSeconds": 60,
+        "UseDualStackEndpoint": false
     },
     "Os": {
         "Lang": "en-US",

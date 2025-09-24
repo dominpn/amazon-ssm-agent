@@ -37,10 +37,11 @@ import (
 
 const (
 	// envVar* constants are names of environment variables set for processes executed by ssm agent and should start with AWS_SSM_
-	envVarInstanceID      = "AWS_SSM_INSTANCE_ID"
-	envVarRegionName      = "AWS_SSM_REGION_NAME"
-	envVarPlatformName    = "AWS_SSM_PLATFORM_NAME"
-	envVarPlatformVersion = "AWS_SSM_PLATFORM_VERSION"
+	envVarInstanceID           = "AWS_SSM_INSTANCE_ID"
+	envVarRegionName           = "AWS_SSM_REGION_NAME"
+	envVarPlatformName         = "AWS_SSM_PLATFORM_NAME"
+	envVarPlatformVersion      = "AWS_SSM_PLATFORM_VERSION"
+	envVarUseDualStackEndpoint = "AWS_SSM_USE_DUALSTACK_ENDPOINT"
 )
 
 // T is the interface type for ShellCommandExecuter.
@@ -485,6 +486,12 @@ func prepareEnvironment(context context.T, command *exec.Cmd, envVars map[string
 	} else {
 		log.Warnf("There was an error retrieving the platformVersion while setting the environment variables: %v", err)
 	}
+	if context.AppConfig().Agent.UseDualStackEndpoint {
+		env = append(env, fmtEnvVariable(envVarUseDualStackEndpoint, "true"))
+	} else {
+		env = append(env, fmtEnvVariable(envVarUseDualStackEndpoint, "false"))
+	}
+
 	command.Env = env
 
 	// Running powershell on linux erquired the HOME env variable to be set and to remove the TERM env variable

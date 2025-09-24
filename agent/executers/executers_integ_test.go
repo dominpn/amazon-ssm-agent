@@ -175,6 +175,7 @@ var envVars = map[string]string{
 }
 
 var logger = log.NewMockLog()
+var config = appconfig.DefaultConfig()
 
 func getTestContext() context.T {
 	identityMock := &identityMocks.IAgentIdentity{}
@@ -182,6 +183,7 @@ func getTestContext() context.T {
 	identityMock.On("InstanceID").Return(testInstanceID, nil)
 
 	contextMock := &contextmocks.Mock{}
+	contextMock.On("AppConfig").Return(config)
 	contextMock.On("Identity").Return(identityMock)
 	contextMock.On("Log").Return(logger)
 

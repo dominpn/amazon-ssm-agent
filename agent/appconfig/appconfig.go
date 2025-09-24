@@ -136,6 +136,7 @@ func DefaultConfig() SsmagentConfig {
 		ShouldPurgeInstanceProfileRoleCreds:     false,
 		ForceFileIPC:                            false,
 		GoMaxProcForAgentWorker:                 0,
+		UseDualStackEndpoint:                    false,
 	}
 
 	os := OsInfo{

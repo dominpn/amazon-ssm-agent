@@ -32,11 +32,23 @@ var regionPrefixServiceDomain = map[string]string{
 	"eusc-de-": "amazonaws.eu",
 }
 
+// Map defining region prefixes and dual-stack service domains
+var regionPrefixServiceDualStackDomain = map[string]string{
+	"cn-":      "api.amazonwebservices.com.cn",
+	"us-iso-":  "api.aws.ic.gov",
+	"us-isob-": "api.aws.scloud",
+	"us-isof-": "api.aws.hci.ic.gov",
+	"eu-isoe-": "api.cloud-aws.adc-e.uk",
+	"eusc-de-": "api.amazonwebservices.eu",
+}
+
 // default service domain if prefix does not exist in awsFallbackServiceDomain map
 const (
-	defaultServiceDomain = "amazonaws.com"
-
-	regionMaxLength = 100
+	defaultServiceDomain          = "amazonaws.com"
+	defaultServiceDualStackDomain = "api.aws"
+	s3Service                     = "s3"
+	s3DualStackEndpointPrefix     = "s3.dualstack."
+	regionMaxLength               = 100
 )
 
 // The following regex only allows a-z upper/lower case characters, digits and dashes for region strings
@@ -55,6 +67,22 @@ func GetServiceDomainByPrefix(region string) string {
 	}
 
 	return defaultServiceDomain
+}
+
+func GetServiceDualStackDomainByPrefix(service, region string) string {
+	// S3 uses regular service domains in dualstack endpoints
+	if service == s3Service {
+		return GetServiceDomainByPrefix(region)
+	}
+
+	// All other services use dedicated domains in dualstack endpoints
+	for regionPrefix, dualStackDomain := range regionPrefixServiceDualStackDomain {
+		if strings.HasPrefix(region, regionPrefix) {
+			return dualStackDomain
+		}
+	}
+
+	return defaultServiceDualStackDomain
 }
 
 type endpointImpl struct {
@@ -92,7 +120,7 @@ func (e *endpointImpl) setEndpointCache(service, region, endpoint string) {
 
 func (e *endpointImpl) GetServiceEndpoint(service, region string) string {
 	e.log.Debugf("Determining endpoint for service %s in region %s", service, region)
-	var serviceDomain string
+
 	if region == "" {
 		// If region is not defined, we are unable to determine endpoint for the service
 		e.log.Errorf("Cannot get endpoint for service %s due to unspecified region.", service)
@@ -108,16 +136,46 @@ func (e *endpointImpl) GetServiceEndpoint(service, region string) string {
 		return endpoint
 	}
 
+	var endpoint string
+
+	// Check if dual-stack endpoints are enabled
+	if e.config.Agent.UseDualStackEndpoint {
+		endpoint = e.buildDualStackEndpoint(service, region)
+	} else {
+		endpoint = e.buildStandardEndpoint(service, region)
+	}
+
+	e.setEndpointCache(service, region, endpoint)
+	return endpoint
+}
+
+func (e *endpointImpl) buildDualStackEndpoint(service, region string) string {
+	var serviceDomain string
+	if e.config.Agent.ServiceDomain != "" {
+		serviceDomain = e.config.Agent.ServiceDomain
+	} else {
+		serviceDomain = GetServiceDualStackDomainByPrefix(service, region)
+	}
+
+	// S3 has a special dual-stack endpoint format s3.dualstack.{region}.{regularServiceDomain}
+	if service == s3Service {
+		return s3DualStackEndpointPrefix + region + "." + serviceDomain
+	}
+
+	// All other services use the standard dual-stack format {service}.{region}.{dualStackServiceDomain}
+	return service + "." + region + "." + serviceDomain
+}
+
+func (e *endpointImpl) buildStandardEndpoint(service, region string) string {
+	var serviceDomain string
 	if e.config.Agent.ServiceDomain != "" {
 		serviceDomain = e.config.Agent.ServiceDomain
 	} else {
 		serviceDomain = GetServiceDomainByPrefix(region)
 	}
 
-	// Build the full endpoint for the service in the region
-	endpoint := service + "." + region + "." + serviceDomain
-	e.setEndpointCache(service, region, endpoint)
-	return endpoint
+	// Build the standard endpoint for the service in the region
+	return service + "." + region + "." + serviceDomain
 }
 
 func NewEndpointHelper(log log.T, config appconfig.SsmagentConfig) *endpointImpl {

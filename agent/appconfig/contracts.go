@@ -81,6 +81,8 @@ type AgentInfo struct {
 	ForceFileIPC                        bool
 	// denotes GOMAXPROCS value for legacy agent worker
 	GoMaxProcForAgentWorker int
+	// Enable dual-stack (IPv4 and IPv6) endpoints for AWS services
+	UseDualStackEndpoint bool
 }
 
 // MgsConfig represents configuration for Message Gateway service

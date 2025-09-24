@@ -20,6 +20,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	mockIdentity "github.com/aws/amazon-ssm-agent/common/identity/mocks"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +35,7 @@ const (
 
 // Return the value of a named environment variable from a list of environment variable
 // where the format of each entry is name=value
-// Return nil if no variable with the given envVarName is found in the collection env
+// Return an empty string if no variable with the given envVarName is found in the collection env
 func getEnvVariableValue(env []string, envVarName string) string {
 	for _, envVariable := range env {
 		if strings.HasPrefix(envVariable, envVarName+"=") {
@@ -62,6 +63,7 @@ func TestEnvironmentVariables_All(t *testing.T) {
 	assert.Equal(t, mockIdentity.MockInstanceID, getEnvVariableValue(command.Env, envVarInstanceID))
 	assert.Equal(t, mockIdentity.MockRegion, getEnvVariableValue(command.Env, envVarRegionName))
 	assert.Equal(t, "envVal", getEnvVariableValue(command.Env, "envKey"))
+	assert.Equal(t, "false", getEnvVariableValue(command.Env, envVarUseDualStackEndpoint))
 }
 
 func TestEnvironmentVariables_None(t *testing.T) {
@@ -73,6 +75,36 @@ func TestEnvironmentVariables_None(t *testing.T) {
 
 	assert.Empty(t, getEnvVariableValue(command.Env, mockIdentity.MockInstanceID))
 	assert.Empty(t, getEnvVariableValue(command.Env, mockIdentity.MockRegion))
+}
+
+func TestEnvironmentVariables_DualStackEnabled(t *testing.T) {
+	os.Clearenv()
+	config := appconfig.SsmagentConfig{
+		Agent: appconfig.AgentInfo{
+			UseDualStackEndpoint: true,
+		},
+	}
+	context := context.NewMockDefaultWithConfig(config)
+	command := getTestCommand()
+	env := make(map[string]string)
+	prepareEnvironment(context, command, env)
+
+	assert.Equal(t, "true", getEnvVariableValue(command.Env, envVarUseDualStackEndpoint))
+}
+
+func TestEnvironmentVariables_DualStackDisabled(t *testing.T) {
+	os.Clearenv()
+	config := appconfig.SsmagentConfig{
+		Agent: appconfig.AgentInfo{
+			UseDualStackEndpoint: false,
+		},
+	}
+	context := context.NewMockDefaultWithConfig(config)
+	command := getTestCommand()
+	env := make(map[string]string)
+	prepareEnvironment(context, command, env)
+
+	assert.Equal(t, "false", getEnvVariableValue(command.Env, envVarUseDualStackEndpoint))
 }
 
 func TestQuoteShString(t *testing.T) {
