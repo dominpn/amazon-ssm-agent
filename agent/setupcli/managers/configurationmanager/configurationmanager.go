@@ -159,3 +159,46 @@ func getExistingAgentConfigData(agentConfigPath string) (map[string]interface{},
 
 	return configJsonData, nil
 }
+
+// UpdateAgentConfigWithUseDualStackEndpoint updates agent config with UseDualStackEndpoint flag
+func (m *configurationManager) UpdateAgentConfigWithUseDualStackEndpoint() error {
+	var err error
+	configJsonData := make(map[string]interface{})
+
+	// default agent config path
+	defaultAgentConfigPath := filepath.Join(agentConfigFolderPath, agentConfigFile)
+
+	// create agent config directory if already not created
+	err = makeDir(agentConfigFolderPath)
+	if err != nil {
+		return fmt.Errorf("error while creating directory: %v", err)
+	}
+
+	// read config data and store it in a map
+	if fileExists(defaultAgentConfigPath) {
+		configJsonData, err = getExistingAgentConfigData(defaultAgentConfigPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Set the unified UseDualStackEndpoint flag in Agent config
+	if agentConfig, ok := configJsonData["Agent"].(map[string]interface{}); ok {
+		agentConfig["UseDualStackEndpoint"] = true
+	} else {
+		configJsonData["Agent"] = map[string]interface{}{
+			"UseDualStackEndpoint": true,
+		}
+	}
+
+	// Marshall and write updated config
+	agentConfigJsonStr, err := jsonutil.Marshal(configJsonData)
+	if err != nil {
+		return fmt.Errorf("error marshalling config with use dual-stack endpoint: %v", err)
+	}
+
+	if s, err := fileWrite(defaultAgentConfigPath, jsonutil.Indent(agentConfigJsonStr), os.FileMode(int(appconfig.ReadWriteAccess))); s && err == nil {
+		return nil
+	}
+	return fmt.Errorf("error writing config with use dual-stack endpoint: %v", err)
+}

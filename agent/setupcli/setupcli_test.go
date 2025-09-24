@@ -177,7 +177,7 @@ func TestMain_OnPrem_Register_Success(t *testing.T) {
 		return false, nil
 	}
 
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadLatestSSMSetupCLI", mock.Anything, mock.Anything).Return(nil).Once()
 		managerMock.On("GetLatestVersion").Return(agentVersioning.Version, nil).Once()
@@ -378,7 +378,7 @@ func TestMain_InstallAgent_StableVersion_Onprem_Success(t *testing.T) {
 		return cfgManagerMock
 	}
 	stableVersion := "3.2.0.0"
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadLatestSSMSetupCLI", mock.Anything, mock.Anything).Return(nil).Once()
 		managerMock.On("GetStableVersion").Return(stableVersion, nil).Once()
@@ -448,7 +448,7 @@ func TestMain_InstallAgent_LatestVersion_Onprem_Success(t *testing.T) {
 		return cfgManagerMock
 	}
 	latestVersion := "3.0.0.0"
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadLatestSSMSetupCLI", mock.Anything, mock.Anything).Return(nil).Once()
 		managerMock.On("GetLatestVersion").Return(latestVersion, nil).Once()
@@ -519,7 +519,7 @@ func TestMain_InstallAgent_AlreadyInstalledVersion_Onprem_Success(t *testing.T) 
 		return cfgManagerMock
 	}
 	latestVersion := "3.0.0.0"
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadLatestSSMSetupCLI", mock.Anything, mock.Anything).Return(nil).Once()
 		managerMock.On("GetLatestVersion").Return(latestVersion, nil).Once()

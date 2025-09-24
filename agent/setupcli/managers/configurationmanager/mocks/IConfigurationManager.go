@@ -61,6 +61,20 @@ func (_m *IConfigurationManager) IsConfigAvailable(folderPath string) (bool, err
 	return r0, r1
 }
 
+// UpdateAgentConfigWithUseDualStackEndpoint provides a mock function with given fields:
+func (_m *IConfigurationManager) UpdateAgentConfigWithUseDualStackEndpoint() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewIConfigurationManager interface {
 	mock.TestingT
 	Cleanup(func())

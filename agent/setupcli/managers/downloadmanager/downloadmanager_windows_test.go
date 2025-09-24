@@ -37,7 +37,7 @@ func (suite *DownloadManagerTestSuite) TestDownloadManager_DownloadSignatureFile
 		updateManifestMock.On("LoadManifest", path).Return(nil).Once()
 		return updateManifestMock
 	}
-	downloadMgr := New(suite.logMock, "us-east-1", "https://s3.amazonaws.com/"+updateconstants.ManifestFile, nil, path, true)
+	downloadMgr := New(suite.logMock, "us-east-1", "https://s3.amazonaws.com/"+updateconstants.ManifestFile, nil, path, true, false)
 	path, err := downloadMgr.DownloadSignatureFile("", "", "")
 
 	assert.Nil(suite.T(), err, "unexpected error")

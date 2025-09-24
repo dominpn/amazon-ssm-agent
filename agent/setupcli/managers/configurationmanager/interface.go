@@ -21,4 +21,6 @@ type IConfigurationManager interface {
 	ConfigureAgent(folderPath string) error
 	// CreateUpdateAgentConfigWithOnPremIdentity copies the config in the folder to the applicable location to configure the agent
 	CreateUpdateAgentConfigWithOnPremIdentity() error
+	// UpdateAgentConfigWithUseDualStackEndpoint updates agent config with use dual-stack endpoint
+	UpdateAgentConfigWithUseDualStackEndpoint() error
 }

@@ -15,6 +15,7 @@
 package configurationmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -298,6 +299,82 @@ func (suite *ConfigManagerTestSuite) TestConfigManager_CreateUpdateAgentConfigWi
 	assert.Equal(suite.T(), identityMap["ConsumptionOrder"], []interface{}{onprem.IdentityType})
 	assert.NotContains(suite.T(), expectedOutput, "Agent")
 	assert.Nil(suite.T(), err)
+}
+
+func (suite *ConfigManagerTestSuite) TestConfigManager_UpdateAgentConfigWithUseDualStackEndpoint_FileExists() {
+	makeDir = func(destinationDir string) (err error) {
+		return nil
+	}
+	fileExists = func(filePath string) bool {
+		return true
+	}
+
+	existingConfig := map[string]interface{}{
+		"Agent": map[string]interface{}{
+			"Region":               "us-west-2",
+			"UseDualStackEndpoint": false,
+		},
+		"Ssm": map[string]interface{}{
+			"HealthFrequencyMinutes": 5,
+		},
+	}
+
+	readAllText = func(filePath string) (text string, err error) {
+		configData, _ := json.Marshal(existingConfig)
+		return string(configData), nil
+	}
+
+	expectedOutput := ""
+	fileWrite = func(absolutePath, content string, perm os.FileMode) (result bool, err error) {
+		expectedOutput = content
+		return true, nil
+	}
+
+	configMgr := New()
+	err := configMgr.UpdateAgentConfigWithUseDualStackEndpoint()
+
+	assert.NoError(suite.T(), err)
+
+	var config map[string]interface{}
+	err = json.Unmarshal([]byte(expectedOutput), &config)
+	assert.NoError(suite.T(), err)
+
+	agentConfig, ok := config["Agent"].(map[string]interface{})
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), true, agentConfig["UseDualStackEndpoint"])
+	assert.Equal(suite.T(), "us-west-2", agentConfig["Region"]) // Existing values preserved
+
+	// Verify other sections preserved
+	ssmConfig, ok := config["Ssm"].(map[string]interface{})
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), float64(5), ssmConfig["HealthFrequencyMinutes"])
+}
+
+func (suite *ConfigManagerTestSuite) TestConfigManager_UpdateAgentConfigWithUseDualStackEndpoint_FileNotExists() {
+	makeDir = func(destinationDir string) (err error) {
+		return nil
+	}
+	fileExists = func(filePath string) bool {
+		return false
+	}
+	expectedOutput := ""
+	fileWrite = func(absolutePath, content string, perm os.FileMode) (result bool, err error) {
+		expectedOutput = content
+		return true, nil
+	}
+
+	configMgr := New()
+	err := configMgr.UpdateAgentConfigWithUseDualStackEndpoint()
+
+	assert.NoError(suite.T(), err)
+
+	var config map[string]interface{}
+	err = json.Unmarshal([]byte(expectedOutput), &config)
+	assert.NoError(suite.T(), err)
+
+	agentConfig, ok := config["Agent"].(map[string]interface{})
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), true, agentConfig["UseDualStackEndpoint"])
 }
 
 func TestConfigManagerTestSuite(t *testing.T) {

@@ -68,6 +68,7 @@ var (
 	version                 string
 	downgrade               bool
 	manifestUrl             string
+	useDualStackEndpoint    bool
 )
 
 var (
@@ -211,6 +212,14 @@ func performGreengrassSteps(log log.T, packageManager packagemanagers.IPackageMa
 			log.Warnf("Failed to configure agent with On-prem identity: %v", err)
 		}
 
+		if useDualStackEndpoint {
+			if err = configManager.UpdateAgentConfigWithUseDualStackEndpoint(); err != nil {
+				log.Warnf("Failed to configure agent with use dual-stack endpoint: %v", err)
+			} else {
+				log.Infof("Agent configured with use dual-stack endpoint")
+			}
+		}
+
 		log.Info("Starting amazon-ssm-agent install")
 		var isInstalled bool
 		var reInstallAgent bool
@@ -345,7 +354,7 @@ func performOnpremSteps(log log.T, packageManager packagemanagers.IPackageManage
 
 	// Initialize download manager
 	log.Infof("Initialize download manager")
-	downloadManager := getDownloadManager(log, region, manifestUrl, nil, setupCLIArtifactsPath, isNano)
+	downloadManager := getDownloadManager(log, region, manifestUrl, nil, setupCLIArtifactsPath, isNano, useDualStackEndpoint)
 	if downloadManager == nil {
 		return fmt.Errorf("failed to intialize download manager")
 	}
@@ -517,6 +526,12 @@ func installAndVerifyAgent(log log.T,
 	if err = configManager.CreateUpdateAgentConfigWithOnPremIdentity(); err != nil {
 		return fmt.Errorf("return failed to update agent config %v", err)
 	}
+	if useDualStackEndpoint {
+		if err = configManager.UpdateAgentConfigWithUseDualStackEndpoint(); err != nil {
+			return fmt.Errorf("failed to update agent config with use dual-stack endpoint: %v", err)
+		}
+		log.Infof("Agent configured with use dual-stack endpoint")
+	}
 	log.Infof("Agent is configured successfully")
 
 	if !isTargetAgentInstalled {
@@ -681,6 +696,7 @@ func setParams() {
 	flag.BoolVar(&downgrade, "downgrade", false, "")
 
 	flag.BoolVar(&skipSignatureValidation, "skip-signature-validation", false, "")
+	flag.BoolVar(&useDualStackEndpoint, "use-dualstack-endpoint", false, "")
 
 	flag.Parse()
 }
@@ -729,6 +745,7 @@ func verifyParams(log log.T, additionalVerifier func() string) {
 	log.Infof("manifest-url=%v", manifestUrl)
 	log.Infof("artifactsDir=%v", artifactsDir)
 	log.Infof("skip-signature-validation=%v", skipSignatureValidation)
+	log.Infof("use-dualstack-endpoint=%v", useDualStackEndpoint)
 
 	var errMessage string
 	errMessage += additionalVerifier()
@@ -802,6 +819,7 @@ func flagUsage() {
 	fmt.Fprintln(os.Stderr, "\t\t-activation-code  \tSSM Activation Code for Onprem environment \t(REQUIRED and paired with activation-id)")
 	fmt.Fprintln(os.Stderr, "\t\t-activation-id  \tSSM Activation ID for Onprem environment \t(REQUIRED and paired with Activation code)")
 	fmt.Fprintln(os.Stderr, "\t\t-override \t\tOverride existing registration if present \t(OPTIONAL)")
+	fmt.Fprintln(os.Stderr, "\t\t-use-dualstack-endpoint\tUse dual-stack endpoints for AWS services \t(OPTIONAL)")
 
 	fmt.Fprintln(os.Stderr, "\nCommand-line Usage for SSM agent installation alone(without registration) in ONPREM environment:")
 	fmt.Fprintln(os.Stderr, "\t-install        \tInstall the SSM Agent. Use this flag only if you want to skip registration. \t(REQUIRED)")
@@ -809,6 +827,7 @@ func flagUsage() {
 	fmt.Fprintln(os.Stderr, "\t\t-version\tVersion of the ssm agent to download and install ('stable' or 'latest'). Default set to 'stable' if agent is not already installed; otherwise, skip the installation. \t(OPTIONAL)")
 	fmt.Fprintln(os.Stderr, "\t\t-downgrade\tSet when the agent needs to be downgraded \t(OPTIONAL but REQUIRED during downgrade)")
 	fmt.Fprintln(os.Stderr, "\t\t-skip-signature-validation\tSkip signature validation \t(OPTIONAL)")
+	fmt.Fprintln(os.Stderr, "\t\t-use-dualstack-endpoint\tUse dual-stack endpoints for AWS services \t(OPTIONAL)")
 
 	fmt.Fprintln(os.Stderr, "\nCommand-line Usage for GREENGRASS environment:")
 	fmt.Fprintln(os.Stderr, "\t-artifacts-dir \tDirectory for ssm agent install package and install/register scripts")
@@ -823,6 +842,7 @@ func flagUsage() {
 	fmt.Fprintln(os.Stderr, "\t\t-activation-id  \tSSM Activation ID for Onprem environment \t\t(REQUIRED and paired with Activation code)")
 	fmt.Fprintln(os.Stderr, "\t\t-override \t\tOverride existing registration if present        \t(OPTIONAL)")
 	fmt.Fprintln(os.Stderr, "\t\t-tags     \t\tTags to attach to ssm instance on registrations  \t(OPTIONAL)")
+	fmt.Fprintln(os.Stderr, "\t\t-use-dualstack-endpoint\tUse dual-stack endpoints for AWS services \t(OPTIONAL)")
 
 }
 func initializeLogger() log.T {

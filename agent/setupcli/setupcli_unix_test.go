@@ -229,7 +229,7 @@ func TestMain_Install_FailedCheckAgentInstalled(t *testing.T) {
 		return managerMock, nil
 	}
 
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadArtifacts", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		return managerMock
@@ -365,7 +365,7 @@ func TestMain_Install_AgentIsInstalled_UninstallAgentFailed(t *testing.T) {
 		return managerMock, nil
 	}
 
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadArtifacts", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		return managerMock
@@ -422,7 +422,7 @@ func TestMain_Install_AgentIsInstalled_UninstallSuccess_InstallFailed(t *testing
 		return managerMock, nil
 	}
 
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadArtifacts", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		return managerMock
@@ -481,7 +481,7 @@ func TestMain_Install_AgentIsInstalled_UninstallSuccess_InstallSuccess_ReloadSer
 		return managerMock, nil
 	}
 
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadArtifacts", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		return managerMock
@@ -540,7 +540,7 @@ func TestMain_Install_AgentNotInstalled_InstallSuccess(t *testing.T) {
 		return managerMock, nil
 	}
 
-	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
+	getDownloadManager = func(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) downloadmanager.IDownloadManager {
 		managerMock := &dmMock.IDownloadManager{}
 		managerMock.On("DownloadArtifacts", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		return managerMock

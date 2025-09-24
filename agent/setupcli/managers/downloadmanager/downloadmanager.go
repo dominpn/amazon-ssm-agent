@@ -39,6 +39,8 @@ import (
 const (
 	manifestJsonFileName             = "ssm-agent-manifest.json"
 	s3Service                        = "s3"
+	s3RegularEndpointPrefix          = "https://s3"
+	s3DualStackEndpointPrefix        = "https://s3.dualstack"
 	lowerKernelVersionSupportedAgent = "3.0.1479.0"
 	testVersion                      = "255.255.65535.999"
 )
@@ -68,10 +70,16 @@ type downloadManager struct {
 }
 
 // New returns a new instance of DownloadManager
-func New(log log.T, region string, manifestURL string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) IDownloadManager {
+func New(log log.T, region string, manifestURL string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStackEndpoint bool) IDownloadManager {
 	downloadMgrLog := log.WithContext("[DownloadManager]")
 	var err error
-	ctx := context.Default(downloadMgrLog, appconfig.DefaultConfig(), nil)
+
+	config := appconfig.DefaultConfig()
+
+	// Apply UseDualStackEndpoint setting
+	config.Agent.UseDualStackEndpoint = useDualStackEndpoint
+
+	ctx := context.Default(downloadMgrLog, config, nil)
 	if updateInfo == nil {
 		updateInfo, err = updateinfo.New(ctx)
 		if err != nil {
@@ -79,7 +87,8 @@ func New(log log.T, region string, manifestURL string, updateInfo updateinfo.T, 
 			return nil
 		}
 	}
-	endpointHelper := endpoint.NewEndpointHelper(log, appconfig.SsmagentConfig{})
+
+	endpointHelper := endpoint.NewEndpointHelper(log, config)
 	if endpointHelper == nil {
 		downloadMgrLog.Errorf("Error while initiating endpoint helper: %v", err)
 		return nil
@@ -132,6 +141,9 @@ func (d *downloadManager) DownloadArtifacts(installVersion string, manifestUrl s
 	// generate agent artifacts URL and checksum using the manifest loaded
 	if agentDownloadURL, agentHashInManifest, err = d.manifestInfo.GetDownloadURLAndHash(appconfig.DefaultAgentName, installVersion); err != nil {
 		return fmt.Errorf("error while getting target location and target hash: %v", err)
+	}
+	if d.ctx.AppConfig().Agent.UseDualStackEndpoint {
+		agentDownloadURL = strings.Replace(agentDownloadURL, s3RegularEndpointPrefix, s3DualStackEndpointPrefix, 1)
 	}
 
 	generatedUrl := d.getS3BucketUrl() + "/"

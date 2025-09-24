@@ -176,6 +176,6 @@ func GetConfigurationManager() configurationmanager.IConfigurationManager {
 }
 
 // GetDownloadManager returns a new download manager
-func GetDownloadManager(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool) downloadmanager.IDownloadManager {
-	return downloadmanager.New(log, region, manifestUrl, updateInfo, setupCLIArtifactsPath, isNano)
+func GetDownloadManager(log log.T, region string, manifestUrl string, updateInfo updateinfo.T, setupCLIArtifactsPath string, isNano bool, useDualStack bool) downloadmanager.IDownloadManager {
+	return downloadmanager.New(log, region, manifestUrl, updateInfo, setupCLIArtifactsPath, isNano, useDualStack)
 }

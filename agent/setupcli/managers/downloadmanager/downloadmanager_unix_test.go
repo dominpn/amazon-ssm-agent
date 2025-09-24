@@ -41,7 +41,7 @@ func (suite *DownloadManagerTestSuite) TestDownloadManager_DownloadSignatureFile
 		updateManifestMock.On("LoadManifest", path).Return(nil).Once()
 		return updateManifestMock
 	}
-	downloadMgr := New(suite.logMock, "us-east-1", "https://s3.amazonaws.com/"+updateconstants.ManifestFile, info, path, true)
+	downloadMgr := New(suite.logMock, "us-east-1", "https://s3.amazonaws.com/"+updateconstants.ManifestFile, info, path, true, false)
 	signatureURL := "https://s3.amazonaws.com/" + version + "/linux_amd64/amazon-ssm-agent.sig"
 	actualSignFileURL := ""
 	utilHttpDownload = func(log log.T, fileURL string, destinationPath string) (string, error) {
