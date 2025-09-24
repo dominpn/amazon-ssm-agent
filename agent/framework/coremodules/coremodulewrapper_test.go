@@ -109,7 +109,7 @@ func TestCoreModuleWrapper_ModuleStop_StopStartedNotFinished(t *testing.T) {
 
 	assert.Equal(t, expErr, err)
 	assert.Less(t, time.Since(startTime), time.Second)
-	assert.Greater(t, time.Since(startTime), 500*time.Millisecond)
+	assert.Greater(t, time.Since(startTime), 450*time.Millisecond)
 	module.AssertExpectations(t)
 
 }

@@ -44,11 +44,11 @@ func getSystemHostInfo(log log.T) (HostInfo, error) {
 	}
 
 	if info.Version == "" && info.Vendor == "" {
-		return info, fmt.Errorf(failedToGetVendorAndVersion)
+		return info, fmt.Errorf("%s", failedToGetVendorAndVersion)
 	}
 
 	if info.Uuid == "" {
-		return info, fmt.Errorf(failedToGetUuid)
+		return info, fmt.Errorf("%s", failedToGetUuid)
 	}
 
 	return info, nil

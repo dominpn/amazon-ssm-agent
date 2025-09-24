@@ -512,8 +512,8 @@ func isPowerShellVersionSupportedForLogStreaming(log log.T) (bool, error) {
 
 // getStreamingFilePath returns the file path of transcript log file created by PowerShell
 func (p *ShellPlugin) getStreamingFilePath(log log.T) (streamingFilePath string, err error) {
-	currentDate := fmt.Sprintf(time.Now().Format(dateformatyyyymmdd))
-	dirPath := fmt.Sprintf(p.logger.transcriptDirPath + `/` + currentDate)
+	currentDate := time.Now().Format(dateformatyyyymmdd)
+	dirPath := p.logger.transcriptDirPath + `/` + currentDate
 
 	// Check periodically for the presence of transcript file. Ideally file should be created as soon as shell starts.
 	ticker := time.NewTicker(time.Second)

@@ -180,7 +180,7 @@ func TestGenerateFingerprint_FailGenerateHwHash(t *testing.T) {
 	// Arrange
 	failedGenerateHwHashError := "Failed to generate hardware hash"
 	currentHwHash = func() (map[string]string, error) {
-		return make(map[string]string), fmt.Errorf(failedGenerateHwHashError)
+		return make(map[string]string), fmt.Errorf("%s", failedGenerateHwHashError)
 	}
 
 	// Act

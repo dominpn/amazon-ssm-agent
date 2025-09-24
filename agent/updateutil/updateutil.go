@@ -511,7 +511,7 @@ func (util *Utility) WaitForServiceToStart(log log.T, i updateinfo.T, targetVers
 		errorMessage += ", " + workRunningErr.Error()
 	}
 
-	return false, fmt.Errorf(errorMessage)
+	return false, fmt.Errorf("%s", errorMessage)
 }
 
 // IsDiskSpaceSufficientForUpdate loads disk space info and checks the available bytes

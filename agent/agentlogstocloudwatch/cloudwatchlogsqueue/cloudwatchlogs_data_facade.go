@@ -138,12 +138,12 @@ func verifyLogGroupName(xmlConfig seelog.CustomReceiverInitArgs, args []string) 
 		if args[0] == appconfig.DefaultDocumentWorker {
 			logGroup, ok = xmlConfig.XmlCustomAttrs[docWorkerLogGroupSeelogAttrib]
 			if logGroup == "" || !ok {
-				return fmt.Errorf(invalidLogGroupErrMsg)
+				return fmt.Errorf("%s", invalidLogGroupErrMsg)
 			}
 		} else if args[0] == appconfig.DefaultSessionWorker {
 			logGroup, ok = xmlConfig.XmlCustomAttrs[sessionWorkerLogGroupSeelogAttrib]
 			if logGroup == "" || !ok {
-				return fmt.Errorf(invalidLogGroupErrMsg)
+				return fmt.Errorf("%s", invalidLogGroupErrMsg)
 			}
 		} else {
 			logGroup, ok = xmlConfig.XmlCustomAttrs[agentWorkerLogGroupSeelogAttrib]

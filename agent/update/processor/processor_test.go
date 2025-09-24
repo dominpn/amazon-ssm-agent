@@ -1604,7 +1604,7 @@ func TestProceedUpdateWithDowngradeFailUninstall(t *testing.T) {
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return exitCode, fmt.Errorf(errMessage)
+		return exitCode, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -1667,7 +1667,7 @@ func TestProceedUpdateWithDowngradeUninstallReportMetricErrorUsingPkgMgr(t *test
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return updateconstants.ExitCodeUpdateErrorUsingPkgMgrLegacy, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUpdateErrorUsingPkgMgrLegacy, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -1732,7 +1732,7 @@ func TestProceedUpdateFailInstall(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return exitCode, fmt.Errorf(errMessage)
+		return exitCode, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
@@ -1782,7 +1782,7 @@ func TestProceedUpdateWithDowngradeFailUninstallErrorPrepareUpdateCommand(t *tes
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -1849,7 +1849,7 @@ func TestProceedUpdateFailInstallErrorPrepareUpdateCommand(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
@@ -1907,7 +1907,7 @@ func TestProceedUpdateWithDowngradeFailUninstallWithUnsupportedServiceMgr(t *tes
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -1973,7 +1973,7 @@ func TestProceedUpdateFailInstallWithUnsupportedServiceMgr(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
@@ -2034,7 +2034,7 @@ func TestProceedUpdateFailInstallWithFailureDueToSnapd(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeUpdateFailedDueToSnapd, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUpdateFailedDueToSnapd, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
@@ -2095,7 +2095,7 @@ func TestProceedUpdateInstallReportMetricDueToSigningIssue(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeInstallFailedDueToSigningIssue, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeInstallFailedDueToSigningIssue, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
@@ -2156,7 +2156,7 @@ func TestProceedUpdateInstallReportMetricErrorUsingPkgMgr(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeUpdateErrorUsingYumAndRpm, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUpdateErrorUsingYumAndRpm, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.rollback = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (err error) {
@@ -2403,7 +2403,7 @@ func TestRollbackInstallationFailUninstall(t *testing.T) {
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return exitCode, fmt.Errorf(errMessage)
+		return exitCode, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -2459,7 +2459,7 @@ func TestRollbackInstallationUninstallReportMetricErrorUsingPkgMgr(t *testing.T)
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return updateconstants.ExitCodeUpdateErrorUsingDpkg, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUpdateErrorUsingDpkg, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -2525,7 +2525,7 @@ func TestRollbackInstallationFailInstall(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return exitCode, fmt.Errorf(errMessage)
+		return exitCode, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
@@ -2575,7 +2575,7 @@ func TestRollbackInstallationFailUninstallErrorPrepareUpdateCommand(t *testing.T
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -2636,7 +2636,7 @@ func TestRollbackInstallationFailInstallErrorPrepareUpdateCommand(t *testing.T) 
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeErrorPrepareUpdateCommand, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
@@ -2687,7 +2687,7 @@ func TestRollbackInstallationFailUninstallWithUnsupportedServiceMgr(t *testing.T
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isUninstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -2747,7 +2747,7 @@ func TestRollbackInstallationFailInstallWithUnsupportedServiceMgr(t *testing.T) 
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUnsupportedPlatform, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.verify = func(mgr *updateManager, log log.T, updateDetail *UpdateDetail, isRollback bool) (err error) {
@@ -2797,7 +2797,7 @@ func TestRollbackInstallationFailInstallWithFailureDueToSnapd(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeUpdateFailedDueToSnapd, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUpdateFailedDueToSnapd, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -2852,7 +2852,7 @@ func TestRollbackInstallationFailInstallDueToSigningIssue(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeInstallFailedDueToSigningIssue, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeInstallFailedDueToSigningIssue, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
@@ -2907,7 +2907,7 @@ func TestRollbackInstallationFailInstallErrorUsingPkgMgr(t *testing.T) {
 
 	updater.mgr.install = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {
 		isInstallCalled = true
-		return updateconstants.ExitCodeUpdateErrorUsingPkgMgrLegacy, fmt.Errorf(errMessage)
+		return updateconstants.ExitCodeUpdateErrorUsingPkgMgrLegacy, fmt.Errorf("%s", errMessage)
 	}
 
 	updater.mgr.uninstall = func(mgr *updateManager, log log.T, version string, updateDetail *UpdateDetail) (exitCode updateconstants.UpdateScriptExitCode, err error) {

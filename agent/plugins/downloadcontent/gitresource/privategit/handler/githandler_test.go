@@ -80,7 +80,7 @@ func getTestPublicKeysAuth(user, sshKey string, hostKeyCallback ssh.HostKeyCallb
 	publicKeysAuthMethod, err := gitssh.NewPublicKeys(user, []byte(sshKey), "")
 
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Print(err.Error())
 		return nil
 	}
 

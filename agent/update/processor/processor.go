@@ -528,7 +528,7 @@ func proceedUpdate(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (e
 			}
 
 			if slices.Contains(updateconstants.ExitCodesUpdateErrorUsingPkgMgr, exitCode) {
-				updateDetail.AppendError(log, message)
+				updateDetail.AppendError(log, "%s", message)
 				mgr.reportMetric(mgr, updateDetail, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode))
 			} else {
 				return mgr.failed(updateDetail, log, updateconstants.ErrorUninstallFailed, message, true)
@@ -549,7 +549,7 @@ func proceedUpdate(mgr *updateManager, log log.T, updateDetail *UpdateDetail) (e
 			"failed to install %v %v",
 			updateDetail.PackageName,
 			updateDetail.TargetVersion)
-		updateDetail.AppendError(log, message)
+		updateDetail.AppendError(log, "%s", message)
 
 		// Command never executes, no need to rollback
 		if exitCode == updateconstants.ExitCodeErrorPrepareUpdateCommand {
@@ -612,7 +612,7 @@ func verifyInstallation(mgr *updateManager, log log.T, updateDetail *UpdateDetai
 				updateDetail.TargetVersion,
 				"failed to start the agent")
 
-			updateDetail.AppendError(log, message)
+			updateDetail.AppendError(log, "%s", message)
 			updateDetail.AppendInfo(
 				log,
 				"Initiating rollback %v to %v",
@@ -641,7 +641,7 @@ func verifyInstallation(mgr *updateManager, log log.T, updateDetail *UpdateDetai
 			message := updateutil.BuildMessage(nil,
 				"failed to identify installed target agent version: %v",
 				updateDetail.TargetVersion)
-			updateDetail.AppendError(log, message)
+			updateDetail.AppendError(log, "%s", message)
 			// we will receive only 1 error code - ErrorInstTargetVersionNotFoundViaReg
 			return mgr.failed(updateDetail, log, versionInstalledErrCode, message, false)
 		}
@@ -676,7 +676,7 @@ func rollbackInstallation(mgr *updateManager, log log.T, updateDetail *UpdateDet
 		}
 
 		if slices.Contains(updateconstants.ExitCodesUpdateErrorUsingPkgMgr, exitCode) {
-			updateDetail.AppendError(log, message)
+			updateDetail.AppendError(log, "%s", message)
 			mgr.reportMetric(mgr, updateDetail, insertPkgMgrErrorCode(updateconstants.ErrorUninstallFailed, exitCode))
 		} else {
 			return mgr.failed(updateDetail, log, updateconstants.ErrorUninstallFailed, message, false)

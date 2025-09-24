@@ -246,7 +246,7 @@ func RunPlugins(
 			pluginOutputs[pluginID].Code = 0
 			pluginOutputs[pluginID].Output = logMessage
 		case failStep:
-			err := fmt.Errorf(logMessage)
+			err := fmt.Errorf("%s", logMessage)
 			pluginOutputs[pluginID].Status = contracts.ResultStatusFailed
 			pluginOutputs[pluginID].Error = err.Error()
 			log.Error(err)

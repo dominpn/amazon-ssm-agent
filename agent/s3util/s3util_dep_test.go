@@ -46,7 +46,7 @@ func TestHttpProviderImpl_Head_NoRetryOnCertValidationFailure(t *testing.T) {
 		"not bucket.with.dots.s3.us-east-1.amazonaws.com"
 
 	trans := newMockTransport()
-	trans.AddTransportError(bucketUrl, fmt.Errorf(errMsg))
+	trans.AddTransportError(bucketUrl, fmt.Errorf("%s", errMsg))
 	getHeadBucketTransportDelegate = func(log.T, appconfig.SsmagentConfig) http.RoundTripper {
 		return trans
 	}

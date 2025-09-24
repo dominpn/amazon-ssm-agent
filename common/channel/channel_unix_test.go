@@ -181,13 +181,6 @@ func (suite *IChannelTestSuite) TestIPCSelection_CloseError() {
 
 	assert.False(suite.T(), output)
 	mockLog := suite.log.(*logmocks.Mock)
-	errorArgs := []interface{}{
-		"error while closing named pipe channel %v",
-		[]interface{}{expectedError},
-	}
-
-	mockLog.AssertCalled(suite.T(), "Errorf", errorArgs...)
-	mockLog.AssertCalled(suite.T(), "Info", []interface{}{
-		"falling back to file based IPC as named pipe creation failed",
-	})
+	mockLog.AssertCalled(suite.T(), "Errorf", "error while closing named pipe channel %v", []interface{}{expectedError})
+	mockLog.AssertCalled(suite.T(), "Info", []interface{}{"falling back to file based IPC as named pipe creation failed"})
 }

@@ -150,7 +150,7 @@ func (_m *Mock) Warnf(format string, params ...interface{}) error {
 	msg := fmt.Sprintf("Warnf: "+format, params...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(format, params)
@@ -162,7 +162,7 @@ func (_m *Mock) TelemetryWarnf(format string, params ...interface{}) error {
 	msg := fmt.Sprintf("TelemetryWarnf: "+format, params...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(format, params)
@@ -174,7 +174,7 @@ func (_m *Mock) Errorf(format string, params ...interface{}) error {
 	msg := fmt.Sprintf("Errorf: "+format, params...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(format, params)
@@ -186,7 +186,7 @@ func (_m *Mock) TelemetryErrorf(format string, params ...interface{}) error {
 	msg := fmt.Sprintf("TelemetryErrorf: "+format, params...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(format, params)
@@ -198,7 +198,7 @@ func (_m *Mock) Criticalf(format string, params ...interface{}) error {
 	msg := fmt.Sprintf("Criticalf: "+format, params...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(format, params)
@@ -210,7 +210,7 @@ func (_m *Mock) TelemetryCriticalf(format string, params ...interface{}) error {
 	msg := fmt.Sprintf("TelemetryCriticalf: "+format, params...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(format, params)
@@ -265,7 +265,7 @@ func (_m *Mock) TelemetryWarn(v ...interface{}) error {
 	msg := fmt.Sprint("TelemetryWarn: ") + fmt.Sprint(v...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(v)
@@ -277,7 +277,7 @@ func (_m *Mock) Error(v ...interface{}) error {
 	msg := fmt.Sprint("Error: ") + fmt.Sprint(v...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(v)
@@ -289,7 +289,7 @@ func (_m *Mock) TelemetryError(v ...interface{}) error {
 	msg := fmt.Sprint("TelemetryError: ") + fmt.Sprint(v...)
 	if !_m.silent {
 		fmt.Print(_m.context)
-		fmt.Printf(msg)
+		fmt.Print(msg)
 		fmt.Println()
 	}
 	_m.Called(v)

@@ -241,7 +241,7 @@ func makeArguments(context context.T, pluginInput DomainJoinPluginInput) (comman
 
 	if len(pluginInput.HostName) != 0 {
 		if isShellInjection(pluginInput.HostName) {
-			return "", fmt.Errorf("shell command injection string: %v" + pluginInput.DirectoryName)
+			return "", fmt.Errorf("shell command injection string: %s", pluginInput.HostName)
 		}
 		buffer.WriteString(SetHostNameArg)
 		buffer.WriteString(pluginInput.HostName)

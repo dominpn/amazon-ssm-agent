@@ -43,7 +43,7 @@ func CreateScheduleExpression(log log.T, scheduleExpression string) (ScheduleExp
 	if strings.HasPrefix(lowerCasedScheduledExpression, expressionTypeCron) {
 		err := validateCronExpression(log, scheduleExpression)
 		if err != nil {
-			return nil, fmt.Errorf(err.Error())
+			return nil, fmt.Errorf("%w", err)
 		}
 
 		cronExpression := scheduleExpression[len(expressionTypeCron)+1 : len(scheduleExpression)-1]
@@ -54,7 +54,7 @@ func CreateScheduleExpression(log log.T, scheduleExpression string) (ScheduleExp
 		} else {
 			message := fmt.Sprintf("Error %v received while parsing cron expression %v", err, scheduleExpression)
 			log.Error(message)
-			return nil, fmt.Errorf(message)
+			return nil, fmt.Errorf("%s", message)
 		}
 	}
 
@@ -66,7 +66,7 @@ func CreateScheduleExpression(log log.T, scheduleExpression string) (ScheduleExp
 		} else {
 			message := fmt.Sprintf("An error %v received while parsing rate expression %v", err, scheduleExpression)
 			log.Error(message)
-			return nil, fmt.Errorf(message)
+			return nil, fmt.Errorf("%s", message)
 		}
 	}
 
@@ -80,20 +80,20 @@ func validateCronExpression(log log.T, scheduleExpression string) error {
 
 	if len(result) != 1 {
 		log.Error(errorMessage)
-		return fmt.Errorf(errorMessage)
+		return fmt.Errorf("%s", errorMessage)
 	}
 
 	match := result[0]
 	if match == nil {
 		log.Error(errorMessage)
-		return fmt.Errorf(errorMessage)
+		return fmt.Errorf("%s", errorMessage)
 	}
 
 	if len(match) == 2 && match[1] != "" {
 		// Ensure we do not match cron(0 0 0/1 * * ? *)abc
 		if len(match[1]) != len(scheduleExpression) {
 			log.Error(errorMessage)
-			return fmt.Errorf(errorMessage)
+			return fmt.Errorf("%s", errorMessage)
 		}
 	}
 

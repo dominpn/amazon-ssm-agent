@@ -250,7 +250,7 @@ func makeArguments(context context.T, scriptPath string, pluginInput DomainJoinP
 	}
 
 	if isShellInjection(pluginInput.DirectoryId) {
-		return "", fmt.Errorf("Shell command injection string " + pluginInput.DirectoryId)
+		return "", fmt.Errorf("Shell command injection string %s", pluginInput.DirectoryId)
 	}
 
 	buffer.WriteString(DirectoryIdArg)
@@ -261,7 +261,7 @@ func makeArguments(context context.T, scriptPath string, pluginInput DomainJoinP
 	}
 
 	if isShellInjection(pluginInput.DirectoryName) {
-		return "", fmt.Errorf("Shell command injection string " + pluginInput.DirectoryName)
+		return "", fmt.Errorf("Shell command injection string %s", pluginInput.DirectoryName)
 	}
 	buffer.WriteString(DirectoryNameArg)
 	buffer.WriteString(pluginInput.DirectoryName)
@@ -275,7 +275,7 @@ func makeArguments(context context.T, scriptPath string, pluginInput DomainJoinP
 	}
 
 	if isShellInjection(region) {
-		return "", fmt.Errorf("Shell command injection string " + region)
+		return "", fmt.Errorf("Shell command injection string %s", region)
 	}
 
 	// check if user provides the directory OU parameter
@@ -291,12 +291,12 @@ func makeArguments(context context.T, scriptPath string, pluginInput DomainJoinP
 	}
 
 	if isShellInjection(pluginInput.DirectoryOU) {
-		return "", fmt.Errorf("Shell command injection string " + pluginInput.DirectoryName)
+		return "", fmt.Errorf("Shell command injection string %s", pluginInput.DirectoryOU)
 	}
 
 	if len(pluginInput.HostName) != 0 {
 		if isShellInjection(pluginInput.HostName) {
-			return "", fmt.Errorf("Shell command injection string " + pluginInput.DirectoryName)
+			return "", fmt.Errorf("Shell command injection string %s", pluginInput.HostName)
 		}
 		buffer.WriteString(SetHostNameArg)
 		buffer.WriteString(pluginInput.HostName)
@@ -349,13 +349,13 @@ func makeArguments(context context.T, scriptPath string, pluginInput DomainJoinP
 			buffer.WriteString(",")
 		}
 		if isShellInjection(pluginInput.DnsIpAddresses[index]) {
-			return "", fmt.Errorf("Shell command injection string " + pluginInput.DnsIpAddresses[index])
+			return "", fmt.Errorf("Shell command injection string %s", pluginInput.DnsIpAddresses[index])
 		}
 		matchesIPPat := isMatchingIPAddress(pluginInput.DnsIpAddresses[index])
 		if matchesIPPat {
 			buffer.WriteString(pluginInput.DnsIpAddresses[index])
 		} else {
-			return "", fmt.Errorf("Invalid DNS IP address " + pluginInput.DnsIpAddresses[index])
+			return "", fmt.Errorf("Invalid DNS IP address %s", pluginInput.DnsIpAddresses[index])
 		}
 	}
 

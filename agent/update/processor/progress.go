@@ -124,7 +124,7 @@ func (u *updateManager) succeeded(updateDetail *UpdateDetail, log logPkg.T) (err
 func (u *updateManager) failed(updateDetail *UpdateDetail, log logPkg.T, code updateconstants.ErrorCode, errMessage string, noRollbackMessage bool) (err error) {
 	updateDetail.State = Completed
 	updateDetail.Result = contracts.ResultStatusFailed
-	updateDetail.AppendInfo(log, errMessage)
+	updateDetail.AppendInfo(log, "%s", errMessage)
 	updateDetail.AppendInfo(
 		log,
 		"Failed to update %v to %v",

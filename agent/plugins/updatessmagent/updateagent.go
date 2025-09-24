@@ -195,7 +195,7 @@ func runUpdateAgent(
 		if !isRunning {
 			errMsg := "Updater died before updating, make sure your system is supported"
 			log.Error(errMsg)
-			output.MarkAsFailed(fmt.Errorf(errMsg))
+			output.MarkAsFailed(fmt.Errorf("%s", errMsg))
 
 			exec.Kill(pid)
 			return

@@ -66,7 +66,7 @@ func TestIsPidRunningButError(t *testing.T) {
 			{1, 2, "exe", "R"},
 			{3, 4, "exe", "R"},
 			{5, 6, "exe", "Z"},
-		}, fmt.Errorf(errMsg)
+		}, fmt.Errorf("%s", errMsg)
 	}
 	defer func() { getProcess = oldGetProcess }()
 
