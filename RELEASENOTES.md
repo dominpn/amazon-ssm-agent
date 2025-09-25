@@ -1,5 +1,16 @@
 Latest
 ===============
+- Add IMDS retry count to account for EC2 droplet refresh
+- Fix duplicate uid error logging in MDS module
+- Update aws:Domainjoin plugin logging from Log4Net to NLog
+- Upgrade Go version to 1.24.7
+- Update github.com/go-git/go-git/v5 to 5.15.0
+- Update golang.org/x/crypto to v0.37.0
+- Update golang.org/x/net to v0.39.0
+- Update golang.org/x/sys to v0.32.0
+
+3.3.3050.0
+===============
 - Add EU sovereign cloud S3 endpoint for DownloadContent plugin
 - Add configurable credential rotation max backoff interval
 
