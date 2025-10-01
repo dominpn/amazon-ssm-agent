@@ -269,7 +269,7 @@ func (svc *sdkService) UpdateInstanceInformation(
 		return nil, fmt.Errorf("Cannot report platform type of unrecognized OS. %v", goOS)
 	}
 
-	if ip, err := platform.IP(); err == nil {
+	if ip, err := platform.IP(log); err == nil {
 		params.IPAddress = aws.String(ip)
 	} else {
 		log.Warn(err)
