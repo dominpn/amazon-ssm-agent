@@ -423,7 +423,11 @@ func Download(context context.T, input DownloadInput) (output DownloadOutput, er
 			tempOutput, err = s3Download(context, amazonS3URL, output.LocalFilePath, input.ExpectedBucketOwner)
 			if err != nil {
 				log.Info("An error occurred when attempting s3 download. Attempting http/https download as fallback.")
-				tempOutput, err = httpDownload(context, input.SourceURL, output.LocalFilePath, input.ExpectedBucketOwner)
+				s3HttpURL := input.SourceURL
+				if context.AppConfig().Agent.UseDualStackEndpoint {
+					s3HttpURL = convertToS3DualStackURL(input.SourceURL, amazonS3URL)
+				}
+				tempOutput, err = httpDownload(context, s3HttpURL, output.LocalFilePath, input.ExpectedBucketOwner)
 			}
 			output = tempOutput
 		} else {
@@ -594,4 +598,21 @@ func Md5HashValue(log log.T, filePath string) (hash string, err error) {
 	hash = hex.EncodeToString(hasher.Sum(nil))
 	log.Debugf("Hash=%v, FilePath=%v", hash, filePath)
 	return
+}
+
+// convertToDualStackURL converts a regional non-VPCE S3 URL to use dual-stack endpoint
+func convertToS3DualStackURL(originalURL string, amazonS3URL s3util.AmazonS3URL) string {
+	// Convert to dual-stack format
+	// Path-style: https://s3.us-east-1.amazonaws.com/mybucket/a/b/c -> https://s3.dualstack.us-east-1.amazonaws.com/mybucket/a/b/c
+	// Virtual-hosted-style: https://mybucket.s3.us-east-1.amazonaws.com/a/b/c -> https://mybucket.s3.dualstack.us-east-1.amazonaws.com/a/b/c
+
+	// Keep as original if the URL is Vpce, global, or dual-stack
+
+	regularUrlPrefix := "s3." + amazonS3URL.Region + "."
+	dualStackUrlPrefix := "s3.dualstack." + amazonS3URL.Region + "."
+	if amazonS3URL.IsVpceURL || strings.Contains(originalURL, dualStackUrlPrefix) {
+		return originalURL
+	}
+
+	return strings.Replace(originalURL, regularUrlPrefix, dualStackUrlPrefix, 1)
 }

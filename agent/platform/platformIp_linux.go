@@ -81,7 +81,7 @@ func findDefaultRouteInterface(msgs []syscall.NetlinkMessage) uint32 {
 			}
 		}
 	}
-	// 0 will cause a fallback as not found, actual interface index starts from 1.
+	// 0 will cause a fallback as NOT_FOUND, actual interface index starts from 1.
 	return 0
 }
 

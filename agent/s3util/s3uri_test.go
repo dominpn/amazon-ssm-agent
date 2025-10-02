@@ -30,41 +30,41 @@ type s3BucketTest struct {
 var (
 	sslTests = []s3BucketTest{
 		// {bucket, url, AmazonS3URL{IsValidS3URI, IsPathStyle, Bucket, Key, Region}},
-		{"abc", "https://abc.s3.mock-region.amazonaws.com/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
-		{"abc", "https://abc.s3.mock-region.amazonaws.com.cn/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
-		{"abc", "https://abc.s3.mock-region.amazonaws.eu/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
-		{"abc", "https://abc.s3.mock-region.c2s.ic.gov/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
-		{"abc", "https://abc.s3.mock-region.sc2s.sgov.gov/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
-		{"abc", "https://abc.s3.mock-region.cloud.adc-e.uk/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
-		{"abc", "https://abc.s3.mock-region.csp.hci.ic.gov/", AmazonS3URL{true, false, "abc", "", "mock-region"}},
-		{"a$b$c", "https://s3.mock-region.amazonaws.com/a%24b%24c", AmazonS3URL{true, true, "a$b$c", "", "mock-region"}},
-		{"a.b.c", "https://s3.mock-region.amazonaws.com/a.b.c", AmazonS3URL{true, true, "a.b.c", "", "mock-region"}},
-		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc", AmazonS3URL{true, true, "a..bc", "", "mock-region"}},
-		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc/mykey", AmazonS3URL{true, true, "a..bc", "mykey", "mock-region"}},
-		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc/mykey/mykey", AmazonS3URL{true, true, "a..bc", "mykey/mykey", "mock-region"}},
-		{"johnsmith", "http://johnsmith.eu.s3-eu-west-1.amazonaws.com/homepage.html", AmazonS3URL{true, false, "johnsmith.eu", "homepage.html", "eu-west-1"}},
-		{"amazon-ssm-us-west-2", "https://s3-us-west-2.amazonaws.com/amazon-ssm-us-west-2/ssm-agent-manifest.json", AmazonS3URL{true, true, "amazon-ssm-us-west-2", "ssm-agent-manifest.json", "us-west-2"}},
-		{"amazon-ssm-us-west-2", "https://s3.amazonaws.com/amazon-ssm-us-west-2/ssm-agent-manifest.json", AmazonS3URL{true, true, "amazon-ssm-us-west-2", "ssm-agent-manifest.json", "us-east-1"}},
-		{"amazon-ssm-us-west-2", "https://amazon-ssm-us-west-2.s3.amazonaws.com/ssm-agent-manifest.json", AmazonS3URL{true, false, "amazon-ssm-us-west-2", "ssm-agent-manifest.json", "us-east-1"}},
+		{"abc", "https://abc.s3.mock-region.amazonaws.com/", AmazonS3URL{true, false, false, "abc", "", "mock-region"}},
+		{"abc", "https://abc.s3.mock-region.amazonaws.com.cn/", AmazonS3URL{true, false, false, "abc", "", "mock-region"}},
+		{"abc", "https://abc.s3.mock-region.amazonaws.eu/", AmazonS3URL{true, false, false, "abc", "", "mock-region"}},
+		{"abc", "https://abc.s3.mock-region.c2s.ic.gov/", AmazonS3URL{true, false, false, "abc", "", "mock-region"}},
+		{"abc", "https://abc.s3.mock-region.sc2s.sgov.gov/", AmazonS3URL{true, false, false, "abc", "", "mock-region"}},
+		{"abc", "https://abc.s3.mock-region.cloud.adc-e.uk/", AmazonS3URL{true, false, false, "abc", "", "mock-region"}},
+		{"abc", "https://abc.s3.mock-region.csp.hci.ic.gov/", AmazonS3URL{true, false, false, "abc", "", "mock-region"}},
+		{"a$b$c", "https://s3.mock-region.amazonaws.com/a%24b%24c", AmazonS3URL{true, true, false, "a$b$c", "", "mock-region"}},
+		{"a.b.c", "https://s3.mock-region.amazonaws.com/a.b.c", AmazonS3URL{true, true, false, "a.b.c", "", "mock-region"}},
+		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc", AmazonS3URL{true, true, false, "a..bc", "", "mock-region"}},
+		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc/mykey", AmazonS3URL{true, true, false, "a..bc", "mykey", "mock-region"}},
+		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc/mykey/mykey", AmazonS3URL{true, true, false, "a..bc", "mykey/mykey", "mock-region"}},
+		{"johnsmith", "http://johnsmith.eu.s3-eu-west-1.amazonaws.com/homepage.html", AmazonS3URL{true, false, false, "johnsmith.eu", "homepage.html", "eu-west-1"}},
+		{"amazon-ssm-us-west-2", "https://s3-us-west-2.amazonaws.com/amazon-ssm-us-west-2/ssm-agent-manifest.json", AmazonS3URL{true, true, false, "amazon-ssm-us-west-2", "ssm-agent-manifest.json", "us-west-2"}},
+		{"amazon-ssm-us-west-2", "https://s3.amazonaws.com/amazon-ssm-us-west-2/ssm-agent-manifest.json", AmazonS3URL{true, true, false, "amazon-ssm-us-west-2", "ssm-agent-manifest.json", "us-east-1"}},
+		{"amazon-ssm-us-west-2", "https://amazon-ssm-us-west-2.s3.amazonaws.com/ssm-agent-manifest.json", AmazonS3URL{true, false, false, "amazon-ssm-us-west-2", "ssm-agent-manifest.json", "us-east-1"}},
 	}
 
 	noSslTests = []s3BucketTest{
-		{"a.b.c", "http://a.b.c.s3.mock-region.amazonaws.com/", AmazonS3URL{true, false, "a.b.c", "", "mock-region"}},
-		{"a..bc", "http://s3.mock-region.amazonaws.com/a..bc", AmazonS3URL{true, true, "a..bc", "", "mock-region"}},
-		{"a..bc", "http://s3.mock-region.amazonaws.com/a..bc/mykey", AmazonS3URL{true, true, "a..bc", "mykey", "mock-region"}},
-		{"a..bc", "http://s3.mock-region.amazonaws.com/a..bc/mykey/mykey", AmazonS3URL{true, true, "a..bc", "mykey/mykey", "mock-region"}},
+		{"a.b.c", "http://a.b.c.s3.mock-region.amazonaws.com/", AmazonS3URL{true, false, false, "a.b.c", "", "mock-region"}},
+		{"a..bc", "http://s3.mock-region.amazonaws.com/a..bc", AmazonS3URL{true, true, false, "a..bc", "", "mock-region"}},
+		{"a..bc", "http://s3.mock-region.amazonaws.com/a..bc/mykey", AmazonS3URL{true, true, false, "a..bc", "mykey", "mock-region"}},
+		{"a..bc", "http://s3.mock-region.amazonaws.com/a..bc/mykey/mykey", AmazonS3URL{true, true, false, "a..bc", "mykey/mykey", "mock-region"}},
 	}
 
 	forcePathTests = []s3BucketTest{
-		{"abc", "https://s3.mock-region.amazonaws.com/abc", AmazonS3URL{true, true, "abc", "", "mock-region"}},
-		{"a$b$c", "https://s3.mock-region.amazonaws.com/a%24b%24c", AmazonS3URL{true, true, "a$b$c", "", "mock-region"}},
-		{"a.b.c", "https://s3.mock-region.amazonaws.com/a.b.c", AmazonS3URL{true, true, "a.b.c", "", "mock-region"}},
-		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc", AmazonS3URL{true, true, "a..bc", "", "mock-region"}},
-		{"ssmagent", "https://s3.amazonaws.com/ssmagent/test1%20test2%20test3/stderr.txt", AmazonS3URL{true, true, "ssmagent", "test1 test2 test3/stderr.txt", "us-east-1"}},
+		{"abc", "https://s3.mock-region.amazonaws.com/abc", AmazonS3URL{true, true, false, "abc", "", "mock-region"}},
+		{"a$b$c", "https://s3.mock-region.amazonaws.com/a%24b%24c", AmazonS3URL{true, true, false, "a$b$c", "", "mock-region"}},
+		{"a.b.c", "https://s3.mock-region.amazonaws.com/a.b.c", AmazonS3URL{true, true, false, "a.b.c", "", "mock-region"}},
+		{"a..bc", "https://s3.mock-region.amazonaws.com/a..bc", AmazonS3URL{true, true, false, "a..bc", "", "mock-region"}},
+		{"ssmagent", "https://s3.amazonaws.com/ssmagent/test1%20test2%20test3/stderr.txt", AmazonS3URL{true, true, false, "ssmagent", "test1 test2 test3/stderr.txt", "us-east-1"}},
 	}
 
 	invalidTests = []s3BucketTest{
-		{"abc", "https://abcd/pqr/xyz.txt", AmazonS3URL{false, false, "", "", ""}},
+		{"abc", "https://abcd/pqr/xyz.txt", AmazonS3URL{false, false, false, "", "", ""}},
 	}
 
 	websiteTests = []s3BucketTest{
@@ -73,6 +73,7 @@ var (
 			"http://mybucket.s3-website-us-west-1.amazonaws.com/mykey", // dash-region format
 			AmazonS3URL{
 				true,
+				false,
 				false,
 				"mybucket",
 				"mykey",
@@ -84,6 +85,7 @@ var (
 			"http://mybucket.s3-website.us-west-1.amazonaws.com/mykey", // dot-region format
 			AmazonS3URL{
 				true,
+				false,
 				false,
 				"mybucket",
 				"mykey",
@@ -100,6 +102,7 @@ var (
 			AmazonS3URL{
 				true,
 				false,
+				false,
 				"mybucket",
 				"mykey",
 				"us-west-1",
@@ -111,6 +114,7 @@ var (
 			AmazonS3URL{
 				true,
 				true,
+				false,
 				"mybucket",
 				"mykey",
 				"us-west-1",
@@ -126,6 +130,7 @@ var (
 			AmazonS3URL{
 				true,
 				false,
+				false,
 				"mybucket",
 				"mykey",
 				"us-east-1",
@@ -136,6 +141,7 @@ var (
 			"https://mybucket.s3-accelerate.dualstack.amazonaws.com/mykey",
 			AmazonS3URL{
 				true,
+				false,
 				false,
 				"mybucket",
 				"mykey",
@@ -148,6 +154,7 @@ var (
 			AmazonS3URL{
 				true,
 				true,
+				false,
 				"mybucket",
 				"mykey",
 				"us-east-1",
@@ -162,6 +169,7 @@ var (
 			AmazonS3URL{
 				true,
 				true,
+				true,
 				"mybucket",
 				"mykey",
 				"us-west-1",
@@ -173,6 +181,7 @@ var (
 			AmazonS3URL{
 				true,
 				false,
+				true,
 				"mybucket",
 				"mykey",
 				"us-west-1",
@@ -182,6 +191,7 @@ var (
 			"mybucket",
 			"https://bucket.vpce-0e3580b5f3cb40b34-tr39ydlu.s3.cn-northwest-1.vpce.amazonaws.com.cn/mybucket/mykey",
 			AmazonS3URL{
+				true,
 				true,
 				true,
 				"mybucket",
@@ -195,6 +205,7 @@ var (
 			AmazonS3URL{
 				true,
 				true,
+				true,
 				"mybucket",
 				"mykey",
 				"us-gov-west-1",
@@ -204,6 +215,7 @@ var (
 			"mybucket",
 			"https://bucket.vpce-07dd6fec74b812c52-2gqlpwuc.s3.us-iso-east-1.vpce.c2s.ic.gov/mybucket/mykey",
 			AmazonS3URL{
+				true,
 				true,
 				true,
 				"mybucket",
@@ -217,6 +229,7 @@ var (
 			AmazonS3URL{
 				true,
 				true,
+				true,
 				"mybucket",
 				"mykey",
 				"us-isob-east-1",
@@ -226,6 +239,7 @@ var (
 			"mybucket",
 			"https://bucket.vpce-07dd6fec74b812c52-2gqlpwuc.s3.eu-isoe-west-1.vpce.cloud.adc-e.uk/mybucket/mykey",
 			AmazonS3URL{
+				true,
 				true,
 				true,
 				"mybucket",
@@ -239,6 +253,7 @@ var (
 			AmazonS3URL{
 				true,
 				true,
+				true,
 				"mybucket",
 				"mykey",
 				"us-isof-south-1",
@@ -248,6 +263,7 @@ var (
 			"mybucket",
 			"https://bucket.vpce-05a18c86214d4f28c-6p280e25.s3.eusc-de-east-1.vpce.amazonaws.eu/mybucket/mykey",
 			AmazonS3URL{
+				true,
 				true,
 				true,
 				"mybucket",

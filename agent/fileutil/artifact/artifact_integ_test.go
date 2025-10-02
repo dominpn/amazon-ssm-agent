@@ -22,9 +22,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type DownloadTest struct {
@@ -246,7 +248,24 @@ func TestDownloads(t *testing.T) {
 	runDownloadTests(t, downloadTests)
 }
 
-func TestHttpHttpsDownloadArtifact(t *testing.T) {
+func TestHttpHttpsFallbackDownloadArtifact(t *testing.T) {
+
+	// Configure fake s3 endpoint to block s3 download
+	testConfig := appconfig.DefaultConfig()
+	testConfig.S3.Endpoint = "fakes3.amazonaws.com"
+	testContext := context.NewMockDefaultWithConfig(testConfig)
+
+	// Capture log.Info() messages
+	var logMessages []string
+	testLogger := log.NewMockLog()
+	testLogger.On("Info", mock.Anything).Unset()
+	testLogger.On("Info", mock.AnythingOfType("[]interface {}")).Run(func(args mock.Arguments) {
+		logMessages = append(logMessages, fmt.Sprint(args.Get(0).([]interface{})...))
+	}).Return()
+
+	testContext.On("Log").Unset()
+	testContext.On("Log").Return(testLogger)
+
 	testFilePath := "https://amazon-ssm-us-east-1.s3.amazonaws.com/3.3.40.0/VERSION"
 	downloadInput := DownloadInput{
 		DestinationDirectory: ".",
@@ -263,24 +282,88 @@ func TestHttpHttpsDownloadArtifact(t *testing.T) {
 		true,
 		true}
 
-	output, err := Download(mockContext, downloadInput)
-	assert.NoError(t, err, "Failed to download %v", downloadInput)
-	mockLog.Infof("Download Result is %v and err:%v", output, err)
-
 	defer func() {
 		os.Remove(expectedLocalPath)
 		os.Remove(expectedLocalPath + ".etag")
 	}()
+
+	output, err := Download(testContext, downloadInput)
+
+	assert.NoError(t, err, "Failed to download %v", downloadInput)
+	testContext.Log().Infof("Download Result is %v and err:%v", output, err)
 	assert.Equal(t, expectedOutput, output)
+	assert.Contains(t, logMessages,
+		"An error occurred when attempting s3 download. Attempting http/https download as fallback.",
+		"http/https fallback is not triggered")
 
 	// now since we have downloaded the file, try to download again should result in cache hit!
 	expectedOutput = DownloadOutput{
 		expectedLocalPath,
 		false,
 		true}
-	output, err = Download(mockContext, downloadInput)
+	output, err = Download(testContext, downloadInput)
 	assert.NoError(t, err, "Failed to download %v", downloadInput)
-	mockLog.Infof("Download Result is %v and err:%v", output, err)
+	testContext.Log().Infof("Download Result is %v and err:%v", output, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestDualStackHttpHttpsFallbackDownloadArtifact(t *testing.T) {
+
+	// Configure fake s3 endpoint to block s3 download
+	testConfig := appconfig.DefaultConfig()
+	testConfig.S3.Endpoint = "fakes3.us-east-1.amazonaws.com"
+	testConfig.Agent.UseDualStackEndpoint = true
+	testContext := context.NewMockDefaultWithConfig(testConfig)
+
+	// Capture log.Debugf() messages
+	var logMessages []string
+	testLogger := log.NewMockLog()
+	testLogger.On("Debugf", mock.Anything, mock.Anything).Unset()
+	testLogger.On("Debugf", mock.AnythingOfType("string"), mock.AnythingOfType("[]interface {}")).Run(func(args mock.Arguments) {
+		logMessages = append(logMessages, fmt.Sprintf(args.String(0), args.Get(1).([]interface{})...))
+	}).Return()
+
+	testContext.On("Log").Unset()
+	testContext.On("Log").Return(testLogger)
+
+	testFilePath := "https://amazon-ssm-us-east-1.s3.us-east-1.amazonaws.com/3.3.40.0/VERSION"
+	downloadInput := DownloadInput{
+		DestinationDirectory: ".",
+		SourceURL:            testFilePath,
+		SourceChecksums: map[string]string{
+			"sha256": "0c0f36c238e6c4c00f39d94dc6381930df2851db0ea2e2543d931474ddce1f8f",
+		},
+	}
+	var expectedLocalPath = "aa31c8581b6f7aef5122f819ef479a5939ace0fa"
+	os.Remove(expectedLocalPath)
+	os.Remove(expectedLocalPath + ".etag")
+	expectedOutput := DownloadOutput{
+		expectedLocalPath,
+		true,
+		true}
+
+	defer func() {
+		os.Remove(expectedLocalPath)
+		os.Remove(expectedLocalPath + ".etag")
+	}()
+
+	output, err := Download(testContext, downloadInput)
+
+	assert.NoError(t, err, "Failed to download %v", downloadInput)
+	testContext.Log().Infof("Download Result is %v and err:%v", output, err)
+	assert.Equal(t, expectedOutput, output)
+	assert.Contains(t, logMessages,
+		"attempting to download as http/https download from https://amazon-ssm-us-east-1.s3.dualstack.us-east-1.amazonaws.com/3.3.40.0/VERSION to aa31c8581b6f7aef5122f819ef479a5939ace0fa",
+		"Download url should be converted to dual-stack")
+
+	// now since we have downloaded the file, try to download again should result in cache hit!
+	expectedOutput = DownloadOutput{
+		expectedLocalPath,
+		false,
+		true}
+	output, err = Download(testContext, downloadInput)
+	assert.NoError(t, err, "Failed to download %v", downloadInput)
+	testContext.Log().Infof("Download Result is %v and err:%v", output, err)
 	assert.Equal(t, expectedOutput, output)
 }
 

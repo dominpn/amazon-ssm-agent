@@ -56,6 +56,7 @@ var (
 type AmazonS3URL struct {
 	IsValidS3URI bool
 	IsPathStyle  bool
+	IsVpceURL    bool
 	Bucket       string
 	Key          string
 	Region       string
@@ -69,8 +70,8 @@ func (output AmazonS3URL) IsBucketAndKeyPresent() bool {
 // ParseAmazonS3URL parses an HTTP/HTTPS URL for an S3 resource and returns an
 // AmazonS3URL object.
 //
-// S3 URLs come in two flavors: virtual hosted-style URLs and path-style URLs.
-// Virtual hosted-style URLs have the bucket name as the first component of the
+// S3 URLs come in two flavors: virtual-hosted-style URLs and path-style URLs.
+// Virtual-hosted-style URLs have the bucket name as the first component of the
 // hostname, e.g.
 //
 //	https://mybucket.s3.us-east-1.amazonaws.com/a/b/c
@@ -97,18 +98,21 @@ func ParseAmazonS3URL(log log.T, s3URL *url.URL) (output AmazonS3URL) {
 	output = AmazonS3URL{
 		IsValidS3URI: false,
 		IsPathStyle:  false,
+		IsVpceURL:    false,
 		Bucket:       "",
 		Key:          "",
 		Region:       "",
 	}
 
-	output, err := parseBucketAndRegionFromHost(s3URL.Host, vpceUrlRegex, vpceUrlPatternBucketIdx, vpceUrlPatternRegionIdx)
+	output, err := parseBucketAndRegionFromHost(log, s3URL.Host, vpceUrlRegex, vpceUrlPatternBucketIdx, vpceUrlPatternRegionIdx)
 	if err != nil {
-		output, err = parseBucketAndRegionFromHost(s3URL.Host, nonVpceUrlRegex, nonVpceUrlPatternBucketIdx, nonVpceUrlPatternRegionIdx)
+		output, err = parseBucketAndRegionFromHost(log, s3URL.Host, nonVpceUrlRegex, nonVpceUrlPatternBucketIdx, nonVpceUrlPatternRegionIdx)
 		if err != nil {
 			output.IsValidS3URI = false
 			return
 		}
+	} else {
+		output.IsVpceURL = true
 	}
 
 	output.IsPathStyle = output.Bucket == ""
@@ -157,15 +161,18 @@ func ParseAmazonS3URL(log log.T, s3URL *url.URL) (output AmazonS3URL) {
 	return
 }
 
-func parseBucketAndRegionFromHost(host string, re *regexp.Regexp, bucketIdx, regionIdx int) (AmazonS3URL, error) {
+func parseBucketAndRegionFromHost(log log.T, host string, re *regexp.Regexp, bucketIdx, regionIdx int) (AmazonS3URL, error) {
 	result := re.FindStringSubmatch(host)
 	if result != nil && len(result) > bucketIdx && len(result) > regionIdx {
+		log.Debugf("Found matches of regex \"%s\" in S3 url host \"%s\": {Bucket: \"%s\", Region: \"%s\"}\n",
+			re.String(), host, result[bucketIdx], result[regionIdx])
 		return AmazonS3URL{
 			IsValidS3URI: true,
 			Bucket:       result[bucketIdx],
 			Region:       result[regionIdx],
 		}, nil
 	} else {
+		log.Debugf("Found no match of regex \"%s\" in S3 url host \"%s\"\n", re.String(), host)
 		return AmazonS3URL{}, errors.New("no match")
 	}
 }
