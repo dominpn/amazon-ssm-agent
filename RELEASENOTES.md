@@ -1,5 +1,10 @@
 Latest
 ===============
+- Add initial IPv6 support with UseDualStackEndpoint configuration option
+- Fix CPU utilization issue for instances with thousands of network interfaces
+
+3.3.3185.0
+===============
 - Add IMDS retry count to account for EC2 droplet refresh
 - Fix duplicate uid error logging in MDS module
 - Update aws:Domainjoin plugin logging from Log4Net to NLog
