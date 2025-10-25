@@ -81,8 +81,8 @@ func (srt *SessionCompleteReplyType) ShouldPersistData() bool {
 }
 
 // GetBackOffSecond returns the backoff time to wait till the agent
-func (srt *SessionCompleteReplyType) GetBackOffSecond() int {
-	return srt.backOffSecond
+func (srt *SessionCompleteReplyType) GetBackOffSecond(_ int) time.Duration {
+	return time.Duration(srt.backOffSecond) * time.Second
 }
 
 // GetNumberOfContinuousRetries represents the number of continuous retries needed during send reply failure

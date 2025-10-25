@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	mgsUtils "github.com/aws/amazon-ssm-agent/agent/messageservice/interactor/mgsinteractor/utils"
@@ -44,8 +45,8 @@ func (suite *AgentRunCommandReplyTestSuite) TestAgentRunCommandReply_InitializeS
 	uuid := uuid.New()
 	agentComplete := NewAgentRunCommandReplyType(ctx, docResult, uuid, 0)
 	assert.Equal(suite.T(), uuid.String(), agentComplete.GetMessageUUID().String())
-	assert.Equal(suite.T(), 1, agentComplete.GetBackOffSecond())
-	assert.Equal(suite.T(), 1, agentComplete.GetNumberOfContinuousRetries())
+	assert.Equal(suite.T(), time.Second, agentComplete.GetBackOffSecond(0))
+	assert.Equal(suite.T(), 3, agentComplete.GetNumberOfContinuousRetries())
 	assert.Equal(suite.T(), true, agentComplete.ShouldPersistData())
 	assert.Equal(suite.T(), 0, agentComplete.GetRetryNumber())
 }
@@ -56,8 +57,8 @@ func (suite *AgentRunCommandReplyTestSuite) TestAgentRunCommandReply_RetryNumber
 	uuid := uuid.New()
 	agentComplete := NewAgentRunCommandReplyType(ctx, docResult, uuid, 2)
 	assert.Equal(suite.T(), uuid.String(), agentComplete.GetMessageUUID().String())
-	assert.Equal(suite.T(), 1, agentComplete.GetBackOffSecond())
-	assert.Equal(suite.T(), 1, agentComplete.GetNumberOfContinuousRetries())
+	assert.Equal(suite.T(), time.Second, agentComplete.GetBackOffSecond(0))
+	assert.Equal(suite.T(), 3, agentComplete.GetNumberOfContinuousRetries())
 	assert.Equal(suite.T(), true, agentComplete.ShouldPersistData())
 	assert.Equal(suite.T(), 2, agentComplete.GetRetryNumber())
 }

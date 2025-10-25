@@ -84,6 +84,8 @@ const (
 	MDSStopInProgress  MDSState = "MDSStopInProgress"
 	MDSStopCompleted   MDSState = "MDSStopCompleted"
 	MDSShutDown        MDSState = "MDSShutDown"
+
+	sendFailedReplyFrequencyMinutes = 5
 )
 
 var (
@@ -173,7 +175,7 @@ func (mds *MDSInteractor) Initialize(ableToOpenMGSConnection *uint32) (err error
 	mds.messagePollWaitGroup = &sync.WaitGroup{}
 
 	log.Info("Starting send failed replies to MDS")
-	if mds.sendReplyJob, err = scheduler.Every(utils.SendFailedReplyFrequencyMinutes).Minutes().Run(mds.sendReplyLoop); err != nil {
+	if mds.sendReplyJob, err = scheduler.Every(sendFailedReplyFrequencyMinutes).Minutes().Run(mds.sendReplyLoop); err != nil {
 		log.Errorf("Unable to schedule send failed reply job. %v", err)
 	}
 	go mds.listenReply()

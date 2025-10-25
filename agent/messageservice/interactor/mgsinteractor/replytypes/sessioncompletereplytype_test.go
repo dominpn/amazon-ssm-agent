@@ -17,6 +17,7 @@ package replytypes
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
@@ -64,7 +65,7 @@ func (suite *SessionCompleteReplyTestSuite) TestSessionCompleteReply_BasicInitia
 	uuidVal := uuid.New()
 	sessionComplete := NewSessionCompleteType(ctx, docResult, uuidVal, 0)
 	assert.Equal(suite.T(), uuidVal.String(), sessionComplete.GetMessageUUID().String())
-	assert.Equal(suite.T(), 1, sessionComplete.GetBackOffSecond())
+	assert.Equal(suite.T(), time.Second, sessionComplete.GetBackOffSecond(0))
 	assert.Equal(suite.T(), 3, sessionComplete.GetNumberOfContinuousRetries())
 	assert.Equal(suite.T(), false, sessionComplete.ShouldPersistData())
 	assert.Equal(suite.T(), 0, sessionComplete.GetRetryNumber())
@@ -76,7 +77,7 @@ func (suite *SessionCompleteReplyTestSuite) TestSessionCompleteReply_InitializeW
 	uuidVal := uuid.New()
 	sessionComplete := NewSessionCompleteType(ctx, docResult, uuidVal, 1)
 	assert.Equal(suite.T(), uuidVal.String(), sessionComplete.GetMessageUUID().String())
-	assert.Equal(suite.T(), 1, sessionComplete.GetBackOffSecond())
+	assert.Equal(suite.T(), time.Second, sessionComplete.GetBackOffSecond(0))
 	assert.Equal(suite.T(), 3, sessionComplete.GetNumberOfContinuousRetries())
 	assert.Equal(suite.T(), false, sessionComplete.ShouldPersistData())
 	assert.Equal(suite.T(), 1, sessionComplete.GetRetryNumber())

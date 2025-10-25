@@ -15,6 +15,9 @@
 package replytypes
 
 import (
+	"math"
+	"time"
+
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/messageservice/interactor/mgsinteractor/utils"
@@ -23,12 +26,16 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	maxBackoffSecond = 20
+)
+
 // NewAgentRunCommandReplyType returns new Agent Run Command reply type
 func NewAgentRunCommandReplyType(ctx context.T, res contracts.DocumentResult, replyId uuid.UUID, retryNumber int) IReplyType {
 	return &AgentRunCommandReplyType{
 		context:               ctx,
 		agentResult:           res,
-		noOfContinuousRetries: 1,
+		noOfContinuousRetries: 3,
 		backOffSecond:         1,
 		shouldPersist:         true,
 		replyId:               replyId,
@@ -79,9 +86,9 @@ func (ad *AgentRunCommandReplyType) ShouldPersistData() bool {
 	return ad.shouldPersist
 }
 
-// GetBackOffSecond returns the backoff time to wait till the agent
-func (ad *AgentRunCommandReplyType) GetBackOffSecond() int {
-	return ad.backOffSecond
+// GetBackOffSecond returns an exponential backoff time to wait until retry kicks in
+func (ad *AgentRunCommandReplyType) GetBackOffSecond(attempt int) time.Duration {
+	return time.Duration(math.Min(float64(ad.backOffSecond)*math.Pow(2, float64(attempt)), float64(maxBackoffSecond))) * time.Second
 }
 
 // GetNumberOfContinuousRetries represents the number of continuous retries needed during send reply failure

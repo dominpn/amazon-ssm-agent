@@ -103,7 +103,7 @@ func (suite *SendReplyTestSuite) TestTaskAgentCompleteWithRetry() {
 	replyTypeMock.On("GetNumberOfContinuousRetries").Return(4)
 	replyTypeMock.On("GetMessageUUID").Return(uuid.New())
 	replyTypeMock.On("ShouldPersistData").Return(false)
-	replyTypeMock.On("GetBackOffSecond").Return(0)
+	replyTypeMock.On("GetBackOffSecond", mock.AnythingOfType("int")).Return(time.Duration(0) * time.Second)
 	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{})
 	replyTypeMock.On("GetRetryNumber").Return(1)
 	reply := &agentReplyLocalContract{
@@ -147,7 +147,7 @@ func (suite *SendReplyTestSuite) TestTaskAgentCompleteWithSecondRetryAckReceive(
 	replyTypeMock.On("GetNumberOfContinuousRetries").Return(4)
 	replyTypeMock.On("GetMessageUUID").Return(uuidVal)
 	replyTypeMock.On("ShouldPersistData").Return(false)
-	replyTypeMock.On("GetBackOffSecond").Return(1)
+	replyTypeMock.On("GetBackOffSecond", mock.AnythingOfType("int")).Return(time.Duration(1) * time.Second)
 	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{})
 	replyTypeMock.On("GetRetryNumber").Return(1)
 	reply := &agentReplyLocalContract{
@@ -205,7 +205,7 @@ func (suite *SendReplyTestSuite) getReplyWithRetry(ackByte []byte, uuidVal uuid.
 	replyTypeMock.On("GetNumberOfContinuousRetries").Return(4)
 	replyTypeMock.On("GetMessageUUID").Return(uuidVal)
 	replyTypeMock.On("ShouldPersistData").Return(false)
-	replyTypeMock.On("GetBackOffSecond").Return(1)
+	replyTypeMock.On("GetBackOffSecond", mock.AnythingOfType("int")).Return(time.Duration(1) * time.Second)
 	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{})
 	replyTypeMock.On("GetRetryNumber").Return(1)
 	reply := &agentReplyLocalContract{
@@ -247,7 +247,7 @@ func (suite *SendReplyTestSuite) TestTaskAgentCompleteWithNormalAckReceive() {
 	replyTypeMock.On("GetNumberOfContinuousRetries").Return(4)
 	replyTypeMock.On("GetMessageUUID").Return(uuidVal)
 	replyTypeMock.On("ShouldPersistData").Return(false)
-	replyTypeMock.On("GetBackOffSecond").Return(1)
+	replyTypeMock.On("GetBackOffSecond", mock.AnythingOfType("int")).Return(time.Duration(1) * time.Second)
 	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{})
 	replyTypeMock.On("GetRetryNumber").Return(1)
 	reply := &agentReplyLocalContract{

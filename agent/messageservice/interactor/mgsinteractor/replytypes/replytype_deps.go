@@ -1,6 +1,8 @@
 package replytypes
 
 import (
+	"time"
+
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	mgsContracts "github.com/aws/amazon-ssm-agent/agent/session/contracts"
 	"github.com/google/uuid"
@@ -14,7 +16,7 @@ type IReplyType interface {
 	GetRetryNumber() int
 	GetNumberOfContinuousRetries() int
 	ShouldPersistData() bool
-	GetBackOffSecond() int
+	GetBackOffSecond(int) time.Duration
 	IncrementRetries() int
 	GetResult() contracts.DocumentResult
 }

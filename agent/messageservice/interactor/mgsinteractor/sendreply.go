@@ -38,8 +38,11 @@ import (
 )
 
 const (
-	failedReplyProcessingLimit = 50
-	updateSuffix               = "update"
+	failedReplyProcessingLimit      = 50
+	updateSuffix                    = "update"
+	runCommandMaxRetryCount         = 6
+	defaultMaxRetryCount            = 2
+	sendFailedReplyFrequencyMinutes = 2
 )
 
 var (
@@ -104,8 +107,8 @@ func (mgs *MGSInteractor) sendFailedReplies() {
 			continue
 		}
 		// sending it at least once after the first failure
-		if utils.IsValidReplyRequest(reply, contracts.MessageGatewayService) == false && docPersistData.RetryNumber > 1 {
-			log.Debug("Reply is old, document execution must have timed out. Deleting the reply")
+		if !utils.IsValidReplyRequest(reply, contracts.MessageGatewayService) && docPersistData.RetryNumber >= getMaxRetryCount(docPersistData.AgentResult.ResultType) {
+			log.Debug("Reply is old, document execution must have timed out. Deleting the reply: %s", docPersistData.ReplyId)
 			mgs.deleteFailedReply(log, reply)
 			continue
 		}
@@ -138,6 +141,15 @@ func (mgs *MGSInteractor) sendFailedReplies() {
 	}
 }
 
+// since RunCommand will have immediate retries in case of failures, we need different retry limit for it
+func getMaxRetryCount(replyType contracts.ResultType) int {
+	if replyType == contracts.RunCommandResult {
+		return runCommandMaxRetryCount
+	}
+
+	return defaultMaxRetryCount
+}
+
 func (mgs *MGSInteractor) isSendFailedReplyJobScheduled() bool {
 	mgs.mutex.Lock()
 	defer mgs.mutex.Unlock()
@@ -150,7 +162,7 @@ func (mgs *MGSInteractor) startSendFailedReplyJob() {
 	mgs.mutex.Lock()
 	defer mgs.mutex.Unlock()
 	if mgs.sendReplyProp.sendFailedReplyJob == nil {
-		if mgs.sendReplyProp.sendFailedReplyJob, err = scheduler.Every(utils.SendFailedReplyFrequencyMinutes).Minutes().Run(mgs.sendFailedReplies); err != nil {
+		if mgs.sendReplyProp.sendFailedReplyJob, err = scheduler.Every(sendFailedReplyFrequencyMinutes).Minutes().Run(mgs.sendFailedReplies); err != nil {
 			log.Errorf("unable to schedule send failed reply job. %v", err)
 		}
 	}
@@ -332,6 +344,7 @@ externalLoop:
 	for retryNo := 0; retryNo < totalNoOfRetries; retryNo++ {
 		// increment retries count
 		docResult.IncrementRetries()
+		log.Debugf("retry count for the message id: %s -> current: %v - total: %v", agentMessageUUID, retryNo+1, docResult.GetRetryNumber())
 		err := mgs.sendReplyToMGS(docResult)
 		persist := AgentResultLocalStoreData{
 			AgentResult: docResult.GetResult(),
@@ -347,7 +360,7 @@ externalLoop:
 			log.Errorf("error while sending reply %v to MGS - %v ", agentMessageUUID, err)
 		}
 		select {
-		case <-time.After(time.Duration(docResult.GetBackOffSecond()) * time.Second):
+		case <-time.After(docResult.GetBackOffSecond(retryNo)):
 			if docResult.ShouldPersistData() && ((retryNo + 1) == totalNoOfRetries) {
 				log.Warnf("no ack received while sending reply %v", agentMessageUUID)
 				persist.RetryNumber = docResult.GetRetryNumber()

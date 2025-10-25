@@ -60,9 +60,6 @@ const (
 
 	// CancelCommandTopicPrefix is the topic prefix for a cancel command MDS message.
 	CancelCommandTopicPrefix TopicPrefix = "aws.ssm.cancelCommand"
-
-	// SendFailedReplyFrequencyMinutes is the frequency at which to send failed reply requests back to MDS
-	SendFailedReplyFrequencyMinutes = 5
 )
 
 // empty returns true if string is empty
@@ -298,11 +295,7 @@ func IsValidReplyRequest(filename string, name contracts.UpstreamServiceName) bo
 	t, _ := time.Parse("2006-01-02T15-04-05", timeInFileName)
 	curTime := time.Now().UTC()
 	delta := curTime.Sub(t).Hours()
-	if delta > documentLevelTimeOutDurationHour {
-		return false
-	} else {
-		return true
-	}
+	return delta <= documentLevelTimeOutDurationHour
 }
 
 // PrepareReplyPayloadToUpdateDocumentStatus creates the payload object for SendReply based on document status change.
