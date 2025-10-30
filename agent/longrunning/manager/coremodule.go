@@ -238,10 +238,10 @@ func (m *Manager) ModuleExecute() (err error) {
 
 	}
 
-	//if no previous CW has been found, start a new one based on the json config
-	if isPlatformSupported(log, appconfig.PluginNameCloudWatch) {
-		m.configCloudWatch()
-	}
+	////if no previous CW has been found, start a new one based on the json config
+	//if isPlatformSupported(log, appconfig.PluginNameCloudWatch) {
+	//	m.configCloudWatch()
+	//}
 
 	//schedule periodic health check of all long running plugins
 	if m.managingLifeCycleJob, err = scheduler.Every(PollFrequencyMinutes).Minutes().Run(m.ensurePluginsAreRunning); err != nil {

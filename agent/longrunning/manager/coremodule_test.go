@@ -33,8 +33,6 @@ import (
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 
 	"github.com/aws/amazon-ssm-agent/agent/task"
-	identityMocks "github.com/aws/amazon-ssm-agent/common/identity/mocks"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -660,23 +658,6 @@ func TestEnsurePluginRegistered_NewPlugin(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, manager.registeredPlugins, 1)
 	assert.Equal(t, manager.registeredPlugins["TestPlugin"], manager.registeredPlugins["TestPlugin"])
-}
-
-func TestConfigCloudWatch_NilInstanceID(t *testing.T) {
-	agentIdentity := identityMocks.IAgentIdentity{}
-	mockLog := logmocks.NewMockLog()
-	expectedError := errors.New("failed to get instance ID")
-
-	agentIdentity.On("InstanceID").Return("", expectedError)
-
-	context := contextmock.NewMockDefaultWithIdentityAndLog(&agentIdentity, mockLog)
-
-	manager := &Manager{
-		context: context,
-	}
-	manager.configCloudWatch()
-
-	mockLog.AssertNumberOfCalls(t, "Errorf", 1)
 }
 
 /*

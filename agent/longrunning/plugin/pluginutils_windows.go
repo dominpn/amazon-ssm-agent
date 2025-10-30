@@ -62,12 +62,9 @@ func IsLongRunningPluginSupportedForCurrentPlatform(log log.T, pluginName string
 	platformVersion, _ := platform.PlatformVersion(log)
 
 	if pluginName == appconfig.PluginNameCloudWatch {
-		if isPlatformNanoServer, err := platform.IsPlatformNanoServer(log); err == nil && isPlatformNanoServer {
-			//if the current OS is Nano server, SSM Agent doesn't support the following plugins.
-			return false, fmt.Sprintf("%s (Nano Server) v%s", platformName, platformVersion)
-		} else {
-			return true, fmt.Sprintf("%s v%s", platformName, platformVersion)
-		}
+		log.Warnf("The CloudWatch plugin (aws:cloudWatch) is deprecated and no longer supported. Please migrate to the Amazon CloudWatch Agent: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html")
 	}
+
+	// Only Long-running plugin on Windows is no longer supported
 	return false, fmt.Sprintf("%s v%s", platformName, platformVersion)
 }

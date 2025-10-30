@@ -37,6 +37,11 @@ SSM Agent also enables the Session Manager capability that lets you manage your 
 [Troubleshooting SSM Run Command](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/troubleshooting-remote-commands.html)
 [Troubleshooting SSM Session Manager](http://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-troubleshooting.html)
 
+### Deprecated Features
+
+#### CloudWatch Plugin (aws:cloudWatch)
+The CloudWatch plugin for Windows is deprecated and no longer supported. Please migrate to the [Amazon CloudWatch Agent](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html).
+
 ## Feedback
 
 Thank you for helping us to improve Systems Manager, Run Command and Session Manager. Please send your questions or comments to [Systems Manager Forums](https://forums.aws.amazon.com/forum.jspa?forumID=185&start=0)

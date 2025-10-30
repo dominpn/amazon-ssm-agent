@@ -616,7 +616,7 @@ func processCommand(context context.T, executerCreator ExecuterCreator, cancelFl
 			}
 
 			final = &res
-			handleCloudwatchPlugin(context, res.PluginResults, documentID)
+			// handleCloudwatchPlugin(context, res.PluginResults, documentID)
 			// when receiving the reply from workers, we do not have UpstreamServiceName populated
 			// whenever we receive a response, we populate with the appropriate Upstream service
 			// this is added to avoid changes in the workers

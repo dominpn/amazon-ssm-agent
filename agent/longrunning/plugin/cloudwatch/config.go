@@ -140,7 +140,7 @@ func (cwcInstance *CloudWatchConfigImpl) Disable() error {
 
 // GetIsEnabled returns true if configuration is enabled. Otherwise, it returns false.
 func (cwcInstance *CloudWatchConfigImpl) GetIsEnabled() bool {
-	return cwcInstance.IsEnabled
+	return false
 }
 
 // load reads cloud watch plugin configuration from config store (file system)
