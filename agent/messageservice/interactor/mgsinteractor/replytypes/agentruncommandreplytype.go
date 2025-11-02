@@ -87,6 +87,7 @@ func (ad *AgentRunCommandReplyType) ShouldPersistData() bool {
 }
 
 // GetBackOffSecond returns an exponential backoff time to wait until retry kicks in
+// for attempt=0..6 (inclusive), backOffSecond=1 and maxBackoffSecond=20, values would be: 1s, 2s, 4s, 8s, 16s, 20s, 20s
 func (ad *AgentRunCommandReplyType) GetBackOffSecond(attempt int) time.Duration {
 	return time.Duration(math.Min(float64(ad.backOffSecond)*math.Pow(2, float64(attempt)), float64(maxBackoffSecond))) * time.Second
 }

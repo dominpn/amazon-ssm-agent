@@ -289,7 +289,7 @@ func getFailedReplyLocation(identity identity.IAgentIdentity, fileName string) s
 }
 
 // persistResult saves agent message in the local disk
-func (mgs *MGSInteractor) persistResult(replyBytes AgentResultLocalStoreData) (err error) {
+func (mgs *MGSInteractor) persistResult(replyBytes AgentResultLocalStoreData) (fileName string, err error) {
 	log := mgs.context.Log()
 	log.Debugf("persisting result %+v", replyBytes)
 	content, err := jsonutil.Marshal(replyBytes)
@@ -298,7 +298,7 @@ func (mgs *MGSInteractor) persistResult(replyBytes AgentResultLocalStoreData) (e
 	} else {
 		files, _ := getFileNames(getFailedReplyDirectory(mgs.context.Identity()))
 		persistTime := time.Now().UTC()
-		fileName := fmt.Sprintf("%v_%v", persistTime.Format("2006-01-02T15-04-05"), replyBytes.ReplyId) //changing the format a bit from MDS replies to support proper sorting
+		fileName = fmt.Sprintf("%v_%v", persistTime.Format("2006-01-02T15-04-05"), replyBytes.ReplyId) //changing the format a bit from MDS replies to support proper sorting
 		for fileIndex := len(files) - 1; fileIndex >= 0; fileIndex-- {
 			file := files[fileIndex]
 			if strings.HasSuffix(file, replyBytes.ReplyId) {
@@ -315,7 +315,7 @@ func (mgs *MGSInteractor) persistResult(replyBytes AgentResultLocalStoreData) (e
 			log.Debugf("persisting reply in %v failed with error %v", absoluteFileName, err)
 		}
 	}
-	return err
+	return fileName, err
 }
 
 // getFailedReplyDirectory returns path to mgs replies folder
@@ -361,14 +361,15 @@ externalLoop:
 		}
 		select {
 		case <-time.After(docResult.GetBackOffSecond(retryNo)):
-			if docResult.ShouldPersistData() && ((retryNo + 1) == totalNoOfRetries) {
+			if docResult.ShouldPersistData() && ((retryNo+1) == totalNoOfRetries || retryNo == 0) {
 				log.Warnf("no ack received while sending reply %v", agentMessageUUID)
-				persist.RetryNumber = docResult.GetRetryNumber()
-				mgs.persistResult(persist)
+				backupFile, _ := mgs.persistResult(persist)
+				result.backupFile = backupFile
 			}
 		case <-replyAckChan:
 			log.Debugf("received reply ack id %v", agentMessageUUID)
 			if result.backupFile != "" {
+				log.Debugf("deleting reply file: %s", result.backupFile)
 				mgs.deleteFailedReply(log, result.backupFile)
 			}
 			break externalLoop
@@ -486,8 +487,5 @@ func (mgs *MGSInteractor) filterReplies(unfilteredReplies []string) (replies []s
 }
 
 func (mgs *MGSInteractor) isTempError(err error) bool {
-	if err == nil {
-		return false
-	}
-	return strings.Contains(err.Error(), "ws not initialized still")
+	return err != nil && strings.Contains(err.Error(), "ws not initialized still")
 }
