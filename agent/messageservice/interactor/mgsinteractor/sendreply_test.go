@@ -433,6 +433,168 @@ func (suite *SendReplyTestSuite) TestStopUpdateReplyFileWatcher_WritesTrueToUpda
 	assert.True(suite.T(), <-mgs.updateWatcherDone)
 }
 
+func (suite *SendReplyTestSuite) TestRunCommandRetryMechanism_MaxRetriesReached() {
+	sendMessageErr := fmt.Errorf("network error")
+	mgs := suite.getMGSInteractorRef(sendMessageErr)
+
+	msg := mgsContracts.AcknowledgeTaskContent{
+		MessageId: uuid.New().String(),
+		Topic:     mgsContracts.TaskCompleteMessage,
+	}
+	ackByte, _ := json.Marshal(msg)
+	uuidVal := uuid.New()
+
+	replyTypeMock := &replytypesmock.IReplyType{}
+	replyTypeMock.On("ConvertToAgentMessage").Return(&mgsContracts.AgentMessage{
+		MessageId: uuidVal, Payload: ackByte, MessageType: mgsContracts.TaskAcknowledgeMessage,
+	}, nil)
+	replyTypeMock.On("IncrementRetries").Return(1)
+	replyTypeMock.On("GetNumberOfContinuousRetries").Return(3)
+	replyTypeMock.On("GetMessageUUID").Return(uuidVal)
+	replyTypeMock.On("ShouldPersistData").Return(true)
+	replyTypeMock.On("GetBackOffSecond", mock.AnythingOfType("int")).Return(time.Duration(0) * time.Second)
+	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{ResultType: contracts.RunCommandResult})
+	replyTypeMock.On("GetRetryNumber").Return(1)
+
+	reply := &agentReplyLocalContract{
+		documentResult: replyTypeMock,
+		backupFile:     "",
+		retryNumber:    0,
+	}
+
+	mgs.processReply(reply)
+	replyTypeMock.AssertNumberOfCalls(suite.T(), "IncrementRetries", 3)
+	replyTypeMock.AssertNumberOfCalls(suite.T(), "ShouldPersistData", 3)
+}
+
+func (suite *SendReplyTestSuite) TestRunCommandRetryMechanism_SuccessAfterRetry() {
+	mockControlChannel := &controlChannelMock.IControlChannel{}
+	mockControlChannel.On("SendMessage", mock.Anything, mock.Anything, websocket.BinaryMessage).Return(fmt.Errorf("network error")).Once()
+	mockControlChannel.On("SendMessage", mock.Anything, mock.Anything, websocket.BinaryMessage).Return(nil).Once()
+
+	mockContext := context.NewMockDefault()
+	messageHandlerMock := &mocks.IMessageHandler{}
+	messageHandlerMock.On("RegisterReply", mock.Anything, mock.Anything)
+	messageHandlerMock.On("GetMessageUUID", mock.Anything, mock.Anything)
+	mgsInteractorRef, _ := New(mockContext, messageHandlerMock)
+	mgs := mgsInteractorRef.(*MGSInteractor)
+	mgs.controlChannel = mockControlChannel
+
+	msg := mgsContracts.AcknowledgeTaskContent{
+		MessageId: uuid.New().String(),
+		Topic:     mgsContracts.TaskCompleteMessage,
+	}
+	ackByte, _ := json.Marshal(msg)
+	uuidVal := uuid.New()
+
+	replyTypeMock := &replytypesmock.IReplyType{}
+	replyTypeMock.On("ConvertToAgentMessage").Return(&mgsContracts.AgentMessage{
+		MessageId: uuidVal, Payload: ackByte, MessageType: mgsContracts.TaskAcknowledgeMessage,
+	}, nil)
+	replyTypeMock.On("IncrementRetries").Return(1)
+	replyTypeMock.On("GetNumberOfContinuousRetries").Return(3)
+	replyTypeMock.On("GetMessageUUID").Return(uuidVal)
+	replyTypeMock.On("ShouldPersistData").Return(true)
+	replyTypeMock.On("GetBackOffSecond", mock.AnythingOfType("int")).Return(time.Duration(100) * time.Millisecond)
+	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{ResultType: contracts.RunCommandResult})
+	replyTypeMock.On("GetRetryNumber").Return(1)
+
+	reply := &agentReplyLocalContract{
+		documentResult: replyTypeMock,
+		backupFile:     "",
+		retryNumber:    0,
+	}
+
+	go func() {
+		time.Sleep(150 * time.Millisecond)
+		if ackChan, ok := mgs.sendReplyProp.replyAckChan.Load(uuidVal.String()); ok {
+			ackChan.(chan bool) <- true
+		}
+	}()
+
+	mgs.processReply(reply)
+	replyTypeMock.AssertNumberOfCalls(suite.T(), "IncrementRetries", 2)
+}
+
+func (suite *SendReplyTestSuite) TestRunCommandRetryMechanism_TempErrorSkipsRetry() {
+	tempError := fmt.Errorf("ws not initialized still")
+	mgs := suite.getMGSInteractorRef(tempError)
+
+	msg := mgsContracts.AcknowledgeTaskContent{
+		MessageId: uuid.New().String(),
+		Topic:     mgsContracts.TaskCompleteMessage,
+	}
+	ackByte, _ := json.Marshal(msg)
+	uuidVal := uuid.New()
+
+	replyTypeMock := &replytypesmock.IReplyType{}
+	replyTypeMock.On("ConvertToAgentMessage").Return(&mgsContracts.AgentMessage{
+		MessageId: uuidVal, Payload: ackByte, MessageType: mgsContracts.TaskAcknowledgeMessage,
+	}, nil)
+	replyTypeMock.On("IncrementRetries").Return(1)
+	replyTypeMock.On("GetNumberOfContinuousRetries").Return(3)
+	replyTypeMock.On("GetMessageUUID").Return(uuidVal)
+	replyTypeMock.On("ShouldPersistData").Return(true)
+	replyTypeMock.On("GetBackOffSecond", mock.AnythingOfType("int")).Return(time.Duration(0) * time.Second)
+	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{ResultType: contracts.RunCommandResult})
+	replyTypeMock.On("GetRetryNumber").Return(1)
+
+	reply := &agentReplyLocalContract{
+		documentResult: replyTypeMock,
+		backupFile:     "",
+		retryNumber:    0,
+	}
+
+	mgs.processReply(reply)
+	replyTypeMock.AssertNumberOfCalls(suite.T(), "IncrementRetries", 1)
+}
+
+func (suite *SendReplyTestSuite) TestGetMaxRetryCount_RunCommandVsDefault() {
+	runCommandRetryCount := getMaxRetryCount(contracts.RunCommandResult)
+	defaultRetryCount := getMaxRetryCount(contracts.SessionResult)
+
+	assert.Equal(suite.T(), runCommandMaxRetryCount, runCommandRetryCount)
+	assert.Equal(suite.T(), defaultMaxRetryCount, defaultRetryCount)
+}
+
+func (suite *SendReplyTestSuite) TestRunCommandRetryMechanism_BackoffTiming() {
+	sendMessageErr := fmt.Errorf("network error")
+	mgs := suite.getMGSInteractorRef(sendMessageErr)
+
+	msg := mgsContracts.AcknowledgeTaskContent{
+		MessageId: uuid.New().String(),
+		Topic:     mgsContracts.TaskCompleteMessage,
+	}
+	ackByte, _ := json.Marshal(msg)
+	uuidVal := uuid.New()
+
+	replyTypeMock := &replytypesmock.IReplyType{}
+	replyTypeMock.On("ConvertToAgentMessage").Return(&mgsContracts.AgentMessage{
+		MessageId: uuidVal, Payload: ackByte, MessageType: mgsContracts.TaskAcknowledgeMessage,
+	}, nil)
+	replyTypeMock.On("IncrementRetries").Return(1)
+	replyTypeMock.On("GetNumberOfContinuousRetries").Return(2)
+	replyTypeMock.On("GetMessageUUID").Return(uuidVal)
+	replyTypeMock.On("ShouldPersistData").Return(true)
+	replyTypeMock.On("GetBackOffSecond", 0).Return(time.Duration(100) * time.Millisecond)
+	replyTypeMock.On("GetBackOffSecond", 1).Return(time.Duration(200) * time.Millisecond)
+	replyTypeMock.On("GetResult").Return(contracts.DocumentResult{ResultType: contracts.RunCommandResult})
+	replyTypeMock.On("GetRetryNumber").Return(1)
+
+	reply := &agentReplyLocalContract{
+		documentResult: replyTypeMock,
+		backupFile:     "",
+		retryNumber:    0,
+	}
+
+	start := time.Now()
+	mgs.processReply(reply)
+	elapsed := time.Since(start)
+
+	assert.True(suite.T(), elapsed >= 300*time.Millisecond, "Expected backoff timing to be respected")
+	replyTypeMock.AssertExpectations(suite.T())
+}
+
 func (suite *SendReplyTestSuite) getMGSInteractorRef(sendControlChannelErr error) *MGSInteractor {
 	mockControlChannel := &controlChannelMock.IControlChannel{}
 	mockControlChannel.On("SendMessage", mock.Anything, mock.Anything, websocket.BinaryMessage).Return(sendControlChannelErr)

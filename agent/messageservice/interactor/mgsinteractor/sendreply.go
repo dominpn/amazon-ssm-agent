@@ -69,7 +69,11 @@ func (mgs *MGSInteractor) deleteFailedReply(log log.T, fileName string) {
 	if fileutil.Exists(absoluteFileName) {
 		err := fileutil.DeleteFile(absoluteFileName)
 		if err != nil {
-			log.Errorf("encountered error %v while deleting file %v", err, absoluteFileName)
+			if os.IsNotExist(err) {
+				log.Infof("file %v does not exist", absoluteFileName)
+			} else {
+				log.Errorf("encountered error %v while deleting file %v", err, absoluteFileName)
+			}
 		} else {
 			log.Debugf("successfully deleted file %v", absoluteFileName)
 		}
