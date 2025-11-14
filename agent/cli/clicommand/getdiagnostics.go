@@ -23,6 +23,7 @@ import (
 	"sort"
 	"sync"
 	"text/template"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/cli/cliutil"
 	_ "github.com/aws/amazon-ssm-agent/agent/cli/diagnostics"
@@ -187,11 +188,11 @@ type getDiagnosticsHelpParams struct {
 
 func init() {
 	cliutil.Register(&GetDiagnosticsCommand{
-		"",
-		sync.Mutex{},
-		make(chan bool, maxParallelExecution),
-		sync.WaitGroup{},
-		map[string]diagnosticsutil.DiagnosticOutput{},
+		helpText:          "",
+		writeOutputLock:   sync.Mutex{},
+		backPressureValve: make(chan bool, maxParallelExecution),
+		waitGroup:         sync.WaitGroup{},
+		outputMap:         map[string]diagnosticsutil.DiagnosticOutput{},
 	})
 }
 
@@ -201,6 +202,7 @@ type GetDiagnosticsCommand struct {
 	backPressureValve chan bool
 	waitGroup         sync.WaitGroup
 	outputMap         map[string]diagnosticsutil.DiagnosticOutput
+	firstQueryDone    chan struct{} // Flag for first query completion, to avoid multiple appconfig loads
 }
 
 // all supported parameters
@@ -251,7 +253,7 @@ func (c *GetDiagnosticsCommand) appendOutput(output diagnosticsutil.DiagnosticOu
 	c.outputMap[output.Check] = output
 }
 
-func (c *GetDiagnosticsCommand) executeQuery(query diagnosticsutil.DiagnosticQuery) {
+func (c *GetDiagnosticsCommand) executeQuery(query diagnosticsutil.DiagnosticQuery, isFirstQuery bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("ssm-cli get-diagnostics panic during %s check: %v\n", query.GetName(), r)
@@ -259,6 +261,11 @@ func (c *GetDiagnosticsCommand) executeQuery(query diagnosticsutil.DiagnosticQue
 		}
 	}()
 	defer c.waitGroup.Done()
+
+	if isFirstQuery {
+		defer close(c.firstQueryDone)
+	}
+
 	c.appendOutput(query.Execute())
 	<-c.backPressureValve
 }
@@ -272,6 +279,8 @@ func (c *GetDiagnosticsCommand) Execute(subcommands []string, parameters map[str
 			err, _ = r.(error)
 		}
 	}()
+
+	c.firstQueryDone = make(chan struct{})
 
 	// validate parameters
 	err = validateParameters(parameters)
@@ -299,10 +308,20 @@ func (c *GetDiagnosticsCommand) Execute(subcommands []string, parameters map[str
 		return diagnosticsutil.DiagnosticQueries[i].GetPriority() < diagnosticsutil.DiagnosticQueries[j].GetPriority()
 	})
 
-	for _, query := range diagnosticsutil.DiagnosticQueries {
+	for i, query := range diagnosticsutil.DiagnosticQueries {
 		c.backPressureValve <- true
 		c.waitGroup.Add(1)
-		go c.executeQuery(query)
+		go c.executeQuery(query, i == 0)
+
+		// Wait for first query to complete, to avoid multiple appconfig loads
+		if i == 0 {
+			select {
+			case <-c.firstQueryDone:
+				// First query completes
+			case <-time.After(5 * time.Second):
+				// Timeout if first query stalls/panics
+			}
+		}
 	}
 
 	c.waitGroup.Wait()

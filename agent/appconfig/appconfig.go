@@ -47,7 +47,7 @@ func Config(reload bool) (SsmagentConfig, error) {
 			return agentConfig, nil
 		}
 		// Process config override
-		fmt.Printf("Applying config override from %s.\n", path)
+		log.Printf("Applying config override from %s.\n", path)
 
 		if err := jsonutil.UnmarshalFile(path, &agentConfig); err != nil {
 			fmt.Println("Failed to unmarshal config override. Fall back to default.")
