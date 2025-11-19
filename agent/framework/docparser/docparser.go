@@ -18,6 +18,7 @@ package docparser
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -502,6 +503,33 @@ func getValidatedParameters(context context.T, params map[string]interface{}, do
 	return err
 }
 
+// addResolvedSSMParamsToEnvVars resolves SSM parameters and adds them to environment variable maps
+func addResolvedSSMParamsToEnvVars(context context.T, docContent *DocContent, params map[string]interface{}, shellEnvParams, powerShellEnvParams map[string]interface{}) error {
+	ssmParamRegex := regexp.MustCompile(`^{{\s*ssm:[/\w.:-]+\s*}}$`)
+
+	// Check input parameters for SSM parameter store values that should become env vars
+	for k, v := range docContent.Parameters {
+		if v.InterpolationType == "ENV_VAR" {
+			if inputValue, exists := params[k]; exists {
+				paramStr := fmt.Sprint(inputValue)
+				if ssmParamRegex.MatchString(paramStr) {
+					// Resolve the SSM parameter
+					if resolved, err := parameterstore.Resolve(context, paramStr); err == nil {
+						if resolvedStr, ok := resolved.(string); ok {
+							shellEnvParams[k] = fmt.Sprintf("%s%s", shellEnvPrefix, k)
+							powerShellEnvParams[k] = fmt.Sprintf("%s%s", powerShellEnvPrefix, k)
+							docContent.EnvVariablesParamValues[k] = resolvedStr
+						}
+					} else {
+						return err
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // replaceValidatedPluginParameters replaces parameters with their values, within the plugin Properties.
 func replaceValidatedPluginParameters(
 	context context.T,
@@ -539,6 +567,11 @@ func replaceValidatedPluginParameters(
 
 	mainSteps := docContent.MainSteps
 	if mainSteps != nil || len(mainSteps) != 0 {
+		// Resolve SSM parameters early and add to env vars
+		if err = addResolvedSSMParamsToEnvVars(context, docContent, params, shellEnvParams, powerShellEnvParams); err != nil {
+			return err
+		}
+
 		updatedMainSteps := make([]*contracts.InstancePluginConfig, len(mainSteps))
 		for index, instancePluginConfig := range mainSteps {
 			updatedMainSteps[index] = instancePluginConfig

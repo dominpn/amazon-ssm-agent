@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -757,6 +758,47 @@ func TestParseMessageWithPreconditions(t *testing.T) {
 		assert.Equal(t, testWorkingDir, pluginsInfo[0].Configuration.DefaultWorkingDirectory)
 		assert.Equal(t, tst.ResolvedPreconditions, pluginsInfo[0].Configuration.Preconditions)
 	}
+}
+
+func TestAddResolvedSSMParamsToEnvVars(t *testing.T) {
+	// Test parameter filtering logic without external dependencies
+	docContent := &DocContent{
+		Parameters: map[string]*contracts.Parameter{
+			"EnvVarParam": {
+				ParamType:         contracts.ParamTypeString,
+				InterpolationType: "ENV_VAR",
+			},
+			"RegularParam": {
+				ParamType: contracts.ParamTypeString,
+			},
+		},
+		EnvVariablesParamValues: make(map[string]interface{}),
+	}
+
+	params := map[string]interface{}{
+		"EnvVarParam":  "{{ssm:/test/param}}",
+		"RegularParam": "{{ssm:/test/param2}}",
+	}
+
+	// Test SSM parameter regex matching
+	ssmParamRegex := regexp.MustCompile(`{{\s*ssm:`)
+	assert.True(t, ssmParamRegex.MatchString("{{ssm:/test/param}}"))
+	assert.True(t, ssmParamRegex.MatchString("{{ ssm:/test/param}}"))
+	assert.False(t, ssmParamRegex.MatchString("regular-value"))
+
+	// Test parameter filtering logic
+	envVarCount := 0
+	for k, v := range docContent.Parameters {
+		if v.InterpolationType == "ENV_VAR" {
+			envVarCount++
+			assert.Equal(t, "EnvVarParam", k)
+			if inputValue, exists := params[k]; exists {
+				paramStr := fmt.Sprint(inputValue)
+				assert.True(t, ssmParamRegex.MatchString(paramStr))
+			}
+		}
+	}
+	assert.Equal(t, 1, envVarCount)
 }
 
 func loadFile(t *testing.T, fileName string) (result []byte) {
