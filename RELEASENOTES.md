@@ -1,5 +1,14 @@
 Latest
 ===============
+- Fix ENV_VAR interpolation to work correctly with parameter store value
+- Implement immediate retries for failed reply messages to MGS for RunCommand documents
+- Improve ssm-cli get-diagnostics command log output
+- Support DomainJoin endpoint for EU sovereign cloud
+- Support dualstack S3 endpoint for distributor packages
+- Upgrade Go version to 1.24.11
+
+3.3.3270.0
+===============
 - Add initial IPv6 support with UseDualStackEndpoint configuration option
 - Fix CPU utilization issue for instances with thousands of network interfaces
 
