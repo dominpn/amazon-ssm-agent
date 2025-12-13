@@ -36,6 +36,14 @@ const (
 	defaultOrphanProcessTimeout = 172800 * time.Second
 )
 
+// Patch document for dedicated reboot processing
+var patchDocumentNames = []string{
+	"AWS-RunPatchBaseline",
+	"AWS-InstallWindowsUpdates",
+	"AWS-RunPatchBaselineAssociation",
+	"AWS-RunPatchBaselineWithHooks",
+}
+
 type OutOfProcExecuter struct {
 	basicexecuter.BasicExecuter
 	docState   *contracts.DocumentState
@@ -177,10 +185,27 @@ func (e *OutOfProcExecuter) generateUnexpectedFailResult(errMsg string, startTim
 
 // prepare the channel for messaging as well as launching the document worker process, if the channel already exists, re-open it.
 // launch timeout timer based off the discovered process status
+//
+// This initialize block handles both start and continuation of document executions from state on filesystem
+// For continuation, it is assumed that agent worker process can have interruption (e.g. UpdateSSMAgent) and
+// that the document worker process responsible for command execution are still alive and can be reconnected
+// In the case where a reboot or global cessation of the SSM Agent, both processes are terminated, and we
+// cannot establish correct state to restart unless it is explicitly handled by the command document
 func (e *OutOfProcExecuter) initialize(stopTimer chan bool) (ipc filewatcherbasedipc.IPCChannel, err error) {
 	log := e.ctx.Log()
 	var found bool
 	documentID := e.docState.DocumentInformation.DocumentID
+
+	// Due to non-agent scheduled additional reboots during Windows update process caused by automated process
+	// recently added by Microsoft, we are allowing Patch Documents to continue from any reboot as the
+	// patch documents are state safe with dedicated state tracking and this allow for correct patch visibility
+	isPatchDocument := false
+	for _, name := range patchDocumentNames {
+		if e.docState.DocumentInformation.DocumentName == name {
+			isPatchDocument = true
+			break
+		}
+	}
 
 	// this fix is added to delete channels which were not deleted in previous execution
 	if e.docState.DocumentInformation.DocumentStatus == contracts.ResultStatusSuccessAndReboot {
@@ -201,43 +226,55 @@ func (e *OutOfProcExecuter) initialize(stopTimer chan bool) (ipc filewatcherbase
 	}
 	if found {
 		log.Info("discovered old channel object, trying to find detached process...")
-		var stopTime time.Duration
 		procInfo := e.docState.DocumentInformation.ProcInfo
 		if processFinder(log, procInfo, e.executor) {
 			log.Infof("found orphan process: %v, start time: %v", procInfo.Pid, procInfo.StartTime)
-			stopTime = defaultOrphanProcessTimeout
+			go timeoutOrCancel(stopTimer, defaultOrphanProcessTimeout, e.cancelFlag)
+		} else if isPatchDocument && e.docState.DocumentInformation.DocumentStatus == contracts.ResultStatusInProgress {
+			log.TelemetryWarnf("Continue patch execution from presumed reboot")
+			err = e.startNewWorkerProcess(stopTimer, documentID, ipc)
 		} else {
 			log.TelemetryWarnf("process: %v not found, treat as exited", procInfo.Pid)
-			stopTime = defaultZombieProcessTimeout
+			go timeoutOrCancel(stopTimer, defaultZombieProcessTimeout, e.cancelFlag)
 		}
-		go timeoutOrCancel(stopTimer, stopTime, e.cancelFlag)
 	} else {
-		log.Debug("channel not found, starting a new process...")
-		var workerName string
-		if e.docState.DocumentType == contracts.StartSession {
-			workerName = appconfig.DefaultSessionWorker
-		} else {
-			workerName = appconfig.DefaultDocumentWorker
-		}
-		var process proc.OSProcess
-		if process, err = processCreator(workerName, []string{documentID}); err != nil {
-			log.Errorf("start process: %v error: %v", workerName, err)
-			// make sure close the channel
-			ipc.Destroy()
-			return
-		} else {
-			log.Debugf("successfully launched new process: %v", process.Pid())
-		}
-		e.docState.DocumentInformation.ProcInfo = contracts.OSProcInfo{
-			Pid:       process.Pid(),
-			StartTime: process.StartTime(),
-		}
-		// TODO add command timeout as well, in case process get stuck
-		go e.WaitForProcess(stopTimer, process)
-
+		err = e.startNewWorkerProcess(stopTimer, documentID, ipc)
 	}
 
 	return
+}
+
+// startNewWorkerProcess starts a new worker process for document execution
+func (e *OutOfProcExecuter) startNewWorkerProcess(stopTimer chan bool, documentID string, ipc filewatcherbasedipc.IPCChannel) error {
+	log := e.ctx.Log()
+	log.Debug("channel not found, starting a new process...")
+
+	var workerName string
+	if e.docState.DocumentType == contracts.StartSession {
+		workerName = appconfig.DefaultSessionWorker
+	} else {
+		workerName = appconfig.DefaultDocumentWorker
+	}
+
+	var process proc.OSProcess
+	var err error
+	if process, err = processCreator(workerName, []string{documentID}); err != nil {
+		log.Errorf("start process: %v error: %v", workerName, err)
+		// make sure close the channel
+		ipc.Destroy()
+		return err
+	} else {
+		log.Debugf("successfully launched new process: %v", process.Pid())
+	}
+
+	e.docState.DocumentInformation.ProcInfo = contracts.OSProcInfo{
+		Pid:       process.Pid(),
+		StartTime: process.StartTime(),
+	}
+
+	// TODO add command timeout as well, in case process get stuck
+	go e.WaitForProcess(stopTimer, process)
+	return nil
 }
 
 func (e *OutOfProcExecuter) WaitForProcess(stopTimer chan bool, process proc.OSProcess) {
