@@ -1,5 +1,9 @@
 Latest
 ===============
+- Allow Patch execution to persist across reboots not registered to SSM Agent
+
+3.3.3572.0
+===============
 - Fix ENV_VAR interpolation to work correctly with parameter store value
 - Implement immediate retries for failed reply messages to MGS for RunCommand documents
 - Improve ssm-cli get-diagnostics command log output
