@@ -22,11 +22,13 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
+	"github.com/aws/amazon-ssm-agent/agent/managedInstances/registration"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
 	"github.com/aws/amazon-ssm-agent/agent/ssm"
 	"github.com/aws/amazon-ssm-agent/agent/ssmconnectionchannel"
 	"github.com/aws/amazon-ssm-agent/agent/version"
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/azure"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ecs"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/onprem"
@@ -75,6 +77,40 @@ var newOnPremIdentity = func(log log.T, config *appconfig.SsmagentConfig) identi
 	}
 	return nil
 }
+var NewEC2Provider = func(log log.T) identity.IProvider {
+	if identityRef := ec2.NewEC2Identity(log); identityRef != nil {
+		return identityRef
+	}
+	return nil
+}
+var newAzureProvider = func(log log.T, config *appconfig.SsmagentConfig) identity.IProvider {
+	if identityRef := azure.NewAzureIdentity(log, config); identityRef != nil {
+		return identityRef
+	}
+	return nil
+}
+
+// getIdentityProvider creates and returns an identity provider based on the registered provider type.
+// Returns nil if the provider is invalid or cannot be created.
+var getIdentityProvider = func(log log.T, provider string, appConfig *appconfig.SsmagentConfig) identity.IProvider {
+	parsedProvider, ok := appconfig.Providers[provider]
+	if !ok {
+		log.Infof("Agent does not have an explicit provider.")
+		return nil
+	}
+
+	log.Infof("Agent is registered with %s", parsedProvider)
+
+	switch parsedProvider {
+	case appconfig.EC2:
+		return NewEC2Provider(log)
+	case appconfig.Azure:
+		return newAzureProvider(log, appConfig)
+	default:
+		log.Warnf("Unexpected provider %s", parsedProvider)
+		return nil
+	}
+}
 
 // AgentState enumerates active and passive agentMode
 type AgentState int32
@@ -110,7 +146,6 @@ func (h *HealthCheck) scheduleUpdateHealth() {
 	if h.healthJob, err = scheduler.Every(h.scheduleInMinutes()).Minutes().Run(h.updateHealth); err != nil {
 		h.context.Log().Errorf("unable to schedule health update. %v", err)
 	}
-	return
 }
 
 // updates SSM with the instance health information
@@ -126,21 +161,64 @@ func (h *HealthCheck) updateHealth() {
 	log.Infof("%s reporting agent health.", name)
 
 	appConfig := h.context.AppConfig()
-	var isEC2, isECS, isOnPrem bool
-	var ec2Identity, ecsIdentity identity.IAgentIdentityInner
-	onpremIdentity := newOnPremIdentity(log, &appConfig)
-	isOnPrem = onpremIdentity != nil && onpremIdentity.IsIdentityEnvironment()
-	if !isOnPrem {
-		ec2Identity = newEC2Identity(log)
-		ecsIdentity = newECSIdentity(log)
-		isEC2 = ec2Identity != nil && ec2Identity.IsIdentityEnvironment()
-		isECS = ecsIdentity != nil && ecsIdentity.IsIdentityEnvironment()
-	}
-	var availabilityZone = ""
-	var availabilityZoneId = ""
-	if isEC2 && !isECS && !isOnPrem {
-		availabilityZone, _ = ec2Identity.AvailabilityZone()
-		availabilityZoneId, _ = ec2Identity.AvailabilityZoneId()
+	registrationInfo := registration.NewOnpremRegistrationInfo()
+
+	availabilityZone := ""
+	availabilityZoneId := ""
+	sourceId := ""
+	sourceType := ""
+	sourceLocation := ""
+	computerName := ""
+
+	provider := registrationInfo.Provider(log, "", registration.RegVaultKey)
+
+	providerHadError := false
+	identityProvider := getIdentityProvider(log, provider, &appConfig)
+	if identityProvider != nil {
+		var err error
+		availabilityZone, err = identityProvider.AvailabilityZone()
+		if err != nil {
+			log.Errorf("Error getting availability zone: %v", err)
+			providerHadError = true
+		}
+		availabilityZoneId, err = identityProvider.AvailabilityZoneId()
+		if err != nil {
+			log.Errorf("Error getting availability zone id: %v", err)
+			providerHadError = true
+		}
+		sourceId, err = identityProvider.SourceId()
+		if err != nil {
+			log.Errorf("Error getting source id: %v", err)
+			providerHadError = true
+		}
+		sourceLocation, err = identityProvider.SourceLocation()
+		if err != nil {
+			log.Errorf("Error getting source location: %v", err)
+			providerHadError = true
+		}
+		sourceType = identityProvider.SourceType()
+		computerName, err = identityProvider.ComputerName()
+		if err != nil {
+			log.Errorf("Error getting computer name: %v", err)
+			providerHadError = true
+		}
+
+	} else {
+		// Fallback to on-prem identity detection
+		var isEC2, isECS, isOnPrem bool
+		var ec2Identity, ecsIdentity identity.IAgentIdentityInner
+		onpremIdentity := newOnPremIdentity(log, &appConfig)
+		isOnPrem = onpremIdentity != nil && onpremIdentity.IsIdentityEnvironment()
+		if !isOnPrem {
+			ec2Identity = newEC2Identity(log)
+			ecsIdentity = newECSIdentity(log)
+			isEC2 = ec2Identity != nil && ec2Identity.IsIdentityEnvironment()
+			isECS = ecsIdentity != nil && ecsIdentity.IsIdentityEnvironment()
+		}
+		if isEC2 && !isECS && !isOnPrem {
+			availabilityZone, _ = ec2Identity.AvailabilityZone()
+			availabilityZoneId, _ = ec2Identity.AvailabilityZoneId()
+		}
 	}
 
 	var ssmConnectionChannel = ""
@@ -148,10 +226,26 @@ func (h *HealthCheck) updateHealth() {
 	ssmConnectionChannel = string(channel)
 	log.Debugf("got SSM connection channel value: %v", ssmConnectionChannel)
 
+	if identityProvider != nil && providerHadError {
+		log.Warnf("Skipping health update due to identity provider errors")
+		return
+	}
+
 	var err error
 	//TODO when will status become inactive?
 	// If both ssm config and command is inactive => agent is inactive.
-	if _, err = h.service.UpdateInstanceInformation(log, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel); err != nil {
+	if _, err = h.service.UpdateInstanceInformation(
+		log,
+		version.Version,
+		"Active",
+		AgentName,
+		availabilityZone,
+		availabilityZoneId,
+		ssmConnectionChannel,
+		sourceId,
+		sourceType,
+		sourceLocation,
+		computerName); err != nil {
 		sdkutil.HandleAwsError(log, err, h.healthCheckStopPolicy)
 	}
 
@@ -159,8 +253,6 @@ func (h *HealthCheck) updateHealth() {
 		h.service = ssm.NewService(h.context)
 		h.healthCheckStopPolicy.ResetErrorCount()
 	}
-
-	return
 }
 
 // scheduleInMinutes Run Schedule In Minutes

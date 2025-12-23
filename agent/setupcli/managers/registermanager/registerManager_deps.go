@@ -21,6 +21,7 @@ type RegisterAgentInputModel struct {
 	Tags               string
 	ActivationCode     string
 	ActivationId       string
+	Provider           string
 	IsFirstTimeInstall bool // will be used only for Windows
 }
 

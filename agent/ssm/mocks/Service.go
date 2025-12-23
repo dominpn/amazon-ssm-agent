@@ -395,12 +395,12 @@ func (_m *Service) UpdateInstanceAssociationStatus(_a0 log.T, associationID stri
 }
 
 // UpdateInstanceInformation provides a mock function with given fields: _a0, agentVersion, agentStatus, agentName, availabilityZone, availabilityZoneId, ssmConnectionChannel
-func (_m *Service) UpdateInstanceInformation(_a0 log.T, agentVersion string, agentStatus string, agentName string, availabilityZone string, availabilityZoneId string, ssmConnectionChannel string) (*ssm.UpdateInstanceInformationOutput, error) {
-	ret := _m.Called(_a0, agentVersion, agentStatus, agentName, availabilityZone, availabilityZoneId, ssmConnectionChannel)
+func (_m *Service) UpdateInstanceInformation(_a0 log.T, agentVersion string, agentStatus string, agentName string, availabilityZone string, availabilityZoneId string, ssmConnectionChannel string, sourceId string, sourceType string, sourceLocation string, computerName string) (*ssm.UpdateInstanceInformationOutput, error) {
+	ret := _m.Called(_a0, agentVersion, agentStatus, agentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName)
 
 	var r0 *ssm.UpdateInstanceInformationOutput
-	if rf, ok := ret.Get(0).(func(log.T, string, string, string, string, string, string) *ssm.UpdateInstanceInformationOutput); ok {
-		r0 = rf(_a0, agentVersion, agentStatus, agentName, availabilityZone, availabilityZoneId, ssmConnectionChannel)
+	if rf, ok := ret.Get(0).(func(log.T, string, string, string, string, string, string, string, string, string, string) *ssm.UpdateInstanceInformationOutput); ok {
+		r0 = rf(_a0, agentVersion, agentStatus, agentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ssm.UpdateInstanceInformationOutput)
@@ -408,8 +408,8 @@ func (_m *Service) UpdateInstanceInformation(_a0 log.T, agentVersion string, age
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(log.T, string, string, string, string, string) error); ok {
-		r1 = rf(_a0, agentVersion, agentStatus, agentName, availabilityZone, availabilityZoneId)
+	if rf, ok := ret.Get(1).(func(log.T, string, string, string, string, string, string, string, string, string, string) error); ok {
+		r1 = rf(_a0, agentVersion, agentStatus, agentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName)
 	} else {
 		r1 = ret.Error(1)
 	}

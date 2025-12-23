@@ -14,22 +14,22 @@ type IClient struct {
 }
 
 // RegisterManagedInstanceWithContext provides a mock function with given fields: ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson
-func (_m *IClient) RegisterManagedInstanceWithContext(ctx context.Context, publicKey string, publicKeyType string, fingerprint string, iamRole string, tagsJson string) (string, error) {
-	ret := _m.Called(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson)
+func (_m *IClient) RegisterManagedInstanceWithContext(ctx context.Context, publicKey string, publicKeyType string, fingerprint string, iamRole string, tagsJson string, provider string) (string, error) {
+	ret := _m.Called(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) (string, error)); ok {
-		return rf(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, string) (string, error)); ok {
+		return rf(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) string); ok {
-		r0 = rf(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, string) string); ok {
+		r0 = rf(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, string) error); ok {
-		r1 = rf(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, string, string) error); ok {
+		r1 = rf(ctx, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider)
 	} else {
 		r1 = ret.Error(1)
 	}

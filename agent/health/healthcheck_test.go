@@ -112,6 +112,10 @@ func (suite *HealthCheckTestSuite) TestModuleExecute() {
 	mockOnPremIdentity.On("IsIdentityEnvironment").Return(false)
 
 	ssmConnectionChannel := "ssmmessages"
+	sourceId := ""
+	sourceLocation := ""
+	sourceType := ""
+	computerName := ""
 	var ableToOpenMGSConnection uint32
 
 	// reset
@@ -129,12 +133,12 @@ func (suite *HealthCheckTestSuite) TestModuleExecute() {
 
 	// Turn on the mock method
 	suite.contextMock.On("AppConfig").Return(*appconfigMock)
-	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel).Return(nil, nil)
+	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName).Return(nil, nil)
 	suite.healthCheck.ModuleExecute()
 	// Because ModuleExecute will launch two new go routine, wait 100ms to make sure the updateHealth() has launched
 	time.Sleep(100 * time.Millisecond)
 	// Assert the UpdateInstanceInformation get called in updateHealth() function, and the agent status is same as input.
-	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel)
+	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName)
 
 	select {
 	case <-setConnectionGoRoutine:
@@ -180,6 +184,11 @@ func (suite *HealthCheckTestSuite) TestModuleExecuteWithOnPremIdentity() {
 	suite.resetConnectionChannel()
 
 	ssmConnectionChannel := "ssmmessages"
+	sourceId := ""
+	sourceLocation := ""
+	sourceType := ""
+	computerName := ""
+
 	var ableToOpenMGSConnection uint32
 	atomic.StoreUint32(&ableToOpenMGSConnection, 1)
 	setConnectionGoRoutine := make(chan bool, 1)
@@ -193,12 +202,12 @@ func (suite *HealthCheckTestSuite) TestModuleExecuteWithOnPremIdentity() {
 
 	// Turn on the mock method
 	suite.contextMock.On("AppConfig").Return(*appconfigMock)
-	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, "", "", ssmConnectionChannel).Return(nil, nil)
+	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, "", "", ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName).Return(nil, nil)
 	suite.healthCheck.ModuleExecute()
 	// Because ModuleExecute will launch two new go routine, wait 100ms to make sure the updateHealth() has launched
 	time.Sleep(100 * time.Millisecond)
 	// Assert the UpdateInstanceInformation get called in updateHealth() function, and the agent status is same as input.
-	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, "", "", ssmConnectionChannel)
+	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, "", "", ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName)
 	suite.serviceMock.AssertNotCalled(suite.T(), "IsIdentityEnvironment", true)
 
 	select {
@@ -243,6 +252,10 @@ func (suite *HealthCheckTestSuite) TestModuleExecuteWithNilOnPremIdentity() {
 	suite.resetConnectionChannel()
 
 	ssmConnectionChannel := "ssmmessages"
+	sourceId := ""
+	sourceLocation := ""
+	sourceType := ""
+	computerName := ""
 	var ableToOpenMGSConnection uint32
 	atomic.StoreUint32(&ableToOpenMGSConnection, 1)
 	setConnectionGoRoutine := make(chan bool, 1)
@@ -257,12 +270,12 @@ func (suite *HealthCheckTestSuite) TestModuleExecuteWithNilOnPremIdentity() {
 
 	// Turn on the mock method
 	suite.contextMock.On("AppConfig").Return(*appconfigMock)
-	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel).Return(nil, nil)
+	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName).Return(nil, nil)
 	suite.healthCheck.ModuleExecute()
 	// Because ModuleExecute will launch two new go routine, wait 100ms to make sure the updateHealth() has launched
 	time.Sleep(100 * time.Millisecond)
 	// Assert the UpdateInstanceInformation get called in updateHealth() function, and the agent status is same as input.
-	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel)
+	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName)
 	select {
 	case <-setConnectionGoRoutine:
 		break
@@ -306,6 +319,10 @@ func (suite *HealthCheckTestSuite) TestModuleExecuteWithMDSConnection() {
 	suite.resetConnectionChannel()
 
 	ssmConnectionChannel := "ec2messages"
+	sourceId := ""
+	sourceLocation := ""
+	sourceType := ""
+	computerName := ""
 	var ableToOpenMGSConnection uint32
 	atomic.StoreUint32(&ableToOpenMGSConnection, 0)
 	setConnectionGoRoutine := make(chan bool, 1)
@@ -318,12 +335,12 @@ func (suite *HealthCheckTestSuite) TestModuleExecuteWithMDSConnection() {
 
 	// Turn on the mock method
 	suite.contextMock.On("AppConfig").Return(*appconfigMock)
-	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel).Return(nil, nil)
+	suite.serviceMock.On("UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName).Return(nil, nil)
 	suite.healthCheck.ModuleExecute()
 	// Because ModuleExecute will launch two new go routine, wait 100ms to make sure the updateHealth() has launched
 	time.Sleep(100 * time.Millisecond)
 	// Assert the UpdateInstanceInformation get called in updateHealth() function, and the agent status is same as input.
-	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel)
+	suite.serviceMock.AssertCalled(suite.T(), "UpdateInstanceInformation", mock.Anything, version.Version, "Active", AgentName, availabilityZone, availabilityZoneId, ssmConnectionChannel, sourceId, sourceType, sourceLocation, computerName)
 	select {
 	case <-setConnectionGoRoutine:
 		break
@@ -404,4 +421,330 @@ func (suite *HealthCheckTestSuite) TestGetAgentStatePassive() {
 // Execute the test suite
 func TestHealthCheckTestSuite(t *testing.T) {
 	suite.Run(t, new(HealthCheckTestSuite))
+}
+
+type MockProvider struct {
+	mock.Mock
+}
+
+func (m *MockProvider) AvailabilityZone() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockProvider) AvailabilityZoneId() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockProvider) SourceId() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockProvider) SourceType() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockProvider) SourceLocation() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockProvider) ComputerName() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
+func resetConnectionChannelForTest(ctx *context.Mock) {
+	go func() {
+		ssmconnectionchannel.SetConnectionChannel(ctx, ssmconnectionchannel.MGSFailedDueToAccessDenied)
+	}()
+	go func() {
+		select {
+		case <-time.After(500 * time.Millisecond):
+			break
+		case <-ssmconnectionchannel.GetMDSSwitchChannel():
+			break
+		}
+	}()
+	time.Sleep(500 * time.Millisecond)
+}
+
+func setupProviderTest(t *testing.T, mockProvider identity.IProvider) (*HealthCheck, *ssmMock.Service) {
+	t.Helper()
+
+	healthModule = nil
+
+	ctxMock := context.NewMockDefault()
+	serviceMock := new(ssmMock.Service)
+	stopPolicy := sdkutil.NewStopPolicy("healthTest", 10)
+
+	h := &HealthCheck{
+		healthCheckStopPolicy: stopPolicy,
+		context:               ctxMock,
+		service:               serviceMock,
+	}
+
+	originalGetIdentityProvider := getIdentityProvider
+	getIdentityProvider = func(log log.T, provider string, appConfig *appconfig.SsmagentConfig) identity.IProvider {
+		return mockProvider
+	}
+	t.Cleanup(func() { getIdentityProvider = originalGetIdentityProvider })
+
+	resetConnectionChannelForTest(ctxMock)
+
+	go func() {
+		ssmconnectionchannel.SetConnectionChannel(ctxMock, ssmconnectionchannel.MGSSuccess)
+	}()
+	<-ssmconnectionchannel.GetMDSSwitchChannel()
+
+	return h, serviceMock
+}
+
+func setupNilProviderTest(t *testing.T) (*HealthCheck, *ssmMock.Service) {
+	t.Helper()
+
+	healthModule = nil
+
+	ctxMock := context.NewMockDefault()
+	serviceMock := new(ssmMock.Service)
+	stopPolicy := sdkutil.NewStopPolicy("healthTest", 10)
+
+	h := &HealthCheck{
+		healthCheckStopPolicy: stopPolicy,
+		context:               ctxMock,
+		service:               serviceMock,
+	}
+
+	originalGetIdentityProvider := getIdentityProvider
+	getIdentityProvider = func(log log.T, provider string, appConfig *appconfig.SsmagentConfig) identity.IProvider {
+		return nil
+	}
+	t.Cleanup(func() { getIdentityProvider = originalGetIdentityProvider })
+
+	originalNewEC2Identity := newEC2Identity
+	originalNewECSIdentity := newECSIdentity
+	originalNewOnPremIdentity := newOnPremIdentity
+	t.Cleanup(func() {
+		newEC2Identity = originalNewEC2Identity
+		newECSIdentity = originalNewECSIdentity
+		newOnPremIdentity = originalNewOnPremIdentity
+	})
+
+	resetConnectionChannelForTest(ctxMock)
+
+	go func() {
+		ssmconnectionchannel.SetConnectionChannel(ctxMock, ssmconnectionchannel.MGSSuccess)
+	}()
+	<-ssmconnectionchannel.GetMDSSwitchChannel()
+
+	return h, serviceMock
+}
+
+func TestBugCondition_SingleMethodFailure_AvailabilityZoneError(t *testing.T) {
+	mockProvider := new(MockProvider)
+
+	mockProvider.On("AvailabilityZone").Return("", errors.New("metadata service unavailable"))
+	mockProvider.On("AvailabilityZoneId").Return("use1-az2", nil)
+	mockProvider.On("SourceId").Return("i-1234567890abcdef0", nil)
+	mockProvider.On("SourceType").Return("EC2")
+	mockProvider.On("SourceLocation").Return("us-east-1", nil)
+	mockProvider.On("ComputerName").Return("ip-10-0-0-1", nil)
+
+	h, serviceMock := setupProviderTest(t, mockProvider)
+
+	serviceMock.On("UpdateInstanceInformation",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything,
+	).Return(nil, nil)
+
+	h.updateHealth()
+
+	serviceMock.AssertNotCalled(t, "UpdateInstanceInformation",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything,
+	)
+}
+
+func TestBugCondition_AllMethodsFailure(t *testing.T) {
+	mockProvider := new(MockProvider)
+
+	mockProvider.On("AvailabilityZone").Return("", errors.New("AZ unavailable"))
+	mockProvider.On("AvailabilityZoneId").Return("", errors.New("AZ ID unavailable"))
+	mockProvider.On("SourceId").Return("", errors.New("source ID unavailable"))
+	mockProvider.On("SourceType").Return("EC2")
+	mockProvider.On("SourceLocation").Return("", errors.New("source location unavailable"))
+	mockProvider.On("ComputerName").Return("", errors.New("computer name unavailable"))
+
+	h, serviceMock := setupProviderTest(t, mockProvider)
+
+	serviceMock.On("UpdateInstanceInformation",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything,
+	).Return(nil, nil)
+
+	h.updateHealth()
+
+	serviceMock.AssertNotCalled(t, "UpdateInstanceInformation",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything,
+	)
+}
+
+func TestBugCondition_ComputerNameOnlyFailure(t *testing.T) {
+	mockProvider := new(MockProvider)
+
+	mockProvider.On("AvailabilityZone").Return("us-east-1a", nil)
+	mockProvider.On("AvailabilityZoneId").Return("use1-az2", nil)
+	mockProvider.On("SourceId").Return("i-1234567890abcdef0", nil)
+	mockProvider.On("SourceType").Return("EC2")
+	mockProvider.On("SourceLocation").Return("us-east-1", nil)
+	mockProvider.On("ComputerName").Return("", errors.New("hostname lookup failed"))
+
+	h, serviceMock := setupProviderTest(t, mockProvider)
+
+	serviceMock.On("UpdateInstanceInformation",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything,
+	).Return(nil, nil)
+
+	h.updateHealth()
+
+	serviceMock.AssertNotCalled(t, "UpdateInstanceInformation",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything,
+	)
+}
+
+func TestPreservation_SuccessfulProvider(t *testing.T) {
+	mockProvider := new(MockProvider)
+
+	mockProvider.On("AvailabilityZone").Return("us-east-1a", nil)
+	mockProvider.On("AvailabilityZoneId").Return("use1-az2", nil)
+	mockProvider.On("SourceId").Return("i-1234567890abcdef0", nil)
+	mockProvider.On("SourceType").Return("EC2")
+	mockProvider.On("SourceLocation").Return("us-east-1", nil)
+	mockProvider.On("ComputerName").Return("ip-10-0-0-1", nil)
+
+	h, serviceMock := setupProviderTest(t, mockProvider)
+
+	serviceMock.On("UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"us-east-1a", "use1-az2", "ssmmessages",
+		"i-1234567890abcdef0", "EC2", "us-east-1", "ip-10-0-0-1",
+	).Return(nil, nil)
+
+	h.updateHealth()
+
+	serviceMock.AssertCalled(t, "UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"us-east-1a", "use1-az2", "ssmmessages",
+		"i-1234567890abcdef0", "EC2", "us-east-1", "ip-10-0-0-1",
+	)
+}
+
+func TestPreservation_NilProvider_EC2Fallback(t *testing.T) {
+	h, serviceMock := setupNilProviderTest(t)
+
+	mockOnPrem := &identityMock.IAgentIdentityInner{}
+	mockOnPrem.On("IsIdentityEnvironment").Return(false)
+	newOnPremIdentity = func(log log.T, config *appconfig.SsmagentConfig) identity.IAgentIdentityInner {
+		return mockOnPrem
+	}
+
+	mockEC2 := &identityMock.IAgentIdentityInner{}
+	mockEC2.On("IsIdentityEnvironment").Return(true)
+	mockEC2.On("AvailabilityZone").Return("us-west-2b", nil)
+	mockEC2.On("AvailabilityZoneId").Return("usw2-az1", nil)
+	newEC2Identity = func(log log.T) identity.IAgentIdentityInner {
+		return mockEC2
+	}
+
+	mockECS := &identityMock.IAgentIdentityInner{}
+	mockECS.On("IsIdentityEnvironment").Return(false)
+	newECSIdentity = func(log log.T) identity.IAgentIdentityInner {
+		return mockECS
+	}
+
+	serviceMock.On("UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"us-west-2b", "usw2-az1", "ssmmessages",
+		"", "", "", "",
+	).Return(nil, nil)
+
+	h.updateHealth()
+
+	serviceMock.AssertCalled(t, "UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"us-west-2b", "usw2-az1", "ssmmessages",
+		"", "", "", "",
+	)
+}
+
+func TestPreservation_NilProvider_OnPremIdentity(t *testing.T) {
+	h, serviceMock := setupNilProviderTest(t)
+
+	mockOnPrem := &identityMock.IAgentIdentityInner{}
+	mockOnPrem.On("IsIdentityEnvironment").Return(true)
+	newOnPremIdentity = func(log log.T, config *appconfig.SsmagentConfig) identity.IAgentIdentityInner {
+		return mockOnPrem
+	}
+
+	serviceMock.On("UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"", "", "ssmmessages",
+		"", "", "", "",
+	).Return(nil, nil)
+
+	h.updateHealth()
+
+	serviceMock.AssertCalled(t, "UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"", "", "ssmmessages",
+		"", "", "", "",
+	)
+}
+
+func TestPreservation_NilProvider_NoIdentity(t *testing.T) {
+	h, serviceMock := setupNilProviderTest(t)
+
+	mockOnPrem := &identityMock.IAgentIdentityInner{}
+	mockOnPrem.On("IsIdentityEnvironment").Return(false)
+	newOnPremIdentity = func(log log.T, config *appconfig.SsmagentConfig) identity.IAgentIdentityInner {
+		return mockOnPrem
+	}
+
+	mockEC2 := &identityMock.IAgentIdentityInner{}
+	mockEC2.On("IsIdentityEnvironment").Return(false)
+	newEC2Identity = func(log log.T) identity.IAgentIdentityInner {
+		return mockEC2
+	}
+
+	mockECS := &identityMock.IAgentIdentityInner{}
+	mockECS.On("IsIdentityEnvironment").Return(false)
+	newECSIdentity = func(log log.T) identity.IAgentIdentityInner {
+		return mockECS
+	}
+
+	serviceMock.On("UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"", "", "ssmmessages",
+		"", "", "", "",
+	).Return(nil, nil)
+
+	h.updateHealth()
+
+	serviceMock.AssertCalled(t, "UpdateInstanceInformation",
+		mock.Anything, version.Version, "Active", AgentName,
+		"", "", "ssmmessages",
+		"", "", "", "",
+	)
 }

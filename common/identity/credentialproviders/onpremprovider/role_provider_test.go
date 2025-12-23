@@ -290,6 +290,7 @@ type registrationStub struct {
 	fingerprint      string
 	publicKey        string
 	privateKey       string
+	provider         string
 	keyType          string
 	hasCreds         bool
 	shouldRotate     bool
@@ -327,6 +328,10 @@ func (r *registrationStub) PrivateKey(log log.T, manifestFileNamePrefix, vaultKe
 
 func (r *registrationStub) PrivateKeyType(log log.T, manifestFileNamePrefix, vaultKey string) string {
 	return r.keyType
+}
+
+func (r *registrationStub) Provider(log log.T, manifestFileNamePrefix, vaultKey string) string {
+	return r.provider
 }
 
 func (r *registrationStub) GenerateKeyPair() (publicKey, privateKey, keyType string, err error) {

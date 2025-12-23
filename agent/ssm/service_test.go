@@ -21,7 +21,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	awsmock "github.com/aws/aws-sdk-go/awstesting/mock"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	ssmsdkmock "github.com/aws/aws-sdk-go/service/ssm/ssmiface/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -86,7 +88,18 @@ func (suite *SsmServiceTestSuite) TestUpdateEmptyInstanceInformation() {
 // This function update the agent name, agent statuc, and agent version.
 func (suite *SsmServiceTestSuite) TestUpdateInstanceInformation() {
 	// Give mock value to test UpdateInstanceInformation, assert the error is nil, assert the log.Debug function get called.
-	response, err := suite.sdkService.UpdateInstanceInformation(suite.logMock, "2.2.3.2", "active", "Amazon-ssm-agent", "us-east-1b", "use1-az2", "ssmmessages")
+	response, err := suite.sdkService.UpdateInstanceInformation(
+		suite.logMock,
+		"2.2.3.2",
+		"active",
+		"Amazon-ssm-agent",
+		"us-east-1b",
+		"use1-az2",
+		"ssmmessages",
+		"1724afd8-9092-429e-8b04-0708130c38f7",
+		"Microsoft.Compute/virtualMachines",
+		"centralus",
+		"test-computer")
 	assert.Nil(suite.T(), err, "Err should be nil")
 	assert.NotNil(suite.T(), response, "response shouldn't be nil")
 }
@@ -94,4 +107,229 @@ func (suite *SsmServiceTestSuite) TestUpdateInstanceInformation() {
 // Execute the test suite
 func TestSsmServiceTestSuite(t *testing.T) {
 	suite.Run(t, new(SsmServiceTestSuite))
+}
+
+// TestUpdateInstanceInformation_WithSourceFields verifies that sourceId, sourceType,
+// and sourceLocation are included in the API call when they are non-empty.
+func TestUpdateInstanceInformation_WithSourceFields(t *testing.T) {
+	logMock := log.NewMockLog()
+	ssmSdkMock := &ssmsdkmock.SSMAPI{}
+	mockCtx := context.NewMockDefault()
+
+	svc := &sdkService{
+		context: mockCtx,
+		sdk:     ssmSdkMock,
+	}
+
+	var capturedInput *ssm.UpdateInstanceInformationInput
+	ssmSdkMock.On("UpdateInstanceInformation", mock.AnythingOfType("*ssm.UpdateInstanceInformationInput")).Return(
+		func(input *ssm.UpdateInstanceInformationInput) *ssm.UpdateInstanceInformationOutput {
+			capturedInput = input
+			return &ssm.UpdateInstanceInformationOutput{}
+		},
+		func(input *ssm.UpdateInstanceInformationInput) error {
+			return nil
+		},
+	)
+
+	_, err := svc.UpdateInstanceInformation(
+		logMock,
+		"3.0.0",
+		"Active",
+		"amazon-ssm-agent",
+		"us-east-1a",
+		"use1-az1",
+		"ssmmessages",
+		"test-source-id",
+		"Microsoft.Compute/virtualMachines",
+		"centralus",
+		"test-computer",
+	)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, capturedInput)
+	assert.Equal(t, "test-source-id", aws.StringValue(capturedInput.SourceId))
+	assert.Equal(t, "Microsoft.Compute/virtualMachines", aws.StringValue(capturedInput.SourceType))
+	assert.Equal(t, "centralus", aws.StringValue(capturedInput.SourceLocation))
+	assert.Equal(t, "test-computer", aws.StringValue(capturedInput.ComputerName))
+}
+
+// TestUpdateInstanceInformation_EmptySourceFields verifies that sourceId, sourceType,
+// and sourceLocation are not set when provided as empty strings.
+func TestUpdateInstanceInformation_EmptySourceFields(t *testing.T) {
+	logMock := log.NewMockLog()
+	ssmSdkMock := &ssmsdkmock.SSMAPI{}
+	mockCtx := context.NewMockDefault()
+
+	svc := &sdkService{
+		context: mockCtx,
+		sdk:     ssmSdkMock,
+	}
+
+	var capturedInput *ssm.UpdateInstanceInformationInput
+	ssmSdkMock.On("UpdateInstanceInformation", mock.AnythingOfType("*ssm.UpdateInstanceInformationInput")).Return(
+		func(input *ssm.UpdateInstanceInformationInput) *ssm.UpdateInstanceInformationOutput {
+			capturedInput = input
+			return &ssm.UpdateInstanceInformationOutput{}
+		},
+		func(input *ssm.UpdateInstanceInformationInput) error {
+			return nil
+		},
+	)
+
+	_, err := svc.UpdateInstanceInformation(
+		logMock,
+		"3.0.0",
+		"Active",
+		"amazon-ssm-agent",
+		"us-east-1a",
+		"use1-az1",
+		"ssmmessages",
+		"",
+		"",
+		"",
+		"",
+	)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, capturedInput)
+	// When sourceId/sourceType/sourceLocation are empty, they should not be set (nil)
+	assert.Nil(t, capturedInput.SourceId)
+	assert.Nil(t, capturedInput.SourceType)
+	assert.Nil(t, capturedInput.SourceLocation)
+	// When computerName is empty, it should fall back to platform.Hostname
+	assert.NotNil(t, capturedInput.ComputerName)
+	assert.NotEqual(t, "", aws.StringValue(capturedInput.ComputerName))
+}
+
+// TestUpdateInstanceInformation_ComputerNameFallback verifies that when computerName
+// is empty, the function falls back to platform.Hostname instead of using the empty value.
+func TestUpdateInstanceInformation_ComputerNameFallback(t *testing.T) {
+	logMock := log.NewMockLog()
+	ssmSdkMock := &ssmsdkmock.SSMAPI{}
+	mockCtx := context.NewMockDefault()
+
+	svc := &sdkService{
+		context: mockCtx,
+		sdk:     ssmSdkMock,
+	}
+
+	var capturedInput *ssm.UpdateInstanceInformationInput
+	ssmSdkMock.On("UpdateInstanceInformation", mock.AnythingOfType("*ssm.UpdateInstanceInformationInput")).Return(
+		func(input *ssm.UpdateInstanceInformationInput) *ssm.UpdateInstanceInformationOutput {
+			capturedInput = input
+			return &ssm.UpdateInstanceInformationOutput{}
+		},
+		func(input *ssm.UpdateInstanceInformationInput) error {
+			return nil
+		},
+	)
+
+	_, err := svc.UpdateInstanceInformation(
+		logMock,
+		"3.0.0",
+		"Active",
+		"amazon-ssm-agent",
+		"us-east-1a",
+		"use1-az1",
+		"ssmmessages",
+		"source-123",
+		"AWS::EC2::Instance",
+		"us-east-1",
+		"", // empty computerName should trigger fallback
+	)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, capturedInput)
+	// ComputerName should not be empty - it should have fallen back to platform.Hostname
+	assert.NotNil(t, capturedInput.ComputerName)
+	assert.NotEqual(t, "", aws.StringValue(capturedInput.ComputerName))
+}
+
+// TestUpdateInstanceInformation_ComputerNameProvided verifies that when computerName
+// is non-empty, it is used directly without calling platform.Hostname.
+func TestUpdateInstanceInformation_ComputerNameProvided(t *testing.T) {
+	logMock := log.NewMockLog()
+	ssmSdkMock := &ssmsdkmock.SSMAPI{}
+	mockCtx := context.NewMockDefault()
+
+	svc := &sdkService{
+		context: mockCtx,
+		sdk:     ssmSdkMock,
+	}
+
+	var capturedInput *ssm.UpdateInstanceInformationInput
+	ssmSdkMock.On("UpdateInstanceInformation", mock.AnythingOfType("*ssm.UpdateInstanceInformationInput")).Return(
+		func(input *ssm.UpdateInstanceInformationInput) *ssm.UpdateInstanceInformationOutput {
+			capturedInput = input
+			return &ssm.UpdateInstanceInformationOutput{}
+		},
+		func(input *ssm.UpdateInstanceInformationInput) error {
+			return nil
+		},
+	)
+
+	_, err := svc.UpdateInstanceInformation(
+		logMock,
+		"3.0.0",
+		"Active",
+		"amazon-ssm-agent",
+		"us-east-1a",
+		"use1-az1",
+		"ssmmessages",
+		"source-123",
+		"AWS::EC2::Instance",
+		"us-east-1",
+		"my-custom-hostname",
+	)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, capturedInput)
+	assert.Equal(t, "my-custom-hostname", aws.StringValue(capturedInput.ComputerName))
+}
+
+// TestUpdateInstanceInformation_PartialSourceFields verifies behavior when only some
+// source fields are provided (e.g., sourceId is set but sourceType and sourceLocation are empty).
+func TestUpdateInstanceInformation_PartialSourceFields(t *testing.T) {
+	logMock := log.NewMockLog()
+	ssmSdkMock := &ssmsdkmock.SSMAPI{}
+	mockCtx := context.NewMockDefault()
+
+	svc := &sdkService{
+		context: mockCtx,
+		sdk:     ssmSdkMock,
+	}
+
+	var capturedInput *ssm.UpdateInstanceInformationInput
+	ssmSdkMock.On("UpdateInstanceInformation", mock.AnythingOfType("*ssm.UpdateInstanceInformationInput")).Return(
+		func(input *ssm.UpdateInstanceInformationInput) *ssm.UpdateInstanceInformationOutput {
+			capturedInput = input
+			return &ssm.UpdateInstanceInformationOutput{}
+		},
+		func(input *ssm.UpdateInstanceInformationInput) error {
+			return nil
+		},
+	)
+
+	_, err := svc.UpdateInstanceInformation(
+		logMock,
+		"3.0.0",
+		"Active",
+		"amazon-ssm-agent",
+		"us-east-1a",
+		"use1-az1",
+		"ssmmessages",
+		"source-123", // sourceId provided
+		"",           // sourceType empty
+		"",           // sourceLocation empty
+		"my-host",
+	)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, capturedInput)
+	// sourceId should be set since it's non-empty
+	assert.Equal(t, "source-123", aws.StringValue(capturedInput.SourceId))
+	// sourceType and sourceLocation should be nil since they are empty
+	assert.Nil(t, capturedInput.SourceType)
+	assert.Nil(t, capturedInput.SourceLocation)
 }

@@ -70,7 +70,18 @@ type Service interface {
 	GetDocument(log log.T, docName string, docVersion string) (response *ssm.GetDocumentOutput, err error)
 	DeleteDocument(log log.T, instanceID string) (response *ssm.DeleteDocumentOutput, err error)
 	DescribeAssociation(log log.T, instanceID string, docName string) (response *ssm.DescribeAssociationOutput, err error)
-	UpdateInstanceInformation(log log.T, agentVersion, agentStatus, agentName string, availabilityZone string, availabilityZoneId string, ssmConnectionChannel string) (response *ssm.UpdateInstanceInformationOutput, err error)
+	UpdateInstanceInformation(
+		log log.T,
+		agentVersion string,
+		agentStatus string,
+		agentName string,
+		availabilityZone string,
+		availabilityZoneId string,
+		ssmConnectionChannel string,
+		sourceId string,
+		sourceType string,
+		sourceLocation string,
+		computerName string) (response *ssm.UpdateInstanceInformationOutput, err error)
 	UpdateEmptyInstanceInformation(log log.T, agentVersion, agentName string) (response *ssm.UpdateInstanceInformationOutput, err error)
 	GetParameters(log log.T, paramNames []string) (response *ssm.GetParametersOutput, err error)
 	GetDecryptedParameters(log log.T, paramNames []string) (response *ssm.GetParametersOutput, err error)
@@ -246,6 +257,10 @@ func (svc *sdkService) UpdateInstanceInformation(
 	availabilityZone string,
 	availabilityZoneId string,
 	ssmConnectionChannel string,
+	sourceId string,
+	sourceType string,
+	sourceLocation string,
+	computerName string,
 ) (response *ssm.UpdateInstanceInformationOutput, err error) {
 
 	params := ssm.UpdateInstanceInformationInput{
@@ -255,6 +270,18 @@ func (svc *sdkService) UpdateInstanceInformation(
 		AvailabilityZone:     aws.String(availabilityZone),
 		AvailabilityZoneId:   aws.String(availabilityZoneId),
 		SSMConnectionChannel: aws.String(ssmConnectionChannel),
+	}
+
+	if sourceId != "" {
+		params.SourceId = aws.String(sourceId)
+	}
+
+	if sourceType != "" {
+		params.SourceType = aws.String(sourceType)
+	}
+
+	if sourceLocation != "" {
+		params.SourceLocation = aws.String(sourceLocation)
 	}
 
 	goOS := runtime.GOOS
@@ -275,7 +302,11 @@ func (svc *sdkService) UpdateInstanceInformation(
 		log.Warn(err)
 	}
 
-	params.ComputerName = aws.String(platform.Hostname(log))
+	if computerName != "" {
+		params.ComputerName = &computerName
+	} else {
+		params.ComputerName = aws.String(platform.Hostname(log))
+	}
 
 	if instID, err := svc.context.Identity().InstanceID(); err == nil {
 		params.InstanceId = aws.String(instID)

@@ -317,7 +317,7 @@ func TestEC2Identity_Register_RegistersEC2InstanceWithSSM_WhenNotRegistered(t *t
 	authRegisterService := &authregistermocks.IClient{}
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(instanceId, nil).Twice()
 	authRegisterService.On("RegisterManagedInstanceWithContext",
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(instanceId, nil)
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(instanceId, nil)
 	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return ""
@@ -328,7 +328,7 @@ func TestEC2Identity_Register_RegistersEC2InstanceWithSSM_WhenNotRegistered(t *t
 		return ""
 	}
 
-	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey string) (err error) {
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return nil
 	}
@@ -358,7 +358,7 @@ func TestEC2Identity_Register_New_WhenAlreadyRegisteredWithOldInstanceId(t *test
 	// One in Register() function and the other call in loadRegistrationInfo function
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
 	authRegisterService.On("RegisterManagedInstanceWithContext",
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
 	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return testPrivateKey
@@ -374,7 +374,7 @@ func TestEC2Identity_Register_New_WhenAlreadyRegisteredWithOldInstanceId(t *test
 		return liveInstanceId
 	}
 
-	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey string) (err error) {
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, privateKeyType, testPrivateKeyType)
 		assert.Equal(t, privateKey, testPrivateKey)
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
@@ -407,7 +407,7 @@ func TestEC2Identity_ReRegister_InfoPublicKey_NotBlank(t *testing.T) {
 	// One in Register() function and the other call in loadRegistrationInfo function
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
 	authRegisterService.On("RegisterManagedInstanceWithContext",
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
 	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return testPrivateKey
@@ -428,7 +428,7 @@ func TestEC2Identity_ReRegister_InfoPublicKey_NotBlank(t *testing.T) {
 		return ""
 	}
 
-	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey string) (err error) {
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, privateKeyType, testPrivateKeyType)
 		assert.Equal(t, privateKey, testPrivateKey)
 		assert.Equal(t, publicKey, testPublicKey)
@@ -461,7 +461,7 @@ func TestEC2Identity_ReRegister_InfoPublicKey_Blank(t *testing.T) {
 	// One in Register() function and the other call in loadRegistrationInfo function
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
 	authRegisterService.On("RegisterManagedInstanceWithContext",
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
 	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return testPrivateKey
@@ -482,7 +482,7 @@ func TestEC2Identity_ReRegister_InfoPublicKey_Blank(t *testing.T) {
 		return ""
 	}
 
-	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey string) (err error) {
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return nil
 	}
@@ -558,7 +558,7 @@ func TestEC2Identity_Register_ReturnsNil_WhenInstanceAlreadyRegistered(t *testin
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(testInstanceId, nil).Times(3)
 
 	authRegisterService.On("RegisterManagedInstanceWithContext",
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", &awsTestError{errCode: ssm.ErrCodeInstanceAlreadyRegistered})
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", &awsTestError{errCode: ssm.ErrCodeInstanceAlreadyRegistered})
 	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return testPrivateKey
@@ -574,7 +574,7 @@ func TestEC2Identity_Register_ReturnsNil_WhenInstanceAlreadyRegistered(t *testin
 		return testInstanceId
 	}
 
-	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey string) (err error) {
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return nil
 	}

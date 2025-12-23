@@ -425,8 +425,7 @@ func (c *SSM) AssociateOpsItemRelatedItemRequest(input *AssociateOpsItemRelatedI
 //
 // Associates a related item to a Systems Manager OpsCenter OpsItem. For example,
 // you can associate an Incident Manager incident or analysis with an OpsItem.
-// Incident Manager and OpsCenter are capabilities of Amazon Web Services Systems
-// Manager.
+// Incident Manager and OpsCenter are tools in Amazon Web Services Systems Manager.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -715,11 +714,11 @@ func (c *SSM) CreateActivationRequest(input *CreateActivationInput) (req *reques
 // Generates an activation code and activation ID you can use to register your
 // on-premises servers, edge devices, or virtual machine (VM) with Amazon Web
 // Services Systems Manager. Registering these machines with Systems Manager
-// makes it possible to manage them using Systems Manager capabilities. You
-// use the activation code and ID when installing SSM Agent on machines in your
-// hybrid environment. For more information about requirements for managing
-// on-premises machines using Systems Manager, see Using Amazon Web Services
-// Systems Manager in hybrid and multicloud environments (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-hybrid-multicloud.html)
+// makes it possible to manage them using Systems Manager tools. You use the
+// activation code and ID when installing SSM Agent on machines in your hybrid
+// environment. For more information about requirements for managing on-premises
+// machines using Systems Manager, see Using Amazon Web Services Systems Manager
+// in hybrid and multicloud environments (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-hybrid-multicloud.html)
 // in the Amazon Web Services Systems Manager User Guide.
 //
 // Amazon Elastic Compute Cloud (Amazon EC2) instances, edge devices, and on-premises
@@ -816,13 +815,13 @@ func (c *SSM) CreateAssociationRequest(input *CreateAssociationInput) (req *requ
 // ports must be closed. For static targets, the association specifies a schedule
 // for when the configuration is reapplied. For dynamic targets, such as an
 // Amazon Web Services resource group or an Amazon Web Services autoscaling
-// group, State Manager, a capability of Amazon Web Services Systems Manager
-// applies the configuration when new managed nodes are added to the group.
-// The association also specifies actions to take when applying the configuration.
-// For example, an association for anti-virus software might run once a day.
-// If the software isn't installed, then State Manager installs it. If the software
-// is installed, but the service isn't running, then the association might instruct
-// State Manager to start the service.
+// group, State Manager, a tool in Amazon Web Services Systems Manager applies
+// the configuration when new managed nodes are added to the group. The association
+// also specifies actions to take when applying the configuration. For example,
+// an association for anti-virus software might run once a day. If the software
+// isn't installed, then State Manager installs it. If the software is installed,
+// but the service isn't running, then the association might instruct State
+// Manager to start the service.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1134,6 +1133,12 @@ func (c *SSM) CreateDocumentRequest(input *CreateDocumentInput) (req *request.Re
 //   - InvalidDocumentOperation
 //     You attempted to delete a document while it is still shared. You must stop
 //     sharing the document before you can delete it.
+//
+//   - TooManyUpdates
+//     There are concurrent updates for a resource that supports one update at a
+//     time.
+//
+//   - NoLongerSupportedException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/CreateDocument
 func (c *SSM) CreateDocument(input *CreateDocumentInput) (*CreateDocumentOutput, error) {
@@ -2553,6 +2558,10 @@ func (c *SSM) DeleteParameterRequest(input *DeleteParameterInput) (req *request.
 //   - ParameterNotFound
 //     The parameter couldn't be found. Verify the name and try again.
 //
+//     For the DeleteParameter and GetParameter actions, if the specified parameter
+//     doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+//     event logs.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/DeleteParameter
 func (c *SSM) DeleteParameter(input *DeleteParameterInput) (*DeleteParameterOutput, error) {
 	req, out := c.DeleteParameterRequest(input)
@@ -2969,8 +2978,14 @@ func (c *SSM) DeregisterManagedInstanceRequest(input *DeregisterManagedInstanceI
 // DeregisterManagedInstance API operation for Amazon Simple Systems Management Service.
 //
 // Removes the server or virtual machine from the list of registered servers.
-// You can reregister the node again at any time. If you don't plan to use Run
-// Command on the server, we suggest uninstalling SSM Agent first.
+//
+// If you want to reregister an on-premises server, edge device, or VM, you
+// must use a different Activation Code and Activation ID than used to register
+// the machine previously. The Activation Code and Activation ID must not have
+// already been used on the maximum number of activations specified when they
+// were created. For more information, see Deregistering managed nodes in a
+// hybrid and multicloud environment (https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-deregister-hybrid-nodes.html)
+// in the Amazon Web Services Systems Manager User Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7766,6 +7781,11 @@ func (c *SSM) DescribeParametersRequest(input *DescribeParametersInput) (req *re
 // that point and a NextToken. You can specify the NextToken in a subsequent
 // call to get the next set of results.
 //
+// Parameter names can't contain spaces. The service removes any spaces specified
+// for the beginning or end of a parameter name. If the specified name for a
+// parameter contains spaces between characters, the request fails with a ValidationException
+// error.
+//
 // If you change the KMS key alias for the KMS key used to encrypt a parameter,
 // then you must also update the key alias the parameter uses to reference KMS.
 // Otherwise, DescribeParameters retrieves whatever the original key alias was
@@ -8599,7 +8619,7 @@ func (c *SSM) DisassociateOpsItemRelatedItemRequest(input *DisassociateOpsItemRe
 //
 // Deletes the association between an OpsItem and a related item. For example,
 // this API operation can delete an Incident Manager incident from an OpsItem.
-// Incident Manager is a capability of Amazon Web Services Systems Manager.
+// Incident Manager is a tool in Amazon Web Services Systems Manager.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -8853,6 +8873,8 @@ func (c *SSM) GetAccessTokenRequest(input *GetAccessTokenInput) (req *request.Re
 }
 
 // GetAccessToken API operation for Amazon Simple Systems Management Service.
+//
+// Returns a credentials set to be used with just-in-time node access.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9194,7 +9216,7 @@ func (c *SSM) GetCalendarStateRequest(input *GetCalendarStateInput) (req *reques
 // status of OPEN only if all calendars in the request are open. If one or more
 // calendars in the request are closed, the status returned is CLOSED.
 //
-// For more information about Change Calendar, a capability of Amazon Web Services
+// For more information about Change Calendar, a tool in Amazon Web Services
 // Systems Manager, see Amazon Web Services Systems Manager Change Calendar
 // (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar.html)
 // in the Amazon Web Services Systems Manager User Guide.
@@ -9678,8 +9700,8 @@ func (c *SSM) GetDeployablePatchSnapshotForInstanceRequest(input *GetDeployableP
 // If you run the command locally, such as with the Command Line Interface (CLI),
 // the system attempts to use your local Amazon Web Services credentials and
 // the operation fails. To avoid this, you can run the command in the Amazon
-// Web Services Systems Manager console. Use Run Command, a capability of Amazon
-// Web Services Systems Manager, with an SSM document that enables you to target
+// Web Services Systems Manager console. Use Run Command, a tool in Amazon Web
+// Services Systems Manager, with an SSM document that enables you to target
 // a managed node with a script or command. For example, run the command using
 // the AWS-RunShellScript document or the AWS-RunPowerShellScript document.
 //
@@ -11289,6 +11311,11 @@ func (c *SSM) GetParameterRequest(input *GetParameterInput) (req *request.Reques
 //
 // Get information about a single parameter by specifying the parameter name.
 //
+// Parameter names can't contain spaces. The service removes any spaces specified
+// for the beginning or end of a parameter name. If the specified name for a
+// parameter contains spaces between characters, the request fails with a ValidationException
+// error.
+//
 // To get information about more than one parameter at a time, use the GetParameters
 // operation.
 //
@@ -11309,6 +11336,10 @@ func (c *SSM) GetParameterRequest(input *GetParameterInput) (req *request.Reques
 //
 //   - ParameterNotFound
 //     The parameter couldn't be found. Verify the name and try again.
+//
+//     For the DeleteParameter and GetParameter actions, if the specified parameter
+//     doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+//     event logs.
 //
 //   - ParameterVersionNotFound
 //     The specified parameter version wasn't found. Verify the parameter name and
@@ -11387,6 +11418,11 @@ func (c *SSM) GetParameterHistoryRequest(input *GetParameterHistoryInput) (req *
 //
 // Retrieves the history of all changes to a parameter.
 //
+// Parameter names can't contain spaces. The service removes any spaces specified
+// for the beginning or end of a parameter name. If the specified name for a
+// parameter contains spaces between characters, the request fails with a ValidationException
+// error.
+//
 // If you change the KMS key alias for the KMS key used to encrypt a parameter,
 // then you must also update the key alias the parameter uses to reference KMS.
 // Otherwise, GetParameterHistory retrieves whatever the original key alias
@@ -11406,6 +11442,10 @@ func (c *SSM) GetParameterHistoryRequest(input *GetParameterHistoryInput) (req *
 //
 //   - ParameterNotFound
 //     The parameter couldn't be found. Verify the name and try again.
+//
+//     For the DeleteParameter and GetParameter actions, if the specified parameter
+//     doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+//     event logs.
 //
 //   - InvalidNextToken
 //     The specified token isn't valid.
@@ -11544,6 +11584,10 @@ func (c *SSM) GetParameterMetadataInternalRequest(input *GetParameterMetadataInt
 //   - ParameterNotFound
 //     The parameter couldn't be found. Verify the name and try again.
 //
+//     For the DeleteParameter and GetParameter actions, if the specified parameter
+//     doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+//     event logs.
+//
 //   - OpsMetadataNotFoundException
 //     The OpsMetadata object doesn't exist.
 //
@@ -11620,6 +11664,11 @@ func (c *SSM) GetParametersRequest(input *GetParametersInput) (req *request.Requ
 //
 // To get information about a single parameter, you can use the GetParameter
 // operation instead.
+//
+// Parameter names can't contain spaces. The service removes any spaces specified
+// for the beginning or end of a parameter name. If the specified name for a
+// parameter contains spaces between characters, the request fails with a ValidationException
+// error.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -11717,6 +11766,11 @@ func (c *SSM) GetParametersByPathRequest(input *GetParametersByPathInput) (req *
 // the results, it stops the operation and returns the matching values up to
 // that point and a NextToken. You can specify the NextToken in a subsequent
 // call to get the next set of results.
+//
+// Parameter names can't contain spaces. The service removes any spaces specified
+// for the beginning or end of a parameter name. If the specified name for a
+// parameter contains spaces between characters, the request fails with a ValidationException
+// error.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -12192,6 +12246,9 @@ func (c *SSM) GetResourcePolicyInternalRequest(input *GetResourcePolicyInternalI
 //   - RAMResourceNotFoundException
 //     ROS cannot find a resource with the given resource ARN
 //
+//   - RAMThrottlingException
+//     RAM calls are Throttled
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/GetResourcePolicyInternal
 func (c *SSM) GetResourcePolicyInternal(input *GetResourcePolicyInternalInput) (*GetResourcePolicyInternalOutput, error) {
 	req, out := c.GetResourcePolicyInternalRequest(input)
@@ -12468,6 +12525,11 @@ func (c *SSM) LabelParameterVersionRequest(input *LabelParameterVersionInput) (r
 //     If a label fails to meet these requirements, then the label isn't associated
 //     with a parameter and the system displays it in the list of InvalidLabels.
 //
+//   - Parameter names can't contain spaces. The service removes any spaces
+//     specified for the beginning or end of a parameter name. If the specified
+//     name for a parameter contains spaces between characters, the request fails
+//     with a ValidationException error.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -12486,6 +12548,10 @@ func (c *SSM) LabelParameterVersionRequest(input *LabelParameterVersionInput) (r
 //
 //   - ParameterNotFound
 //     The parameter couldn't be found. Verify the name and try again.
+//
+//     For the DeleteParameter and GetParameter actions, if the specified parameter
+//     doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+//     event logs.
 //
 //   - ParameterVersionNotFound
 //     The specified parameter version wasn't found. Verify the parameter name and
@@ -12710,7 +12776,7 @@ func (c *SSM) ListAssociationsRequest(input *ListAssociationsInput) (req *reques
 // Returns all State Manager associations in the current Amazon Web Services
 // account and Amazon Web Services Region. You can limit the results to a specific
 // State Manager association document or managed node by specifying a filter.
-// State Manager is a capability of Amazon Web Services Systems Manager.
+// State Manager is a tool in Amazon Web Services Systems Manager.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -13570,8 +13636,12 @@ func (c *SSM) ListConsumerAccountsRequest(input *ListConsumerAccountsInput) (req
 // API operation ListConsumerAccounts for usage and error information.
 //
 // Returned Error Types:
+//
 //   - RAMInvalidParameterException
 //     RAM call contains invalid parameter
+//
+//   - RAMThrottlingException
+//     RAM calls are Throttled
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/ListConsumerAccounts
 func (c *SSM) ListConsumerAccounts(input *ListConsumerAccountsInput) (*ListConsumerAccountsOutput, error) {
@@ -13637,6 +13707,11 @@ func (c *SSM) ListDocumentMetadataHistoryRequest(input *ListDocumentMetadataHist
 }
 
 // ListDocumentMetadataHistory API operation for Amazon Simple Systems Management Service.
+//
+// Amazon Web Services Systems Manager Change Manager is no longer open to new
+// customers. Existing customers can continue to use the service as normal.
+// For more information, see Amazon Web Services Systems Manager Change Manager
+// availability change (https://docs.aws.amazon.com/systems-manager/latest/userguide/change-manager-availability-change.html).
 //
 // Information about approval reviews for a version of a change template in
 // Change Manager.
@@ -14682,7 +14757,7 @@ func (c *SSM) ListOpsItemRelatedItemsRequest(input *ListOpsItemRelatedItemsInput
 // ListOpsItemRelatedItems API operation for Amazon Simple Systems Management Service.
 //
 // Lists all related-item resources associated with a Systems Manager OpsCenter
-// OpsItem. OpsCenter is a capability of Amazon Web Services Systems Manager.
+// OpsItem. OpsCenter is a tool in Amazon Web Services Systems Manager.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -15265,8 +15340,12 @@ func (c *SSM) ListResourcesSupportPolicyRequest(input *ListResourcesSupportPolic
 // API operation ListResourcesSupportPolicy for usage and error information.
 //
 // Returned Error Types:
+//
 //   - RAMInvalidParameterException
 //     RAM call contains invalid parameter
+//
+//   - RAMThrottlingException
+//     RAM calls are Throttled
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/ListResourcesSupportPolicy
 func (c *SSM) ListResourcesSupportPolicy(input *ListResourcesSupportPolicyInput) (*ListResourcesSupportPolicyOutput, error) {
@@ -15424,8 +15503,12 @@ func (c *SSM) ListSharedResourcesRequest(input *ListSharedResourcesInput) (req *
 // API operation ListSharedResources for usage and error information.
 //
 // Returned Error Types:
+//
 //   - RAMInvalidParameterException
 //     RAM call contains invalid parameter
+//
+//   - RAMThrottlingException
+//     RAM calls are Throttled
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/ListSharedResources
 func (c *SSM) ListSharedResources(input *ListSharedResourcesInput) (*ListSharedResourcesOutput, error) {
@@ -15703,6 +15786,8 @@ func (c *SSM) ModifyDocumentPermissionRequest(input *ModifyDocumentPermissionInp
 //     You attempted to delete a document while it is still shared. You must stop
 //     sharing the document before you can delete it.
 //
+//   - InvalidParameterException
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/ModifyDocumentPermission
 func (c *SSM) ModifyDocumentPermission(input *ModifyDocumentPermissionInput) (*ModifyDocumentPermissionOutput, error) {
 	req, out := c.ModifyDocumentPermissionRequest(input)
@@ -15878,7 +15963,13 @@ func (c *SSM) PutComplianceItemsRequest(input *PutComplianceItemsInput) (req *re
 //   - ExecutionType: Specify patch, association, or Custom:string.
 //
 //   - ExecutionTime. The time the patch, association, or custom compliance
-//     item was applied to the managed node.
+//     item was applied to the managed node. For State Manager associations,
+//     this represents the time when compliance status was captured by the Systems
+//     Manager service during its internal compliance aggregation workflow, not
+//     necessarily when the association was executed on the managed node. State
+//     Manager updates compliance information for all associations on an instance
+//     whenever any association executes, which may result in multiple associations
+//     showing the same execution time.
 //
 //   - Id: The patch, association, or custom compliance ID.
 //
@@ -16228,7 +16319,7 @@ func (c *SSM) PutParameterRequest(input *PutParameterInput) (req *request.Reques
 
 // PutParameter API operation for Amazon Simple Systems Management Service.
 //
-// Add a parameter to the system.
+// Create or update a parameter in Parameter Store.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -17578,6 +17669,8 @@ func (c *SSM) StartAccessRequestRequest(input *StartAccessRequestInput) (req *re
 
 // StartAccessRequest API operation for Amazon Simple Systems Management Service.
 //
+// Starts the workflow for just-in-time node access sessions.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -17594,6 +17687,9 @@ func (c *SSM) StartAccessRequestRequest(input *StartAccessRequestInput) (req *re
 //     The specified parameter to be shared could not be found.
 //
 //   - ServiceQuotaExceededException
+//     The request exceeds the service quota. Service quotas, also referred to as
+//     limits, are the maximum number of service resources or operations for your
+//     Amazon Web Services account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/StartAccessRequest
 func (c *SSM) StartAccessRequest(input *StartAccessRequestInput) (*StartAccessRequestOutput, error) {
@@ -17846,6 +17942,11 @@ func (c *SSM) StartChangeRequestExecutionRequest(input *StartChangeRequestExecut
 
 // StartChangeRequestExecution API operation for Amazon Simple Systems Management Service.
 //
+// Amazon Web Services Systems Manager Change Manager is no longer open to new
+// customers. Existing customers can continue to use the service as normal.
+// For more information, see Amazon Web Services Systems Manager Change Manager
+// availability change (https://docs.aws.amazon.com/systems-manager/latest/userguide/change-manager-availability-change.html).
+//
 // Creates a change request for Change Manager. The Automation runbooks specified
 // in the change request run only after all required approvals for the change
 // request have been received.
@@ -17884,6 +17985,8 @@ func (c *SSM) StartChangeRequestExecutionRequest(input *StartChangeRequestExecut
 //   - AutomationDefinitionNotApprovedException
 //     Indicates that the Change Manager change template used in the change request
 //     was rejected or is still in a pending state.
+//
+//   - NoLongerSupportedException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/StartChangeRequestExecution
 func (c *SSM) StartChangeRequestExecution(input *StartChangeRequestExecutionInput) (*StartChangeRequestExecutionOutput, error) {
@@ -18309,6 +18412,11 @@ func (c *SSM) UnlabelParameterVersionRequest(input *UnlabelParameterVersionInput
 //
 // Remove a label or labels from a parameter.
 //
+// Parameter names can't contain spaces. The service removes any spaces specified
+// for the beginning or end of a parameter name. If the specified name for a
+// parameter contains spaces between characters, the request fails with a ValidationException
+// error.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -18327,6 +18435,10 @@ func (c *SSM) UnlabelParameterVersionRequest(input *UnlabelParameterVersionInput
 //
 //   - ParameterNotFound
 //     The parameter couldn't be found. Verify the name and try again.
+//
+//     For the DeleteParameter and GetParameter actions, if the specified parameter
+//     doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+//     event logs.
 //
 //   - ParameterVersionNotFound
 //     The specified parameter version wasn't found. Verify the parameter name and
@@ -18937,6 +19049,11 @@ func (c *SSM) UpdateDocumentMetadataRequest(input *UpdateDocumentMetadataInput) 
 }
 
 // UpdateDocumentMetadata API operation for Amazon Simple Systems Management Service.
+//
+// Amazon Web Services Systems Manager Change Manager is no longer open to new
+// customers. Existing customers can continue to use the service as normal.
+// For more information, see Amazon Web Services Systems Manager Change Manager
+// availability change (https://docs.aws.amazon.com/systems-manager/latest/userguide/change-manager-availability-change.html).
 //
 // Updates information related to approval reviews for a specific version of
 // a change template in Change Manager.
@@ -20227,6 +20344,12 @@ func (c *SSM) UpdateResourceSharingStateV2Request(input *UpdateResourceSharingSt
 //   - RAMInvalidSequenceNumberException
 //     ROS receives a different sequence number than expected
 //
+//   - RAMInvalidParameterException
+//     RAM call contains invalid parameter
+//
+//   - RAMThrottlingException
+//     RAM calls are Throttled
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/UpdateResourceSharingStateV2
 func (c *SSM) UpdateResourceSharingStateV2(input *UpdateResourceSharingStateV2Input) (*UpdateResourceSharingStateV2Output, error) {
 	req, out := c.UpdateResourceSharingStateV2Request(input)
@@ -20490,6 +20613,15 @@ func (c *SSM) ValidateResourceSharingRequest(input *ValidateResourceSharingInput
 //
 // See the AWS API reference guide for Amazon Simple Systems Management Service's
 // API operation ValidateResourceSharing for usage and error information.
+//
+// Returned Error Types:
+//
+//   - RAMInvalidParameterException
+//     RAM call contains invalid parameter
+//
+//   - RAMThrottlingException
+//     RAM calls are Throttled
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/ValidateResourceSharing
 func (c *SSM) ValidateResourceSharing(input *ValidateResourceSharingInput) (*ValidateResourceSharingOutput, error) {
 	req, out := c.ValidateResourceSharingRequest(input)
@@ -20507,6 +20639,92 @@ func (c *SSM) ValidateResourceSharing(input *ValidateResourceSharingInput) (*Val
 // for more information on using Contexts.
 func (c *SSM) ValidateResourceSharingWithContext(ctx aws.Context, input *ValidateResourceSharingInput, opts ...request.Option) (*ValidateResourceSharingOutput, error) {
 	req, out := c.ValidateResourceSharingRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opVerifyResourcesExistForTagris = "VerifyResourcesExistForTagris"
+
+// VerifyResourcesExistForTagrisRequest generates a "aws/request.Request" representing the
+// client's request for the VerifyResourcesExistForTagris operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See VerifyResourcesExistForTagris for more information on using the VerifyResourcesExistForTagris
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//	// Example sending a request using the VerifyResourcesExistForTagrisRequest method.
+//	req, resp := client.VerifyResourcesExistForTagrisRequest(params)
+//
+//	err := req.Send()
+//	if err == nil { // resp is now filled
+//	    fmt.Println(resp)
+//	}
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/VerifyResourcesExistForTagris
+func (c *SSM) VerifyResourcesExistForTagrisRequest(input *VerifyResourcesExistForTagrisInput) (req *request.Request, output *VerifyResourcesExistForTagrisOutput) {
+	op := &request.Operation{
+		Name:       opVerifyResourcesExistForTagris,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &VerifyResourcesExistForTagrisInput{}
+	}
+
+	output = &VerifyResourcesExistForTagrisOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// VerifyResourcesExistForTagris API operation for Amazon Simple Systems Management Service.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Simple Systems Management Service's
+// API operation VerifyResourcesExistForTagris for usage and error information.
+//
+// Returned Error Types:
+//
+//   - TagrisAccessDeniedException
+//
+//   - TagrisInternalServiceException
+//
+//   - TagrisInvalidArnException
+//
+//   - TagrisInvalidParameterException
+//
+//   - TagrisPartialResourcesExistResultsException
+//
+//   - TagrisThrottledException
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06/VerifyResourcesExistForTagris
+func (c *SSM) VerifyResourcesExistForTagris(input *VerifyResourcesExistForTagrisInput) (*VerifyResourcesExistForTagrisOutput, error) {
+	req, out := c.VerifyResourcesExistForTagrisRequest(input)
+	return out, req.Send()
+}
+
+// VerifyResourcesExistForTagrisWithContext is the same as VerifyResourcesExistForTagris with the addition of
+// the ability to pass a context and additional request options.
+//
+// See VerifyResourcesExistForTagris for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SSM) VerifyResourcesExistForTagrisWithContext(ctx aws.Context, input *VerifyResourcesExistForTagrisInput, opts ...request.Option) (*VerifyResourcesExistForTagrisOutput, error) {
+	req, out := c.VerifyResourcesExistForTagrisRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -21941,6 +22159,8 @@ type AssociationDescription struct {
 	// create it. This parameter isn't supported for rate expressions.
 	ApplyOnlyAtCronInterval *bool `type:"boolean"`
 
+	AssociationDispatchAssumeRole *string `min:"1" type:"string"`
+
 	// The association ID.
 	AssociationId *string `type:"string"`
 
@@ -21954,14 +22174,15 @@ type AssociationDescription struct {
 
 	// Choose the parameter that will define how your automation will branch out.
 	// This target is required for associations that use an Automation runbook and
-	// target resources by using rate controls. Automation is a capability of Amazon
-	// Web Services Systems Manager.
+	// target resources by using rate controls. Automation is a tool in Amazon Web
+	// Services Systems Manager.
 	AutomationTargetParameterName *string `min:"1" type:"string"`
 
 	// The names or Amazon Resource Names (ARNs) of the Change Calendar type documents
 	// your associations are gated under. The associations only run when that change
 	// calendar is open. For more information, see Amazon Web Services Systems Manager
-	// Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar).
+	// Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar)
+	// in the Amazon Web Services Systems Manager User Guide.
 	CalendarNames []*string `min:"1" type:"list"`
 
 	// The severity level that is assigned to the association.
@@ -22055,8 +22276,8 @@ type AssociationDescription struct {
 	//
 	// In MANUAL mode, you must specify the AssociationId as a parameter for the
 	// PutComplianceItems API operation. In this case, compliance data isn't managed
-	// by State Manager, a capability of Amazon Web Services Systems Manager. It
-	// is managed by your direct call to the PutComplianceItems API operation.
+	// by State Manager, a tool in Amazon Web Services Systems Manager. It is managed
+	// by your direct call to the PutComplianceItems API operation.
 	//
 	// By default, all associations use AUTO mode.
 	SyncCompliance *string `type:"string" enum:"AssociationSyncCompliance"`
@@ -22109,6 +22330,12 @@ func (s *AssociationDescription) SetApplyAutomationForNewTargets(v bool) *Associ
 // SetApplyOnlyAtCronInterval sets the ApplyOnlyAtCronInterval field's value.
 func (s *AssociationDescription) SetApplyOnlyAtCronInterval(v bool) *AssociationDescription {
 	s.ApplyOnlyAtCronInterval = &v
+	return s
+}
+
+// SetAssociationDispatchAssumeRole sets the AssociationDispatchAssumeRole field's value.
+func (s *AssociationDescription) SetAssociationDispatchAssumeRole(v string) *AssociationDescription {
+	s.AssociationDispatchAssumeRole = &v
 	return s
 }
 
@@ -23080,11 +23307,13 @@ type AssociationVersionInfo struct {
 
 	ApplyAutomationForNewTargets *bool `type:"boolean"`
 
-	// By default, when you create a new associations, the system runs it immediately
+	// By default, when you create new associations, the system runs it immediately
 	// after it is created and then according to the schedule you specified. Specify
 	// this option if you don't want an association to run immediately after you
 	// create it. This parameter isn't supported for rate expressions.
 	ApplyOnlyAtCronInterval *bool `type:"boolean"`
+
+	AssociationDispatchAssumeRole *string `min:"1" type:"string"`
 
 	// The ID created by the system when the association was created.
 	AssociationId *string `type:"string"`
@@ -23101,7 +23330,8 @@ type AssociationVersionInfo struct {
 	// The names or Amazon Resource Names (ARNs) of the Change Calendar type documents
 	// your associations are gated under. The associations for this version only
 	// run when that Change Calendar is open. For more information, see Amazon Web
-	// Services Systems Manager Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar).
+	// Services Systems Manager Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar)
+	// in the Amazon Web Services Systems Manager User Guide.
 	CalendarNames []*string `min:"1" type:"list"`
 
 	// The severity level that is assigned to the association.
@@ -23178,8 +23408,8 @@ type AssociationVersionInfo struct {
 	//
 	// In MANUAL mode, you must specify the AssociationId as a parameter for the
 	// PutComplianceItems API operation. In this case, compliance data isn't managed
-	// by State Manager, a capability of Amazon Web Services Systems Manager. It
-	// is managed by your direct call to the PutComplianceItems API operation.
+	// by State Manager, a tool in Amazon Web Services Systems Manager. It is managed
+	// by your direct call to the PutComplianceItems API operation.
 	//
 	// By default, all associations use AUTO mode.
 	SyncCompliance *string `type:"string" enum:"AssociationSyncCompliance"`
@@ -23225,6 +23455,12 @@ func (s *AssociationVersionInfo) SetApplyAutomationForNewTargets(v bool) *Associ
 // SetApplyOnlyAtCronInterval sets the ApplyOnlyAtCronInterval field's value.
 func (s *AssociationVersionInfo) SetApplyOnlyAtCronInterval(v bool) *AssociationVersionInfo {
 	s.ApplyOnlyAtCronInterval = &v
+	return s
+}
+
+// SetAssociationDispatchAssumeRole sets the AssociationDispatchAssumeRole field's value.
+func (s *AssociationVersionInfo) SetAssociationDispatchAssumeRole(v string) *AssociationVersionInfo {
+	s.AssociationDispatchAssumeRole = &v
 	return s
 }
 
@@ -25280,6 +25516,14 @@ type BaselineOverride struct {
 	// Applies to Linux managed nodes only.
 	ApprovedPatchesEnableNonSecurity *bool `type:"boolean"`
 
+	// Indicates whether managed nodes for which there are available security-related
+	// patches that have not been approved by the baseline are being defined as
+	// COMPLIANT or NON_COMPLIANT. This option is specified when the CreatePatchBaseline
+	// or UpdatePatchBaseline commands are run.
+	//
+	// Applies to Windows Server managed nodes only.
+	AvailableSecurityUpdatesComplianceStatus *string `type:"string" enum:"PatchComplianceStatus"`
+
 	// A set of patch filters, typically used for approval rules.
 	GlobalFilters *PatchFilterGroup `type:"structure"`
 
@@ -25374,6 +25618,12 @@ func (s *BaselineOverride) SetApprovedPatchesComplianceLevel(v string) *Baseline
 // SetApprovedPatchesEnableNonSecurity sets the ApprovedPatchesEnableNonSecurity field's value.
 func (s *BaselineOverride) SetApprovedPatchesEnableNonSecurity(v bool) *BaselineOverride {
 	s.ApprovedPatchesEnableNonSecurity = &v
+	return s
+}
+
+// SetAvailableSecurityUpdatesComplianceStatus sets the AvailableSecurityUpdatesComplianceStatus field's value.
+func (s *BaselineOverride) SetAvailableSecurityUpdatesComplianceStatus(v string) *BaselineOverride {
+	s.AvailableSecurityUpdatesComplianceStatus = &v
 	return s
 }
 
@@ -25740,8 +25990,8 @@ type Command struct {
 	RequestedDateTime *time.Time `type:"timestamp"`
 
 	// The Identity and Access Management (IAM) service role that Run Command, a
-	// capability of Amazon Web Services Systems Manager, uses to act on your behalf
-	// when sending notifications about command status changes.
+	// tool in Amazon Web Services Systems Manager, uses to act on your behalf when
+	// sending notifications about command status changes.
 	ServiceRole *string `type:"string"`
 
 	// The status of the command.
@@ -26149,9 +26399,9 @@ type CommandInvocation struct {
 	RequestedDateTime *time.Time `type:"timestamp"`
 
 	// The Identity and Access Management (IAM) service role that Run Command, a
-	// capability of Amazon Web Services Systems Manager, uses to act on your behalf
-	// when sending notifications about command status changes on a per managed
-	// node basis.
+	// tool in Amazon Web Services Systems Manager, uses to act on your behalf when
+	// sending notifications about command status changes on a per managed node
+	// basis.
 	ServiceRole *string `type:"string"`
 
 	// The URL to the plugin's StdErr file in Amazon Simple Storage Service (Amazon
@@ -26836,6 +27086,13 @@ type ComplianceExecutionSummary struct {
 	// The time the execution ran as a datetime object that is saved in the following
 	// format: yyyy-MM-dd'T'HH:mm:ss'Z'
 	//
+	// For State Manager associations, this timestamp represents when the compliance
+	// status was captured and reported by the Systems Manager service, not when
+	// the underlying association was actually executed on the managed node. To
+	// track actual association execution times, use the DescribeAssociationExecutionTargets
+	// command or check the association execution history in the Systems Manager
+	// console.
+	//
 	// ExecutionTime is a required field
 	ExecutionTime *time.Time `type:"timestamp" required:"true"`
 
@@ -26907,6 +27164,14 @@ type ComplianceItem struct {
 
 	// A summary for the compliance item. The summary includes an execution ID,
 	// the execution type (for example, command), and the execution time.
+	//
+	// For State Manager associations, the ExecutionTime value represents when the
+	// compliance status was captured and aggregated by the Systems Manager service,
+	// not necessarily when the underlying association was executed on the managed
+	// node. State Manager updates compliance status for all associations on an
+	// instance whenever any association executes, which means multiple associations
+	// may show the same execution time even if they were executed at different
+	// times.
 	ExecutionSummary *ComplianceExecutionSummary `type:"structure"`
 
 	// An ID for the compliance item. For example, if the compliance item is a Windows
@@ -27612,6 +27877,8 @@ func (s *CreateActivationOutput) SetActivationId(v string) *CreateActivationOutp
 type CreateAssociationBatchInput struct {
 	_ struct{} `type:"structure"`
 
+	AssociationDispatchAssumeRole *string `min:"1" type:"string"`
+
 	// One or more associations.
 	//
 	// Entries is a required field
@@ -27641,6 +27908,9 @@ func (s CreateAssociationBatchInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateAssociationBatchInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateAssociationBatchInput"}
+	if s.AssociationDispatchAssumeRole != nil && len(*s.AssociationDispatchAssumeRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssociationDispatchAssumeRole", 1))
+	}
 	if s.Entries == nil {
 		invalidParams.Add(request.NewErrParamRequired("Entries"))
 	}
@@ -27662,6 +27932,12 @@ func (s *CreateAssociationBatchInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAssociationDispatchAssumeRole sets the AssociationDispatchAssumeRole field's value.
+func (s *CreateAssociationBatchInput) SetAssociationDispatchAssumeRole(v string) *CreateAssociationBatchInput {
+	s.AssociationDispatchAssumeRole = &v
+	return s
 }
 
 // SetEntries sets the Entries field's value.
@@ -27727,10 +28003,17 @@ type CreateAssociationBatchRequestEntry struct {
 
 	ApplyAutomationForNewTargets *bool `type:"boolean"`
 
-	// By default, when you create a new associations, the system runs it immediately
-	// after it is created and then according to the schedule you specified. Specify
-	// this option if you don't want an association to run immediately after you
-	// create it. This parameter isn't supported for rate expressions.
+	// By default, when you create a new association, the system runs it immediately
+	// after it is created and then according to the schedule you specified and
+	// when target changes are detected. Specify true for ApplyOnlyAtCronInterval
+	// if you want the association to run only according to the schedule you specified.
+	//
+	// For more information, see Understanding when associations are applied to
+	// resources (https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html#state-manager-about-scheduling)
+	// and >About target updates with Automation runbooks (https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html#runbook-target-updates)
+	// in the Amazon Web Services Systems Manager User Guide.
+	//
+	// This parameter isn't supported for rate expressions.
 	ApplyOnlyAtCronInterval *bool `type:"boolean"`
 
 	// Specify a descriptive name for the association.
@@ -27740,13 +28023,14 @@ type CreateAssociationBatchRequestEntry struct {
 
 	// Specify the target for the association. This target is required for associations
 	// that use an Automation runbook and target resources by using rate controls.
-	// Automation is a capability of Amazon Web Services Systems Manager.
+	// Automation is a tool in Amazon Web Services Systems Manager.
 	AutomationTargetParameterName *string `min:"1" type:"string"`
 
 	// The names or Amazon Resource Names (ARNs) of the Change Calendar type documents
 	// your associations are gated under. The associations only run when that Change
 	// Calendar is open. For more information, see Amazon Web Services Systems Manager
-	// Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar).
+	// Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar)
+	// in the Amazon Web Services Systems Manager User Guide.
 	CalendarNames []*string `min:"1" type:"list"`
 
 	// The severity level to assign to the association.
@@ -27859,8 +28143,8 @@ type CreateAssociationBatchRequestEntry struct {
 	//
 	// In MANUAL mode, you must specify the AssociationId as a parameter for the
 	// PutComplianceItems API operation. In this case, compliance data isn't managed
-	// by State Manager, a capability of Amazon Web Services Systems Manager. It
-	// is managed by your direct call to the PutComplianceItems API operation.
+	// by State Manager, a tool in Amazon Web Services Systems Manager. It is managed
+	// by your direct call to the PutComplianceItems API operation.
 	//
 	// By default, all associations use AUTO mode.
 	SyncCompliance *string `type:"string" enum:"AssociationSyncCompliance"`
@@ -28119,10 +28403,19 @@ type CreateAssociationInput struct {
 	ApplyAutomationForNewTargets *bool `type:"boolean"`
 
 	// By default, when you create a new association, the system runs it immediately
-	// after it is created and then according to the schedule you specified. Specify
-	// this option if you don't want an association to run immediately after you
-	// create it. This parameter isn't supported for rate expressions.
+	// after it is created and then according to the schedule you specified and
+	// when target changes are detected. Specify true for ApplyOnlyAtCronIntervalif
+	// you want the association to run only according to the schedule you specified.
+	//
+	// For more information, see Understanding when associations are applied to
+	// resources (https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html#state-manager-about-scheduling)
+	// and >About target updates with Automation runbooks (https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html#runbook-target-updates)
+	// in the Amazon Web Services Systems Manager User Guide.
+	//
+	// This parameter isn't supported for rate expressions.
 	ApplyOnlyAtCronInterval *bool `type:"boolean"`
+
+	AssociationDispatchAssumeRole *string `min:"1" type:"string"`
 
 	// Specify a descriptive name for the association.
 	AssociationName *string `type:"string"`
@@ -28131,14 +28424,15 @@ type CreateAssociationInput struct {
 
 	// Choose the parameter that will define how your automation will branch out.
 	// This target is required for associations that use an Automation runbook and
-	// target resources by using rate controls. Automation is a capability of Amazon
-	// Web Services Systems Manager.
+	// target resources by using rate controls. Automation is a tool in Amazon Web
+	// Services Systems Manager.
 	AutomationTargetParameterName *string `min:"1" type:"string"`
 
-	// The names or Amazon Resource Names (ARNs) of the Change Calendar type documents
+	// The names of Amazon Resource Names (ARNs) of the Change Calendar type documents
 	// you want to gate your associations under. The associations only run when
 	// that change calendar is open. For more information, see Amazon Web Services
-	// Systems Manager Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar).
+	// Systems Manager Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar)
+	// in the Amazon Web Services Systems Manager User Guide.
 	CalendarNames []*string `min:"1" type:"list"`
 
 	// The severity level to assign to the association.
@@ -28287,6 +28581,8 @@ type CreateAssociationInput struct {
 	// A location is a combination of Amazon Web Services Regions and Amazon Web
 	// Services accounts where you want to run the association. Use this action
 	// to create an association in multiple Regions and multiple accounts.
+	//
+	// The IncludeChildOrganizationUnits parameter is not supported by State Manager.
 	TargetLocations []*TargetLocation `min:"1" type:"list"`
 
 	// A key-value mapping of document parameters to target resources. Both Targets
@@ -28325,6 +28621,9 @@ func (s CreateAssociationInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateAssociationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateAssociationInput"}
+	if s.AssociationDispatchAssumeRole != nil && len(*s.AssociationDispatchAssumeRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssociationDispatchAssumeRole", 1))
+	}
 	if s.AutomationTargetParameterName != nil && len(*s.AutomationTargetParameterName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("AutomationTargetParameterName", 1))
 	}
@@ -28417,6 +28716,12 @@ func (s *CreateAssociationInput) SetApplyAutomationForNewTargets(v bool) *Create
 // SetApplyOnlyAtCronInterval sets the ApplyOnlyAtCronInterval field's value.
 func (s *CreateAssociationInput) SetApplyOnlyAtCronInterval(v bool) *CreateAssociationInput {
 	s.ApplyOnlyAtCronInterval = &v
+	return s
+}
+
+// SetAssociationDispatchAssumeRole sets the AssociationDispatchAssumeRole field's value.
+func (s *CreateAssociationInput) SetAssociationDispatchAssumeRole(v string) *CreateAssociationInput {
+	s.AssociationDispatchAssumeRole = &v
 	return s
 }
 
@@ -29353,11 +29658,15 @@ type CreateOpsItemInput struct {
 	//    * /aws/issue This type of OpsItem is used for default OpsItems created
 	//    by OpsCenter.
 	//
-	//    * /aws/changerequest This type of OpsItem is used by Change Manager for
-	//    reviewing and approving or rejecting change requests.
-	//
 	//    * /aws/insight This type of OpsItem is used by OpsCenter for aggregating
 	//    and reporting on duplicate OpsItems.
+	//
+	//    * /aws/changerequest This type of OpsItem is used by Change Manager for
+	//    reviewing and approving or rejecting change requests. Amazon Web Services
+	//    Systems Manager Change Manager is no longer open to new customers. Existing
+	//    customers can continue to use the service as normal. For more information,
+	//    see Amazon Web Services Systems Manager Change Manager availability change
+	//    (https://docs.aws.amazon.com/systems-manager/latest/userguide/change-manager-availability-change.html).
 	OpsItemType *string `min:"2" type:"string"`
 
 	// The time specified in a change request for a runbook workflow to end. Currently
@@ -29800,6 +30109,20 @@ type CreatePatchBaselineInput struct {
 	// Applies to Linux managed nodes only.
 	ApprovedPatchesEnableNonSecurity *bool `type:"boolean"`
 
+	// Indicates the status you want to assign to security patches that are available
+	// but not approved because they don't meet the installation criteria specified
+	// in the patch baseline.
+	//
+	// Example scenario: Security patches that you might want installed can be skipped
+	// if you have specified a long period to wait after a patch is released before
+	// installation. If an update to the patch is released during your specified
+	// waiting period, the waiting period for installing the patch starts over.
+	// If the waiting period is too long, multiple versions of the patch could be
+	// released but never installed.
+	//
+	// Supported for Windows Server managed nodes only.
+	AvailableSecurityUpdatesComplianceStatus *string `type:"string" enum:"PatchComplianceStatus"`
+
 	// User-provided idempotency token.
 	ClientToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
@@ -29849,9 +30172,17 @@ type CreatePatchBaselineInput struct {
 	//
 	// All OSs: Packages in the rejected patches list, and packages that include
 	// them as dependencies, aren't installed by Patch Manager under any circumstances.
-	// If a package was installed before it was added to the rejected patches list,
-	// or is installed outside of Patch Manager afterward, it's considered noncompliant
-	// with the patch baseline and its status is reported as INSTALLED_REJECTED.
+	//
+	// State value assignment for patch compliance:
+	//
+	//    * If a package was installed before it was added to the rejected patches
+	//    list, or is installed outside of Patch Manager afterward, it's considered
+	//    noncompliant with the patch baseline and its status is reported as INSTALLED_REJECTED.
+	//
+	//    * If an update attempts to install a dependency package that is now rejected
+	//    by the baseline, when previous versions of the package were not rejected,
+	//    the package being updated is reported as MISSING for SCAN operations and
+	//    as FAILED for INSTALL operations.
 	RejectedPatchesAction *string `type:"string" enum:"PatchAction"`
 
 	// Information about the patches to use to update the managed nodes, including
@@ -29967,6 +30298,12 @@ func (s *CreatePatchBaselineInput) SetApprovedPatchesEnableNonSecurity(v bool) *
 	return s
 }
 
+// SetAvailableSecurityUpdatesComplianceStatus sets the AvailableSecurityUpdatesComplianceStatus field's value.
+func (s *CreatePatchBaselineInput) SetAvailableSecurityUpdatesComplianceStatus(v string) *CreatePatchBaselineInput {
+	s.AvailableSecurityUpdatesComplianceStatus = &v
+	return s
+}
+
 // SetClientToken sets the ClientToken field's value.
 func (s *CreatePatchBaselineInput) SetClientToken(v string) *CreatePatchBaselineInput {
 	s.ClientToken = &v
@@ -30076,6 +30413,8 @@ type CreateResourceDataSyncInput struct {
 	// Explorer. If you specify SyncFromSource, you must provide a value for SyncSource.
 	// The default value is SyncToDestination.
 	SyncType *string `min:"1" type:"string"`
+
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation.
@@ -30118,6 +30457,16 @@ func (s *CreateResourceDataSyncInput) Validate() error {
 			invalidParams.AddNested("SyncSource", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -30149,6 +30498,12 @@ func (s *CreateResourceDataSyncInput) SetSyncType(v string) *CreateResourceDataS
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateResourceDataSyncInput) SetTags(v []*Tag) *CreateResourceDataSyncInput {
+	s.Tags = v
+	return s
+}
+
 type CreateResourceDataSyncOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -30171,23 +30526,38 @@ func (s CreateResourceDataSyncOutput) GoString() string {
 	return s.String()
 }
 
+// The temporary security credentials, which include an access key ID, a secret
+// access key, and a security (or session) token.
 type Credentials struct {
 	_ struct{} `type:"structure"`
 
+	// The access key ID that identifies the temporary security credentials.
+	//
 	// AccessKeyId is a required field
 	AccessKeyId *string `min:"16" type:"string" required:"true"`
 
+	// The datetime on which the current credentials expire.
+	//
 	// ExpirationTime is a required field
 	ExpirationTime *time.Time `type:"timestamp" required:"true"`
 
+	// The secret access key that can be used to sign requests.
+	//
 	// SecretAccessKey is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by Credentials's
 	// String and GoString methods.
+	//
 	// SecretAccessKey is a required field
 	SecretAccessKey *string `type:"string" required:"true" sensitive:"true"`
 
+	// The token that users must pass to the service API to use the temporary credentials.
+	//
+	// SessionToken is a sensitive parameter and its value will be
+	// replaced with "sensitive" in string returned by Credentials's
+	// String and GoString methods.
+	//
 	// SessionToken is a required field
-	SessionToken *string `type:"string" required:"true"`
+	SessionToken *string `type:"string" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation.
@@ -32998,6 +33368,9 @@ type DescribeDocumentInput struct {
 
 	// The name of the SSM document.
 	//
+	// If you're calling a shared SSM document from a different Amazon Web Services
+	// account, Name is the full Amazon Resource Name (ARN) of the document.
+	//
 	// Name is a required field
 	Name *string `type:"string" required:"true"`
 
@@ -33371,7 +33744,7 @@ type DescribeDocumentPermissionOutput struct {
 	_ struct{} `type:"structure"`
 
 	// The account IDs that have permission to use this document. The ID can be
-	// either an Amazon Web Services account or All.
+	// either an Amazon Web Services account number or all.
 	AccountIds []*string `type:"list"`
 
 	// A list of Amazon Web Services accounts where the current document is shared
@@ -36388,6 +36761,14 @@ type DescribePatchGroupStateOutput struct {
 	// The number of managed nodes in the patch group.
 	Instances *int64 `type:"integer"`
 
+	// The number of managed nodes for which security-related patches are available
+	// but not approved because because they didn't meet the patch baseline requirements.
+	// For example, an updated version of a patch might have been released before
+	// the specified auto-approval period was over.
+	//
+	// Applies to Windows Server managed nodes only.
+	InstancesWithAvailableSecurityUpdates *int64 `type:"integer"`
+
 	// The number of managed nodes where patches that are specified as Critical
 	// for compliance reporting in the patch baseline aren't installed. These patches
 	// might be missing, have failed installation, were rejected, or were installed
@@ -36437,8 +36818,8 @@ type DescribePatchGroupStateOutput struct {
 	InstancesWithSecurityNonCompliantPatches *int64 `type:"integer"`
 
 	// The number of managed nodes with NotApplicable patches beyond the supported
-	// limit, which aren't reported by name to Inventory. Inventory is a capability
-	// of Amazon Web Services Systems Manager.
+	// limit, which aren't reported by name to Inventory. Inventory is a tool in
+	// Amazon Web Services Systems Manager.
 	InstancesWithUnreportedNotApplicablePatches *int64 `type:"integer"`
 }
 
@@ -36463,6 +36844,12 @@ func (s DescribePatchGroupStateOutput) GoString() string {
 // SetInstances sets the Instances field's value.
 func (s *DescribePatchGroupStateOutput) SetInstances(v int64) *DescribePatchGroupStateOutput {
 	s.Instances = &v
+	return s
+}
+
+// SetInstancesWithAvailableSecurityUpdates sets the InstancesWithAvailableSecurityUpdates field's value.
+func (s *DescribePatchGroupStateOutput) SetInstancesWithAvailableSecurityUpdates(v int64) *DescribePatchGroupStateOutput {
+	s.InstancesWithAvailableSecurityUpdates = &v
 	return s
 }
 
@@ -37924,6 +38311,8 @@ type DocumentParameter struct {
 	// and whether or not the parameter is optional.
 	Description *string `type:"string"`
 
+	InterpolationType *string `type:"string" enum:"DocumentParameterInterpolationType"`
+
 	// The name of the parameter.
 	Name *string `type:"string"`
 
@@ -37958,6 +38347,12 @@ func (s *DocumentParameter) SetDefaultValue(v string) *DocumentParameter {
 // SetDescription sets the Description field's value.
 func (s *DocumentParameter) SetDescription(v string) *DocumentParameter {
 	s.Description = &v
+	return s
+}
+
+// SetInterpolationType sets the InterpolationType field's value.
+func (s *DocumentParameter) SetInterpolationType(v string) *DocumentParameter {
+	s.InterpolationType = &v
 	return s
 }
 
@@ -39908,6 +40303,8 @@ func (s *FeatureNotAvailableException) RequestID() string {
 type GetAccessTokenInput struct {
 	_ struct{} `type:"structure"`
 
+	// The ID of a just-in-time node access request.
+	//
 	// AccessRequestId is a required field
 	AccessRequestId *string `type:"string" required:"true"`
 }
@@ -39952,8 +40349,11 @@ func (s *GetAccessTokenInput) SetAccessRequestId(v string) *GetAccessTokenInput 
 type GetAccessTokenOutput struct {
 	_ struct{} `type:"structure"`
 
+	// The status of the access request.
 	AccessRequestStatus *string `type:"string" enum:"AccessRequestStatus"`
 
+	// The temporary security credentials which can be used to start just-in-time
+	// node access sessions.
 	Credentials *Credentials `type:"structure"`
 }
 
@@ -40284,7 +40684,7 @@ type GetCalendarStateInput struct {
 	// specify a value or AtTime, the current time is used.
 	AtTime *string `type:"string"`
 
-	// The names or Amazon Resource Names (ARNs) of the Systems Manager documents
+	// The names of Amazon Resource Names (ARNs) of the Systems Manager documents
 	// (SSM documents) that represent the calendar entries for which you want to
 	// get the state.
 	//
@@ -41060,6 +41460,12 @@ type GetDeployablePatchSnapshotForInstanceInput struct {
 	//
 	// SnapshotId is a required field
 	SnapshotId *string `min:"36" type:"string" required:"true"`
+
+	// Specifies whether to use S3 dualstack endpoints for the patch snapshot download
+	// URL. Set to true to receive a presigned URL that supports both IPv4 and IPv6
+	// connectivity. Set to false to use standard IPv4-only endpoints. Default is
+	// false. This parameter is required for managed nodes in IPv6-only environments.
+	UseS3DualStackEndpoint *bool `type:"boolean"`
 }
 
 // String returns the string representation.
@@ -41122,6 +41528,12 @@ func (s *GetDeployablePatchSnapshotForInstanceInput) SetInstanceId(v string) *Ge
 // SetSnapshotId sets the SnapshotId field's value.
 func (s *GetDeployablePatchSnapshotForInstanceInput) SetSnapshotId(v string) *GetDeployablePatchSnapshotForInstanceInput {
 	s.SnapshotId = &v
+	return s
+}
+
+// SetUseS3DualStackEndpoint sets the UseS3DualStackEndpoint field's value.
+func (s *GetDeployablePatchSnapshotForInstanceInput) SetUseS3DualStackEndpoint(v bool) *GetDeployablePatchSnapshotForInstanceInput {
+	s.UseS3DualStackEndpoint = &v
 	return s
 }
 
@@ -44552,6 +44964,13 @@ type GetPatchBaselineOutput struct {
 	// Applies to Linux managed nodes only.
 	ApprovedPatchesEnableNonSecurity *bool `type:"boolean"`
 
+	// Indicates the compliance status of managed nodes for which security-related
+	// patches are available but were not approved. This preference is specified
+	// when the CreatePatchBaseline or UpdatePatchBaseline commands are run.
+	//
+	// Applies to Windows Server managed nodes only.
+	AvailableSecurityUpdatesComplianceStatus *string `type:"string" enum:"PatchComplianceStatus"`
+
 	// The ID of the retrieved patch baseline.
 	BaselineId *string `min:"20" type:"string"`
 
@@ -44629,6 +45048,12 @@ func (s *GetPatchBaselineOutput) SetApprovedPatchesComplianceLevel(v string) *Ge
 // SetApprovedPatchesEnableNonSecurity sets the ApprovedPatchesEnableNonSecurity field's value.
 func (s *GetPatchBaselineOutput) SetApprovedPatchesEnableNonSecurity(v bool) *GetPatchBaselineOutput {
 	s.ApprovedPatchesEnableNonSecurity = &v
+	return s
+}
+
+// SetAvailableSecurityUpdatesComplianceStatus sets the AvailableSecurityUpdatesComplianceStatus field's value.
+func (s *GetPatchBaselineOutput) SetAvailableSecurityUpdatesComplianceStatus(v string) *GetPatchBaselineOutput {
+	s.AvailableSecurityUpdatesComplianceStatus = &v
 	return s
 }
 
@@ -46510,7 +46935,7 @@ type InstanceInformationStringFilter struct {
 	// The filter key name to describe your managed nodes.
 	//
 	// Valid filter key values: ActivationIds | AgentVersion | AssociationStatus
-	// | IamRole | InstanceIds | PingStatus | PlatformTypes | ResourceType | SourceIds
+	// | IamRole | InstanceIds | PingStatus | PlatformType | ResourceType | SourceIds
 	// | SourceTypes | "tag-key" | "tag:{keyname}
 	//
 	//    * Valid values for the AssociationStatus filter key: Success | Pending
@@ -46595,6 +47020,14 @@ func (s *InstanceInformationStringFilter) SetValues(v []*string) *InstanceInform
 // gathered for the managed node.
 type InstancePatchState struct {
 	_ struct{} `type:"structure"`
+
+	// The number of security-related patches that are available but not approved
+	// because they didn't meet the patch baseline requirements. For example, an
+	// updated version of a patch might have been released before the specified
+	// auto-approval period was over.
+	//
+	// Applies to Windows Server managed nodes only.
+	AvailableSecurityUpdateCount *int64 `type:"integer"`
 
 	// The ID of the patch baseline used to patch the managed node.
 	//
@@ -46725,8 +47158,8 @@ type InstancePatchState struct {
 	SnapshotId *string `min:"36" type:"string"`
 
 	// The number of patches beyond the supported limit of NotApplicableCount that
-	// aren't reported by name to Inventory. Inventory is a capability of Amazon
-	// Web Services Systems Manager.
+	// aren't reported by name to Inventory. Inventory is a tool in Amazon Web Services
+	// Systems Manager.
 	UnreportedNotApplicableCount *int64 `type:"integer"`
 }
 
@@ -46746,6 +47179,12 @@ func (s InstancePatchState) String() string {
 // value will be replaced with "sensitive".
 func (s InstancePatchState) GoString() string {
 	return s.String()
+}
+
+// SetAvailableSecurityUpdateCount sets the AvailableSecurityUpdateCount field's value.
+func (s *InstancePatchState) SetAvailableSecurityUpdateCount(v int64) *InstancePatchState {
+	s.AvailableSecurityUpdateCount = &v
+	return s
 }
 
 // SetBaselineId sets the BaselineId field's value.
@@ -51315,6 +51754,28 @@ func (s *InventoryDeletionSummaryItem) SetVersion(v string) *InventoryDeletionSu
 }
 
 // One or more filters. Use a filter to return a more specific list of results.
+//
+// Example formats for the aws ssm get-inventory command:
+//
+// --filters Key=AWS:InstanceInformation.AgentType,Values=amazon-ssm-agent,Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.AgentVersion,Values=3.3.2299.0,Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.ComputerName,Values=ip-192.0.2.0.us-east-2.compute.internal,Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.InstanceId,Values=i-0a4cd6ceffEXAMPLE,i-1a2b3c4d5e6EXAMPLE,Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.InstanceStatus,Values=Active,Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.IpAddress,Values=198.51.100.0,Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.PlatformName,Values="Amazon Linux",Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.PlatformType,Values=Linux,Type=Equal
+//
+// --filters Key=AWS:InstanceInformation.PlatformVersion,Values=2023,Type=BeginWith
+//
+// --filters Key=AWS:InstanceInformation.ResourceType,Values=EC2Instance,Type=Equal
 type InventoryFilter struct {
 	_ struct{} `type:"structure"`
 
@@ -51330,9 +51791,7 @@ type InventoryFilter struct {
 	// in the Amazon Web Services Systems Manager User Guide.
 	Type *string `type:"string" enum:"InventoryQueryOperatorType"`
 
-	// Inventory filter values. Example: inventory filter where managed node IDs
-	// are specified as values Key=AWS:InstanceInformation.InstanceId,Values= i-a12b3c4d5e6g,
-	// i-1a2b3c4d5e6,Type=Equal.
+	// Inventory filter values.
 	//
 	// Values is a required field
 	Values []*string `min:"1" type:"list" required:"true"`
@@ -53951,9 +54410,13 @@ type ListNodesInput struct {
 	// a previous call.)
 	NextToken *string `type:"string"`
 
-	// The name of the resource data sync to retrieve information about. Required
-	// for cross-account/cross-Region configurations. Optional for single account/single-Region
-	// configurations.
+	// The name of the Amazon Web Services managed resource data sync to retrieve
+	// information about.
+	//
+	// For cross-account/cross-Region configurations, this parameter is required,
+	// and the name of the supported resource data sync is AWS-QuickSetup-ManagedNode.
+	//
+	// For single account/single-Region configurations, the parameter is not required.
 	SyncName *string `min:"1" type:"string"`
 }
 
@@ -54092,9 +54555,13 @@ type ListNodesSummaryInput struct {
 	// subsequent call to get the next set of results.
 	NextToken *string `type:"string"`
 
-	// The name of the resource data sync to retrieve information about. Required
-	// for cross-account/cross-Region configuration. Optional for single account/single-Region
-	// configurations.
+	// The name of the Amazon Web Services managed resource data sync to retrieve
+	// information about.
+	//
+	// For cross-account/cross-Region configurations, this parameter is required,
+	// and the name of the supported resource data sync is AWS-QuickSetup-ManagedNode.
+	//
+	// For single account/single-Region configurations, the parameter is not required.
 	SyncName *string `min:"1" type:"string"`
 }
 
@@ -57132,13 +57599,15 @@ type ModifyDocumentPermissionInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Web Services users that should have access to the document. The
-	// account IDs can either be a group of account IDs or All.
+	// account IDs can either be a group of account IDs or All. You must specify
+	// a value for this parameter or the AccountIdsToRemove parameter.
 	AccountIdsToAdd []*string `type:"list"`
 
 	// The Amazon Web Services users that should no longer have access to the document.
 	// The Amazon Web Services user can either be a group of account IDs or All.
 	// This action has a higher priority than AccountIdsToAdd. If you specify an
 	// ID to add and the same ID to remove, the system removes access to the document.
+	// You must specify a value for this parameter or the AccountIdsToAdd parameter.
 	AccountIdsToRemove []*string `type:"list"`
 
 	// The name of the document that you want to share.
@@ -57240,6 +57709,69 @@ func (s ModifyDocumentPermissionOutput) String() string {
 // value will be replaced with "sensitive".
 func (s ModifyDocumentPermissionOutput) GoString() string {
 	return s.String()
+}
+
+type NoLongerSupportedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NoLongerSupportedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s NoLongerSupportedException) GoString() string {
+	return s.String()
+}
+
+func newErrorNoLongerSupportedException(v protocol.ResponseMetadata) error {
+	return &NoLongerSupportedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NoLongerSupportedException) Code() string {
+	return "NoLongerSupportedException"
+}
+
+// Message returns the exception's message.
+func (s *NoLongerSupportedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NoLongerSupportedException) OrigErr() error {
+	return nil
+}
+
+func (s *NoLongerSupportedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NoLongerSupportedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NoLongerSupportedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Details about an individual managed node.
@@ -60781,8 +61313,8 @@ type ParameterInlinePolicy struct {
 	// The JSON text of the policy.
 	PolicyText *string `type:"string"`
 
-	// The type of policy. Parameter Store, a capability of Amazon Web Services
-	// Systems Manager, supports the following policy types: Expiration, ExpirationNotification,
+	// The type of policy. Parameter Store, a tool in Amazon Web Services Systems
+	// Manager, supports the following policy types: Expiration, ExpirationNotification,
 	// and NoChangeNotification.
 	PolicyType *string `type:"string"`
 }
@@ -61118,6 +61650,10 @@ func (s *ParameterMetadata) SetVersion(v int64) *ParameterMetadata {
 }
 
 // The parameter couldn't be found. Verify the name and try again.
+//
+// For the DeleteParameter and GetParameter actions, if the specified parameter
+// doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+// event logs.
 type ParameterNotFound struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -62292,6 +62828,10 @@ type PatchRule struct {
 	// that the patch is marked as approved in the patch baseline. For example,
 	// a value of 7 means that patches are approved seven days after they are released.
 	//
+	// Patch Manager evaluates patch release dates using Coordinated Universal Time
+	// (UTC). If the day represented by 7 is 2025-11-16, patches released between
+	// 2025-11-16T00:00:00Z and 2025-11-16T23:59:59Z will be included in the approval.
+	//
 	// This parameter is marked as Required: No, but your request must include a
 	// value for either ApproveAfterDays or ApproveUntilDate.
 	//
@@ -62308,7 +62848,11 @@ type PatchRule struct {
 	// The cutoff date for auto approval of released patches. Any patches released
 	// on or before this date are installed automatically.
 	//
-	// Enter dates in the format YYYY-MM-DD. For example, 2024-12-31.
+	// Enter dates in the format YYYY-MM-DD. For example, 2025-11-16.
+	//
+	// Patch Manager evaluates patch release dates using Coordinated Universal Time
+	// (UTC). If you enter the date 2025-11-16, patches released between 2025-11-16T00:00:00Z
+	// and 2025-11-16T23:59:59Z will be included in the approval.
 	//
 	// This parameter is marked as Required: No, but your request must include a
 	// value for either ApproveUntilDate or ApproveAfterDays.
@@ -62469,7 +63013,9 @@ func (s *PatchRuleGroup) SetPatchRules(v []*PatchRule) *PatchRuleGroup {
 type PatchSource struct {
 	_ struct{} `type:"structure"`
 
-	// The value of the yum repo configuration. For example:
+	// The value of the repo configuration.
+	//
+	// Example for yum repositories
 	//
 	// [main]
 	//
@@ -62480,7 +63026,20 @@ type PatchSource struct {
 	// enabled=1
 	//
 	// For information about other options available for your yum repository configuration,
-	// see dnf.conf(5) (https://man7.org/linux/man-pages/man5/dnf.conf.5.html).
+	// see dnf.conf(5) (https://man7.org/linux/man-pages/man5/dnf.conf.5.html) on
+	// the man7.org website.
+	//
+	// Examples for Ubuntu Server and Debian Server
+	//
+	// deb http://security.ubuntu.com/ubuntu jammy main
+	//
+	// deb https://site.example.com/debian distribution component1 component2 component3
+	//
+	// Repo information for Ubuntu Server repositories must be specifed in a single
+	// line. For more examples and information, see jammy (5) sources.list.5.gz
+	// (https://manpages.ubuntu.com/manpages/jammy/man5/sources.list.5.html) on
+	// the Ubuntu Server Manuals website and sources.list format (https://wiki.debian.org/SourcesList#sources.list_format)
+	// on the Debian Wiki.
 	//
 	// Configuration is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by PatchSource's
@@ -63451,14 +64010,14 @@ type PutParameterInput struct {
 	// SecureString data type.
 	//
 	// If you don't specify a key ID, the system uses the default key associated
-	// with your Amazon Web Services account which is not as secure as using a custom
-	// key.
+	// with your Amazon Web Services account, which is not as secure as using a
+	// custom key.
 	//
 	//    * To use a custom KMS key, choose the SecureString data type with the
 	//    Key ID parameter.
 	KeyId *string `min:"1" type:"string"`
 
-	// The fully qualified name of the parameter that you want to add to the system.
+	// The fully qualified name of the parameter that you want to create or update.
 	//
 	// You can't enter the Amazon Resource Name (ARN) for a parameter, only the
 	// parameter name itself.
@@ -63480,7 +64039,10 @@ type PutParameterInput struct {
 	//    a-zA-Z0-9_.- In addition, the slash character ( / ) is used to delineate
 	//    hierarchies in parameter names. For example: /Dev/Production/East/Project-ABC/MyParameter
 	//
-	//    * A parameter name can't include spaces.
+	//    * Parameter names can't contain spaces. The service removes any spaces
+	//    specified for the beginning or end of a parameter name. If the specified
+	//    name for a parameter contains spaces between characters, the request fails
+	//    with a ValidationException error.
 	//
 	//    * Parameter hierarchies are limited to a maximum depth of fifteen levels.
 	//
@@ -63488,10 +64050,14 @@ type PutParameterInput struct {
 	// Systems Manager parameters (https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-su-create.html)
 	// in the Amazon Web Services Systems Manager User Guide.
 	//
-	// The maximum length constraint of 2048 characters listed below includes 1037
-	// characters reserved for internal use by Systems Manager. The maximum length
-	// for a parameter name that you create is 1011 characters. This includes the
-	// characters in the ARN that precede the name you specify, such as arn:aws:ssm:us-east-2:111122223333:parameter/.
+	// The reported maximum length of 2048 characters for a parameter name includes
+	// 1037 characters that are reserved for internal use by Systems Manager. The
+	// maximum length for a parameter name that you specify is 1011 characters.
+	//
+	// This count of 1011 characters includes the characters in the ARN that precede
+	// the name you specify. This ARN length will vary depending on your partition
+	// and Region. For example, the following 45 characters count toward the 1011
+	// character maximum for a parameter created in the US East (Ohio) Region: arn:aws:ssm:us-east-2:111122223333:parameter/.
 	//
 	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
@@ -63500,8 +64066,8 @@ type PutParameterInput struct {
 	Overwrite *bool `type:"boolean"`
 
 	// One or more policies to apply to a parameter. This operation takes a JSON
-	// array. Parameter Store, a capability of Amazon Web Services Systems Manager
-	// supports the following policy types:
+	// array. Parameter Store, a tool in Amazon Web Services Systems Manager supports
+	// the following policy types:
 	//
 	// Expiration: This policy deletes the parameter after it expires. When you
 	// create the policy, you specify the expiration date. You can update the expiration
@@ -63604,7 +64170,7 @@ type PutParameterInput struct {
 	// in the Amazon Web Services Systems Manager User Guide.
 	Tier *string `type:"string" enum:"ParameterTier"`
 
-	// The type of parameter that you want to add to the system.
+	// The type of parameter that you want to create.
 	//
 	// SecureString isn't currently supported for CloudFormation templates.
 	//
@@ -64288,6 +64854,71 @@ func (s *RAMResourceNotSharedException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// RAM calls are Throttled
+type RAMThrottlingException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ExceptionMessage return to API caller
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RAMThrottlingException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s RAMThrottlingException) GoString() string {
+	return s.String()
+}
+
+func newErrorRAMThrottlingException(v protocol.ResponseMetadata) error {
+	return &RAMThrottlingException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *RAMThrottlingException) Code() string {
+	return "RAMThrottlingException"
+}
+
+// Message returns the exception's message.
+func (s *RAMThrottlingException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *RAMThrottlingException) OrigErr() error {
+	return nil
+}
+
+func (s *RAMThrottlingException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *RAMThrottlingException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *RAMThrottlingException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Shared resource ARN and sequence number
 type RAMVersionedSharedResource struct {
 	_ struct{} `type:"structure"`
@@ -64433,6 +65064,8 @@ type RegisterManagedInstanceInput struct {
 
 	IamRole *string `min:"1" type:"string"`
 
+	Provider *string `type:"string"`
+
 	// PublicKey is a required field
 	PublicKey *string `min:"392" type:"string" required:"true"`
 
@@ -64518,6 +65151,12 @@ func (s *RegisterManagedInstanceInput) SetFingerprint(v string) *RegisterManaged
 // SetIamRole sets the IamRole field's value.
 func (s *RegisterManagedInstanceInput) SetIamRole(v string) *RegisterManagedInstanceInput {
 	s.IamRole = &v
+	return s
+}
+
+// SetProvider sets the Provider field's value.
+func (s *RegisterManagedInstanceInput) SetProvider(v string) *RegisterManagedInstanceInput {
+	s.Provider = &v
 	return s
 }
 
@@ -67991,8 +68630,8 @@ type SendCommandInput struct {
 	ClientSourceId *string `type:"string"`
 
 	// Enables Amazon Web Services Systems Manager to send Run Command output to
-	// Amazon CloudWatch Logs. Run Command is a capability of Amazon Web Services
-	// Systems Manager.
+	// Amazon CloudWatch Logs. Run Command is a tool in Amazon Web Services Systems
+	// Manager.
 	CloudWatchOutputConfig *CloudWatchOutputConfig `type:"structure"`
 
 	CommandSignature *CommandSignature `type:"structure"`
@@ -68492,6 +69131,9 @@ func (s *ServiceLinkedRoleLockServiceException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// The request exceeds the service quota. Service quotas, also referred to as
+// limits, are the maximum number of service resources or operations for your
+// Amazon Web Services account.
 type ServiceQuotaExceededException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -68728,6 +69370,8 @@ func (s *ServiceSettingNotFound) RequestID() string {
 type Session struct {
 	_ struct{} `type:"structure"`
 
+	// Standard access type is the default for Session Manager sessions. JustInTime
+	// is the access type for Just-in-time node access (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-just-in-time-node-access.html).
 	AccessType *string `type:"string" enum:"AccessType"`
 
 	// Reserved for future use.
@@ -69165,18 +69809,18 @@ func (s *Signature) SetSigningMethod(v string) *Signature {
 type StartAccessRequestInput struct {
 	_ struct{} `type:"structure"`
 
-	// AccessEndTime is a required field
-	AccessEndTime *time.Time `type:"timestamp" required:"true"`
-
-	AccessStartTime *time.Time `type:"timestamp"`
-
-	ApprovalPolicyIdentifier *string `type:"string"`
-
+	// A brief description explaining why you are requesting access to the node.
+	//
 	// Reason is a required field
 	Reason *string `type:"string" required:"true"`
 
+	RunAsUser *string `type:"string"`
+
+	// Key-value pairs of metadata you want to assign to the access request.
 	Tags []*Tag `type:"list"`
 
+	// The node you are requesting access to.
+	//
 	// Targets is a required field
 	Targets []*Target `type:"list" required:"true"`
 }
@@ -69202,9 +69846,6 @@ func (s StartAccessRequestInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *StartAccessRequestInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "StartAccessRequestInput"}
-	if s.AccessEndTime == nil {
-		invalidParams.Add(request.NewErrParamRequired("AccessEndTime"))
-	}
 	if s.Reason == nil {
 		invalidParams.Add(request.NewErrParamRequired("Reason"))
 	}
@@ -69238,27 +69879,15 @@ func (s *StartAccessRequestInput) Validate() error {
 	return nil
 }
 
-// SetAccessEndTime sets the AccessEndTime field's value.
-func (s *StartAccessRequestInput) SetAccessEndTime(v time.Time) *StartAccessRequestInput {
-	s.AccessEndTime = &v
-	return s
-}
-
-// SetAccessStartTime sets the AccessStartTime field's value.
-func (s *StartAccessRequestInput) SetAccessStartTime(v time.Time) *StartAccessRequestInput {
-	s.AccessStartTime = &v
-	return s
-}
-
-// SetApprovalPolicyIdentifier sets the ApprovalPolicyIdentifier field's value.
-func (s *StartAccessRequestInput) SetApprovalPolicyIdentifier(v string) *StartAccessRequestInput {
-	s.ApprovalPolicyIdentifier = &v
-	return s
-}
-
 // SetReason sets the Reason field's value.
 func (s *StartAccessRequestInput) SetReason(v string) *StartAccessRequestInput {
 	s.Reason = &v
+	return s
+}
+
+// SetRunAsUser sets the RunAsUser field's value.
+func (s *StartAccessRequestInput) SetRunAsUser(v string) *StartAccessRequestInput {
+	s.RunAsUser = &v
 	return s
 }
 
@@ -69277,6 +69906,7 @@ func (s *StartAccessRequestInput) SetTargets(v []*Target) *StartAccessRequestInp
 type StartAccessRequestOutput struct {
 	_ struct{} `type:"structure"`
 
+	// The ID of the access request.
 	AccessRequestId *string `type:"string"`
 }
 
@@ -69444,7 +70074,10 @@ type StartAutomationExecutionInput struct {
 	//
 	//    * Key=OS,Value=Windows
 	//
-	// To add tags to an existing automation, use the AddTagsToResource operation.
+	// The Array Members maximum value is reported as 1000. This number includes
+	// capacity reserved for internal operations. When calling the StartAutomationExecution
+	// action, you can specify a maximum of 5 tags. You can, however, use the AddTagsToResource
+	// action to add up to a total of 50 tags to an existing automation configuration.
 	Tags []*Tag `type:"list"`
 
 	// A location is a combination of Amazon Web Services Regions and/or Amazon
@@ -69757,6 +70390,11 @@ type StartChangeRequestExecutionInput struct {
 	//    * Key=Environment,Value=Production
 	//
 	//    * Key=Region,Value=us-east-2
+	//
+	// The Array Members maximum value is reported as 1000. This number includes
+	// capacity reserved for internal operations. When calling the StartChangeRequestExecution
+	// action, you can specify a maximum of 5 tags. You can, however, use the AddTagsToResource
+	// action to add up to a total of 50 tags to an existing change request configuration.
 	Tags []*Tag `type:"list"`
 }
 
@@ -70845,6 +71483,458 @@ func (s *Tag) SetValue(v string) *Tag {
 	return s
 }
 
+type TagrisAccessDeniedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisAccessDeniedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisAccessDeniedException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagrisAccessDeniedException(v protocol.ResponseMetadata) error {
+	return &TagrisAccessDeniedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TagrisAccessDeniedException) Code() string {
+	return "TagrisAccessDeniedException"
+}
+
+// Message returns the exception's message.
+func (s *TagrisAccessDeniedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TagrisAccessDeniedException) OrigErr() error {
+	return nil
+}
+
+func (s *TagrisAccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TagrisAccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TagrisAccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type TagrisInternalServiceException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisInternalServiceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisInternalServiceException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagrisInternalServiceException(v protocol.ResponseMetadata) error {
+	return &TagrisInternalServiceException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TagrisInternalServiceException) Code() string {
+	return "TagrisInternalServiceException"
+}
+
+// Message returns the exception's message.
+func (s *TagrisInternalServiceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TagrisInternalServiceException) OrigErr() error {
+	return nil
+}
+
+func (s *TagrisInternalServiceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TagrisInternalServiceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TagrisInternalServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type TagrisInvalidArnException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+
+	SweepListItem *TagrisSweepListItem `locationName:"sweepListItem" type:"structure"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisInvalidArnException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisInvalidArnException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagrisInvalidArnException(v protocol.ResponseMetadata) error {
+	return &TagrisInvalidArnException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TagrisInvalidArnException) Code() string {
+	return "TagrisInvalidArnException"
+}
+
+// Message returns the exception's message.
+func (s *TagrisInvalidArnException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TagrisInvalidArnException) OrigErr() error {
+	return nil
+}
+
+func (s *TagrisInvalidArnException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TagrisInvalidArnException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TagrisInvalidArnException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type TagrisInvalidParameterException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisInvalidParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisInvalidParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagrisInvalidParameterException(v protocol.ResponseMetadata) error {
+	return &TagrisInvalidParameterException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TagrisInvalidParameterException) Code() string {
+	return "TagrisInvalidParameterException"
+}
+
+// Message returns the exception's message.
+func (s *TagrisInvalidParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TagrisInvalidParameterException) OrigErr() error {
+	return nil
+}
+
+func (s *TagrisInvalidParameterException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TagrisInvalidParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TagrisInvalidParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type TagrisPartialResourcesExistResultsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+
+	ResourceExistenceInformation map[string]*string `locationName:"resourceExistenceInformation" type:"map"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisPartialResourcesExistResultsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisPartialResourcesExistResultsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagrisPartialResourcesExistResultsException(v protocol.ResponseMetadata) error {
+	return &TagrisPartialResourcesExistResultsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TagrisPartialResourcesExistResultsException) Code() string {
+	return "TagrisPartialResourcesExistResultsException"
+}
+
+// Message returns the exception's message.
+func (s *TagrisPartialResourcesExistResultsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TagrisPartialResourcesExistResultsException) OrigErr() error {
+	return nil
+}
+
+func (s *TagrisPartialResourcesExistResultsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TagrisPartialResourcesExistResultsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TagrisPartialResourcesExistResultsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type TagrisSweepListItem struct {
+	_ struct{} `type:"structure"`
+
+	TagrisAccountId *string `min:"12" type:"string"`
+
+	TagrisAmazonResourceName *string `min:"1" type:"string"`
+
+	TagrisInternalId *string `type:"string"`
+
+	TagrisVersion *int64 `type:"long"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisSweepListItem) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisSweepListItem) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagrisSweepListItem) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagrisSweepListItem"}
+	if s.TagrisAccountId != nil && len(*s.TagrisAccountId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("TagrisAccountId", 12))
+	}
+	if s.TagrisAmazonResourceName != nil && len(*s.TagrisAmazonResourceName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TagrisAmazonResourceName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTagrisAccountId sets the TagrisAccountId field's value.
+func (s *TagrisSweepListItem) SetTagrisAccountId(v string) *TagrisSweepListItem {
+	s.TagrisAccountId = &v
+	return s
+}
+
+// SetTagrisAmazonResourceName sets the TagrisAmazonResourceName field's value.
+func (s *TagrisSweepListItem) SetTagrisAmazonResourceName(v string) *TagrisSweepListItem {
+	s.TagrisAmazonResourceName = &v
+	return s
+}
+
+// SetTagrisInternalId sets the TagrisInternalId field's value.
+func (s *TagrisSweepListItem) SetTagrisInternalId(v string) *TagrisSweepListItem {
+	s.TagrisInternalId = &v
+	return s
+}
+
+// SetTagrisVersion sets the TagrisVersion field's value.
+func (s *TagrisSweepListItem) SetTagrisVersion(v int64) *TagrisSweepListItem {
+	s.TagrisVersion = &v
+	return s
+}
+
+type TagrisThrottledException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisThrottledException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s TagrisThrottledException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagrisThrottledException(v protocol.ResponseMetadata) error {
+	return &TagrisThrottledException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TagrisThrottledException) Code() string {
+	return "TagrisThrottledException"
+}
+
+// Message returns the exception's message.
+func (s *TagrisThrottledException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TagrisThrottledException) OrigErr() error {
+	return nil
+}
+
+func (s *TagrisThrottledException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TagrisThrottledException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TagrisThrottledException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // An array of search criteria that targets managed nodes using a key-value
 // pair that you specify.
 //
@@ -70857,7 +71947,7 @@ func (s *Tag) SetValue(v string) *Tag {
 //
 // Supported formats include the following.
 //
-// For all Systems Manager capabilities:
+// For all Systems Manager tools:
 //
 //   - Key=tag-key,Values=tag-value-1,tag-value-2
 //
@@ -71048,6 +72138,8 @@ type TargetLocation struct {
 
 	// Indicates whether to include child organizational units (OUs) that are children
 	// of the targeted OUs. The default is false.
+	//
+	// This parameter is not supported by State Manager.
 	IncludeChildOrganizationUnits *bool `type:"boolean"`
 
 	// The Amazon Web Services Regions targeted by the current Automation execution.
@@ -71060,11 +72152,13 @@ type TargetLocation struct {
 	TargetLocationAlarmConfiguration *AlarmConfiguration `type:"structure"`
 
 	// The maximum number of Amazon Web Services Regions and Amazon Web Services
-	// accounts allowed to run the Automation concurrently.
+	// accounts allowed to run the Automation concurrently. TargetLocationMaxConcurrency
+	// has a default value of 1.
 	TargetLocationMaxConcurrency *string `min:"1" type:"string"`
 
 	// The maximum number of errors allowed before the system stops queueing additional
-	// Automation executions for the currently running Automation.
+	// Automation executions for the currently running Automation. TargetLocationMaxErrors
+	// has a default value of 0.
 	TargetLocationMaxErrors *string `min:"1" type:"string"`
 
 	// A list of key-value mappings to target resources. If you specify values for
@@ -72422,24 +73516,33 @@ type UpdateAssociationInput struct {
 
 	// By default, when you update an association, the system runs it immediately
 	// after it is updated and then according to the schedule you specified. Specify
-	// this option if you don't want an association to run immediately after you
-	// update it. This parameter isn't supported for rate expressions.
+	// true for ApplyOnlyAtCronInterval if you want the association to run only
+	// according to the schedule you specified.
 	//
 	// If you chose this option when you created an association and later you edit
-	// that association or you make changes to the SSM document on which that association
-	// is based (by using the Documents page in the console), State Manager applies
-	// the association at the next specified cron interval. For example, if you
-	// chose the Latest version of an SSM document when you created an association
-	// and you edit the association by choosing a different document version on
-	// the Documents page, State Manager applies the association at the next specified
-	// cron interval if you previously selected this option. If this option wasn't
+	// that association or you make changes to the Automation runbook or SSM document
+	// on which that association is based, State Manager applies the association
+	// at the next specified cron interval. For example, if you chose the Latest
+	// version of an SSM document when you created an association and you edit the
+	// association by choosing a different document version on the Documents page,
+	// State Manager applies the association at the next specified cron interval
+	// if you previously set ApplyOnlyAtCronInterval to true. If this option wasn't
 	// selected, State Manager immediately runs the association.
 	//
-	// You can reset this option. To do so, specify the no-apply-only-at-cron-interval
+	// For more information, see Understanding when associations are applied to
+	// resources (https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html#state-manager-about-scheduling)
+	// and About target updates with Automation runbooks (https://docs.aws.amazon.com/systems-manager/latest/userguide/state-manager-about.html#runbook-target-updates)
+	// in the Amazon Web Services Systems Manager User Guide.
+	//
+	// This parameter isn't supported for rate expressions.
+	//
+	// You can reset this parameter. To do so, specify the no-apply-only-at-cron-interval
 	// parameter when you update the association from the command line. This parameter
 	// forces the association to run immediately after updating it and according
 	// to the interval specified.
 	ApplyOnlyAtCronInterval *bool `type:"boolean"`
+
+	AssociationDispatchAssumeRole *string `min:"1" type:"string"`
 
 	// The ID of the association you want to update.
 	//
@@ -72458,14 +73561,15 @@ type UpdateAssociationInput struct {
 
 	// Choose the parameter that will define how your automation will branch out.
 	// This target is required for associations that use an Automation runbook and
-	// target resources by using rate controls. Automation is a capability of Amazon
-	// Web Services Systems Manager.
+	// target resources by using rate controls. Automation is a tool in Amazon Web
+	// Services Systems Manager.
 	AutomationTargetParameterName *string `min:"1" type:"string"`
 
 	// The names or Amazon Resource Names (ARNs) of the Change Calendar type documents
 	// you want to gate your associations under. The associations only run when
 	// that change calendar is open. For more information, see Amazon Web Services
-	// Systems Manager Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar).
+	// Systems Manager Change Calendar (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar)
+	// in the Amazon Web Services Systems Manager User Guide.
 	CalendarNames []*string `min:"1" type:"list"`
 
 	// The severity level to assign to the association.
@@ -72552,8 +73656,8 @@ type UpdateAssociationInput struct {
 	OutputLocation *InstanceAssociationOutputLocation `type:"structure"`
 
 	// The parameters you want to update for the association. If you create a parameter
-	// using Parameter Store, a capability of Amazon Web Services Systems Manager,
-	// you can reference the parameter using {{ssm:parameter-name}}.
+	// using Parameter Store, a tool in Amazon Web Services Systems Manager, you
+	// can reference the parameter using {{ssm:parameter-name}}.
 	//
 	// Parameters is a sensitive parameter and its value will be
 	// replaced with "sensitive" in string returned by UpdateAssociationInput's
@@ -72585,8 +73689,8 @@ type UpdateAssociationInput struct {
 	//
 	// In MANUAL mode, you must specify the AssociationId as a parameter for the
 	// PutComplianceItems API operation. In this case, compliance data isn't managed
-	// by State Manager, a capability of Amazon Web Services Systems Manager. It
-	// is managed by your direct call to the PutComplianceItems API operation.
+	// by State Manager, a tool in Amazon Web Services Systems Manager. It is managed
+	// by your direct call to the PutComplianceItems API operation.
 	//
 	// By default, all associations use AUTO mode.
 	SyncCompliance *string `type:"string" enum:"AssociationSyncCompliance"`
@@ -72594,6 +73698,8 @@ type UpdateAssociationInput struct {
 	// A location is a combination of Amazon Web Services Regions and Amazon Web
 	// Services accounts where you want to run the association. Use this action
 	// to update an association in multiple Regions and multiple accounts.
+	//
+	// The IncludeChildOrganizationUnits parameter is not supported by State Manager.
 	TargetLocations []*TargetLocation `min:"1" type:"list"`
 
 	// A key-value mapping of document parameters to target resources. Both Targets
@@ -72625,6 +73731,9 @@ func (s UpdateAssociationInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *UpdateAssociationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateAssociationInput"}
+	if s.AssociationDispatchAssumeRole != nil && len(*s.AssociationDispatchAssumeRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AssociationDispatchAssumeRole", 1))
+	}
 	if s.AssociationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("AssociationId"))
 	}
@@ -72704,6 +73813,12 @@ func (s *UpdateAssociationInput) SetApplyAutomationForNewTargets(v bool) *Update
 // SetApplyOnlyAtCronInterval sets the ApplyOnlyAtCronInterval field's value.
 func (s *UpdateAssociationInput) SetApplyOnlyAtCronInterval(v bool) *UpdateAssociationInput {
 	s.ApplyOnlyAtCronInterval = &v
+	return s
+}
+
+// SetAssociationDispatchAssumeRole sets the AssociationDispatchAssumeRole field's value.
+func (s *UpdateAssociationInput) SetAssociationDispatchAssumeRole(v string) *UpdateAssociationInput {
+	s.AssociationDispatchAssumeRole = &v
 	return s
 }
 
@@ -73568,6 +74683,12 @@ type UpdateInstanceInformationInput struct {
 	PlatformVersion *string `type:"string"`
 
 	SSMConnectionChannel *string `type:"string"`
+
+	SourceId *string `type:"string"`
+
+	SourceLocation *string `type:"string"`
+
+	SourceType *string `type:"string"`
 }
 
 // String returns the string representation.
@@ -73685,6 +74806,24 @@ func (s *UpdateInstanceInformationInput) SetPlatformVersion(v string) *UpdateIns
 // SetSSMConnectionChannel sets the SSMConnectionChannel field's value.
 func (s *UpdateInstanceInformationInput) SetSSMConnectionChannel(v string) *UpdateInstanceInformationInput {
 	s.SSMConnectionChannel = &v
+	return s
+}
+
+// SetSourceId sets the SourceId field's value.
+func (s *UpdateInstanceInformationInput) SetSourceId(v string) *UpdateInstanceInformationInput {
+	s.SourceId = &v
+	return s
+}
+
+// SetSourceLocation sets the SourceLocation field's value.
+func (s *UpdateInstanceInformationInput) SetSourceLocation(v string) *UpdateInstanceInformationInput {
+	s.SourceLocation = &v
+	return s
+}
+
+// SetSourceType sets the SourceType field's value.
+func (s *UpdateInstanceInformationInput) SetSourceType(v string) *UpdateInstanceInformationInput {
+	s.SourceType = &v
 	return s
 }
 
@@ -75468,6 +76607,20 @@ type UpdatePatchBaselineInput struct {
 	// Applies to Linux managed nodes only.
 	ApprovedPatchesEnableNonSecurity *bool `type:"boolean"`
 
+	// Indicates the status to be assigned to security patches that are available
+	// but not approved because they don't meet the installation criteria specified
+	// in the patch baseline.
+	//
+	// Example scenario: Security patches that you might want installed can be skipped
+	// if you have specified a long period to wait after a patch is released before
+	// installation. If an update to the patch is released during your specified
+	// waiting period, the waiting period for installing the patch starts over.
+	// If the waiting period is too long, multiple versions of the patch could be
+	// released but never installed.
+	//
+	// Supported for Windows Server managed nodes only.
+	AvailableSecurityUpdatesComplianceStatus *string `type:"string" enum:"PatchComplianceStatus"`
+
 	// The ID of the patch baseline to update.
 	//
 	// BaselineId is a required field
@@ -75513,9 +76666,17 @@ type UpdatePatchBaselineInput struct {
 	//
 	// All OSs: Packages in the rejected patches list, and packages that include
 	// them as dependencies, aren't installed by Patch Manager under any circumstances.
-	// If a package was installed before it was added to the rejected patches list,
-	// or is installed outside of Patch Manager afterward, it's considered noncompliant
-	// with the patch baseline and its status is reported as INSTALLED_REJECTED.
+	//
+	// State value assignment for patch compliance:
+	//
+	//    * If a package was installed before it was added to the rejected patches
+	//    list, or is installed outside of Patch Manager afterward, it's considered
+	//    noncompliant with the patch baseline and its status is reported as INSTALLED_REJECTED.
+	//
+	//    * If an update attempts to install a dependency package that is now rejected
+	//    by the baseline, when previous versions of the package were not rejected,
+	//    the package being updated is reported as MISSING for SCAN operations and
+	//    as FAILED for INSTALL operations.
 	RejectedPatchesAction *string `type:"string" enum:"PatchAction"`
 
 	// If True, then all fields that are required by the CreatePatchBaseline operation
@@ -75613,6 +76774,12 @@ func (s *UpdatePatchBaselineInput) SetApprovedPatchesEnableNonSecurity(v bool) *
 	return s
 }
 
+// SetAvailableSecurityUpdatesComplianceStatus sets the AvailableSecurityUpdatesComplianceStatus field's value.
+func (s *UpdatePatchBaselineInput) SetAvailableSecurityUpdatesComplianceStatus(v string) *UpdatePatchBaselineInput {
+	s.AvailableSecurityUpdatesComplianceStatus = &v
+	return s
+}
+
 // SetBaselineId sets the BaselineId field's value.
 func (s *UpdatePatchBaselineInput) SetBaselineId(v string) *UpdatePatchBaselineInput {
 	s.BaselineId = &v
@@ -75678,6 +76845,13 @@ type UpdatePatchBaselineOutput struct {
 	// that should be applied to the managed nodes. The default value is false.
 	// Applies to Linux managed nodes only.
 	ApprovedPatchesEnableNonSecurity *bool `type:"boolean"`
+
+	// Indicates the compliance status of managed nodes for which security-related
+	// patches are available but were not approved. This preference is specified
+	// when the CreatePatchBaseline or UpdatePatchBaseline commands are run.
+	//
+	// Applies to Windows Server managed nodes only.
+	AvailableSecurityUpdatesComplianceStatus *string `type:"string" enum:"PatchComplianceStatus"`
 
 	// The ID of the deleted patch baseline.
 	BaselineId *string `min:"20" type:"string"`
@@ -75753,6 +76927,12 @@ func (s *UpdatePatchBaselineOutput) SetApprovedPatchesComplianceLevel(v string) 
 // SetApprovedPatchesEnableNonSecurity sets the ApprovedPatchesEnableNonSecurity field's value.
 func (s *UpdatePatchBaselineOutput) SetApprovedPatchesEnableNonSecurity(v bool) *UpdatePatchBaselineOutput {
 	s.ApprovedPatchesEnableNonSecurity = &v
+	return s
+}
+
+// SetAvailableSecurityUpdatesComplianceStatus sets the AvailableSecurityUpdatesComplianceStatus field's value.
+func (s *UpdatePatchBaselineOutput) SetAvailableSecurityUpdatesComplianceStatus(v string) *UpdatePatchBaselineOutput {
+	s.AvailableSecurityUpdatesComplianceStatus = &v
 	return s
 }
 
@@ -76571,6 +77751,91 @@ func (s *ValidateResourceSharingOutput) SetValidationResult(v string) *ValidateR
 	return s
 }
 
+type VerifyResourcesExistForTagrisInput struct {
+	_ struct{} `type:"structure"`
+
+	// TagrisSweepList is a required field
+	TagrisSweepList []*TagrisSweepListItem `type:"list" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s VerifyResourcesExistForTagrisInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s VerifyResourcesExistForTagrisInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VerifyResourcesExistForTagrisInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VerifyResourcesExistForTagrisInput"}
+	if s.TagrisSweepList == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagrisSweepList"))
+	}
+	if s.TagrisSweepList != nil {
+		for i, v := range s.TagrisSweepList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "TagrisSweepList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTagrisSweepList sets the TagrisSweepList field's value.
+func (s *VerifyResourcesExistForTagrisInput) SetTagrisSweepList(v []*TagrisSweepListItem) *VerifyResourcesExistForTagrisInput {
+	s.TagrisSweepList = v
+	return s
+}
+
+type VerifyResourcesExistForTagrisOutput struct {
+	_ struct{} `type:"structure"`
+
+	// TagrisSweepListResult is a required field
+	TagrisSweepListResult map[string]*string `type:"map" required:"true"`
+}
+
+// String returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s VerifyResourcesExistForTagrisOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation.
+//
+// API parameter values that are decorated as "sensitive" in the API will not
+// be included in the string output. The member name will be present, but the
+// value will be replaced with "sensitive".
+func (s VerifyResourcesExistForTagrisOutput) GoString() string {
+	return s.String()
+}
+
+// SetTagrisSweepListResult sets the TagrisSweepListResult field's value.
+func (s *VerifyResourcesExistForTagrisOutput) SetTagrisSweepListResult(v map[string]*string) *VerifyResourcesExistForTagrisOutput {
+	s.TagrisSweepListResult = v
+	return s
+}
+
 const (
 	// AccessRequestStatusApproved is a AccessRequestStatus enum value
 	AccessRequestStatusApproved = "Approved"
@@ -76578,20 +77843,14 @@ const (
 	// AccessRequestStatusRejected is a AccessRequestStatus enum value
 	AccessRequestStatusRejected = "Rejected"
 
-	// AccessRequestStatusClosed is a AccessRequestStatus enum value
-	AccessRequestStatusClosed = "Closed"
-
-	// AccessRequestStatusCancelled is a AccessRequestStatus enum value
-	AccessRequestStatusCancelled = "Cancelled"
-
 	// AccessRequestStatusRevoked is a AccessRequestStatus enum value
 	AccessRequestStatusRevoked = "Revoked"
 
-	// AccessRequestStatusTimedOut is a AccessRequestStatus enum value
-	AccessRequestStatusTimedOut = "TimedOut"
+	// AccessRequestStatusExpired is a AccessRequestStatus enum value
+	AccessRequestStatusExpired = "Expired"
 
-	// AccessRequestStatusPendingApproval is a AccessRequestStatus enum value
-	AccessRequestStatusPendingApproval = "PendingApproval"
+	// AccessRequestStatusPending is a AccessRequestStatus enum value
+	AccessRequestStatusPending = "Pending"
 )
 
 // AccessRequestStatus_Values returns all elements of the AccessRequestStatus enum
@@ -76599,11 +77858,9 @@ func AccessRequestStatus_Values() []string {
 	return []string{
 		AccessRequestStatusApproved,
 		AccessRequestStatusRejected,
-		AccessRequestStatusClosed,
-		AccessRequestStatusCancelled,
 		AccessRequestStatusRevoked,
-		AccessRequestStatusTimedOut,
-		AccessRequestStatusPendingApproval,
+		AccessRequestStatusExpired,
+		AccessRequestStatusPending,
 	}
 }
 
@@ -77600,6 +78857,22 @@ func DocumentMetadataEnum_Values() []string {
 }
 
 const (
+	// DocumentParameterInterpolationTypeEnvVar is a DocumentParameterInterpolationType enum value
+	DocumentParameterInterpolationTypeEnvVar = "ENV_VAR"
+
+	// DocumentParameterInterpolationTypeNone is a DocumentParameterInterpolationType enum value
+	DocumentParameterInterpolationTypeNone = "NONE"
+)
+
+// DocumentParameterInterpolationType_Values returns all elements of the DocumentParameterInterpolationType enum
+func DocumentParameterInterpolationType_Values() []string {
+	return []string{
+		DocumentParameterInterpolationTypeEnvVar,
+		DocumentParameterInterpolationTypeNone,
+	}
+}
+
+const (
 	// DocumentParameterTypeString is a DocumentParameterType enum value
 	DocumentParameterTypeString = "String"
 
@@ -77752,6 +79025,12 @@ const (
 	// DocumentTypeApprovalPolicy is a DocumentType enum value
 	DocumentTypeApprovalPolicy = "ApprovalPolicy"
 
+	// DocumentTypeAutoApprovalPolicy is a DocumentType enum value
+	DocumentTypeAutoApprovalPolicy = "AutoApprovalPolicy"
+
+	// DocumentTypeManualApprovalPolicy is a DocumentType enum value
+	DocumentTypeManualApprovalPolicy = "ManualApprovalPolicy"
+
 	// DocumentTypeOpsCenterRule is a DocumentType enum value
 	DocumentTypeOpsCenterRule = "OpsCenterRule"
 
@@ -77799,6 +79078,8 @@ func DocumentType_Values() []string {
 		DocumentTypeChangeTrackingRule,
 		DocumentTypeAccessControlTemplate,
 		DocumentTypeApprovalPolicy,
+		DocumentTypeAutoApprovalPolicy,
+		DocumentTypeManualApprovalPolicy,
 		DocumentTypeOpsCenterRule,
 		DocumentTypeAutomationChangeTemplate,
 		DocumentTypeProblemAnalysis,
@@ -78728,9 +80009,6 @@ const (
 	// OpsItemFilterKeyAccessRequestByRequesterArn is a OpsItemFilterKey enum value
 	OpsItemFilterKeyAccessRequestByRequesterArn = "AccessRequestByRequesterArn"
 
-	// OpsItemFilterKeyAccessRequestByRequesterName is a OpsItemFilterKey enum value
-	OpsItemFilterKeyAccessRequestByRequesterName = "AccessRequestByRequesterName"
-
 	// OpsItemFilterKeyAccessRequestByRequesterId is a OpsItemFilterKey enum value
 	OpsItemFilterKeyAccessRequestByRequesterId = "AccessRequestByRequesterId"
 
@@ -78819,7 +80097,6 @@ func OpsItemFilterKey_Values() []string {
 		OpsItemFilterKeySeverity,
 		OpsItemFilterKeyOpsItemType,
 		OpsItemFilterKeyAccessRequestByRequesterArn,
-		OpsItemFilterKeyAccessRequestByRequesterName,
 		OpsItemFilterKeyAccessRequestByRequesterId,
 		OpsItemFilterKeyAccessRequestByApproverArn,
 		OpsItemFilterKeyAccessRequestByApproverId,
@@ -79097,6 +80374,9 @@ const (
 
 	// PatchComplianceDataStateFailed is a PatchComplianceDataState enum value
 	PatchComplianceDataStateFailed = "FAILED"
+
+	// PatchComplianceDataStateAvailableSecurityUpdate is a PatchComplianceDataState enum value
+	PatchComplianceDataStateAvailableSecurityUpdate = "AVAILABLE_SECURITY_UPDATE"
 )
 
 // PatchComplianceDataState_Values returns all elements of the PatchComplianceDataState enum
@@ -79109,6 +80389,7 @@ func PatchComplianceDataState_Values() []string {
 		PatchComplianceDataStateMissing,
 		PatchComplianceDataStateNotApplicable,
 		PatchComplianceDataStateFailed,
+		PatchComplianceDataStateAvailableSecurityUpdate,
 	}
 }
 
@@ -79141,6 +80422,22 @@ func PatchComplianceLevel_Values() []string {
 		PatchComplianceLevelLow,
 		PatchComplianceLevelInformational,
 		PatchComplianceLevelUnspecified,
+	}
+}
+
+const (
+	// PatchComplianceStatusCompliant is a PatchComplianceStatus enum value
+	PatchComplianceStatusCompliant = "COMPLIANT"
+
+	// PatchComplianceStatusNonCompliant is a PatchComplianceStatus enum value
+	PatchComplianceStatusNonCompliant = "NON_COMPLIANT"
+)
+
+// PatchComplianceStatus_Values returns all elements of the PatchComplianceStatus enum
+func PatchComplianceStatus_Values() []string {
+	return []string{
+		PatchComplianceStatusCompliant,
+		PatchComplianceStatusNonCompliant,
 	}
 }
 
@@ -79521,6 +80818,9 @@ const (
 
 	// ResourceTypeForTaggingSession is a ResourceTypeForTagging enum value
 	ResourceTypeForTaggingSession = "Session"
+
+	// ResourceTypeForTaggingResourceDataSync is a ResourceTypeForTagging enum value
+	ResourceTypeForTaggingResourceDataSync = "ResourceDataSync"
 )
 
 // ResourceTypeForTagging_Values returns all elements of the ResourceTypeForTagging enum
@@ -79536,6 +80836,7 @@ func ResourceTypeForTagging_Values() []string {
 		ResourceTypeForTaggingOpsMetadata,
 		ResourceTypeForTaggingAssociation,
 		ResourceTypeForTaggingSession,
+		ResourceTypeForTaggingResourceDataSync,
 	}
 }
 
@@ -79824,6 +81125,22 @@ func StopType_Values() []string {
 	return []string{
 		StopTypeComplete,
 		StopTypeCancel,
+	}
+}
+
+const (
+	// TagrisStatusActive is a TagrisStatus enum value
+	TagrisStatusActive = "ACTIVE"
+
+	// TagrisStatusNotActive is a TagrisStatus enum value
+	TagrisStatusNotActive = "NOT_ACTIVE"
+)
+
+// TagrisStatus_Values returns all elements of the TagrisStatus enum
+func TagrisStatus_Values() []string {
+	return []string{
+		TagrisStatusActive,
+		TagrisStatusNotActive,
 	}
 }
 

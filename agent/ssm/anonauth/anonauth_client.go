@@ -36,7 +36,7 @@ var backoffRetry = backoff.Retry
 
 // IClient is an interface to the Anonymous methods of the SSM service.
 type IClient interface {
-	RegisterManagedInstance(activationCode, activationID, publicKey, publicKeyType, fingerprint string) (string, error)
+	RegisterManagedInstance(activationCode, activationID, publicKey, publicKeyType, fingerprint, provider string) (string, error)
 }
 
 // ISsmSdk defines the functions needed from the AWS SSM SDK
@@ -92,7 +92,7 @@ func NewClient(logger logger.T, region string) IClient {
 }
 
 // RegisterManagedInstance calls the RegisterManagedInstance SSM API.
-func (svc *Client) RegisterManagedInstance(activationCode, activationID, publicKey, publicKeyType, fingerprint string) (string, error) {
+func (svc *Client) RegisterManagedInstance(activationCode, activationID, publicKey, publicKeyType, fingerprint, provider string) (string, error) {
 	exponentialBackoff, err := backoffconfig.GetDefaultExponentialBackoff()
 	if err != nil {
 		return "", err
@@ -104,6 +104,10 @@ func (svc *Client) RegisterManagedInstance(activationCode, activationID, publicK
 		PublicKey:      aws.String(publicKey),
 		PublicKeyType:  aws.String(publicKeyType),
 		Fingerprint:    aws.String(fingerprint),
+	}
+
+	if provider != "" {
+		params.Provider = aws.String(provider)
 	}
 
 	var result *ssm.RegisterManagedInstanceOutput

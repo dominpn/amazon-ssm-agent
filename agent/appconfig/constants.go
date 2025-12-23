@@ -310,3 +310,21 @@ var DefaultIdentityConsumptionOrder = []string{
 }
 
 var DefaultCustomIdentityCredentialsProvider = "DEFAULT"
+
+type Provider string
+
+const (
+	EC2   Provider = "EC2"
+	Azure Provider = "Azure"
+
+	// AzureIMDSAPIVersion is the API version for Azure IMDS requests
+	AzureIMDSAPIVersion = "2025-04-07"
+)
+
+// AzureIMDSEndpoint is the Azure Instance Metadata Service endpoint
+var AzureIMDSEndpoint = "http://169.254.169.254/metadata/instance"
+
+var Providers = map[string]Provider{
+	"EC2":   EC2,
+	"Azure": Azure,
+}

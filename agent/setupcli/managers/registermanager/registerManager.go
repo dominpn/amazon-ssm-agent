@@ -89,8 +89,14 @@ func getAgentBinaryPath() string {
 }
 
 func (m *registerManager) generateMIRegisterCommand(registerAgentInpModel *RegisterAgentInputModel) (string, error) {
-	return m.managerHelper.RunCommand(m.agentBinPath, "-register", "-y",
+	args := []string{"-register", "-y",
 		"-region", registerAgentInpModel.Region,
 		"-code", registerAgentInpModel.ActivationCode,
-		"-id", registerAgentInpModel.ActivationId)
+		"-id", registerAgentInpModel.ActivationId}
+
+	if registerAgentInpModel.Provider != "" {
+		args = append(args, "-provider", registerAgentInpModel.Provider)
+	}
+
+	return m.managerHelper.RunCommand(m.agentBinPath, args...)
 }

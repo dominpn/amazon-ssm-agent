@@ -69,3 +69,13 @@ type ICredentialRefresherProvider interface {
 type IMetadataIdentity interface {
 	VpcPrimaryCIDRBlock() (map[string][]string, error)
 }
+
+// IProvider defines the interface for metadata providers
+type IProvider interface {
+	AvailabilityZone() (string, error)
+	AvailabilityZoneId() (string, error)
+	SourceId() (string, error)
+	SourceType() string
+	SourceLocation() (string, error)
+	ComputerName() (string, error)
+}

@@ -44,6 +44,7 @@ const (
 	activationIDFlag            = "id"
 	regionFlag                  = "region"
 	registerFlag                = "register"
+	providerFlag                = "provider"
 	disableSimilarityCheckFlag  = "disableSimilarityCheck"
 	versionFlag                 = "version"
 	fingerprintFlag             = "fingerprint"
@@ -57,6 +58,7 @@ const (
 
 var (
 	activationCode, activationID, region, role, tagsJson string
+	provider                                             appconfig.Provider
 	register, clear, force, fpFlag, tool                 bool
 	agentVersionFlag                                     bool
 	disableSimilarityCheck                               bool

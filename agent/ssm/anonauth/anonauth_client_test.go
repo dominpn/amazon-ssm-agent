@@ -36,6 +36,7 @@ func TestSdkService_RegisterManagedInstance_Success(t *testing.T) {
 	publicKey := "SomePublicKey"
 	publicKeyType := "SomePublicKeyType"
 	fingerprint := "SomeFingerprint"
+	provider := "EC2"
 	anonServiceSdk := &mocks.ISsmSdk{}
 	output := &ssm.RegisterManagedInstanceOutput{
 		InstanceId: aws.String("SomeInstanceId"),
@@ -46,7 +47,7 @@ func TestSdkService_RegisterManagedInstance_Success(t *testing.T) {
 	}
 
 	// Act
-	res, err := anonService.RegisterManagedInstance(activationCode, activationId, publicKey, publicKeyType, fingerprint)
+	res, err := anonService.RegisterManagedInstance(activationCode, activationId, publicKey, publicKeyType, fingerprint, provider)
 
 	// Assert
 	assert.NoError(t, err)
@@ -76,6 +77,7 @@ func TestSdkService_RegisterManagedInstance_Retries(t *testing.T) {
 			publicKey := "SomePublicKey"
 			publicKeyType := "SomePublicKeyType"
 			fingerprint := "SomeFingerprint"
+			provider := "EC2"
 			anonServiceSdk := &mocks.ISsmSdk{}
 			anonServiceSdk.On("RegisterManagedInstance", mock.Anything).Return(nil, testCase.retryableError)
 			backoffRetry = func(o backoff.Operation, b backoff.BackOff) error {
@@ -90,7 +92,7 @@ func TestSdkService_RegisterManagedInstance_Retries(t *testing.T) {
 			}
 
 			// Act
-			res, err := anonService.RegisterManagedInstance(activationCode, activationId, publicKey, publicKeyType, fingerprint)
+			res, err := anonService.RegisterManagedInstance(activationCode, activationId, publicKey, publicKeyType, fingerprint, provider)
 
 			// Assert
 			assert.Error(t, err)

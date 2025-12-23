@@ -147,6 +147,20 @@ func (_m *IOnpremRegistrationInfo) PrivateKeyType(_a0 log.T, _a1 string, _a2 str
 	return r0
 }
 
+// Provider provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IOnpremRegistrationInfo) Provider(_a0 log.T, _a1 string, _a2 string) string {
+	ret := _m.Called(_a0, _a1, _a2)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(log.T, string, string) string); ok {
+		r0 = rf(_a0, _a1, _a2)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // Region provides a mock function with given fields: _a0, _a1, _a2
 func (_m *IOnpremRegistrationInfo) Region(_a0 log.T, _a1 string, _a2 string) string {
 	ret := _m.Called(_a0, _a1, _a2)

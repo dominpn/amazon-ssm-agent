@@ -24,6 +24,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/backoffconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/managedInstances/registration"
+	"github.com/aws/amazon-ssm-agent/agent/platform"
 	"github.com/aws/amazon-ssm-agent/agent/ssm/authregister"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders"
@@ -184,7 +185,8 @@ func (i *Identity) Register(ctx context.Context) error {
 	}
 
 	i.Log.Info("Checking write access before registering")
-	err = updateServerInfo("", "", publicKey, privateKey, keyType, IdentityType, registration.EC2RegistrationVaultKey)
+	// TODO @khotia: do we need to register as ec2 for non-managed?
+	err = updateServerInfo("", "", publicKey, privateKey, keyType, IdentityType, registration.EC2RegistrationVaultKey, "")
 	if err != nil {
 		return fmt.Errorf("unable to save registration information. %w\nTry running as sudo/administrator.", err)
 	}
@@ -195,7 +197,7 @@ func (i *Identity) Register(ctx context.Context) error {
 	}
 
 	i.Log.Info("Registering EC2 instance with Systems Manager")
-	_, err = i.AuthRegisterService.RegisterManagedInstanceWithContext(ctx, publicKey, keyType, instanceId, "", "")
+	_, err = i.AuthRegisterService.RegisterManagedInstanceWithContext(ctx, publicKey, keyType, instanceId, "", "", "")
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			if aerr.Code() == ssm.ErrCodeInstanceAlreadyRegistered {
@@ -209,7 +211,7 @@ func (i *Identity) Register(ctx context.Context) error {
 
 	backoffConfig.Reset()
 	err = backoffRetry(func() (err error) {
-		return updateServerInfo(instanceId, region, publicKey, privateKey, keyType, IdentityType, registration.EC2RegistrationVaultKey)
+		return updateServerInfo(instanceId, region, publicKey, privateKey, keyType, IdentityType, registration.EC2RegistrationVaultKey, "")
 	}, backoffConfig)
 	if err != nil {
 		return fmt.Errorf("failed to update EC2 local registration info after successful registration. %w", err)
@@ -277,6 +279,14 @@ func NewEC2IdentityWithConfig(log log.T, imdsAwsConfig *aws.Config) *Identity {
 	identity.initEc2RoleProvider(endpointHelper, instanceInfo)
 	return identity
 }
+
+func (i *Identity) SourceId() (string, error) { return i.InstanceID() }
+
+func (i *Identity) SourceType() string { return SourceType }
+
+func (i *Identity) SourceLocation() (string, error) { return i.Region() }
+
+func (i *Identity) ComputerName() (string, error) { return platform.Hostname(i.Log), nil }
 
 // NewEC2Identity initializes the ec2 identity
 func NewEC2Identity(log log.T) *Identity {

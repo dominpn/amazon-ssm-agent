@@ -33,7 +33,7 @@ import (
 
 // IClient is an interface to the authenticated registration method of the SSM service.
 type IClient interface {
-	RegisterManagedInstanceWithContext(ctx context.Context, publicKey, publicKeyType, fingerprint, iamRole, tagsJson string) (string, error)
+	RegisterManagedInstanceWithContext(ctx context.Context, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider string) (string, error)
 }
 
 // ISsmSdk defines the functions needed from the AWS SSM SDK
@@ -95,11 +95,15 @@ func NewClient(log logger.T, region string, imdsClient iirprovider.IEC2MdsSdkCli
 }
 
 // RegisterManagedInstanceWithContext calls the RegisterManagedInstance SSM API
-func (svc *Client) RegisterManagedInstanceWithContext(ctx context.Context, publicKey, publicKeyType, fingerprint, iamRole, tagsJson string) (string, error) {
+func (svc *Client) RegisterManagedInstanceWithContext(ctx context.Context, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider string) (string, error) {
 	params := ssm.RegisterManagedInstanceInput{
 		PublicKey:     aws.String(publicKey),
 		PublicKeyType: aws.String(publicKeyType),
 		Fingerprint:   aws.String(fingerprint),
+	}
+
+	if provider != "" {
+		params.Provider = aws.String(provider)
 	}
 
 	if iamRole != "" {

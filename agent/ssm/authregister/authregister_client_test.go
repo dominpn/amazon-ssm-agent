@@ -35,7 +35,7 @@ func TestSdkService_RegisterManagedInstance(t *testing.T) {
 		sdk: sdk,
 	}
 
-	result, err := authTokenService.RegisterManagedInstanceWithContext(context.Background(), "SomePublicKey", "SomePublicKeyType", "SomeFingerprint", "someIamRole", "")
+	result, err := authTokenService.RegisterManagedInstanceWithContext(context.Background(), "SomePublicKey", "SomePublicKeyType", "SomeFingerprint", "someIamRole", "", "")
 	assert.NoError(t, err)
 	assert.Equal(t, *response.InstanceId, result)
 }

@@ -31,6 +31,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/ssm/anonauth"
 	"github.com/aws/amazon-ssm-agent/agent/ssm/authregister"
 	"github.com/aws/amazon-ssm-agent/agent/version"
+	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/core/tools"
 )
 
@@ -48,6 +49,9 @@ func parseFlags() {
 	flag.BoolVar(&agentVersionFlag, versionFlag, false, "")
 	flag.StringVar(&role, roleFlag, "", "")
 	flag.StringVar(&tagsJson, tagsFlag, "", "")
+
+	parsedProvider := ""
+	flag.StringVar(&parsedProvider, providerFlag, "", "")
 
 	// clear registration
 	flag.BoolVar(&clear, "clear", false, "")
@@ -68,6 +72,16 @@ func parseFlags() {
 	// allow link deletions during windows on first install checks
 	flag.StringVar(&allowLinkDeletions, allowLinkDeletionsFlag, "", "Must be used in combination with tools and winOnFirstInstallChecks flag")
 	flag.Parse()
+
+	if parsedProvider != "" {
+		if foundProvider, ok := appconfig.Providers[parsedProvider]; ok {
+			provider = foundProvider
+		} else {
+			flagUsage()
+			os.Exit(1)
+		}
+	}
+
 }
 
 // handles registration and fingerprint flags
@@ -139,6 +153,7 @@ func flagUsage() {
 	fmt.Fprintln(os.Stderr, "\t\t-role                  \tIAM role name the agent should assume                                                      \t(REQUIRED with greengrass registration)")
 	fmt.Fprintln(os.Stderr, "\t\t-tags                  \tSSM tags for greengrass registration                                                       \t(OPTIONAL with greengrass registration)")
 	fmt.Fprintln(os.Stderr, "\t\t-region                \tSSM region                                                                                 \t(REQUIRED with registration)")
+	fmt.Fprintln(os.Stderr, "\t\t-provider 				\tCloud metadata provider 																	 \t(OPTIONAL)")
 	fmt.Fprintln(os.Stderr, "\t\t-disableSimilarityCheck\tDisable the agent hardware/fingerprint similarity check (similarity threshold is set to -1)\t(OPTIONAL)")
 	fmt.Fprintln(os.Stderr, "\n\t\t-clear\tClears the previously saved SSM registration")
 	fmt.Fprintln(os.Stderr, "\t-fingerprint\tWhether to update the machine fingerprint similarity threshold\t(OPTIONAL)")
@@ -193,6 +208,19 @@ func processFingerprint(log logger.T) (exitCode int) {
 
 // registerManagedInstance checks for activation credentials and performs managed instance registration when present
 func registerManagedInstance(log logger.T) (managedInstanceID string, err error) {
+	// If provider is specified, verify IMDS is available on the host
+	if provider != "" {
+		available, err := identity.IsIMDSAvailableForProvider(provider)
+		if err != nil {
+			return "", fmt.Errorf("failed to check IMDS availability: %v", err)
+		}
+		if !available {
+			return "", fmt.Errorf("provider %s was specified but IMDS is not available on this host. "+
+				"Registration with a provider requires IMDS to be accessible", provider)
+		}
+		log.Infof("IMDS availability confirmed for provider %s", provider)
+	}
+
 	// try to activate the instance with the activation credentials
 	publicKey, privateKey, keyType, err := registration.GenerateKeyPair()
 	if err != nil {
@@ -200,7 +228,7 @@ func registerManagedInstance(log logger.T) (managedInstanceID string, err error)
 	}
 
 	// checking write access before registering
-	err = registration.UpdateServerInfo("", "", "", privateKey, keyType, "", registration.RegVaultKey)
+	err = registration.UpdateServerInfo("", "", "", privateKey, keyType, "", registration.RegVaultKey, string(provider))
 	if err != nil {
 		return "",
 			fmt.Errorf("Unable to save registration information. %v\nTry running as sudo/administrator.", err)
@@ -231,6 +259,7 @@ func registerManagedInstance(log logger.T) (managedInstanceID string, err error)
 			fingerprintUUID,
 			role,
 			tagsJson,
+			string(provider),
 		)
 	} else {
 		service := anonauth.NewClient(log, region)
@@ -240,6 +269,7 @@ func registerManagedInstance(log logger.T) (managedInstanceID string, err error)
 			publicKey,
 			keyType,
 			fingerprintUUID,
+			string(provider),
 		)
 	}
 
@@ -247,7 +277,7 @@ func registerManagedInstance(log logger.T) (managedInstanceID string, err error)
 		return managedInstanceID, fmt.Errorf("error registering the instance with AWS SSM. %v", err)
 	}
 
-	err = registration.UpdateServerInfo(managedInstanceID, region, "", privateKey, keyType, "", registration.RegVaultKey)
+	err = registration.UpdateServerInfo(managedInstanceID, region, "", privateKey, keyType, "", registration.RegVaultKey, string(provider))
 	if err != nil {
 		return managedInstanceID, fmt.Errorf("error persisting the instance registration information. %v", err)
 	}
@@ -272,7 +302,7 @@ func registerManagedInstance(log logger.T) (managedInstanceID string, err error)
 
 // clearRegistration clears any existing registration data
 func clearRegistration(log logger.T) (exitCode int) {
-	err := registration.UpdateServerInfo("", "", "", "", "", "", registration.RegVaultKey)
+	err := registration.UpdateServerInfo("", "", "", "", "", "", registration.RegVaultKey, "")
 	if err == nil {
 		log.Info("Registration information has been removed from the instance.")
 		return 0

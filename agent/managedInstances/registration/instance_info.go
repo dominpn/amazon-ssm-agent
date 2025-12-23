@@ -37,6 +37,7 @@ type instanceInfo struct {
 	PublicKey             string `json:"publicKey"`
 	PrivateKeyType        string `json:"privateKeyType"`
 	PrivateKeyCreatedDate string `json:"privateKeyCreatedDate"`
+	Provider              string `json:"provider"`
 }
 
 var (
@@ -83,6 +84,12 @@ func PublicKey(log log.T, manifestFileNamePrefix, vaultKey string) string {
 func PrivateKeyType(log log.T, manifestFileNamePrefix, vaultKey string) string {
 	instance := getInstanceInfo(log, manifestFileNamePrefix, vaultKey)
 	return instance.PrivateKeyType
+}
+
+// Provider of the managed instance.
+func Provider(log log.T, manifestFileNamePrefix, vaultKey string) string {
+	instance := getInstanceInfo(log, manifestFileNamePrefix, vaultKey)
+	return instance.Provider
 }
 
 // Fingerprint of the managed instance.
@@ -150,7 +157,7 @@ func GeneratePublicKey(privateKey string) (publicKey string, err error) {
 }
 
 // UpdateServerInfo saves the instance info into the registration persistence store
-func UpdateServerInfo(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey string) (err error) {
+func UpdateServerInfo(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 	info := instanceInfo{
 		InstanceID:            instanceID,
 		Region:                region,
@@ -158,6 +165,7 @@ func UpdateServerInfo(instanceID, region, publicKey, privateKey, privateKeyType,
 		PrivateKeyType:        privateKeyType,
 		PrivateKeyCreatedDate: time.Now().Format(defaultDateStringFormat),
 		PublicKey:             publicKey, // Value will be present only for EC2
+		Provider:              provider,
 	}
 
 	return updateServerInfo(info, manifestFileNamePrefix, vaultKey)
@@ -257,6 +265,7 @@ type IOnpremRegistrationInfo interface {
 	Region(log.T, string, string) string
 	PrivateKey(log.T, string, string) string
 	PrivateKeyType(log.T, string, string) string
+	Provider(log.T, string, string) string
 	Fingerprint(log.T) (string, error)
 	GenerateKeyPair() (string, string, string, error)
 	UpdatePrivateKey(log.T, string, string, string, string) error
@@ -286,6 +295,11 @@ func (onpremRegistation) PrivateKey(log log.T, manifestFileNamePrefix, vaultKey 
 // PrivateKeyType returns the managed instance PrivateKey
 func (onpremRegistation) PrivateKeyType(log log.T, manifestFileNamePrefix, vaultKey string) string {
 	return PrivateKeyType(log, manifestFileNamePrefix, vaultKey)
+}
+
+// Provider returns the managed instance cloud provider
+func (onpremRegistation) Provider(log log.T, manifestFileNamePrefix, vaultKey string) string {
+	return Provider(log, manifestFileNamePrefix, vaultKey)
 }
 
 // Fingerprint returns the managed instance fingerprint

@@ -60,6 +60,7 @@ var (
 	tags                    string
 	activationCode          string
 	activationId            string
+	provider                string
 	environment             string
 	skipSignatureValidation bool
 	override                bool
@@ -682,6 +683,7 @@ func setVerifyOnpremParams(log log.T) {
 		Region:         region,
 		ActivationCode: activationCode,
 		ActivationId:   activationId,
+		Provider:       provider,
 	}
 }
 
@@ -703,6 +705,7 @@ func setParams() {
 	flag.BoolVar(&register, "register", false, "")
 	flag.StringVar(&activationCode, "activation-code", "", "")
 	flag.StringVar(&activationId, "activation-id", "", "")
+	flag.StringVar(&provider, "provider", "", "")
 	flag.BoolVar(&override, "override", false, "")
 	flag.StringVar(&role, "role", "", "")
 	flag.StringVar(&tags, "tags", "", "") // only for greengrass
@@ -835,6 +838,7 @@ func flagUsage() {
 	fmt.Fprintln(os.Stderr, "\t-register      \tRegister ssm agent if unregistered or override is set \t(REQUIRED)")
 	fmt.Fprintln(os.Stderr, "\t\t-activation-code  \tSSM Activation Code for Onprem environment \t(REQUIRED and paired with activation-id)")
 	fmt.Fprintln(os.Stderr, "\t\t-activation-id  \tSSM Activation ID for Onprem environment \t(REQUIRED and paired with Activation code)")
+	fmt.Fprintln(os.Stderr, "\t\t-provider  \t\tIdentity provider for on-prem registration \t(OPTIONAL)")
 	fmt.Fprintln(os.Stderr, "\t\t-override \t\tOverride existing registration if present \t(OPTIONAL)")
 	fmt.Fprintln(os.Stderr, "\t\t-use-dualstack-endpoint\tUse dual-stack endpoints for AWS services \t(OPTIONAL)")
 

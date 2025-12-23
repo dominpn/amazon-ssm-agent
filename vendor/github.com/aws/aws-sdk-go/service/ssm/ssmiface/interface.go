@@ -962,6 +962,10 @@ type SSMAPI interface {
 	ValidateResourceSharingWithContext(aws.Context, *ssm.ValidateResourceSharingInput, ...request.Option) (*ssm.ValidateResourceSharingOutput, error)
 	ValidateResourceSharingRequest(*ssm.ValidateResourceSharingInput) (*request.Request, *ssm.ValidateResourceSharingOutput)
 
+	VerifyResourcesExistForTagris(*ssm.VerifyResourcesExistForTagrisInput) (*ssm.VerifyResourcesExistForTagrisOutput, error)
+	VerifyResourcesExistForTagrisWithContext(aws.Context, *ssm.VerifyResourcesExistForTagrisInput, ...request.Option) (*ssm.VerifyResourcesExistForTagrisOutput, error)
+	VerifyResourcesExistForTagrisRequest(*ssm.VerifyResourcesExistForTagrisInput) (*request.Request, *ssm.VerifyResourcesExistForTagrisOutput)
+
 	WaitUntilCommandExecuted(*ssm.GetCommandInvocationInput) error
 	WaitUntilCommandExecutedWithContext(aws.Context, *ssm.GetCommandInvocationInput, ...request.WaiterOption) error
 }

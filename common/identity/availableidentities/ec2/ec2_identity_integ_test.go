@@ -52,7 +52,7 @@ func TestEC2Identity_Register_CancelTest(t *testing.T) {
 		return ""
 	}
 
-	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey string) (err error) {
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return nil
 	}

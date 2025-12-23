@@ -309,7 +309,11 @@ func (d *downloadManager) getS3BucketUrl() string {
 		return url
 	}
 	bucketName := strings.TrimSuffix(updateconstants.BucketPath, "/")
-	return strings.Replace(httpsPrefix+d.bucketUrl+bucketName, updateconstants.RegionHolder, d.region, -1)
+	bucketUrl := d.bucketUrl
+	if !strings.HasPrefix(bucketUrl, "https://") {
+		bucketUrl = httpsPrefix + bucketUrl
+	}
+	return strings.Replace(bucketUrl+bucketName, updateconstants.RegionHolder, d.region, -1)
 }
 
 func (d *downloadManager) getStableVersionURL() (string, error) {
