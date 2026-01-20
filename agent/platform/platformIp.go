@@ -23,7 +23,11 @@ import (
 
 // IP returns the IP address of the default network interface on a best try basis
 func IP(log log.T) (selected string, err error) {
-	return getDefaultRouteIP(log)
+	selected, err = getDefaultRouteIP(log)
+	if err == nil && selected == "" {
+		err = fmt.Errorf("no IP address found")
+	}
+	return
 }
 
 // originalIP implements the original cross-platform IP detection logic
@@ -57,7 +61,8 @@ func originalIP() (selected string, err error) {
 			}
 		}
 
-		selectedIp, err := selectIp(candidates)
+		var selectedIp net.IP
+		selectedIp, err = selectIp(candidates)
 		if err == nil {
 			selected = selectedIp.String()
 		}
