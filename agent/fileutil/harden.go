@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	RWPermission = 0600
+	RWPermission  os.FileMode = 0600
+	RWXPermission os.FileMode = 0700
 )
 
 // HardenedWriteFile calls ioutil.WriteFile and guarantees a hardened permission
 // control. If the file already exists, it hardens the permissions before
 // writing data to it.
 func HardenedWriteFile(filename string, data []byte) (err error) {
-
 	if _, err = os.Stat(filename); err != nil {
 		if os.IsNotExist(err) {
 			f, err := os.Create(filename)

@@ -19,6 +19,9 @@ package fileutil
 import (
 	"os"
 	"syscall"
+
+	"github.com/aws/amazon-ssm-agent/agent/appconfig"
+	"github.com/aws/amazon-ssm-agent/agent/log/logger"
 )
 
 const (
@@ -29,17 +32,27 @@ const (
 
 // Harden the provided path with non-inheriting ACL for admin access only.
 func Harden(path string) (err error) {
-
 	var fi os.FileInfo
 
 	if fi, err = os.Stat(path); err != nil {
 		return
 	}
 
-	if fi.Mode()&permissionMask != RWPermission {
-		if err = os.Chmod(path, RWPermission); err != nil {
-			return
-		}
+	// Directories need execute bit for traversal
+	targetPerm := RWPermission
+	if fi.IsDir() {
+		targetPerm = RWXPermission
+	}
+
+	if err = os.Chmod(path, targetPerm); err != nil {
+		return
+	}
+
+	// Skip chown to root when EnforceWorkspaceRootOwnership is disabled
+	config, _ := appconfig.Config(false)
+	if !config.Agent.EnforceWorkspaceRootOwnership {
+		logger.DefaultLogger().Warnf("Skipping chown to root for path %s because EnforceWorkspaceRootOwnership is disabled", path)
+		return
 	}
 
 	s := fi.Sys().(*syscall.Stat_t)

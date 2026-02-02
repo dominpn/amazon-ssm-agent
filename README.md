@@ -238,6 +238,8 @@ To set up your own custom configuration for the agent:
         * Default: false
     * GoMaxProcForAgentWorker (int)
         * Default: 0
+    * EnforceWorkspaceRootOwnership (boolean) - Enforce root ownership of agent workspace on start. Change only if you are making corresponding custom runtime environment setup such as in containers.
+        * Default: true
 * Os - represents os related information, will be logged in reply messages
     * Lang (string)
         * Default: "en-US"

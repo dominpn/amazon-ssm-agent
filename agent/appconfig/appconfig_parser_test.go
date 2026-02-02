@@ -172,6 +172,11 @@ func TestDefaultValue_CredentialRetryMaxSleepSeconds(t *testing.T) {
 	assert.Equal(t, agentConfig.Ssm.CredentialRetryMaxSleepSeconds, 1800)
 }
 
+func TestDefaultValue_EnforceWorkspaceRootOwnership(t *testing.T) {
+	agentConfig := DefaultConfig()
+	assert.Equal(t, true, agentConfig.Agent.EnforceWorkspaceRootOwnership)
+}
+
 func TestCredentialRetryMaxSleepSecondsOverride(t *testing.T) {
 	tests := []struct {
 		name     string

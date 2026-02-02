@@ -52,7 +52,8 @@
         "GlobalEnhancedTelemetryEnabled": true,
         "AuditExpirationDay" : 7,
         "LongRunningWorkerMonitorIntervalSeconds": 60,
-        "UseDualStackEndpoint": false
+        "UseDualStackEndpoint": false,
+        "EnforceWorkspaceRootOwnership": true
     },
     "Os": {
         "Lang": "en-US",

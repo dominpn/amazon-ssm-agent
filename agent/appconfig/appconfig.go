@@ -137,6 +137,7 @@ func DefaultConfig() SsmagentConfig {
 		ForceFileIPC:                            false,
 		GoMaxProcForAgentWorker:                 0,
 		UseDualStackEndpoint:                    false,
+		EnforceWorkspaceRootOwnership:           true,
 	}
 
 	os := OsInfo{

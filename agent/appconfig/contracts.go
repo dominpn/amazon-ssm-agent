@@ -83,6 +83,8 @@ type AgentInfo struct {
 	GoMaxProcForAgentWorker int
 	// Enable dual-stack (IPv4 and IPv6) endpoints for AWS services
 	UseDualStackEndpoint bool
+	// EnforceWorkspaceRootOwnership enables chown to root in Harden() for workspace files (set to false for non-root container execution)
+	EnforceWorkspaceRootOwnership bool
 }
 
 // MgsConfig represents configuration for Message Gateway service
