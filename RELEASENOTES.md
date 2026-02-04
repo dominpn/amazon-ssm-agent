@@ -1,5 +1,12 @@
 Latest
 ===============
+- Update Golang version to 1.24.12
+- Updating golang.org/x/crypto from v0.37.0 to v0.47.0, golang.org/x/net from v0.39.0 to v0.48.0 and golang.org/x/sys from v0.32.0 to v0.40.0
+- Categorize integration tests by adding new tags to split fast and slow ones
+- Fix bug where IP field being empty string and causing UII API failure
+
+3.3.3598.0
+===============
 - Allow Patch execution to persist across reboots not registered to SSM Agent
 
 3.3.3572.0
