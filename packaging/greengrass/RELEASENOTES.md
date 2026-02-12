@@ -1,3 +1,7 @@
+1.3.3
+===============
+- Includes Amazon SSM Agent version [3.3](https://github.com/aws/amazon-ssm-agent/releases/latest)
+
 1.3.2
 ===============
 - Includes Amazon SSM Agent version [3.3](https://github.com/aws/amazon-ssm-agent/releases/latest)
