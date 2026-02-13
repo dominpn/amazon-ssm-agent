@@ -386,7 +386,7 @@ func TestCloudWatchLogsService_getNextMessage_largeline(t *testing.T) {
 	fileName := "cwl_util_test_file"
 	file, err := os.Create(fileName)
 	assert.Nil(t, err, "Failed to create test file")
-	// writing more than 200K bytes
+	// writing more than 80K bytes
 	message := make([]byte, MessageLengthThresholdInBytes+10000, MessageLengthThresholdInBytes+10000)
 	file.Write(message)
 	file.Close()
@@ -402,11 +402,25 @@ func TestCloudWatchLogsService_getNextMessage_largeline(t *testing.T) {
 	var actualCurrentLineNumber int64 = 0
 	events, eof := service.getNextMessage(fileName, &actualLastKnownLineUploadedToCWL, &actualCurrentLineNumber, false, false)
 	// Compare results
-	// Since length of line exceeds max limit of 200K, messages will be sent in 2 separate events
+	// Since length of line exceeds max limit of 80k, messages will be sent in 2 separate events
 	assert.Equal(t, 2, len(events))
 	assert.False(t, eof)
-	assert.Equal(t, string(message[:200000]), *events[0].Message)
-	assert.Equal(t, string(message[200000:]), *events[1].Message)
+	assert.Equal(t, string(message[:81920]), *events[0].Message)
+	assert.Equal(t, string(message[81920:]), *events[1].Message)
+}
+
+func TestCloudWatchLogsService_testMessageLengthThreshold_preventsBatchOverflow(t *testing.T) {
+	const utf8InflationFactor = 3
+	const perEventOverhead = 26
+	const cloudWatchBatchLimit = 1_048_576
+
+	worstCaseBatchSize := (MessageLengthThresholdInBytes*utf8InflationFactor + perEventOverhead) * maxNumberOfEventsPerCall
+
+	assert.Less(t, worstCaseBatchSize, cloudWatchBatchLimit,
+		"Worst-case batch size (%d) must be less than CloudWatch limit (%d). "+
+			"MessageLengthThresholdInBytes=%d, maxNumberOfEventsPerCall=%d",
+		worstCaseBatchSize, cloudWatchBatchLimit,
+		MessageLengthThresholdInBytes, maxNumberOfEventsPerCall)
 }
 
 func TestCloudWatchLogsService_buildEventInfo_stream_threshold_should_match(t *testing.T) {
@@ -449,7 +463,6 @@ func TestCloudWatchLogsService_getNextMessage_ending_with_newlinecharacter(t *te
 	fileName := "cwl_util_test_file"
 	file, err := os.Create(fileName)
 	assert.Nil(t, err, "Failed to create test file")
-	// writing more than 200K bytes
 	file.Write([]byte("Test CloudWatch\n"))
 	file.Close()
 

@@ -47,7 +47,7 @@ const (
 	maxNumberOfEventsPerCall = 4
 
 	// Event size - https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
-	MessageLengthThresholdInBytes = 200 * 1000
+	MessageLengthThresholdInBytes = 80 * 1024
 	// json.Marshal can inflate streamed event message by up to ~6 times the size of the message, depending on message contents.
 	// Threshold is reduced here to 1/6 size to account for this.
 	// https://go.dev/play/p/G3RalE_BUEL
