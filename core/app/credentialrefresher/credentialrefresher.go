@@ -58,6 +58,9 @@ const (
 	credentialSourceEC2                     = ec2roleprovider.CredentialSourceEC2
 )
 
+// configCheckInterval is how often the credential refresher checks if the identity config file still exists
+var configCheckInterval = 1 * time.Minute
+
 var (
 	storeSharedCredentials = sharedCredentials.Store
 	purgeSharedCredentials = sharedCredentials.Purge
@@ -342,12 +345,25 @@ func (c *credentialsRefresher) credentialRefresherRoutine() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	configCheckTicker := time.NewTicker(configCheckInterval)
+	defer configCheckTicker.Stop()
+
 	for {
 		select {
 		case <-c.stopCredentialRefresherChan:
 			c.log.Info("Stopping credentials refresher")
 			c.log.Flush()
 			return
+		case <-configCheckTicker.C:
+			// A cheaper minutely check for credential cache existence
+			// If cache do not exist or is flushed, it restart the loop and trigger
+			// a refresh as durationUntilRefresh would be evaluated to 0
+			if exists, err := c.runtimeConfigClient.ConfigExists(); err != nil {
+				c.log.Warnf("Error checking credential config existence: %v", err)
+			} else if !exists {
+				c.log.Info("Credential config file missing, triggering immediate credential refresh")
+				c.identityRuntimeConfig.CredentialsExpiresAt = time.Time{}
+			}
 		case <-c.timeAfterFunc(c.durationUntilRefresh()):
 			c.log.Debug("Calling Retrieve on credentials provider")
 			creds, stopped := c.retrieveCredsWithRetry(ctx)
@@ -400,7 +416,6 @@ func (c *credentialsRefresher) credentialRefresherRoutine() {
 					return storeSharedCredentials(c.log, creds.AccessKeyID, creds.SecretAccessKey, creds.SessionToken,
 						newShareFile, c.identityRuntimeConfig.ShareProfile, false)
 				}, c.backoffConfig)
-
 				// If failed, try once more with force
 				if err != nil {
 					c.log.Warn("Failed to write credentials to disk, attempting force write")
@@ -459,7 +474,7 @@ func (c *credentialsRefresher) tryPurgeCreds(newShareFile string) {
 
 // isDocumentSessionWorkerProcessRunning checks whether document and session worker is running or not
 func (c *credentialsRefresher) isDocumentSessionWorkerProcessRunning() bool {
-	var isDocumentSessionWorkerFound = false
+	isDocumentSessionWorkerFound := false
 	var allProcesses []executor.OsProcess
 	var err error
 	processExecutor := newProcessExecutor(c.log)

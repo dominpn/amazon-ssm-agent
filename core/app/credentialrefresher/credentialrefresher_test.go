@@ -587,6 +587,85 @@ func Test_credentialsRefresher_credentialRefresherRoutine_CredentialsDontExist(t
 	c.identityRuntimeConfig.CredentialsExpiresAt.Equal(tenMinAfterTime)
 }
 
+func Test_credentialsRefresher_credentialRefresherRoutine_ConfigDeletedTriggersRefresh(t *testing.T) {
+	// Override check interval to be very short for test
+	origInterval := configCheckInterval
+	configCheckInterval = 50 * time.Millisecond
+	defer func() { configCheckInterval = origInterval }()
+
+	storeSharedCredentials = func(_ log.T, _ string, _ string, _ string, _ string, _ string, force bool) error {
+		return nil
+	}
+
+	backoffRetry = func(o backoff.Operation, _ backoff.BackOff) error {
+		return o()
+	}
+
+	// Credentials expire far in the future so the normal timer won't fire
+	runtimeConfig := runtimeconfig.IdentityRuntimeConfig{
+		CredentialsExpiresAt:   currentTime.Add(6 * time.Hour),
+		CredentialsRetrievedAt: currentTime,
+		ShareFile:              "SomeShareFile",
+	}
+
+	runtimeConfigClient := &runtimeconfigmocks.IIdentityRuntimeConfigClient{}
+	// First call: file is missing, triggers refresh
+	runtimeConfigClient.On("ConfigExists").Return(false, nil).Once()
+	// After refresh, SaveConfig recreates the file
+	runtimeConfigClient.On("SaveConfig", mock.Anything).Return(nil).Once()
+	// Subsequent calls: file exists again
+	runtimeConfigClient.On("ConfigExists").Return(true, nil)
+
+	provider := &credentialmocks.IRemoteProvider{}
+	provider.On("RemoteRetrieve", mock.Anything).Return(credentials.Value{}, nil).Once()
+	provider.On("RemoteExpiresAt").Return(currentTime.Add(6 * time.Hour)).Once()
+	provider.On("ShareFile").Return("SomeShareFile").Once()
+	provider.On("CredentialSource").Return("SSM").Once()
+
+	mockAgentIdentity := &identityMock.IAgentIdentity{}
+	mockAgentIdentity.On("IdentityType").Return(onprem.IdentityType)
+
+	newSharedCredentials = func(_, _ string) *credentials.Credentials {
+		p := &credentialmocks.Provider{}
+		p.On("Retrieve").Return(credentials.Value{}, nil)
+		return credentials.NewCredentials(p)
+	}
+
+	c := &credentialsRefresher{
+		log:                          logmocks.NewMockLog(),
+		agentIdentity:                mockAgentIdentity,
+		provider:                     provider,
+		runtimeConfigClient:          runtimeConfigClient,
+		identityRuntimeConfig:        runtimeConfig,
+		credsReadyOnce:               sync.Once{},
+		credentialsReadyChan:         make(chan struct{}, 1),
+		stopCredentialRefresherChan:  make(chan struct{}),
+		isCredentialRefresherRunning: true,
+		getCurrentTimeFunc:           func() time.Time { return currentTime },
+		timeAfterFunc:                time.After,
+		appConfig:                    &appconfig.SsmagentConfig{Agent: appconfig.AgentInfo{}},
+	}
+
+	go c.credentialRefresherRoutine()
+
+	// Credentials should be ready (not expired)
+	select {
+	case <-c.credentialsReadyChan:
+	case <-time.After(time.Second):
+		assert.Fail(t, "CredentialsReadyChan never got a message")
+	}
+
+	// Wait for the ticker to fire and the refresh cycle to complete
+	time.Sleep(500 * time.Millisecond)
+
+	// Stop goroutine
+	c.Stop()
+
+	// Verify that RemoteRetrieve was called — meaning the config deletion triggered a refresh
+	provider.AssertCalled(t, "RemoteRetrieve", mock.Anything)
+	runtimeConfigClient.AssertCalled(t, "SaveConfig", mock.Anything)
+}
+
 // Mock aws error struct
 type awsTestError struct {
 	errCode string
