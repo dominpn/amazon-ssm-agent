@@ -61,6 +61,7 @@ type IIdentityRuntimeConfigClient interface {
 	GetConfig() (IdentityRuntimeConfig, error)
 	GetConfigWithRetry() (IdentityRuntimeConfig, error)
 	SaveConfig(IdentityRuntimeConfig) error
+	DeleteConfig() error
 }
 
 type identityRuntimeConfigClient struct {
@@ -131,4 +132,8 @@ func (i *identityRuntimeConfigClient) SaveConfig(config IdentityRuntimeConfig) e
 	}
 
 	return nil
+}
+
+func (i *identityRuntimeConfigClient) DeleteConfig() error {
+	return i.configHandler.DeleteConfig()
 }

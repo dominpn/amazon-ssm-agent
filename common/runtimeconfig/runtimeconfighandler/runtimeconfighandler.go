@@ -34,6 +34,7 @@ type IRuntimeConfigHandler interface {
 	ConfigExists() (bool, error)
 	GetConfig() ([]byte, error)
 	SaveConfig([]byte) error
+	DeleteConfig() error
 }
 
 type runtimeConfigHandler struct {
@@ -60,6 +61,21 @@ func (r *runtimeConfigHandler) GetConfig() ([]byte, error) {
 	}
 
 	return bytesContent, nil
+}
+
+func (r *runtimeConfigHandler) DeleteConfig() error {
+	configPath := filepath.Join(appconfig.RuntimeConfigFolderPath, r.configName)
+	if _, err := r.fileSystem.Stat(configPath); r.fileSystem.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to check if runtime config '%s' exists: %v", r.configName, err)
+	}
+
+	if err := r.fileSystem.DeleteFile(configPath); err != nil {
+		return fmt.Errorf("failed to delete runtime config '%s': %v", r.configName, err)
+	}
+
+	return nil
 }
 
 func (r *runtimeConfigHandler) SaveConfig(content []byte) error {

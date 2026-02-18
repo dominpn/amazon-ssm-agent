@@ -143,6 +143,72 @@ func Test_runtimeConfigHandler_GetConfig(t *testing.T) {
 	}
 }
 
+func Test_runtimeConfigHandler_DeleteConfig(t *testing.T) {
+	configExistsPath := "configExistExample.json"
+	configNotExistPath := "configNotExistExample.json"
+	configStatErrorPath := "statError.json"
+	configDeleteErrorPath := "deleteError.json"
+
+	fileNotExistError := fmt.Errorf("FileNotExistError")
+	someStatError := fmt.Errorf("SomeStatError")
+	someDeleteError := fmt.Errorf("SomeDeleteError")
+
+	fsMock := &fileSystemMock.FileSystem{}
+	fsMock.On("Stat", filepath.Join(appconfig.RuntimeConfigFolderPath, configExistsPath)).Return(nil, nil)
+	fsMock.On("Stat", filepath.Join(appconfig.RuntimeConfigFolderPath, configNotExistPath)).Return(nil, fileNotExistError)
+	fsMock.On("Stat", filepath.Join(appconfig.RuntimeConfigFolderPath, configStatErrorPath)).Return(nil, someStatError)
+	fsMock.On("Stat", filepath.Join(appconfig.RuntimeConfigFolderPath, configDeleteErrorPath)).Return(nil, nil)
+
+	fsMock.On("IsNotExist", fileNotExistError).Return(true)
+	fsMock.On("IsNotExist", nil).Return(false)
+	fsMock.On("IsNotExist", someStatError).Return(false)
+
+	fsMock.On("DeleteFile", filepath.Join(appconfig.RuntimeConfigFolderPath, configExistsPath)).Return(nil)
+	fsMock.On("DeleteFile", filepath.Join(appconfig.RuntimeConfigFolderPath, configDeleteErrorPath)).Return(someDeleteError)
+
+	type fields struct {
+		configName string
+		fileSystem filesystem.IFileSystem
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			"FileExistsDeleteSuccess",
+			fields{configExistsPath, fsMock},
+			false,
+		},
+		{
+			"FileNotExistReturnsNil",
+			fields{configNotExistPath, fsMock},
+			false,
+		},
+		{
+			"StatErrorReturnsError",
+			fields{configStatErrorPath, fsMock},
+			true,
+		},
+		{
+			"DeleteFailsReturnsError",
+			fields{configDeleteErrorPath, fsMock},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &runtimeConfigHandler{
+				configName: tt.fields.configName,
+				fileSystem: tt.fields.fileSystem,
+			}
+			if err := r.DeleteConfig(); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteConfig() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func Test_runtimeConfigHandler_SaveConfig(t *testing.T) {
 	configExistsPath := "configExistExample.json"
 	configSomeErrorPath := "someOtherError.json"

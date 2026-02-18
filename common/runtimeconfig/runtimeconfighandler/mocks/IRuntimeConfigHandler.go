@@ -30,6 +30,20 @@ func (_m *IRuntimeConfigHandler) ConfigExists() (bool, error) {
 	return r0, r1
 }
 
+// DeleteConfig provides a mock function with given fields:
+func (_m *IRuntimeConfigHandler) DeleteConfig() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetConfig provides a mock function with given fields:
 func (_m *IRuntimeConfigHandler) GetConfig() ([]byte, error) {
 	ret := _m.Called()
