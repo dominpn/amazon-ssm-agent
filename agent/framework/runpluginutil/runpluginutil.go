@@ -104,10 +104,9 @@ func RunPlugins(
 	resChan chan contracts.PluginResult,
 	cancelFlag task.CancelFlag,
 ) (pluginOutputs map[string]*contracts.PluginResult) {
-
 	pluginOutputs = make(map[string]*contracts.PluginResult)
 
-	//Contains the logStreamPrefix without the pluginID
+	// Contains the logStreamPrefix without the pluginID
 	logStreamPrefix := ioConfig.CloudWatchConfig.LogStreamPrefix
 	log := context.Log()
 
@@ -127,7 +126,7 @@ func RunPlugins(
 		pluginOutputs[pluginID] = &pluginOutput
 		log.Debugf("Checking Status for plugin %s - %s", pluginName, pluginOutput.Status)
 		switch pluginOutput.Status {
-		//TODO properly initialize the plugin status
+		// TODO properly initialize the plugin status
 		case "":
 			log.Debugf("plugin - %v has empty state, initialize as NotStarted",
 				pluginName)
@@ -165,10 +164,9 @@ func RunPlugins(
 			pluginOutputs[pluginID].OutputS3BucketName = ioConfig.OutputS3BucketName
 			if ioConfig.OutputS3KeyPrefix != "" {
 				pluginOutputs[pluginID].OutputS3KeyPrefix = fileutil.BuildS3Path(ioConfig.OutputS3KeyPrefix, pluginName)
-
 			}
 		}
-		//Append pluginID to logStreamPrefix. Replace ':' or '*' with '-' since LogStreamNames cannot have those characters
+		// Append pluginID to logStreamPrefix. Replace ':' or '*' with '-' since LogStreamNames cannot have those characters
 		if ioConfig.CloudWatchConfig.LogGroupName != "" {
 			ioConfig.CloudWatchConfig.LogStreamPrefix = fmt.Sprintf("%s/%s", logStreamPrefix, pluginID)
 			ioConfig.CloudWatchConfig.LogStreamPrefix = strings.Replace(ioConfig.CloudWatchConfig.LogStreamPrefix, ":", "-", -1)
@@ -269,7 +267,7 @@ func RunPlugins(
 		// send to buffer channel, guaranteed to not block since buffer size is plugin number
 		resChan <- result
 
-		//TODO handle cancelFlag here
+		// TODO handle cancelFlag here
 		if pluginHandlerFound && r.Status == contracts.ResultStatusSuccessAndReboot {
 			// do not execute the the next plugin
 			break
@@ -311,7 +309,8 @@ var runPlugin = func(
 	pluginName string,
 	config contracts.Configuration,
 	cancelFlag task.CancelFlag,
-	ioConfig contracts.IOConfiguration) (res contracts.PluginResult) {
+	ioConfig contracts.IOConfiguration,
+) (res contracts.PluginResult) {
 	// create a new context that includes plugin ID
 	context = context.With("[pluginName=" + pluginName + "]")
 
@@ -332,7 +331,6 @@ var runPlugin = func(
 
 	var err error
 	plugin, err := factory.Create(context)
-
 	if err != nil {
 		res.Status = contracts.ResultStatusFailed
 		res.Code = 1
@@ -345,7 +343,7 @@ var runPlugin = func(
 	defer func() { res.EndDateTime = time.Now() }()
 
 	output := iohandler.NewDefaultIOHandler(context, ioConfig)
-	//check if properties is a list. If true, then unroll
+	// check if properties is a list. If true, then unroll
 	switch config.Properties.(type) {
 	case []interface{}:
 		// Load each property as a list.
@@ -401,8 +399,8 @@ func executePlugin(
 	stepName string,
 	config contracts.Configuration,
 	cancelFlag task.CancelFlag,
-	output iohandler.IOHandler) {
-
+	output iohandler.IOHandler,
+) {
 	// Create the output object and execute the plugin
 	defer output.Close()
 	output.Init(pluginName, stepName)
@@ -438,6 +436,14 @@ func getStepExecutionOperation(
 			"Plugin with name %s and id %s skipped due to prior step with an exit condition",
 			pluginName,
 			pluginId)
+	}
+
+	if !isSupported && pluginName == appconfig.PluginNameCloudWatch {
+		return failStep,
+			"The CloudWatch plugin (aws:cloudWatch) has been deprecated.\n" +
+				"To install the official Amazon CloudWatch Agent, see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/installing-cloudwatch-agent-ssm.html.\n" +
+				"To migrate an existing CloudWatch plugin configuration, run the AmazonCloudWatch-MigrateCloudWatchAgent SSM document.\n" +
+				"To continue using the CloudWatch plugin, downgrade to SSM Agent version 3.3.3797.0 or earlier."
 	}
 
 	if !isPreconditionEnabled {
@@ -521,8 +527,7 @@ func evaluatePreconditions(
 	log log.T,
 	preconditions map[string][]contracts.PreconditionArgument,
 ) (bool, []string) {
-
-	var isAllowed = true
+	isAllowed := true
 	var unrecognizedPreconditionList []string
 
 	// For current release, we only support "StringEquals" operator and "platformType"
@@ -596,10 +601,10 @@ func getStepName(pluginName string, config contracts.Configuration) (stepName st
 		if pluginName == appconfig.PluginNameCloudWatch {
 			stepName = appconfig.PluginNameCloudWatch
 		} else {
-			stepName, err = GetPropertyName(config.Properties) //V10 Schema
+			stepName, err = GetPropertyName(config.Properties) // V10 Schema
 		}
 	} else {
-		stepName = config.PluginID //V20 Schema
+		stepName = config.PluginID // V20 Schema
 	}
 
 	return
@@ -618,7 +623,7 @@ func getStringPropByName(pluginProperties interface{}, propName string) string {
 	if !okm {
 		return ""
 	}
-	//type cast to string
+	// type cast to string
 	propValueStr, okString := propValueInterface.(string)
 	propValueBool, okBool := propValueInterface.(bool)
 	if !okString && !okBool {
