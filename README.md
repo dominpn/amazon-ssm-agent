@@ -153,7 +153,6 @@ The following targets are available. Each may be run with `make <target>`.
 Contributions and feedback are welcome! Proposals and Pull Requests will be considered and responded to. Please see the [CONTRIBUTING.md](https://github.com/aws/amazon-ssm-agent/blob/mainline/CONTRIBUTING.md) file for more information.
 
 Amazon Web Services does not currently provide support for modified copies of this software.
-
 ## Runtime Configuration
 
 To set up your own custom configuration for the agent:
@@ -170,8 +169,10 @@ To set up your own custom configuration for the agent:
         * Default: false
     * KeyAutoRotateDays (int) - defines the maximum age in days for on-prem private key, default value might change to 30 in the close future
         * Default: 0 (never rotate)
-* Mds - represents configuration for Message delivery service (MDS) where agent listens for incoming messages
-    * CommandWorkersLimit (int)
+* Mds - represents configuration for Message delivery service (MDS) where agent listens for incoming messages and instance level Run Command configurations
+    * CommandWorkersLimit (int) - Allow this number of commands to run in parallel
+        * Default: 5
+    * CommandWorkerBufferLimit (int) - Allow this many commands to be buffered - commands are placed in buffer before they are initiated asynchronously
         * Default: 5
     * StopTimeoutMillis (int64)
         * Default: 20000

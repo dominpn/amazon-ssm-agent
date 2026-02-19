@@ -7,6 +7,7 @@
     },
     "Mds": {
         "CommandWorkersLimit" : 5,
+        "CommandWorkerBufferLimit" : 5,
         "StopTimeoutMillis" : 20000,
         "Endpoint": "",
         "CommandRetryLimit": 15
