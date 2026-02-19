@@ -12,6 +12,7 @@ RUN set -e; \
      exit 1; \
    fi; \
    \
+   yum update -y; \
    yum install -y /amazon-ssm-agent.rpm jq; \
    mv /amazon-ssm-agent.json /etc/amazon/ssm/; \
    rm /amazon-ssm-agent.rpm; \
