@@ -23,8 +23,24 @@ fi
 # allow ssm-agent to finish its work
 sleep 2
 
+# Check if the version we are about to install is already installed.
+# If so, skip the package manager call entirely to avoid unnecessary
+# service disruption and potential hangs from package manager locks.
+# This is a lock-free read-only query against the RPM database.
+SKIP_INSTALL=false
+expectedVersion=$(rpm -qp --qf '%{VERSION}' amazon-ssm-agent.rpm 2>/dev/null)
+installedVersion=$(rpm -q --qf '%{VERSION}' amazon-ssm-agent 2>/dev/null)
+if [ -n "$expectedVersion" ] && [ -n "$installedVersion" ] && [ "$installedVersion" == "$expectedVersion" ]; then
+  echo "amazon-ssm-agent $expectedVersion is already installed, skipping package install"
+  SKIP_INSTALL=true
+fi
+
 function install_agent
 {
+  if [ "$SKIP_INSTALL" = true ]; then
+    return 0
+  fi
+
   PACKAGE_MANAGER='rpm'
   which yum 2>/dev/null
   RET_CODE=$?
@@ -73,7 +89,7 @@ if [[ $(/sbin/init --version 2> /dev/null) =~ upstart ]]; then
   /sbin/start amazon-ssm-agent
   status amazon-ssm-agent
 elif [[ $(systemctl 2> /dev/null) =~ -\.mount ]]; then
-  if [[ "$(systemctl is-active amazon-ssm-agent.service)" == "active" ]]; then
+  if [ "$SKIP_INSTALL" != true ] && [[ "$(systemctl is-active amazon-ssm-agent.service)" == "active" ]]; then
     echo "-> Agent is running in the instance"
     echo "Stopping the agent"
     systemctl stop amazon-ssm-agent.service

@@ -11,6 +11,17 @@ function error_exit
   exit 1
 }
 
+# Check if the version we are about to uninstall is actually installed.
+# If a different version is installed (e.g. the target was never installed
+# due to a timeout), skip the uninstall to avoid removing the wrong version.
+# This is a lock-free read-only query against the RPM database.
+expectedVersion=$(rpm -qp --qf '%{VERSION}' amazon-ssm-agent.rpm 2>/dev/null)
+installedVersion=$(rpm -q --qf '%{VERSION}' amazon-ssm-agent 2>/dev/null)
+if [ -n "$expectedVersion" ] && [ -n "$installedVersion" ] && [ "$installedVersion" != "$expectedVersion" ]; then
+  echo "Installed version $installedVersion does not match expected $expectedVersion, skipping uninstall"
+  exit 0
+fi
+
 function uninstall_agent()
 {
   PACKAGE_MANAGER='rpm'
