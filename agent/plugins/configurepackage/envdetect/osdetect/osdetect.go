@@ -26,7 +26,7 @@ func CollectOSData(log log.T) (*OperatingSystem, error) {
 
 	init, err := DetectInitSystem()
 	if err != nil {
-		return nil, err
+		log.Infof("Could not detect init system, continuing without it: %v", err)
 	}
 
 	pkg, err := DetectPkgManager(platform, platformVersion, platformFamily)

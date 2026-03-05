@@ -104,6 +104,18 @@ func DetectPlatform(_ log.T) (string, string, string, error) {
 	var platform, version, platformFamily string
 	var err error
 
+	// Check for Bottlerocket first - on Bottlerocket, the SSM agent runs inside
+	// a control container whose /etc/os-release reports the container OS (e.g. amzn)
+	// rather than the host OS. /etc/bottlerocket-release is bind-mounted from the
+	// host and is the authoritative source for detecting Bottlerocket.
+	if _, statErr := os.Stat("/etc/bottlerocket-release"); statErr == nil {
+		platform, version, err = scanRhelFile("/etc/bottlerocket-release")
+		if err == nil {
+			platformFamily, err = platformFamilyForPlatform(platform)
+			return platform, version, platformFamily, err
+		}
+	}
+
 	platform, version, err = scanOSrelease()
 	if err != nil {
 		platform, version, err = scanLSB()
@@ -383,8 +395,6 @@ func scanDistributionReleaseFiles() (string, string, error) {
 	if _, err = os.Stat("/etc/debian_version"); err == nil {
 		platform = c.PlatformDebian
 		platformVersion, err = utils.ReadFileTrim("/etc/debian_version")
-	} else if _, err = os.Stat("/etc/bottlerocket-release"); err == nil {
-		platform, platformVersion, err = scanRhelFile("/etc/bottlerocket-release")
 	} else if _, err = os.Stat("/etc/redhat-release"); err == nil {
 		platform, platformVersion, err = scanRhelFile("/etc/redhat-release")
 	} else if _, err = os.Stat("/etc/system-release"); err == nil {
@@ -408,7 +418,7 @@ func platformFamilyForPlatform(platform string) (string, error) {
 	switch platform {
 	case c.PlatformUbuntu, c.PlatformDebian, c.PlatformRaspbian:
 		return c.PlatformFamilyDebian, nil
-	case c.PlatformRedhat, c.PlatformCentos, c.PlatformAmazon, c.PlatformOracleLinux, c.PlatformRockyLinux, c.PlatformAlmaLinux:
+	case c.PlatformRedhat, c.PlatformCentos, c.PlatformAmazon, c.PlatformOracleLinux, c.PlatformRockyLinux, c.PlatformAlmaLinux, c.PlatformBottlerocket:
 		return c.PlatformFamilyRhel, nil
 	case c.PlatformFedora:
 		return c.PlatformFamilyFedora, nil
@@ -420,7 +430,7 @@ func platformFamilyForPlatform(platform string) (string, error) {
 		return c.PlatformFamilyGentoo, nil
 	case c.PlatformArch:
 		return c.PlatformFamilyArch, nil
-	case c.PlatformBottlerocket, c.PlatformFlatcar:
+	case c.PlatformFlatcar:
 		return "", fmt.Errorf("configure package is not supported on %s", platform)
 	default:
 		return "", fmt.Errorf("unknown platform: %s", platform)

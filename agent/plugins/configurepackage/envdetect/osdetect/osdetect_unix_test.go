@@ -369,7 +369,7 @@ func TestPlatformFamilyForPlatform(t *testing.T) {
 		{"arch", "arch", false},
 		{"alpine", "alpine", false},
 		{"asdf", "", true},
-		{"bottlerocket", "", true},
+		{"bottlerocket", "rhel", false},
 		{"flatcar", "", true},
 	}
 
