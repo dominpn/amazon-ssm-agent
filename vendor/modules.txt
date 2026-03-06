@@ -269,9 +269,6 @@ github.com/mitchellh/go-ps
 # github.com/nightlyone/lockfile v0.0.0 => ./extra/lockfile
 ## explicit; go 1.15
 github.com/nightlyone/lockfile
-# github.com/pborman/ansi v1.0.0
-## explicit
-github.com/pborman/ansi
 # github.com/pjbgf/sha1cd v0.3.2
 ## explicit; go 1.21
 github.com/pjbgf/sha1cd

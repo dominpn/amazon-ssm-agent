@@ -30,7 +30,6 @@ require (
 	github.com/hectane/go-acl v0.0.0-20151103031024-7f56832555fc // Don't update -- breaks
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/nightlyone/lockfile v0.0.0
-	github.com/pborman/ansi v1.0.0
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.15
 	github.com/yusufpapurcu/wmi v1.2.4

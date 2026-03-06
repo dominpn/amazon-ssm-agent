@@ -827,3 +827,40 @@ func (suite *ShellTestSuite) TestIfIpcFileIsWrittenTo() {
 	stat, _ := ipcFile.Stat()
 	suite.True(stat.Size() == 1)
 }
+
+// Test processLogFile returns correct processed file path
+func (suite *ShellTestSuite) TestProcessLogFile() {
+	plugin := &ShellPlugin{
+		context: suite.mockContext,
+	}
+
+	sourceFile := "test_source.log"
+	expectedProcessedFile := "test_sourceProcessed.log"
+
+	// Create source file with ANSI codes
+	content := "Hello \x1b[31mWorld\x1b[0m\nLine 2\n"
+	err := os.WriteFile(sourceFile, []byte(content), 0644)
+	suite.NoError(err)
+
+	defer func() {
+		os.Remove(sourceFile)
+		os.Remove(expectedProcessedFile)
+	}()
+
+	// Process the file
+	processedPath, err := plugin.processLogFile(suite.mockLog, sourceFile)
+
+	// Verify
+	suite.NoError(err)
+	suite.Equal(expectedProcessedFile, processedPath)
+
+	// Verify processed file exists
+	_, err = os.Stat(processedPath)
+	suite.NoError(err)
+
+	// Verify content is processed (ANSI codes removed)
+	processedContent, err := os.ReadFile(processedPath)
+	suite.NoError(err)
+	suite.Contains(string(processedContent), "Hello World")
+	suite.NotContains(string(processedContent), "\x1b[31m")
+}

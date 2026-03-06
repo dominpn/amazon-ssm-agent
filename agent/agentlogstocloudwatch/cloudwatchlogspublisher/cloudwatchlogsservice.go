@@ -29,13 +29,13 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
+	"github.com/aws/amazon-ssm-agent/common/ansiprocessing"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/pborman/ansi"
 )
 
 const (
@@ -732,14 +732,11 @@ func processMessage(log log.T, line []byte, cleanupANSICharacters bool) (process
 		return line
 	}
 
-	// Strip ANSI control sequences like color codes
-	processedLine = line
-	processedLine, err := ansi.Strip(line)
-	if err != nil {
-		processedLine = line
-	}
+	stream := ansiprocessing.NewProcessor()
 
-	return processedLine
+	stream.WriteString(string(line))
+	output := stream.GetOutput()
+	return output
 }
 
 // buildEventInfo constructs event to be uploaded to CW

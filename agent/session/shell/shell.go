@@ -47,6 +47,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/session/shell/constants"
 	"github.com/aws/amazon-ssm-agent/agent/session/shell/execcmd"
 	"github.com/aws/amazon-ssm-agent/agent/task"
+	"github.com/aws/amazon-ssm-agent/common/ansiprocessing"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 )
 
@@ -652,6 +653,59 @@ func (p *ShellPlugin) initializeLogger(log log.T, config agentContracts.Configur
 	p.logger.logFilePath = filepath.Join(config.OrchestrationDirectory, p.logger.logFileName)
 }
 
+// return a shell session log file with ansi code processed or orginal unprocessed file
+func (p *ShellPlugin) processLogFile(log log.T, sourceFilePath string) (string, error) {
+	sourceFile, err := os.Open(sourceFilePath)
+	if err != nil {
+		return sourceFilePath, err
+	}
+	defer sourceFile.Close()
+
+	processedFileLog := strings.ReplaceAll(sourceFilePath, ".log", "Processed.log")
+	destFile, err := os.Create(processedFileLog)
+	if err != nil {
+		return sourceFilePath, err
+	}
+	defer destFile.Close()
+
+	processor := ansiprocessing.NewProcessor()
+	scanner := bufio.NewScanner(sourceFile)
+	writer := bufio.NewWriter(destFile)
+	const flushInterval = 1000 // Flush every 1000 lines
+
+	lineCount := 0
+	for scanner.Scan() {
+		lineBytes := scanner.Bytes()
+		processor.WriteString(string(lineBytes))
+		processor.WriteString("\n")
+
+		lineCount++
+		if lineCount%flushInterval == 0 {
+			output := processor.GetOutput()
+			if _, err := writer.Write(output); err != nil {
+				return sourceFilePath, err
+			}
+			processor.Reset()
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return sourceFilePath, err
+	}
+
+	// Write remaining output
+	output := processor.GetOutput()
+	if _, err := writer.Write(output); err != nil {
+		return sourceFilePath, err
+	}
+
+	if err := writer.Flush(); err != nil {
+		return sourceFilePath, err
+	}
+
+	return processedFileLog, nil
+}
+
 // uploadShellSessionLogsToS3 uploads shell session logs to S3 bucket specified.
 func (p *ShellPlugin) uploadShellSessionLogsToS3(log log.T, s3UploaderUtil s3util.IAmazonS3Util, config agentContracts.Configuration, s3KeyPrefix string) {
 	if s3UploaderUtil == nil {
@@ -661,7 +715,12 @@ func (p *ShellPlugin) uploadShellSessionLogsToS3(log log.T, s3UploaderUtil s3uti
 
 	log.Debugf("Preparing to upload session logs to S3 bucket %s and prefix %s", config.OutputS3BucketName, s3KeyPrefix)
 
-	if err := s3UploaderUtil.S3Upload(log, config.OutputS3BucketName, s3KeyPrefix, p.logger.logFilePath); err != nil {
+	processedFileLog, err := p.processLogFile(log, p.logger.logFilePath)
+	if err != nil {
+		log.Errorf("Failed to processed shell session logs ansi code: %s", err)
+	}
+
+	if err := s3UploaderUtil.S3Upload(log, config.OutputS3BucketName, s3KeyPrefix, processedFileLog); err != nil {
 		log.Errorf("Failed to upload shell session logs to S3: %s", err)
 	}
 }
