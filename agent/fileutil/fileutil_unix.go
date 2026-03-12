@@ -111,22 +111,29 @@ func GetDiskSpaceInfo() (diskSpaceInfo DiskSpaceInfo, err error) {
 	}, nil
 }
 
-// IsPrivilegedAccessOnly checks if a file or directory has permissions that restrict access to root/sudo only
-// It verifies that the file has permission 0700 or 0600 (or similar) that prevents access from other users
+// IsPrivilegedAccessOnly checks if a file or directory is owned by root (UID 0)
+// and not writable by group or others
 func IsPrivilegedAccessOnly(path string) (bool, error) {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return false, err
 	}
-	mode := fileInfo.Mode().Perm()
 
-	// Check if the file has no group or other permissions (only owner has access)
-	// We're checking that group and others have no permissions (last 6 bits are 0)
-	if mode&0077 == 0 {
-		return true, nil
+	stat, ok := fileInfo.Sys().(*syscall.Stat_t)
+	if !ok {
+		return false, fmt.Errorf("failed to get file ownership info for %v", path)
 	}
 
-	return false, fmt.Errorf("file has incorrect permissions: %o", mode)
+	if stat.Uid != 0 {
+		return false, fmt.Errorf("file is not owned by root, owned by UID %d", stat.Uid)
+	}
+
+	// Reject if group or others have write permission
+	if fileInfo.Mode().Perm()&0022 != 0 {
+		return false, fmt.Errorf("file is writable by non-root users, permissions: %o", fileInfo.Mode().Perm())
+	}
+
+	return true, nil
 }
 
 // HardenDataFolder sets permission of %PROGRAM_DATA% folder for Windows. In

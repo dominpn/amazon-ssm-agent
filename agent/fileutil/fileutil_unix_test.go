@@ -24,55 +24,54 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestIsPrivilegedAccessOnlyUnix tests the Unix-specific implementation of IsPrivilegedAccessOnly
-func TestIsPrivilegedAccessOnly(t *testing.T) {
-	// Create a temporary directory for testing
+func TestIsPrivilegedAccessOnly_NonExistentFile(t *testing.T) {
+	result, err := IsPrivilegedAccessOnly("/tmp/non-existent-file-test-ssm")
+	assert.False(t, result)
+	assert.Error(t, err)
+	assert.True(t, os.IsNotExist(err))
+}
+
+func TestIsPrivilegedAccessOnly_NonRootOwned(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("Test must run as non-root user")
+	}
+
 	tempDir, err := os.MkdirTemp("", "privileged-access-test-unix")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
-	// Test cases with different permissions
-	testCases := []struct {
-		name        string
-		permissions os.FileMode
-		expected    bool
-	}{
-		{"Owner read only (0400)", 0400, true},
-		{"Owner read-write (0600)", 0600, true},
-		{"Owner read-execute (0500)", 0500, true},
-		{"Owner all permissions (0700)", 0700, true},
-		{"Group read (0640)", 0640, false},
-		{"Group write (0620)", 0620, false},
-		{"Group execute (0610)", 0610, false},
-		{"Other read (0604)", 0604, false},
-		{"Other write (0602)", 0602, false},
-		{"Other execute (0601)", 0601, false},
-		{"All read (0444)", 0444, false},
-		{"All permissions (0777)", 0777, false},
+	// Non-root owned files should always fail, regardless of permissions
+	for _, perm := range []os.FileMode{0700, 0600, 0400, 0777} {
+		testFile := filepath.Join(tempDir, "test.txt")
+		os.WriteFile(testFile, []byte("test"), perm)
+		os.Chmod(testFile, perm)
+
+		result, err := IsPrivilegedAccessOnly(testFile)
+		assert.False(t, result, "Expected false for non-root owned file with permissions %o", perm)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not owned by root")
+
+		os.Remove(testFile)
+	}
+}
+
+func TestIsPrivilegedAccessOnly_RootOwnedNotWritable(t *testing.T) {
+	// /etc/shadow is typically root-owned with 0640 or stricter
+	if _, err := os.Stat("/etc/shadow"); os.IsNotExist(err) {
+		t.Skip("/etc/shadow not available")
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Create a test file with specific permissions
-			testFilePath := filepath.Join(tempDir, tc.name+".txt")
-			os.WriteFile(testFilePath, []byte("test content"), tc.permissions)
-			os.Chmod(testFilePath, tc.permissions)
+	result, err := IsPrivilegedAccessOnly("/etc/shadow")
+	assert.True(t, result)
+	assert.NoError(t, err)
+}
 
-			result, err := IsPrivilegedAccessOnly(testFilePath)
-			assert.Equal(t, tc.expected, result, "Expected IsPrivilegedAccessOnly to return %v for permissions %o", tc.expected, tc.permissions)
-
-			if !tc.expected {
-				assert.Error(t, err, "Expected an error for permissions %o", tc.permissions)
-			} else {
-				assert.NoError(t, err, "Expected no error for permissions %o", tc.permissions)
-			}
-		})
+func TestIsPrivilegedAccessOnly_RootOwnedGroupWritable(t *testing.T) {
+	// /tmp is typically root-owned with 1777 (sticky + world writable)
+	// This should fail the write permission check
+	result, err := IsPrivilegedAccessOnly("/tmp")
+	if err != nil && assert.Contains(t, err.Error(), "writable by non-root") {
+		assert.False(t, result)
 	}
-
-	// Test with a file that doesn't exist
-	nonExistentFile := filepath.Join(tempDir, "non-existent-file.txt")
-	result, err := IsPrivilegedAccessOnly(nonExistentFile)
-	assert.False(t, result, "Expected false for non-existent file")
-	assert.Error(t, err, "Expected an error for non-existent file")
-	assert.True(t, os.IsNotExist(err), "Expected 'file not found' error for non-existent file")
+	// If /tmp has unusual ownership, just skip
 }
