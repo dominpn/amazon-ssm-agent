@@ -150,7 +150,7 @@ func TestEC2RoleProvider_UpdateEmptyInstanceInformation_ReturnsNestedError(t *te
 	// Assert
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), ErrCodeEC2RoleRequestError)
-	assert.NotContains(t, err.Error(), genericAwsClientError.Error())
+	assert.Contains(t, err.Error(), genericAwsClientError.Error())
 }
 
 func TestEC2RoleProvider_IPRCredentials_ReturnsIPRCredentials_With1HrSession(t *testing.T) {

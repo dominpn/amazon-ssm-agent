@@ -213,7 +213,7 @@ func (p *EC2RoleProvider) updateEmptyInstanceInformation(ctx context.Context, ss
 	_, err := ssmClient.UpdateInstanceInformationWithContext(ctx, input)
 	if err != nil {
 		if awsErr := sdkutil.GetAwsError(err); awsErr != nil {
-			err = awserr.New(awsErr.Code(), awsErr.Message(), nil)
+			err = awserr.New(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
 		}
 	}
 	return err
