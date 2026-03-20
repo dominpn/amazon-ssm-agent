@@ -6,6 +6,10 @@ replace github.com/aws/aws-sdk-go => ./extra/aws-sdk-go
 
 replace github.com/nightlyone/lockfile => ./extra/lockfile
 
+godebug (
+    containermaxprocs=0 // disable consideration of cgroup limits
+)
+
 require (
 	github.com/Jeffail/gabs v1.0.0
 	github.com/Workiva/go-datastructures v1.0.53
