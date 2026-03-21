@@ -1,5 +1,10 @@
 Latest
 ===============
+- Disable Go 1.25 container-aware GOMAXPROCS to prevent holding cgroup file descriptors open
+- Upgrade Go version to 1.25.8
+
+3.3.3883.0
+===============
 - Document CommandWorkerBufferLimit config
 - Include package update in Dockerfile
 - Reduce CloudWatch event message length threshold
