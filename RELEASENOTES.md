@@ -1,5 +1,11 @@
 Latest
 ===============
+- Add read-only version check prior to install and uninstall in case of occupied package manager locks
+- Add ANSI processing for CloudWatch and S3 log
+- Upgrade go-git to v5.17.0 and cloudflare/circl to v1.6.3 to fix CVE-2026-1229
+
+3.3.4108.0
+===============
 - Disable Go 1.25 container-aware GOMAXPROCS to prevent holding cgroup file descriptors open
 - Upgrade Go version to 1.25.8
 
