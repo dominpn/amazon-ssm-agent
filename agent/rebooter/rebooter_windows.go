@@ -37,7 +37,7 @@ var shutdownEXELocation = filepath.Join(os.Getenv("SystemRoot"), "System32", "sh
 // The above command will cause the machine to reboot after 60 seconds
 func reboot(log log.T) error {
 	log.Infof("rebooting the machine in %v seconds..", timeOutInSecondsBeforeReboot)
-	command := exec.Command("shutdown", "-r", "-t", timeOutInSecondsBeforeReboot)
+	command := exec.Command("shutdown", "-r", "-t", timeOutInSecondsBeforeReboot, "-c", "Reboot initiated by SSM Agent")
 	var stdout, stderr bytes.Buffer
 	command.Stderr = &stderr
 	command.Stdout = &stdout
@@ -52,7 +52,7 @@ func reboot(log log.T) error {
 		log.Info("Retrying shutdown with at System32 location")
 		stdout = bytes.Buffer{}
 		stderr = bytes.Buffer{}
-		command := exec.Command(shutdownEXELocation, "-r", "-t", timeOutInSecondsBeforeReboot)
+		command := exec.Command(shutdownEXELocation, "-r", "-t", timeOutInSecondsBeforeReboot, "-c", "Reboot initiated by SSM Agent")
 		command.Stdout = &stdout
 		command.Stderr = &stderr
 		err = command.Start()
