@@ -53,7 +53,7 @@ func (suite *BasicPortTestSuite) SetupTest() {
 	suite.mockDataChannel = &dataChannelMock.IDataChannel{}
 	suite.session = &BasicPortSession{
 		context:            suite.mockContext,
-		reconnectToPortErr: make(chan error),
+		reconnectToPortErr: make(chan error, 1),
 		cancelled:          make(chan struct{}),
 	}
 }
