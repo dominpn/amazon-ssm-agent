@@ -1,5 +1,11 @@
 Latest
 ===============
+- Add EnforceWorkspaceRootOwnership configuration to support disable hardening of agent workspace
+- Add reboot comment to Windows shutdown command for SSM Agent traceability
+- Update privilege access check to verify ownership and permissions of document state files
+
+3.3.4121.0
+===============
 - Add read-only version check prior to install and uninstall in case of occupied package manager locks
 - Add ANSI processing for CloudWatch and S3 log
 - Upgrade go-git to v5.17.0 and cloudflare/circl to v1.6.3 to fix CVE-2026-1229
