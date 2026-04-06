@@ -295,12 +295,29 @@ func performGreengrassSteps(log log.T, packageManager packagemanagers.IPackageMa
 			osExit(1, log, "Failed to stop agent: %v", err)
 		}
 
-		log.Infof("Registering agent")
-		if err = getRegisterManager().RegisterAgent(registerInputModel); err != nil {
-			osExit(1, log, "Failed to register agent: %v", err)
+		// Retry registration indefinitely with exponential backoff capped at 1800s.
+		// Greengrass components are expected to withstand network disruptions gracefully
+		// rather than entering BROKEN state, which requires manual intervention.
+		// This is a request from Greengrass and best practice per the team
+		const maxBackoff = 1800 * time.Second
+		retryWait := 15 * time.Second
+		for attempt := 1; ; attempt++ {
+			log.Infof("Registering agent (attempt %d)", attempt)
+			if err = getRegisterManager().RegisterAgent(registerInputModel); err == nil {
+				break
+			}
+			log.Warnf("Registration attempt %d failed: %v", attempt, err)
+			log.Infof("Waiting %v before next attempt", retryWait)
+			timeSleep(retryWait)
+			if retryWait < maxBackoff {
+				retryWait *= 2
+				if retryWait > maxBackoff {
+					retryWait = maxBackoff
+				}
+			}
 		}
 
-		log.Infof("Successfully registered the agent, starting agent")
+		log.Infof("Starting agent")
 		if err = startAgent(serviceManager, log); err != nil {
 			osExit(1, log, "Failed to start agent: %v", err)
 		}

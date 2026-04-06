@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/managedInstances/registration"
@@ -52,6 +53,7 @@ func storeMockedFunctions() func() {
 	getServiceManagerStorage := getServiceManager
 	getRegisterManagerStorage := getRegisterManager
 	getRegistrationInfoStorage := getRegistrationInfo
+	timeSleepStorage := timeSleep
 	hasElevatedPermissions = func() error {
 		return nil
 	}
@@ -61,6 +63,7 @@ func storeMockedFunctions() func() {
 		getServiceManager = getServiceManagerStorage
 		getRegisterManager = getRegisterManagerStorage
 		getRegistrationInfo = getRegistrationInfoStorage
+		timeSleep = timeSleepStorage
 	}
 }
 
@@ -764,48 +767,51 @@ func TestMain_Register_AgentNotInstalled_AgentRegistered_OverrideSet_FailedRegis
 		managerMock := &pmMock.IPackageManager{}
 		managerMock.On("IsAgentInstalled").Return(true, nil)
 		managerMock.On("GetInstalledAgentVersion").Return("2.1.2.2", nil)
-
 		return managerMock, nil
 	}
 
 	getServiceManager = func(log.T) (servicemanagers.IServiceManager, error) {
 		managerMock := &smMock.IServiceManager{}
-
 		managerMock.On("GetName").Return("ServiceManagerName")
-		managerMock.On("GetAgentStatus").Return(common.Stopped, nil)
+		managerMock.On("GetAgentStatus").Return(common.Stopped, nil).Times(1)
 		managerMock.On("StopAgent").Return(nil)
+		managerMock.On("StartAgent").Return(nil)
+		managerMock.On("GetAgentStatus").Return(common.Running, nil).Times(1)
 		return managerMock, nil
 	}
 
 	getRegistrationInfo = func() registration.IOnpremRegistrationInfo {
 		registrationMock := &rMock.IOnpremRegistrationInfo{}
-
-		registrationMock.On("InstanceID", mock.Anything, "", mock.Anything).Return("SomeInstanceId")
+		registrationMock.On("InstanceID", mock.Anything, "", mock.Anything).Return("SomeInstanceId").Once()
+		registrationMock.On("ReloadInstanceInfo", mock.Anything, "", mock.Anything).Return()
+		registrationMock.On("InstanceID", mock.Anything, "", mock.Anything).Return("NewInstanceId").Once()
 		return registrationMock
 	}
 
+	// Fail 3 times then succeed — verifies infinite retry recovers from transient errors
+	attempt := 0
 	getRegisterManager = func() registermanager.IRegisterManager {
 		managerMock := &rmMock.IRegisterManager{}
-
-		managerMock.On("RegisterAgent", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("SomeError"))
+		managerMock.On("RegisterAgent", mock.Anything).Return(func(_ *registermanager.RegisterAgentInputModel) error {
+			attempt++
+			if attempt <= 3 {
+				return fmt.Errorf("SomeError")
+			}
+			return nil
+		})
 		return managerMock
 	}
 
-	osExit = func(exitCode int, log log.T, message string, args ...interface{}) {
-		assert.Equal(t, 1, exitCode)
-		assert.Contains(t, message, "Failed to register agent")
-
-		panic(breakOutWithPanicMessage)
-	}
+	timeSleep = func(d time.Duration) {}
 
 	defer func() {
 		if errInterface := recover(); errInterface != nil {
-			assert.Equal(t, breakOutWithPanicMessage, errInterface)
+			assert.Fail(t, "Should not panic — infinite retry should eventually succeed")
 		}
 	}()
 
 	main()
-	assert.True(t, false, "Should never reach here because of exit")
+	assert.Equal(t, 4, attempt, "Should have retried until success")
 }
 
 func TestMain_Register_AgentNotInstalled_AgentRegistered_OverrideSet_FailedToStartAgent(t *testing.T) {
@@ -977,4 +983,73 @@ func TestMain_Register_AgentNotInstalled_AgentRegistered_OverrideSet_Success(t *
 
 	main()
 	assert.True(t, true, "Should never reach here because of exit")
+}
+
+func TestMain_Register_BackoffCapsAt1800s(t *testing.T) {
+	initializeArgs()
+	os.Setenv("SSM_OVERRIDE_EXISTING_REGISTRATION", "true")
+
+	defer storeMockedFunctions()()
+	defer setArgsAndRestore("/some/path/setupcli", "-register", "-env", "greengrass")()
+
+	getPackageManager = func(log.T) (packagemanagers.IPackageManager, error) {
+		managerMock := &pmMock.IPackageManager{}
+		managerMock.On("IsAgentInstalled").Return(true, nil)
+		managerMock.On("GetInstalledAgentVersion").Return("2.1.2.2", nil)
+		return managerMock, nil
+	}
+
+	getServiceManager = func(log.T) (servicemanagers.IServiceManager, error) {
+		managerMock := &smMock.IServiceManager{}
+		managerMock.On("GetName").Return("ServiceManagerName")
+		managerMock.On("GetAgentStatus").Return(common.Stopped, nil).Times(1)
+		managerMock.On("StopAgent").Return(nil)
+		managerMock.On("StartAgent").Return(nil)
+		managerMock.On("GetAgentStatus").Return(common.Running, nil).Times(1)
+		return managerMock, nil
+	}
+
+	getRegistrationInfo = func() registration.IOnpremRegistrationInfo {
+		registrationMock := &rMock.IOnpremRegistrationInfo{}
+		registrationMock.On("InstanceID", mock.Anything, "", mock.Anything).Return("SomeInstanceId").Once()
+		registrationMock.On("ReloadInstanceInfo", mock.Anything, "", mock.Anything).Return()
+		registrationMock.On("InstanceID", mock.Anything, "", mock.Anything).Return("NewInstanceId").Once()
+		return registrationMock
+	}
+
+	// Fail 10 times then succeed — enough to hit the 1800s cap
+	attempt := 0
+	getRegisterManager = func() registermanager.IRegisterManager {
+		managerMock := &rmMock.IRegisterManager{}
+		managerMock.On("RegisterAgent", mock.Anything).Return(func(_ *registermanager.RegisterAgentInputModel) error {
+			attempt++
+			if attempt <= 10 {
+				return fmt.Errorf("network error")
+			}
+			return nil
+		})
+		return managerMock
+	}
+
+	var sleepDurations []time.Duration
+	timeSleep = func(d time.Duration) { sleepDurations = append(sleepDurations, d) }
+
+	defer func() {
+		if errInterface := recover(); errInterface != nil {
+			assert.Fail(t, "Should not panic")
+		}
+	}()
+
+	main()
+
+	// Backoff: 15, 30, 60, 120, 240, 480, 960, 1800, 1800, 1800
+	assert.Equal(t, 10, len(sleepDurations), "Should have slept 10 times before success on attempt 11")
+	// Verify cap: last 3 should all be 1800s
+	for i := 7; i < 10; i++ {
+		assert.Equal(t, 1800*time.Second, sleepDurations[i], "Sleep %d should be capped at 1800s", i+1)
+	}
+	// Verify doubling: first few should double
+	assert.Equal(t, 15*time.Second, sleepDurations[0])
+	assert.Equal(t, 30*time.Second, sleepDurations[1])
+	assert.Equal(t, 60*time.Second, sleepDurations[2])
 }
