@@ -44,6 +44,15 @@ func HandleAwsError(log log.T, err error, stopPolicy *StopPolicy) {
 				}
 				return
 			}
+
+			// special treatment for ec2messages AccessDeniedException - MDS endpoint is deprecated
+			if aErr.Code() == "AccessDeniedException" && strings.Contains(err.Error(), "ec2messages:") {
+				log.Debugf("ec2messages endpoint access denied. This is expected if ec2messages permissions are not configured. The ec2messages endpoint is deprecated; ssmmessages is the recommended endpoint.")
+				if stopPolicy != nil {
+					resetStopPolicy(stopPolicy)
+				}
+				return
+			}
 		}
 
 		log.Errorf("error when calling AWS APIs. error details - %v", err)
