@@ -1,5 +1,13 @@
 Latest
 ===============
+- Add SSM Distributor support for Bottlerocket OS
+- Implement flush credentials command in ssm-cli
+- Log ec2messages access denied as debug instead of error to reduce log noise
+- Make credential refresher refresh cache quickly in case of credential flush
+- Make Greengrass component registration resilient with retry
+
+3.3.4177.0
+===============
 - Add EnforceWorkspaceRootOwnership configuration to support disable hardening of agent workspace
 - Add reboot comment to Windows shutdown command for SSM Agent traceability
 - Update privilege access check to verify ownership and permissions of document state files
