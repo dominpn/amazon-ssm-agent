@@ -7,6 +7,7 @@ Type=simple
 WorkingDirectory=/usr/bin/
 ExecStart=/usr/bin/amazon-ssm-agent
 KillMode=process
+OOMScoreAdjust=-900
 
 # Restart the agent regardless of whether it crashes (and returns a non-zero result code) or if
 # is terminated normally (e.g. via 'kill -HUP').  Delay restart so that the agent is less likely
