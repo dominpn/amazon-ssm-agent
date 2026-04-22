@@ -126,7 +126,8 @@ func collectRegistryData(context context.T, config model.Config) (data []model.R
 		valueNames := filter.ValueNames
 		log.Infof("valueNames %v", valueNames)
 		registryPath := "Registry::" + path
-		execScript := registryInfoScript + "-Path \"" + registryPath + "\" -ValueLimit " + fmt.Sprint(valueScanLimit)
+		escapedPath := strings.ReplaceAll(registryPath, `'`, `''`)
+		execScript := registryInfoScript + "-Path '" + escapedPath + "' -ValueLimit " + fmt.Sprint(valueScanLimit)
 		if recursive == true {
 			execScript += " -Recursive"
 		}

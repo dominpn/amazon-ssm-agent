@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
+	logmock "github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -103,6 +104,46 @@ func TestGetMetaUsingScript(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, fileData, data)
+}
+
+func TestGetPowershellCmdUsesSingleQuotes(t *testing.T) {
+	mockLog := logmock.NewMockLog()
+	paths := []string{`C:\temp\normal.log`}
+	cmd, err := getPowershellCmd(mockLog, paths)
+
+	assert.Nil(t, err)
+	assert.Contains(t, cmd, `'C:\temp\normal.log'`)
+	assert.NotContains(t, cmd, `"C:\temp\normal.log"`)
+}
+
+func TestGetPowershellCmdPreventsSubexpressionExpansion(t *testing.T) {
+	mockLog := logmock.NewMockLog()
+	paths := []string{`C:\temp\$(Resolve-DnsName evil.com).log`}
+	cmd, err := getPowershellCmd(mockLog, paths)
+
+	assert.Nil(t, err)
+	// Single quotes prevent $() expansion in PowerShell
+	assert.Contains(t, cmd, `'C:\temp\$(Resolve-DnsName evil.com).log'`)
+	assert.NotContains(t, cmd, `"C:\temp\$(Resolve-DnsName evil.com).log"`)
+}
+
+func TestGetPowershellCmdEscapesSingleQuotesInPaths(t *testing.T) {
+	mockLog := logmock.NewMockLog()
+	paths := []string{`C:\temp\it's a file.log`}
+	cmd, err := getPowershellCmd(mockLog, paths)
+
+	assert.Nil(t, err)
+	// PowerShell escapes single quotes as '' inside single-quoted strings
+	assert.Contains(t, cmd, `'C:\temp\it''s a file.log'`)
+}
+
+func TestGetPowershellCmdMultiplePaths(t *testing.T) {
+	mockLog := logmock.NewMockLog()
+	paths := []string{`C:\temp\a.log`, `C:\temp\b.log`}
+	cmd, err := getPowershellCmd(mockLog, paths)
+
+	assert.Nil(t, err)
+	assert.Contains(t, cmd, `'C:\temp\a.log','C:\temp\b.log'`)
 }
 
 func TestGetMetaCmdError(t *testing.T) {
