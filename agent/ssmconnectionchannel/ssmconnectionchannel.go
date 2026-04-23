@@ -40,7 +40,7 @@ var (
 	connectionChannelMutex = sync.RWMutex{}
 
 	// mdsSwitchChannel is used by MDSInteractor to switch ON/OFF MDS
-	mdsSwitchChannel = make(chan bool)
+	mdsSwitchChannel = make(chan bool, 1)
 )
 
 // SetConnectionChannel sets the Upstream SSM connection channel(MDS or MGS)
