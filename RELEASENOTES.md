@@ -1,5 +1,13 @@
 Latest
 ===============
+- Add OOM killer protection to systemd service files
+- Apply more sanitation to file and registry inventory gatherers
+- Bump go-git to v5.17.1
+- Deprecate legacy cloudwatch plugin
+- Preserve network error details in credential refresher SSM API failures
+
+3.3.4268.0
+===============
 - Add SSM Distributor support for Bottlerocket OS
 - Implement flush credentials command in ssm-cli
 - Log ec2messages access denied as debug instead of error to reduce log noise
