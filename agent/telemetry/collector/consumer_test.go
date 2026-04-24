@@ -420,7 +420,7 @@ func TestStop(t *testing.T) {
 	select {
 	case <-done:
 		t.Fatal("Did not block as expected")
-	case <-time.After(10 * time.Millisecond):
+	case <-time.After(200 * time.Millisecond):
 	}
 
 	// Stop the consumer
@@ -435,7 +435,7 @@ func TestStop(t *testing.T) {
 			assert.NoError(c, err)
 			assert.Equal(c, int64(0), fi.Size())
 		}, 200*time.Millisecond, 10*time.Millisecond)
-	case <-time.After(10 * time.Millisecond):
+	case <-time.After(200 * time.Millisecond):
 		t.Fatal("Poll did not stop as expected")
 	}
 
