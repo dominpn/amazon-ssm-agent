@@ -19,6 +19,7 @@ import (
 
 const serviceName = "AmazonSSMAgent"
 const imageStateComplete = "IMAGE_STATE_COMPLETE"
+const imageStateUndeployable = "IMAGE_STATE_UNDEPLOYABLE"
 const runningService = 4
 
 // isServiceRunning returns if the service is running
@@ -143,6 +144,16 @@ func waitForSysPrep(log logger.T) (bool, uint32) {
 
 	// disable ssm agent if sysprep is not done and EC2 exists in automatic state or manual state while running
 	if windowsImageState != imageStateComplete {
+		// IMAGE_STATE_UNDEPLOYABLE is a terminal failure state written by Windows Setup when the
+		// image cannot be deployed (e.g. bad unattend.xml, failed specialize, corrupted image).
+		// Waiting will not help since Windows will not advance out of this state on its own, and
+		// starting the agent against a half-sysprepped host risks registering with an identity
+		// that will not survive repair. Fail fast so the service manager surfaces a clear error.
+		if windowsImageState == imageStateUndeployable {
+			log.Errorf("Windows image state is %s; refusing to start agent", imageStateUndeployable)
+			return true, appconfig.ErrorExitCode
+		}
+
 		log.Debugf("Does EC2 config exist? %v, EC2 Config Start type: %v, ec2Config is running? %v", ec2ConfigExists, ec2ConfigStartType, ec2ConfigRunning)
 		if ec2ConfigExists && ((ec2ConfigStartType == mgr.StartAutomatic) || (ec2ConfigStartType == mgr.StartManual && ec2ConfigRunning)) {
 			log.Info("Stopping SSM agent because sysprep hasn't completed")
@@ -151,9 +162,14 @@ func waitForSysPrep(log logger.T) (bool, uint32) {
 	}
 	// loop around windowsImageState till it reaches IMAGE_STATE_COMPLETE
 	for windowsImageState != imageStateComplete {
+		log.Infof("Waiting for sysprep to complete. Current Windows ImageState: %v", windowsImageState)
 		windowsImageState, _, err = setupKey.GetStringValue("ImageState")
 		if err != nil {
 			log.Errorf("Image state cannot be obtained : %v", err)
+			return true, appconfig.ErrorExitCode
+		}
+		if windowsImageState == imageStateUndeployable {
+			log.Errorf("Windows image state transitioned to %s; refusing to start agent", imageStateUndeployable)
 			return true, appconfig.ErrorExitCode
 		}
 		time.Sleep(5 * time.Second)
