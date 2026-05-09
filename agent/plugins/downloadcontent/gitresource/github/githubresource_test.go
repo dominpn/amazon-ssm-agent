@@ -80,9 +80,10 @@ func TestGitResource_DownloadFile(t *testing.T) {
 
 	fileMock := filemock.FileSystemMock{}
 
-	fileMock.On("IsDirectory", appconfig.DownloadRoot).Return(true)
-	fileMock.On("Exists", appconfig.DownloadRoot).Return(true)
-	fileMock.On("MakeDirs", strings.TrimSuffix(appconfig.DownloadRoot, string(os.PathSeparator))).Return(nil)
+	cleanRoot := strings.TrimSuffix(appconfig.DownloadRoot, string(os.PathSeparator))
+	fileMock.On("IsDirectory", cleanRoot).Return(true)
+	fileMock.On("Exists", cleanRoot).Return(true)
+	fileMock.On("MakeDirs", cleanRoot).Return(nil)
 	fileMock.On("WriteFile", filepath.Join(appconfig.DownloadRoot, "file.ext"), mock.Anything).Return(nil)
 
 	err, result := resource.DownloadRemoteResource(&fileMock, "")

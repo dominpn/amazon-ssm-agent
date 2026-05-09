@@ -24,6 +24,7 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
+	"github.com/aws/amazon-ssm-agent/agent/fileutil"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/filemanager"
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/downloadcontent/gitresource/github/privategithub"
@@ -142,7 +143,7 @@ func (git *GitHubResource) download(filesys filemanager.FileSystem, info GitHubI
 				Path:       dirContent.GetPath(),
 				GetOptions: info.GetOptions,
 			}
-			destDir := filepath.Join(destinationDir, filepath.Base(dirContent.GetPath()))
+			destDir := fileutil.BuildSafePath(destinationDir, filepath.Base(dirContent.GetPath()))
 			if err = git.download(filesys, dirInput, destDir, true, result); err != nil {
 				log.Error("Error retrieving file from directory", destinationDir)
 				return err
@@ -155,12 +156,15 @@ func (git *GitHubResource) download(filesys filemanager.FileSystem, info GitHubI
 			return err
 		}
 
+		hasTrailingSep := len(destinationDir) > 0 && os.IsPathSeparator(destinationDir[len(destinationDir)-1])
+		destinationDir = fileutil.BuildSafePath(destinationDir)
+
 		// all files and sub-directories will be placed under the specified destinationDir when a directory was downloaded
 		if !isDirTypeDownload { // If only a file was downloaded
 			// If the destinationDir has a path separator in the end, then the file should be appended to the directory
 			// also if the folder already exists
-			if (filesys.Exists(destinationDir) && filesys.IsDirectory(destinationDir)) || os.IsPathSeparator(destinationDir[len(destinationDir)-1]) {
-				destinationDir = filepath.Join(destinationDir, filepath.Base(fileMetadata.GetPath()))
+			if (filesys.Exists(destinationDir) && filesys.IsDirectory(destinationDir)) || hasTrailingSep {
+				destinationDir = fileutil.BuildSafePath(destinationDir, filepath.Base(fileMetadata.GetPath()))
 			}
 		}
 
