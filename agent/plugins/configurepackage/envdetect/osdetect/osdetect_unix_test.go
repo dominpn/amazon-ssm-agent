@@ -266,6 +266,66 @@ func TestParseOSreleaseFile(t *testing.T) {
 	}
 }
 
+func TestParseBottlerocketRelease(t *testing.T) {
+	data := []struct {
+		name        string
+		input       string
+		expected    string
+		expectError bool
+	}{
+		{
+			"standard bottlerocket release file",
+			"NAME=Bottlerocket\nID=bottlerocket\nVERSION_ID=1.60.0",
+			"1.60.0",
+			false,
+		},
+		{
+			"bottlerocket with build id and variant",
+			"NAME=Bottlerocket\nID=bottlerocket\nVERSION_ID=1.6.0\nBUILD_ID=1602f3a8\nVARIANT_ID=aws-k8s-1.21",
+			"1.6.0",
+			false,
+		},
+		{
+			"bottlerocket with single digit version",
+			"NAME=Bottlerocket\nID=bottlerocket\nVERSION_ID=2",
+			"2",
+			false,
+		},
+		{
+			"missing VERSION_ID",
+			"NAME=Bottlerocket\nID=bottlerocket",
+			"",
+			true,
+		},
+		{
+			"empty string",
+			"",
+			"",
+			true,
+		},
+		{
+			"VERSION_ID with no value",
+			"NAME=Bottlerocket\nVERSION_ID=",
+			"",
+			true,
+		},
+	}
+
+	for _, m := range data {
+		t.Run(m.name, func(t *testing.T) {
+			result, err := parseBottlerocketRelease(m.input)
+
+			if m.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, m.expected, result)
+		})
+	}
+}
+
 func TestGetRedhatishPlatform(t *testing.T) {
 	data := []struct {
 		content     string

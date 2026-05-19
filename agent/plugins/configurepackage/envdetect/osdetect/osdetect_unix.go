@@ -109,10 +109,11 @@ func DetectPlatform(_ log.T) (string, string, string, error) {
 	// rather than the host OS. /etc/bottlerocket-release is bind-mounted from the
 	// host and is the authoritative source for detecting Bottlerocket.
 	if _, statErr := os.Stat("/etc/bottlerocket-release"); statErr == nil {
-		platform, version, err = scanRhelFile("/etc/bottlerocket-release")
-		if err == nil {
-			platformFamily, err = platformFamilyForPlatform(platform)
-			return platform, version, platformFamily, err
+		data, readErr := utils.ReadFileTrim("/etc/bottlerocket-release")
+		if readErr == nil {
+			if ver, parseErr := parseBottlerocketRelease(data); parseErr == nil {
+				return c.PlatformBottlerocket, ver, c.PlatformFamilyRhel, nil
+			}
 		}
 	}
 
@@ -131,6 +132,17 @@ func DetectPlatform(_ log.T) (string, string, string, error) {
 	platformFamily, err = platformFamilyForPlatform(platform)
 
 	return platform, version, platformFamily, err
+}
+
+// parseBottlerocketRelease extracts the VERSION_ID from the content of
+// /etc/bottlerocket-release. The file format uses KEY=VALUE lines.
+func parseBottlerocketRelease(data string) (string, error) {
+	versionRexp := regexp.MustCompile(`(?m)^VERSION_ID=(.+)$`)
+	match := versionRexp.FindStringSubmatch(data)
+	if len(match) > 1 {
+		return match[1], nil
+	}
+	return "", fmt.Errorf("could not detect Bottlerocket version from: %s", data)
 }
 
 ///////////////////////////
