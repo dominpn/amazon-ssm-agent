@@ -140,7 +140,7 @@ func BuildSafePath(root string, elements ...string) string {
 		newPath := filepath.Join(fullPath, cleanElement)
 		newPath = filepath.Clean(newPath)
 
-		if !strings.HasPrefix(newPath, root) {
+		if !isUnderDir(newPath, root) {
 			return root
 		}
 		fullPath = newPath

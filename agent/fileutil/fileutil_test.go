@@ -133,6 +133,21 @@ func TestBuildSafePath(t *testing.T) {
 	assert.Equal(t, orchestrationDirectory, sp3)
 }
 
+func TestBuildSafePathPrefixConfusion(t *testing.T) {
+	orchestrationDirectory := filepath.Join("/var/lib/amazon/ssm", "i-1234", "document", "orchestration", "cmd-id", "awsrunShellScript")
+	// A sibling directory that shares the textual prefix should be rejected
+	sp := BuildSafePath(orchestrationDirectory, "../awsrunShellScript_evil")
+	assert.Equal(t, orchestrationDirectory, sp)
+
+	// Valid subdirectory should still work
+	sp2 := BuildSafePath(orchestrationDirectory, "subdir")
+	assert.Equal(t, filepath.Join(orchestrationDirectory, "subdir"), sp2)
+
+	// Exact root should be allowed (element resolves to nothing)
+	sp3 := BuildSafePath(orchestrationDirectory, ".")
+	assert.Equal(t, orchestrationDirectory, sp3)
+}
+
 func TestMakeDirs(t *testing.T) {
 	// No error test
 	fs = osFSStub{}
