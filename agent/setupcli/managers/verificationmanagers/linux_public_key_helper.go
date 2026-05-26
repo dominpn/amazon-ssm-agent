@@ -17,11 +17,25 @@
 // Package verificationmanagers is used to verify the agent packages
 package verificationmanagers
 
-// GetLinuxPublicKey returns the public key used to verify agent linux package
+import (
+	"bytes"
+	"fmt"
+	"io"
+
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
+)
+
+// GetLinuxPublicKey returns the ASCII-armored public keys (concatenated) used to verify agent linux package
 func GetLinuxPublicKey() []byte {
-	// public key similar to our public documentation
-	// https://docs.aws.amazon.com/systems-manager/latest/userguide/verify-agent-signature.html
-	publicKeyString := `-----BEGIN PGP PUBLIC KEY BLOCK-----
+	keys := getLinuxPublicKeysIndividual()
+	separator := []byte("\n\n")
+	return bytes.Join(keys, separator)
+}
+
+// getLinuxPublicKeysIndividual returns each ASCII-armored public key as a separate element.
+// This avoids the need to split a concatenated string when dearmoring.
+func getLinuxPublicKeysIndividual() [][]byte {
+	key1 := []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
 mQENBGTtIoIBCAD2M1aoGIE0FXynAHM/jtuvdAVVaX3Q4ZejTqrX+Jq8ElAMhxyO
@@ -50,9 +64,9 @@ LDJnBXohiUIPRYRcy/k012oFHDWZHT3H6CyjK9UD5UlxA9H7dsJurANs6FOVRe+7
 n2uX/TP3LCyH/MsrNJrJOQnMYFRLQitciP0E+F+eA3v9CY6mDuyb8JSx5HuGGUsG
 S4bKBOcA8vimEpwPoT8CE7fdsZ3Qkwdu+pw=
 =zr5w
------END PGP PUBLIC KEY BLOCK-----
+-----END PGP PUBLIC KEY BLOCK-----`)
 
------BEGIN PGP PUBLIC KEY BLOCK-----
+	key2 := []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
 mQINBGeRNq4BEACrlf5h6Pz+k+M+QCJJ2LfK7d2Tn9J8iJ9qBK2Vwvuxco1rpSO+
@@ -92,6 +106,69 @@ oXSZrK3kiAADEdSODXJl8KYU0Pb27JbRr1ZbWnxb+O39TOhtssstulkR0v+IDGDQ
 rQE1b12sKgcNFSzInzWrNGu4S06WN8DYzlrTZ9aSHj+37ZqpXAevi8WOFXKPV3PA
 E6+O8RI2451Dcg==
 =aDkv
------END PGP PUBLIC KEY BLOCK-----`
-	return []byte(publicKeyString)
+-----END PGP PUBLIC KEY BLOCK-----`)
+
+	key3 := []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+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
+M98H0Sl+MxUsAg==
+=TpOv
+-----END PGP PUBLIC KEY BLOCK-----`)
+
+	return [][]byte{key1, key2, key3}
+}
+
+// GetLinuxPublicKeyDearmored returns the binary (dearmored) public keys used to verify agent linux package.
+// This is useful for tools like gpgv that require a binary keyring rather than ASCII-armored keys.
+func GetLinuxPublicKeyDearmored() ([]byte, error) {
+	keys := getLinuxPublicKeysIndividual()
+	var buf bytes.Buffer
+	for _, key := range keys {
+		block, err := armor.Decode(bytes.NewReader(key))
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode armor block: %v", err)
+		}
+		if _, err := io.Copy(&buf, block.Body); err != nil {
+			return nil, fmt.Errorf("failed to read key body: %v", err)
+		}
+	}
+	if buf.Len() == 0 {
+		return nil, fmt.Errorf("no PGP key data found")
+	}
+	return buf.Bytes(), nil
 }

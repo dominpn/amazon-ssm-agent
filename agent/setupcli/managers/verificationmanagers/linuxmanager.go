@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -29,6 +30,7 @@ import (
 
 var (
 	ioWriteUtil = ioutil.WriteFile
+	sleepFunc   = time.Sleep
 )
 
 type linuxManager struct {
@@ -38,6 +40,15 @@ type linuxManager struct {
 func (l *linuxManager) createPublicKeyFile(publicKeyPath string) error {
 	data := GetLinuxPublicKey()
 	return ioWriteUtil(publicKeyPath, data, appconfig.ReadWriteAccess)
+}
+
+// createDearmoredPublicKeyFile creating dearmored key for gpgv
+func (l *linuxManager) createDearmoredPublicKeyFile(publicKeyPath string) error {
+	dearmored, err := GetLinuxPublicKeyDearmored()
+	if err != nil {
+		return fmt.Errorf("failed to dearmor public key: %v", err)
+	}
+	return ioWriteUtil(publicKeyPath, dearmored, appconfig.ReadWriteAccess)
 }
 
 func (l *linuxManager) createKeyRingFile(keyRingFilePath string) error {
@@ -51,20 +62,43 @@ func (l *linuxManager) VerifySignature(log log.T, signaturePath string, artifact
 	gpgExtension := ".gpg"
 	amazonSSMAgentGPGKey := filepath.Join(artifactsPath, appconfig.DefaultAgentName+gpgExtension)
 
-	//create public key file
-	log.Infof("Creating public key file at: %s", amazonSSMAgentGPGKey)
-	if err := l.createPublicKeyFile(amazonSSMAgentGPGKey); err != nil {
-		return fmt.Errorf("failed to create amazon-ssm-agent.gpg file: %v", err)
-	}
-
 	//check to see if gpg is installed
 	log.Infof("Checking to see if gpg is installed")
 	if !l.managerHelper.IsCommandAvailable("gpg") {
-		return fmt.Errorf("gpg is not installed. Please install gpg to validate the signature of binaries or pass -skip-signature-validation flag")
+		// gpg not available, try gpgv as fallback
+		log.Infof("gpg is not available, checking for gpgv")
+		if !l.managerHelper.IsCommandAvailable("gpgv") {
+			return fmt.Errorf("gpg and gpgv are not installed. Please install gpg or gpgv to validate the signature of binaries or pass -skip-signature-validation flag")
+		}
+
+		// gpgv requires a dearmored (binary) keyring file
+		log.Infof("Using gpgv for signature verification, creating dearmored keyring")
+		dearmoredKeyPath := filepath.Join(artifactsPath, appconfig.DefaultAgentName+".gpg.bin")
+		if err := l.createDearmoredPublicKeyFile(dearmoredKeyPath); err != nil {
+			return fmt.Errorf("failed to create dearmored keyring file: %v", err)
+		}
+
+		log.Infof("Using gpgv for signature verification")
+		output, err := l.managerHelper.RunCommand("gpgv", "--keyring", dearmoredKeyPath, signaturePath, binaryPath)
+		if err != nil {
+			if l.managerHelper.IsTimeoutError(err) {
+				return fmt.Errorf("gpgv command timed out")
+			}
+			return fmt.Errorf("gpgv verify: failed to verify signature using gpgv with output '%v' and error: %v", output, err)
+		}
+
+		log.Infof("Successfully verified signature using gpgv")
+		return nil
 	}
 
 	tempKeyRing := "keyring"
 	keyringFile := filepath.Join(artifactsPath, tempKeyRing+gpgExtension)
+
+	//create public key file (armored, for gpg --import)
+	log.Infof("Creating public key file at: %s", amazonSSMAgentGPGKey)
+	if err := l.createPublicKeyFile(amazonSSMAgentGPGKey); err != nil {
+		return fmt.Errorf("failed to create amazon-ssm-agent.gpg file: %v", err)
+	}
 
 	//create key ring file
 	log.Infof("Creating key ring file at: %s", keyringFile)
@@ -73,7 +107,7 @@ func (l *linuxManager) VerifySignature(log log.T, signaturePath string, artifact
 	}
 
 	log.Debugf("Importing public key: gpg --import %s", amazonSSMAgentGPGKey)
-	output, err := l.managerHelper.RunCommand("gpg", "--no-default-keyring", "--keyring", keyringFile, "--import", amazonSSMAgentGPGKey)
+	output, err := l.managerHelper.RunCommand("gpg", "--no-tty", "--batch", "--no-default-keyring", "--keyring", keyringFile, "--import", amazonSSMAgentGPGKey)
 	if err != nil {
 		if l.managerHelper.IsTimeoutError(err) {
 			return fmt.Errorf("gpg command timed out")
@@ -81,8 +115,10 @@ func (l *linuxManager) VerifySignature(log log.T, signaturePath string, artifact
 	}
 	log.Infof("Successfully imported keyring: %v", output)
 
+	sleepFunc(1 * time.Second)
+
 	log.Info("Verifying agent signature")
-	output, err = l.managerHelper.RunCommand("gpg", "--no-default-keyring", "--keyring", keyringFile, "--verify", signaturePath, binaryPath)
+	output, err = l.managerHelper.RunCommand("gpg", "--no-tty", "--batch", "--no-default-keyring", "--keyring", keyringFile, "--verify", signaturePath, binaryPath)
 	if err != nil {
 		if l.managerHelper.IsTimeoutError(err) {
 			return fmt.Errorf("gpg verify: command timed out")
