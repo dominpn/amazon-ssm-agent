@@ -357,6 +357,32 @@ func (suite *PortTestSuite) TestValidateParametersWhenDefaultDenylistHostNotAllo
 	mockContext.AssertExpectations(suite.T())
 }
 
+func (suite *PortTestSuite) TestValidateParametersIPv6ZoneIdentifierBypass() {
+	mockContext := &contextmocks.Mock{}
+	suite.plugin.context = mockContext
+
+	mockContext.On("AppConfig").Return(appconfig.SsmagentConfig{Mgs: appconfig.MgsConfig{DeniedPortForwardingRemoteIPs: []string{"169.254.169.254", "fd00:ec2::254", "169.254.169.253", "fd00:ec2::253", "169.254.169.123", "169.254.169.250"}}})
+	mockContext.On("Log").Return(mockLog)
+
+	// IPv4-mapped IPv6 with zone identifier - primary bypass vector
+	err := suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "::ffff:169.254.169.254%eth0"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address ::ffff:169.254.169.254%eth0 is forbidden.")
+
+	// IPv6 with zone identifier
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "fd00:ec2::254%eth0"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address fd00:ec2::254%eth0 is forbidden.")
+
+	// IPv4-mapped IPv6 without zone identifier
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "::ffff:169.254.169.254"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address ::ffff:169.254.169.254 is forbidden.")
+
+	// IPv4-mapped IPv6 for VPC DNS
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "::ffff:169.254.169.253%lo"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address ::ffff:169.254.169.253%lo is forbidden.")
+
+	mockContext.AssertExpectations(suite.T())
+}
+
 func (suite *PortTestSuite) TestValidateParametersWhenValidHostAndPort() {
 	mockContext := &contextmocks.Mock{}
 	suite.plugin.context = mockContext

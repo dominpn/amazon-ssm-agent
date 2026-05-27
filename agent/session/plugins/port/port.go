@@ -20,6 +20,7 @@ import (
 	"net"
 	"os"
 	"runtime/debug"
+	"strings"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
@@ -301,6 +302,24 @@ func (p *PortPlugin) initializeParameters(config agentContracts.Configuration) (
 	return
 }
 
+// canonicalizeIP strips zone identifiers and converts IPv4-mapped IPv6 addresses
+// to their IPv4 equivalent for consistent denylist comparison.
+func canonicalizeIP(host string) net.IP {
+	// Strip zone identifier (e.g., %eth0) which causes net.ParseIP to return nil
+	if idx := strings.IndexByte(host, '%'); idx != -1 {
+		host = host[:idx]
+	}
+	ip := net.ParseIP(host)
+	if ip == nil {
+		return nil
+	}
+	// Convert IPv4-mapped IPv6 (::ffff:x.x.x.x) to IPv4 for consistent comparison
+	if v4 := ip.To4(); v4 != nil {
+		return v4
+	}
+	return ip
+}
+
 // validateParameters validates port plugin parameters
 func (p *PortPlugin) validateParameters(portParameters PortParameters, config agentContracts.Configuration) (err error) {
 	if portParameters.PortNumber == "" {
@@ -317,13 +336,29 @@ func (p *PortPlugin) validateParameters(portParameters PortParameters, config ag
 		p.context.Log().Warn("Error retrieving vpc dns address: %v", err)
 	}
 
+	denyList := append(appConfig.Mgs.DeniedPortForwardingRemoteIPs, dnsAddress...)
+
+	// Check the raw host parameter as an IP literal before DNS resolution.
+	// This catches bypass attempts using zone identifiers or IPv4-mapped IPv6
+	// that may cause lookupHost to fail or return non-canonical addresses.
+	if hostIP := canonicalizeIP(portParameters.Host); hostIP != nil {
+		for _, address := range denyList {
+			if denyIP := canonicalizeIP(address); denyIP != nil && hostIP.Equal(denyIP) {
+				return errors.New(fmt.Sprintf("Forwarding to IP address %s is forbidden.", portParameters.Host))
+			}
+		}
+	}
+
 	resolvedAddresses, err := lookupHost(portParameters.Host)
 	if portParameters.Host != "" && err == nil {
 		for _, host := range resolvedAddresses {
 			// Port forwarding to IMDS, VPC DNS, and local IP address is not allowed
-			hostIPAddress := net.ParseIP(host)
-			for _, address := range append(appConfig.Mgs.DeniedPortForwardingRemoteIPs, dnsAddress...) {
-				if hostIPAddress.Equal(net.ParseIP(address)) {
+			hostIPAddress := canonicalizeIP(host)
+			if hostIPAddress == nil {
+				continue
+			}
+			for _, address := range denyList {
+				if denyIP := canonicalizeIP(address); denyIP != nil && hostIPAddress.Equal(denyIP) {
 					return errors.New(fmt.Sprintf("Forwarding to IP address %s is forbidden.", portParameters.Host))
 				}
 			}
