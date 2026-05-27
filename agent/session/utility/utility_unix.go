@@ -41,6 +41,7 @@ var (
 	osStat                 = os.Stat
 	osOpenFile             = os.OpenFile
 	osChMod                = os.Chmod
+	ssmUserLockFile        = "/var/lib/amazon/ssm/user-create.lock"
 )
 
 const (
@@ -77,6 +78,13 @@ func (u *SessionUtil) DoesUserExist(username string) (bool, error) {
 
 // CreateLocalAdminUser creates a local OS user on the instance with admin permissions. The password will alway be empty
 func (u *SessionUtil) CreateLocalAdminUser(log log.T) (newPassword string, err error) {
+	// Acquire exclusive lock to serialize user creation across concurrent session workers.
+	lockFd, lockErr := acquireUserCreationLock(log)
+	if lockErr != nil {
+		log.Warnf("Failed to acquire user creation lock: %v. Proceeding without lock.", lockErr)
+	} else {
+		defer releaseUserCreationLock(log, lockFd)
+	}
 
 	userExists, _ := u.DoesUserExist(appconfig.DefaultRunAsUserName)
 	if userExists {
@@ -90,12 +98,42 @@ func (u *SessionUtil) CreateLocalAdminUser(log log.T) (newPassword string, err e
 		}
 	} else {
 		if err = u.createLocalUser(log); err != nil {
-			return
+			// If user was created by another process between our check and create, treat as success
+			if exists, _ := u.DoesUserExist(appconfig.DefaultRunAsUserName); exists {
+				log.Infof("%s was created by another process. Continuing.", appconfig.DefaultRunAsUserName)
+				err = nil
+			} else {
+				return
+			}
 		}
 		// only create sudoers file when user does not exist
 		err = u.createSudoersFileIfNotPresent(log)
 	}
 	return
+}
+
+// acquireUserCreationLock acquires an exclusive file lock to serialize ssm-user creation
+func acquireUserCreationLock(log log.T) (*os.File, error) {
+	f, err := os.OpenFile(ssmUserLockFile, os.O_CREATE|os.O_RDWR, 0600)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open lock file %s: %v", ssmUserLockFile, err)
+	}
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
+		f.Close()
+		return nil, fmt.Errorf("failed to acquire flock on %s: %v", ssmUserLockFile, err)
+	}
+	log.Debugf("Acquired user creation lock")
+	return f, nil
+}
+
+// releaseUserCreationLock releases the exclusive file lock
+func releaseUserCreationLock(log log.T, f *os.File) {
+	if f == nil {
+		return
+	}
+	syscall.Flock(int(f.Fd()), syscall.LOCK_UN)
+	f.Close()
+	log.Debugf("Released user creation lock")
 }
 
 // ChangeUserShell changes userShell for DefaultRunAsUser.
