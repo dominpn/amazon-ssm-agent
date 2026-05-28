@@ -1,5 +1,13 @@
 Latest
 ===============
+- Bump golang.org/x/crypto from v0.51.0 to v0.52.0
+- Bump golang.org/x/net from v0.54.0 to v0.55.0
+- Enforce directory boundary in BuildSafePath
+- Fix visibility issue with Bottlerocket OS in document output
+- Update go-git from v5.17.1 to v5.19.1
+
+3.3.4515.0
+===============
 - Bump golang.org/x/net from v0.48.0 to v0.53.0
 - Quit if sysprep failed and log its current state
 - Remove attached legacy cloudwatch plugin packages
