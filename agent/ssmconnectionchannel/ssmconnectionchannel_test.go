@@ -16,7 +16,6 @@ package ssmconnectionchannel
 
 import (
 	"testing"
-	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	logmocks "github.com/aws/amazon-ssm-agent/agent/mocks/log"
@@ -110,17 +109,10 @@ func TestGetConnectionChannelReturnsEmptyStringIfConnectionHasNotBeenSet(t *test
 }
 
 func resetConnectionChannel() {
-	go func() {
-		contextMock := contextmocks.NewMockDefault()
-		SetConnectionChannel(contextMock, MGSFailedDueToAccessDenied)
-	}()
-	go func() {
-		select {
-		case <-time.After(500 * time.Millisecond):
-			break
-		case <-GetMDSSwitchChannel():
-			break
-		}
-	}()
-	time.Sleep(500 * time.Millisecond)
+	connectionChannel.SSMConnectionChannel = ""
+	// Drain any pending signal from the channel
+	select {
+	case <-mdsSwitchChannel:
+	default:
+	}
 }

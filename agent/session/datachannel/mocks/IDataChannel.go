@@ -16,6 +16,7 @@ package mocks
 
 import (
 	"container/list"
+	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -161,6 +162,11 @@ func (_m *IDataChannel) PerformHandshake(_a0 log.T, kmsKeyId string, encryptionE
 // PrepareToCloseChannel provides a mock function with given fields: _a0
 func (_m *IDataChannel) PrepareToCloseChannel(_a0 log.T) {
 	_m.Called(_a0)
+}
+
+// WaitForBufferToDrain provides a mock function with given fields: _a0, idleTimeout, maxWaitTime
+func (_m *IDataChannel) WaitForBufferToDrain(_a0 log.T, idleTimeout time.Duration, maxWaitTime time.Duration) {
+	_m.Called(_a0, idleTimeout, maxWaitTime)
 }
 
 // ProcessAcknowledgedMessage provides a mock function with given fields: _a0, acknowledgeMessageContent

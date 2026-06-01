@@ -266,18 +266,12 @@ func TestReconnect(t *testing.T) {
 }
 
 func resetConnectionChannel() {
-	go func() {
-		ssmconnectionchannel.SetConnectionChannel(mockContext, ssmconnectionchannel.MGSFailedDueToAccessDenied)
-	}()
-	go func() {
-		select {
-		case <-time.After(500 * time.Millisecond):
-			break
-		case <-ssmconnectionchannel.GetMDSSwitchChannel():
-			break
-		}
-	}()
-	time.Sleep(500 * time.Millisecond)
+	ssmconnectionchannel.SetConnectionChannel(mockContext, ssmconnectionchannel.MGSFailedDueToAccessDenied)
+	// Drain any pending signal from the channel
+	select {
+	case <-ssmconnectionchannel.GetMDSSwitchChannel():
+	default:
+	}
 }
 
 func TestReconnectReportsHealthyMGSConnectionIfSuccessful(t *testing.T) {

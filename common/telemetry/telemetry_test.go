@@ -128,15 +128,13 @@ func (suite *TelemetryTestSuite) Test_emitLog() {
 
 	assert.EventuallyWithT(suite.T(), func(c *assert.CollectT) {
 		assert.Len(c, me.GetAllMessages(), 1)
-		if len(me.GetMessages("testNamespace")) == 0 {
-			assert.Fail(c, "no messages yet")
+		msgs := me.GetMessages("testNamespace")
+		if !assert.Len(c, msgs, 1) {
 			return
 		}
 
-		var actualMessage emitter.Message = me.GetMessages("testNamespace")[0]
-
 		// Check that correct message was emitted
-		assert.Equal(c, expectedMessage, actualMessage)
+		assert.Equal(c, expectedMessage, msgs[0])
 	}, 2*time.Second, 5*time.Millisecond)
 }
 
@@ -168,15 +166,13 @@ func (suite *TelemetryTestSuite) Test_emitLogTruncates() {
 
 	assert.EventuallyWithT(suite.T(), func(c *assert.CollectT) {
 		assert.Len(c, me.GetAllMessages(), 1)
-		if len(me.GetMessages("testNamespace")) == 0 {
-			assert.Fail(c, "no messages yet")
+		msgs := me.GetMessages("testNamespace")
+		if !assert.Len(c, msgs, 1) {
 			return
 		}
 
-		var actualMessage emitter.Message = me.Messages["testNamespace"][0]
-
 		// Check that correct message was received on the other side
-		assert.Equal(c, expectedMessage, actualMessage)
+		assert.Equal(c, expectedMessage, msgs[0])
 	}, 2*time.Second, 5*time.Millisecond)
 }
 
@@ -191,16 +187,15 @@ func (suite *TelemetryTestSuite) TestEmitLog() {
 
 	assert.EventuallyWithT(suite.T(), func(c *assert.CollectT) {
 		assert.Len(c, me.GetAllMessages(), 1)
-		if len(me.GetMessages("testNamespace")) == 0 {
-			assert.Fail(c, "no messages yet")
+		msgs := me.GetMessages("testNamespace")
+		if !assert.Len(c, msgs, 1) {
 			return
 		}
 
-		var actualMessage emitter.Message = me.Messages["testNamespace"][0]
-		assert.Equal(c, emitter.LOG, actualMessage.Type)
+		assert.Equal(c, emitter.LOG, msgs[0].Type)
 
 		var actualLogEntry *telemetrylog.Entry
-		err := json.Unmarshal([]byte(actualMessage.Payload), &actualLogEntry)
+		err := json.Unmarshal([]byte(msgs[0].Payload), &actualLogEntry)
 		assert.Nil(c, err)
 
 		// Check that correct message was emitted
@@ -220,16 +215,15 @@ func (suite *TelemetryTestSuite) TestEmitLogf() {
 
 	assert.EventuallyWithT(suite.T(), func(c *assert.CollectT) {
 		assert.Len(c, me.GetAllMessages(), 1)
-		if len(me.GetMessages("testNamespace")) == 0 {
-			assert.Fail(c, "no messages yet")
+		msgs := me.GetMessages("testNamespace")
+		if !assert.Len(c, msgs, 1) {
 			return
 		}
 
-		var actualMessage emitter.Message = me.Messages["testNamespace"][0]
-		assert.Equal(c, emitter.LOG, actualMessage.Type)
+		assert.Equal(c, emitter.LOG, msgs[0].Type)
 
 		var actualLogEntry *telemetrylog.Entry
-		err := json.Unmarshal([]byte(actualMessage.Payload), &actualLogEntry)
+		err := json.Unmarshal([]byte(msgs[0].Payload), &actualLogEntry)
 		assert.Nil(c, err)
 
 		// Check that correct message was emitted
@@ -266,15 +260,13 @@ func (suite *TelemetryTestSuite) Test_emitIntegerMetric() {
 
 	assert.EventuallyWithT(suite.T(), func(c *assert.CollectT) {
 		assert.Len(c, me.GetAllMessages(), 1)
-		if len(me.GetMessages("testNamespace")) == 0 {
-			assert.Fail(c, "no messages yet")
+		msgs := me.GetMessages("testNamespace")
+		if !assert.Len(c, msgs, 1) {
 			return
 		}
 
-		var actualMessage emitter.Message = me.Messages["testNamespace"][0]
-
 		// Check that correct message was emitted
-		assert.Equal(c, expectedMessage, actualMessage)
+		assert.Equal(c, expectedMessage, msgs[0])
 	}, 2*time.Second, 5*time.Millisecond)
 }
 

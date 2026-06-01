@@ -257,10 +257,10 @@ func (suite *ShellTestSuite) TestExecuteForNonInteractiveCommandsWithSeparateOut
 	suite.mockIohandler.On("SetOutput", mock.Anything).Return()
 	suite.mockIohandler.On("SetExitCode", mock.Anything).Return()
 	suite.mockDataChannel.On("IsActive").Return(true)
-	suite.mockDataChannel.On("PrepareToCloseChannel", mock.Anything).Return(nil).Times(1)
 	suite.mockDataChannel.On("SendAgentSessionStateMessage", mock.Anything, mgsContracts.Terminating).
 		Return(nil).Times(1)
 	suite.mockDataChannel.On("SendStreamDataMessage", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	suite.mockDataChannel.On("WaitForBufferToDrain", mock.Anything, mock.Anything, mock.Anything).Return()
 	suite.mockCmd.On("Start").Return(nil)
 	suite.mockCmd.On("Wait").Return(nil)
 	suite.mockCmd.On("Pid").Return(234)

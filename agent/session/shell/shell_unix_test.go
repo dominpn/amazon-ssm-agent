@@ -967,10 +967,10 @@ func (suite *ShellTestSuite) TestExecuteForNonInteractiveCommandSession() {
 	suite.mockIohandler.On("SetStatus", contracts.ResultStatusSuccess).Return()
 	suite.mockIohandler.On("SetOutput", mock.Anything).Return()
 	suite.mockDataChannel.On("IsActive").Return(true)
-	suite.mockDataChannel.On("PrepareToCloseChannel", mock.Anything).Return(nil).Times(1)
 	suite.mockDataChannel.On("SendAgentSessionStateMessage", mock.Anything, mgsContracts.Terminating).
 		Return(nil).Times(1)
 	suite.mockDataChannel.On("SendStreamDataMessage", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	suite.mockDataChannel.On("WaitForBufferToDrain", mock.Anything, mock.Anything, mock.Anything).Return()
 
 	shellConfig := mgsContracts.ShellConfig{
 		"ls", false, "true", "STD_OUT:\n", "STD_ERR:\n"}

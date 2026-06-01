@@ -78,6 +78,7 @@ type IDataChannel interface {
 	PrepareToCloseChannel(log log.T)
 	GetSeparateOutputPayload() bool
 	SetSeparateOutputPayload(separateOutputPayload bool)
+	WaitForBufferToDrain(log log.T, idleTimeout time.Duration, maxWaitTime time.Duration)
 }
 
 // DataChannel used for session communication between the message gateway service and the agent.
@@ -126,6 +127,13 @@ type ListMessageBuffer struct {
 	Messages *list.List
 	Capacity int
 	Mutex    *sync.Mutex
+}
+
+// Len returns the number of messages in the buffer in a thread-safe manner.
+func (b *ListMessageBuffer) Len() int {
+	b.Mutex.Lock()
+	defer b.Mutex.Unlock()
+	return b.Messages.Len()
 }
 
 type MapMessageBuffer struct {
@@ -413,7 +421,37 @@ func (dataChannel *DataChannel) PrepareToCloseChannel(log log.T) {
 	}
 }
 
-// SendStreamDataMessage sends a data message in a form of AgentMessage for streaming.
+// WaitForBufferToDrain waits for the outgoing message buffer to fully drain.
+// It keeps checking as long as the buffer is making progress (shrinking).
+// If no progress is made for idleTimeout, or maxWaitTime is exceeded, it gives up.
+func (dataChannel *DataChannel) WaitForBufferToDrain(log log.T, idleTimeout time.Duration, maxWaitTime time.Duration) {
+	startTime := time.Now()
+	lastLen := dataChannel.OutgoingMessageBuffer.Len()
+	lastProgressTime := time.Now()
+
+	for {
+		currentLen := dataChannel.OutgoingMessageBuffer.Len()
+		if currentLen == 0 {
+			log.Infof("Datachannel outgoing buffer fully drained")
+			return
+		}
+		if currentLen < lastLen {
+			// Buffer is shrinking, reset idle timer
+			lastLen = currentLen
+			lastProgressTime = time.Now()
+		}
+		if time.Since(lastProgressTime) > idleTimeout {
+			log.Warnf("No progress draining outgoing buffer for %v, giving up. Remaining messages: %d", idleTimeout, currentLen)
+			return
+		}
+		if time.Since(startTime) > maxWaitTime {
+			log.Warnf("Max wait time %v exceeded, giving up. Remaining messages: %d", maxWaitTime, currentLen)
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
 func (dataChannel *DataChannel) SendStreamDataMessage(log log.T, payloadType mgsContracts.PayloadType, inputData []byte) (err error) {
 	if len(inputData) == 0 {
 		log.Debugf("Ignoring empty stream data payload. PayloadType: %d", payloadType)

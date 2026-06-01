@@ -353,15 +353,15 @@ func (suite *HealthCheckTestSuite) resetConnectionChannel() {
 	go func() {
 		ssmconnectionchannel.SetConnectionChannel(suite.contextMock, ssmconnectionchannel.MGSFailedDueToAccessDenied)
 	}()
+	done := make(chan struct{})
 	go func() {
 		select {
 		case <-time.After(500 * time.Millisecond):
-			break
 		case <-ssmconnectionchannel.GetMDSSwitchChannel():
-			break
 		}
+		close(done)
 	}()
-	time.Sleep(500 * time.Millisecond)
+	<-done
 }
 
 // Testing the ModuleStop method with healthjob define

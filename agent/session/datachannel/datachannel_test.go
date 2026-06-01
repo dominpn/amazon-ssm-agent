@@ -218,6 +218,124 @@ func TestPrepareToCloseChannel(t *testing.T) {
 	mockWsChannel.AssertExpectations(t)
 }
 
+// test WaitForBufferToDrain with empty buffer returns immediately
+func TestWaitForBufferToDrainEmptyBuffer(t *testing.T) {
+	dataChannel := getDataChannel()
+
+	assert.Equal(t, 0, dataChannel.OutgoingMessageBuffer.Len())
+
+	start := time.Now()
+	dataChannel.WaitForBufferToDrain(mockLog, 2*time.Second, 10*time.Second)
+	elapsed := time.Since(start)
+
+	assert.True(t, elapsed < 200*time.Millisecond, "WaitForBufferToDrain should return immediately for empty buffer")
+}
+
+// test WaitForBufferToDrain times out when buffer is not draining
+func TestWaitForBufferToDrainTimeout(t *testing.T) {
+	dataChannel := getDataChannel()
+
+	dataChannel.AddDataToOutgoingMessageBuffer(streamingMessages[1])
+	dataChannel.AddDataToOutgoingMessageBuffer(streamingMessages[2])
+	assert.Equal(t, 2, dataChannel.OutgoingMessageBuffer.Len())
+
+	idleTimeout := 500 * time.Millisecond
+	start := time.Now()
+	dataChannel.WaitForBufferToDrain(mockLog, idleTimeout, 10*time.Second)
+	elapsed := time.Since(start)
+
+	assert.True(t, elapsed >= idleTimeout, "WaitForBufferToDrain should wait at least idleTimeout")
+	assert.True(t, elapsed < idleTimeout+500*time.Millisecond, "WaitForBufferToDrain should not wait much longer than idleTimeout")
+	assert.Equal(t, 2, dataChannel.OutgoingMessageBuffer.Len())
+}
+
+// test WaitForBufferToDrain returns when buffer drains
+func TestWaitForBufferToDrainWithProgress(t *testing.T) {
+	dataChannel := getDataChannel()
+
+	dataChannel.AddDataToOutgoingMessageBuffer(streamingMessages[1])
+	dataChannel.AddDataToOutgoingMessageBuffer(streamingMessages[2])
+	assert.Equal(t, 2, dataChannel.OutgoingMessageBuffer.Len())
+
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+	go func() {
+		select {
+		case <-stopCh:
+			return
+		case <-time.After(100 * time.Millisecond):
+		}
+		dataChannel.OutgoingMessageBuffer.Mutex.Lock()
+		elem := dataChannel.OutgoingMessageBuffer.Messages.Front()
+		dataChannel.OutgoingMessageBuffer.Mutex.Unlock()
+		if elem != nil {
+			dataChannel.RemoveDataFromOutgoingMessageBuffer(elem)
+		}
+		select {
+		case <-stopCh:
+			return
+		case <-time.After(100 * time.Millisecond):
+		}
+		dataChannel.OutgoingMessageBuffer.Mutex.Lock()
+		elem = dataChannel.OutgoingMessageBuffer.Messages.Front()
+		dataChannel.OutgoingMessageBuffer.Mutex.Unlock()
+		if elem != nil {
+			dataChannel.RemoveDataFromOutgoingMessageBuffer(elem)
+		}
+	}()
+
+	start := time.Now()
+	dataChannel.WaitForBufferToDrain(mockLog, 2*time.Second, 10*time.Second)
+	elapsed := time.Since(start)
+
+	assert.True(t, elapsed < 500*time.Millisecond, "WaitForBufferToDrain should return once buffer is empty")
+	assert.Equal(t, 0, dataChannel.OutgoingMessageBuffer.Len())
+}
+
+// test WaitForBufferToDrain respects maxWaitTime even when progress is being made
+func TestWaitForBufferToDrainMaxWaitTime(t *testing.T) {
+	dataChannel := getDataChannel()
+
+	// Add enough messages so steady removal shows progress but doesn't fully drain
+	for i := 0; i < 6; i++ {
+		dataChannel.AddDataToOutgoingMessageBuffer(streamingMessages[i])
+	}
+	assert.Equal(t, 6, dataChannel.OutgoingMessageBuffer.Len())
+
+	// Remove one message every 200ms — enough to reset idle timer (< 500ms)
+	// At maxWait (800ms) only ~4 removed from 6, so buffer won't fully drain
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+	go func() {
+		for i := 0; i < 20; i++ {
+			select {
+			case <-stopCh:
+				return
+			case <-time.After(200 * time.Millisecond):
+			}
+			dataChannel.OutgoingMessageBuffer.Mutex.Lock()
+			elem := dataChannel.OutgoingMessageBuffer.Messages.Front()
+			dataChannel.OutgoingMessageBuffer.Mutex.Unlock()
+			if elem != nil {
+				dataChannel.RemoveDataFromOutgoingMessageBuffer(elem)
+			}
+		}
+	}()
+
+	idleTimeout := 500 * time.Millisecond
+	maxWait := 800 * time.Millisecond
+	start := time.Now()
+	dataChannel.WaitForBufferToDrain(mockLog, idleTimeout, maxWait)
+	elapsed := time.Since(start)
+
+	// Without the goroutine, would exit at ~500ms via idleTimeout.
+	// With progress every 200ms, idle timer keeps resetting, so it exits at ~800ms via maxWaitTime.
+	assert.True(t, elapsed >= maxWait, "WaitForBufferToDrain should wait at least maxWaitTime")
+	assert.True(t, elapsed < maxWait+500*time.Millisecond, "WaitForBufferToDrain should not wait much longer than maxWaitTime")
+	// Buffer should still have remaining messages
+	assert.True(t, dataChannel.OutgoingMessageBuffer.Len() > 0, "Buffer should not be fully drained")
+}
+
 func TestSendStreamDataMessage(t *testing.T) {
 	dataChannel := getDataChannel()
 
