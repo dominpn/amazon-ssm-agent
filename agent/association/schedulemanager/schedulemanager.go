@@ -30,6 +30,7 @@ import (
 )
 
 var associations = []*model.InstanceAssociation{}
+var inProgressStartTimes = map[string]time.Time{}
 var lock sync.RWMutex
 
 // Refresh refreshes cached associationRawData
@@ -38,6 +39,8 @@ func Refresh(log log.T, assocs []*model.InstanceAssociation) {
 	defer lock.Unlock()
 
 	associations = []*model.InstanceAssociation{}
+	oldStartTimes := inProgressStartTimes
+	inProgressStartTimes = map[string]time.Time{}
 	log.Debugf("Refreshing schedule manager with %v associations", len(assocs))
 
 	for _, newAssoc := range assocs {
@@ -45,6 +48,10 @@ func Refresh(log log.T, assocs []*model.InstanceAssociation) {
 		// the next refresh (default to 10 minutes) will retry it
 		if len(newAssoc.Errors) == 0 {
 			associations = append(associations, newAssoc)
+			// Preserve tracked start time if association is still known
+			if t, ok := oldStartTimes[*newAssoc.Association.AssociationId]; ok {
+				inProgressStartTimes[*newAssoc.Association.AssociationId] = t
+			}
 		}
 	}
 
@@ -128,6 +135,8 @@ func UpdateNextScheduledDate(log log.T, associationID string) {
 	lock.Lock()
 	defer lock.Unlock()
 
+	delete(inProgressStartTimes, associationID)
+
 	for _, assoc := range associations {
 		if *assoc.Association.AssociationId == associationID {
 			assoc.Association.LastExecutionDate = aws.Time(time.Now().UTC())
@@ -151,6 +160,14 @@ func UpdateAssociationStatus(associationID string, status string) {
 			break
 		}
 	}
+
+	if status == contracts.AssociationStatusInProgress {
+		if _, exists := inProgressStartTimes[associationID]; !exists {
+			inProgressStartTimes[associationID] = time.Now().UTC()
+		}
+	} else {
+		delete(inProgressStartTimes, associationID)
+	}
 }
 
 // IsAssociationInProgress returns if given association has detailed status as InProgress
@@ -173,6 +190,15 @@ func IsAssociationInProgress(associationID string) bool {
 	}
 
 	return false
+}
+
+// GetInProgressStartTime returns the time when the association was marked InProgress
+func GetInProgressStartTime(associationID string) (time.Time, bool) {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	startTime, exists := inProgressStartTimes[associationID]
+	return startTime, exists
 }
 
 // Schedules returns all the cached schedules

@@ -311,3 +311,137 @@ func createAssociationRawData() []*model.InstanceAssociation {
 
 	return []*model.InstanceAssociation{&assocRawData}
 }
+
+func TestIsAssociationTimedOut_TrackedStartTimeNotExpired(t *testing.T) {
+	// Association just started (tracked start time < 2h ago) → not timed out
+	assocID := "test-assoc-1"
+	testAssociations := []*model.InstanceAssociation{
+		{
+			Association: &ssm.InstanceAssociationSummary{
+				AssociationId: aws.String(assocID),
+				Name:          aws.String("Test"),
+				InstanceId:    aws.String("i-123"),
+			},
+		},
+	}
+	schedulemanager.Refresh(log.NewMockLog(), testAssociations)
+	// Mark InProgress (this records the start time as now)
+	schedulemanager.UpdateAssociationStatus(assocID, contracts.AssociationStatusInProgress)
+
+	result := isAssociationTimedOut(testAssociations[0])
+	assert.False(t, result)
+}
+
+func TestIsAssociationTimedOut_NoTrackedStartTimeFallbackToLastExecution(t *testing.T) {
+	// No tracked start time, fallback to LastExecutionDate behavior
+	assocID := "test-assoc-3"
+	oldTime := time.Now().UTC().Add(-3 * time.Hour)
+	testAssociations := []*model.InstanceAssociation{
+		{
+			Association: &ssm.InstanceAssociationSummary{
+				AssociationId:     aws.String(assocID),
+				Name:              aws.String("Test"),
+				InstanceId:        aws.String("i-123"),
+				LastExecutionDate: aws.Time(oldTime),
+			},
+		},
+	}
+	// Refresh without marking InProgress — no tracked start time
+	schedulemanager.Refresh(log.NewMockLog(), testAssociations)
+
+	result := isAssociationTimedOut(testAssociations[0])
+	assert.True(t, result)
+}
+
+func TestIsAssociationTimedOut_LastExecutionDateNil(t *testing.T) {
+	// LastExecutionDate nil and no tracked start time → not timed out
+	assocID := "test-assoc-4"
+	testAssociations := []*model.InstanceAssociation{
+		{
+			Association: &ssm.InstanceAssociationSummary{
+				AssociationId: aws.String(assocID),
+				Name:          aws.String("Test"),
+				InstanceId:    aws.String("i-123"),
+			},
+		},
+	}
+	schedulemanager.Refresh(log.NewMockLog(), testAssociations)
+
+	result := isAssociationTimedOut(testAssociations[0])
+	assert.False(t, result)
+}
+
+func TestIsAssociationTimedOut_StartTimePreservedAcrossRefresh(t *testing.T) {
+	// Tracked start time must survive a Refresh cycle (every 10 min)
+	assocID := "test-assoc-5"
+	testAssociations := []*model.InstanceAssociation{
+		{
+			Association: &ssm.InstanceAssociationSummary{
+				AssociationId: aws.String(assocID),
+				Name:          aws.String("Test"),
+				InstanceId:    aws.String("i-123"),
+			},
+		},
+	}
+	schedulemanager.Refresh(log.NewMockLog(), testAssociations)
+	schedulemanager.UpdateAssociationStatus(assocID, contracts.AssociationStatusInProgress)
+
+	// Simulate a 10-minute refresh cycle with the same association still present
+	schedulemanager.Refresh(log.NewMockLog(), testAssociations)
+
+	// Start time should be preserved — association should not be timed out
+	result := isAssociationTimedOut(testAssociations[0])
+	assert.False(t, result)
+
+	// Verify the start time still exists
+	_, exists := schedulemanager.GetInProgressStartTime(assocID)
+	assert.True(t, exists)
+}
+
+func TestIsAssociationTimedOut_NewExecutionAtTwoHourBoundary(t *testing.T) {
+	// A new execution starts exactly when LastExecutionDate is 2h old.
+	// The timeout check must use the tracked start time (now), not LastExecutionDate.
+	assocID := "repro-boundary-race"
+	twoHoursAgo := time.Now().UTC().Add(-2 * time.Hour)
+	testAssociations := []*model.InstanceAssociation{
+		{
+			Association: &ssm.InstanceAssociationSummary{
+				AssociationId:     aws.String(assocID),
+				Name:              aws.String("AWS-RunShellScript"),
+				InstanceId:        aws.String("i-test"),
+				LastExecutionDate: aws.Time(twoHoursAgo),
+			},
+		},
+	}
+	schedulemanager.Refresh(log.NewMockLog(), testAssociations)
+	// Simulate: new execution just started → agent marks InProgress
+	schedulemanager.UpdateAssociationStatus(assocID, contracts.AssociationStatusInProgress)
+
+	// With the fix: should NOT be timed out (just started seconds ago)
+	result := isAssociationTimedOut(testAssociations[0])
+	assert.False(t, result, "BUG REPRODUCED: association falsely declared timed out even though it just started")
+}
+
+func TestIsAssociationTimedOut_OldBehaviorWouldFalsePositive(t *testing.T) {
+	// Demonstrate that WITHOUT tracked start time, the old LastExecutionDate logic
+	// would incorrectly declare timeout. This is the fallback path.
+	assocID := "old-behavior-demo"
+	twoHoursAgo := time.Now().UTC().Add(-2*time.Hour - time.Second)
+	testAssociations := []*model.InstanceAssociation{
+		{
+			Association: &ssm.InstanceAssociationSummary{
+				AssociationId:     aws.String(assocID),
+				Name:              aws.String("AWS-RunShellScript"),
+				InstanceId:        aws.String("i-test"),
+				LastExecutionDate: aws.Time(twoHoursAgo),
+			},
+		},
+	}
+	// Refresh but do NOT mark InProgress → no tracked start time → fallback path
+	schedulemanager.Refresh(log.NewMockLog(), testAssociations)
+
+	// Fallback to LastExecutionDate: 2h+1s ago + 2h = 1s ago → before now → TIMED OUT
+	// This confirms the old behavior still works as a fallback (e.g., after agent restart)
+	result := isAssociationTimedOut(testAssociations[0])
+	assert.True(t, result, "Fallback path should still detect genuinely stuck associations")
+}

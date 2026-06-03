@@ -397,11 +397,17 @@ func (p *Processor) runScheduledAssociation(log log.T) {
 }
 
 func isAssociationTimedOut(assoc *model.InstanceAssociation) bool {
+	currentTime := time.Now().UTC()
+
+	// Use the tracked InProgress start time if available
+	if startTime, exists := schedulemanager.GetInProgressStartTime(*assoc.Association.AssociationId); exists {
+		return startTime.Add(documentLevelTimeOutDurationHour * time.Hour).UTC().Before(currentTime)
+	}
+
+	// Fallback to LastExecutionDate for backward compatibility
 	if assoc.Association.LastExecutionDate == nil {
 		return false
 	}
-
-	currentTime := time.Now().UTC()
 	return (*assoc.Association.LastExecutionDate).Add(documentLevelTimeOutDurationHour * time.Hour).UTC().Before(currentTime)
 }
 
