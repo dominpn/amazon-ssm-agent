@@ -49,6 +49,11 @@ func TestCreateLocalAdminUserConcurrent(t *testing.T) {
 			return exec.Command("false")
 		}
 
+		// "dscl" — macOS ChangeUserShell call, always succeed
+		if len(cmdStr) > 3 && cmdStr[:4] == "dscl" {
+			return exec.Command("true")
+		}
+
 		// "useradd -m ssm-user" — create user
 		if atomic.CompareAndSwapInt32(&userCreated, 0, 1) {
 			return exec.Command("true")
