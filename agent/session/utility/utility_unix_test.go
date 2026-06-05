@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -49,17 +50,22 @@ func TestCreateLocalAdminUserConcurrent(t *testing.T) {
 			return exec.Command("false")
 		}
 
-		// "dscl" — macOS ChangeUserShell call, always succeed
-		if len(cmdStr) > 3 && cmdStr[:4] == "dscl" {
+		// "dscl" or "/usr/bin/dscl" — macOS ChangeUserShell call, always succeed
+		if strings.Contains(cmdStr, "dscl") {
 			return exec.Command("true")
 		}
 
-		// "useradd -m ssm-user" — create user
-		if atomic.CompareAndSwapInt32(&userCreated, 0, 1) {
-			return exec.Command("true")
+		// "useradd" (Linux) or "sysadminctl" (macOS) — create user
+		if strings.Contains(cmdStr, "useradd") || strings.Contains(cmdStr, "sysadminctl") {
+			if atomic.CompareAndSwapInt32(&userCreated, 0, 1) {
+				return exec.Command("true")
+			}
+			// Second concurrent create — user already exists
+			return exec.Command("sh", "-c", "exit 9")
 		}
-		// Second concurrent useradd — user already exists (exit code 9)
-		return exec.Command("sh", "-c", "exit 9")
+
+		// Default: succeed for any other commands
+		return exec.Command("true")
 	}
 
 	// Mock osStat to simulate sudoers file already exists
