@@ -18,6 +18,7 @@ import (
 	channelmock "github.com/aws/amazon-ssm-agent/common/filewatcherbasedipc/mocks"
 	"github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/core/executor"
+	executormocks "github.com/aws/amazon-ssm-agent/core/executor/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -335,4 +336,99 @@ func assertValueEqual(t *testing.T, a map[string]*contracts.PluginResult, b map[
 	for key, val := range a {
 		assert.Equal(t, *val, *b[key])
 	}
+}
+
+func TestProcessFinder_PidZero_ReturnsFalse(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 0}, mockExec)
+
+	assert.False(t, result)
+	mockExec.AssertNotCalled(t, "IsPidRunning")
+}
+
+func TestProcessFinder_PidNotRunning_ReturnsFalse(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+	mockExec.On("IsPidRunning", 1234).Return(false, nil)
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 1234}, mockExec)
+
+	assert.False(t, result)
+	mockExec.AssertNotCalled(t, "Processes")
+}
+
+func TestProcessFinder_IsPidRunningError_ReturnsFalse(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+	mockExec.On("IsPidRunning", 1234).Return(false, errors.New("access denied"))
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 1234}, mockExec)
+
+	assert.False(t, result)
+}
+
+func TestProcessFinder_PidRunning_SSMWorker_ReturnsTrue(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+	mockExec.On("IsPidRunning", 5678).Return(true, nil)
+	mockExec.On("Processes").Return([]executor.OsProcess{
+		{Pid: 5678, Executable: "ssm-document-worker"},
+	}, nil)
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 5678}, mockExec)
+
+	assert.True(t, result)
+}
+
+func TestProcessFinder_PidRunning_NotSSMWorker_ReturnsFalse(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+	mockExec.On("IsPidRunning", 5678).Return(true, nil)
+	mockExec.On("Processes").Return([]executor.OsProcess{
+		{Pid: 5678, Executable: "nginx"},
+	}, nil)
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 5678}, mockExec)
+
+	assert.False(t, result)
+}
+
+func TestProcessFinder_PidRunning_ProcessesError_ReturnsTrue(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+	mockExec.On("IsPidRunning", 5678).Return(true, nil)
+	mockExec.On("Processes").Return([]executor.OsProcess(nil), errors.New("ps failed"))
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 5678}, mockExec)
+
+	assert.True(t, result)
+}
+
+func TestProcessFinder_PidRunning_NotInProcessList_ReturnsFalse(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+	mockExec.On("IsPidRunning", 5678).Return(true, nil)
+	mockExec.On("Processes").Return([]executor.OsProcess{
+		{Pid: 1111, Executable: "sshd"},
+		{Pid: 2222, Executable: "ssm-agent-worker"},
+	}, nil)
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 5678}, mockExec)
+
+	assert.False(t, result)
+}
+
+func TestProcessFinder_PidRunning_CaseInsensitive_ReturnsTrue(t *testing.T) {
+	mockLog := logmocks.NewMockLog()
+	mockExec := &executormocks.IExecutor{}
+	mockExec.On("IsPidRunning", 5678).Return(true, nil)
+	mockExec.On("Processes").Return([]executor.OsProcess{
+		{Pid: 5678, Executable: "SSM-Document-Worker.exe"},
+	}, nil)
+
+	result := findProcess(mockLog, contracts.OSProcInfo{Pid: 5678}, mockExec)
+
+	assert.True(t, result)
 }

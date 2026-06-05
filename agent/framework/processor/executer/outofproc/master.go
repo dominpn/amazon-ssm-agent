@@ -2,7 +2,9 @@ package outofproc
 
 import (
 	"fmt"
+	"path/filepath"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -56,20 +58,43 @@ var channelCreator = func(log log.T, identity identity.IAgentIdentity, mode file
 	return filewatcherbasedipc.CreateFileWatcherChannel(log, identity, mode, documentID, false)
 }
 
-var processFinder = func(log log.T, procinfo contracts.OSProcInfo, executor executor.IExecutor) bool {
-	// If ProcInfo is not initailized
-	// pid 0 is reserved for kernel on both linux and windows, so the assumption is safe here
+var processFinder = findProcess
+
+func findProcess(log log.T, procinfo contracts.OSProcInfo, processExecutor executor.IExecutor) bool {
 	if procinfo.Pid == 0 {
 		return false
 	}
 
-	isRunning, err := executor.IsPidRunning(procinfo.Pid)
+	isRunning, err := processExecutor.IsPidRunning(procinfo.Pid)
 	if err != nil {
-		log.Errorf("Failed to query for running process: %v", err)
+		log.Errorf("failed to check if PID %d is running: %v", procinfo.Pid, err)
+		return false
+	}
+	if !isRunning {
+		log.Infof("PID %d is not running", procinfo.Pid)
 		return false
 	}
 
-	return isRunning
+	processes, err := processExecutor.Processes()
+	if err != nil {
+		log.Warnf("failed to enumerate processes to verify PID %d, assuming valid: %v", procinfo.Pid, err)
+		return true
+	}
+
+	for _, p := range processes {
+		if p.Pid == procinfo.Pid {
+			name := strings.ToLower(filepath.Base(p.Executable))
+			if !strings.HasPrefix(name, "ssm-") {
+				log.Warnf("PID %d belongs to %q, not an SSM worker; treating as not found", procinfo.Pid, name)
+				return false
+			}
+			log.Debugf("PID %d confirmed as SSM worker %q", procinfo.Pid, name)
+			return true
+		}
+	}
+
+	log.Infof("PID %d exited between running check and process enumeration", procinfo.Pid)
+	return false
 }
 
 var processCreator = func(name string, argv []string) (proc.OSProcess, error) {
