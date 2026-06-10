@@ -132,7 +132,7 @@ set_hostname() {
 get_list_of_computers() {
     check_for_write_protect ldapsearch
     LDAP_BASE_DN=$(echo $DIRECTORY_NAME | awk -F\. '{ for (i = 1; i <= NF; i++) { if (i != NF) printf "DC=%s,",$i ; else printf "DC=%s", $i} }')
-    ldapsearch -H ldap://$DIRECTORY_NAME -b $LDAP_BASE_DN 'objectClass=computer' -D "$DOMAIN_USERNAME@$REALM" -w "$DOMAIN_PASSWORD"  | grep "cn:" | sed 's/cn://g'
+    printf '%s' "$DOMAIN_PASSWORD" | ldapsearch -H ldap://$DIRECTORY_NAME -b $LDAP_BASE_DN 'objectClass=computer' -D "$DOMAIN_USERNAME@$REALM" -y /dev/stdin  | grep "cn:" | sed 's/cn://g'
 }
 
 cleanup_temp_files() {
