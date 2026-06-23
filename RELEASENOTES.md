@@ -1,5 +1,10 @@
 Latest
 ===============
+- Add multicloud support enabling SSM Agent registration with Azure cloud providers
+- Add support for the upcoming public key in the agent code
+
+3.3.4624.0
+===============
 - Bump golang.org/x/crypto from v0.51.0 to v0.52.0
 - Bump golang.org/x/net from v0.54.0 to v0.55.0
 - Enforce directory boundary in BuildSafePath
