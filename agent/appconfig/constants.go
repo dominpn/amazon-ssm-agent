@@ -266,8 +266,8 @@ const (
 	TelemetryDynamicConfigFileName = "telemetry_dynamic_config.json"
 )
 
-// Default deny list IP addresses for remote host port forwarding: IMDS (ipv4, ipv6); VPC (ipv4, ipv6); Amazon Time Sync (ipv4, ipv6); Amazon Windows license activation (2x ipv4, ipv6)
-var DefaultDeniedPortForwardingRemoteIPs = []string{"169.254.169.254", "fd00:ec2::254", "169.254.169.253", "fd00:ec2::253", "169.254.169.123", "fd00:ec2::123", "169.254.169.250", "169.254.169.251", "fd00:ec2::250"}
+// Default deny list IP addresses for remote host port forwarding: IMDS (ipv4, ipv6); VPC (ipv4, ipv6); Amazon Time Sync (ipv4, ipv6); Amazon Windows license activation (2x ipv4, ipv6); ECS task credentials (ipv4); EKS Pod Identity (ipv4, ipv6); Loopback (ipv4, ipv6)
+var DefaultDeniedPortForwardingRemoteIPs = []string{"169.254.169.254", "fd00:ec2::254", "169.254.169.253", "fd00:ec2::253", "169.254.169.123", "fd00:ec2::123", "169.254.169.250", "169.254.169.251", "fd00:ec2::250", "169.254.170.2", "169.254.170.23", "fd00:ec2::23", "127.0.0.1", "::1"}
 
 // Document versions that are supported by this Agent version.
 // Note that 1.1 and 2.1 are deprecated schemas and hence are not added here.
