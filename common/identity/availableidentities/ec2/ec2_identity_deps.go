@@ -38,7 +38,7 @@ const (
 	ec2VpcCidrBlockV6Resource     = "vpc-ipv6-cidr-blocks"
 	// IdentityType is the identity type for EC2
 	IdentityType = "EC2"
-	SourceType   = "AWS::SSM::ManagedInstance"
+	SourceType   = "AWS::EC2::Instance"
 )
 
 // iEC2MdsSdkClient defines the functions that ec2_identity depends on from the aws sdk

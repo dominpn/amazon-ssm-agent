@@ -220,6 +220,13 @@ func TestEC2IdentityType_IdentityType(t *testing.T) {
 	assert.Equal(t, res, IdentityType)
 }
 
+func TestEC2IdentityType_SourceType(t *testing.T) {
+	identity := Identity{}
+
+	res := identity.SourceType()
+	assert.Equal(t, SourceType, res)
+}
+
 func TestGetInstanceInfo_ReturnsError_WhenErrorGettingInstanceId(t *testing.T) {
 	// Arrange
 	client := &mocks.IEC2MdsSdkClient{}
