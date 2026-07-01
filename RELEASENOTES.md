@@ -1,5 +1,16 @@
 Latest
 ===============
+- Add ECS/EKS credential endpoints and loopback to port-forward denylist
+- Canonicalize IP addresses before port-forwarding denylist check
+- Pass the ActiveDirectory domain password via stdin using -y /dev/stdin instead of the -w flag
+- Fix false StuckAtInProgress timeout for associations with rate >= 2h
+- Fix non-interactive session big file transfer issues
+- Prevent ssm-user race condition with flock-based serialization
+- Send AWS::EC2::Instance as source type when registered with provider EC2
+- Validate process name in orphan worker detection
+
+3.3.4793.0
+===============
 - Add multicloud support enabling SSM Agent registration with Azure cloud providers
 - Add support for the upcoming public key in the agent code
 
