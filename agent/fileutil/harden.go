@@ -18,11 +18,9 @@ const (
 func HardenedWriteFile(filename string, data []byte) (err error) {
 	if _, err = os.Stat(filename); err != nil {
 		if os.IsNotExist(err) {
-			f, err := os.Create(filename)
-			if err != nil {
-				return fmt.Errorf("Failed to create the file, %s", err)
+			if err = createHardenedFile(filename); err != nil {
+				return
 			}
-			defer f.Close()
 		} else {
 			return
 		}
@@ -37,6 +35,17 @@ func HardenedWriteFile(filename string, data []byte) (err error) {
 	}
 
 	return
+}
+
+// createHardenedFile creates filename with RWPermission (0600) in a single
+// syscall in unix operating systems.
+func createHardenedFile(filename string) error {
+	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, RWPermission)
+	if err != nil {
+		return fmt.Errorf("Failed to create the file, %s", err)
+	}
+	defer f.Close()
+	return nil
 }
 
 // RecursivelyHarden the files and directory under the specified path.
