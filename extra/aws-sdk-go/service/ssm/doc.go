@@ -10,24 +10,24 @@
 //
 // This reference is intended to be used with the Amazon Web Services Systems
 // Manager User Guide (https://docs.aws.amazon.com/systems-manager/latest/userguide/).
-// To get started, see Setting up Amazon Web Services Systems Manager (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html).
+// To get started, see Setting up Amazon Web Services Systems Manager (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up-console.html).
 //
 // Related resources
 //
-//   - For information about each of the capabilities that comprise Systems
-//     Manager, see Systems Manager capabilities (https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html#systems-manager-capabilities)
+//   - For information about each of the tools that comprise Systems Manager,
+//     see Using Systems Manager tools (https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-tools.html)
 //     in the Amazon Web Services Systems Manager User Guide.
 //
-//   - For details about predefined runbooks for Automation, a capability of
-//     Amazon Web Services Systems Manager, see the Systems Manager Automation
-//     runbook reference (https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-runbook-reference.html) .
+//   - For details about predefined runbooks for Automation, a tool in Amazon
+//     Web Services Systems Manager, see the Systems Manager Automation Runbook
+//     Reference (https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-runbook-reference.html) .
 //
-//   - For information about AppConfig, a capability of Systems Manager, see
-//     the AppConfig User Guide (https://docs.aws.amazon.com/appconfig/latest/userguide/)
+//   - For information about AppConfig, a tool in Systems Manager, see the
+//     AppConfig User Guide (https://docs.aws.amazon.com/appconfig/latest/userguide/)
 //     and the AppConfig API Reference (https://docs.aws.amazon.com/appconfig/2019-10-09/APIReference/) .
 //
-//   - For information about Incident Manager, a capability of Systems Manager,
-//     see the Systems Manager Incident Manager User Guide (https://docs.aws.amazon.com/incident-manager/latest/userguide/)
+//   - For information about Incident Manager, a tool in Systems Manager, see
+//     the Systems Manager Incident Manager User Guide (https://docs.aws.amazon.com/incident-manager/latest/userguide/)
 //     and the Systems Manager Incident Manager API Reference (https://docs.aws.amazon.com/incident-manager/latest/APIReference/) .
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/ssm-2014-11-06 for more information on this service.
@@ -50,4 +50,7 @@
 // See the Amazon Simple Systems Management Service client SSM for more
 // information on creating client for this service.
 // https://docs.aws.amazon.com/sdk-for-go/api/service/ssm/#New
+//
+// Deprecated: aws-sdk-go is deprecated. Use aws-sdk-go-v2.
+// See https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/.
 package ssm

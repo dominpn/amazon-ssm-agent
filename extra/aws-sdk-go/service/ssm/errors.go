@@ -663,6 +663,10 @@ const (
 	// The size limit of a document is 64 KB.
 	ErrCodeMaxDocumentSizeExceeded = "MaxDocumentSizeExceeded"
 
+	// ErrCodeNoLongerSupportedException for service response error code
+	// "NoLongerSupportedException".
+	ErrCodeNoLongerSupportedException = "NoLongerSupportedException"
+
 	// ErrCodeOpsCenterInvalidArgumentException for service response error code
 	// "OpsCenterInvalidArgumentException".
 	ErrCodeOpsCenterInvalidArgumentException = "OpsCenterInvalidArgumentException"
@@ -804,6 +808,10 @@ const (
 	// "ParameterNotFound".
 	//
 	// The parameter couldn't be found. Verify the name and try again.
+	//
+	// For the DeleteParameter and GetParameter actions, if the specified parameter
+	// doesn't exist, the ParameterNotFound exception is not recorded in CloudTrail
+	// event logs.
 	ErrCodeParameterNotFound = "ParameterNotFound"
 
 	// ErrCodeParameterPatternMismatchException for service response error code
@@ -865,6 +873,12 @@ const (
 	//
 	// ROS receives unshared action when user does not have resource shared
 	ErrCodeRAMResourceNotSharedException = "RAMResourceNotSharedException"
+
+	// ErrCodeRAMThrottlingException for service response error code
+	// "RAMThrottlingException".
+	//
+	// RAM calls are Throttled
+	ErrCodeRAMThrottlingException = "RAMThrottlingException"
 
 	// ErrCodeRegistrationLimitExceeded for service response error code
 	// "RegistrationLimitExceeded".
@@ -956,6 +970,10 @@ const (
 
 	// ErrCodeServiceQuotaExceededException for service response error code
 	// "ServiceQuotaExceededException".
+	//
+	// The request exceeds the service quota. Service quotas, also referred to as
+	// limits, are the maximum number of service resources or operations for your
+	// Amazon Web Services account.
 	ErrCodeServiceQuotaExceededException = "ServiceQuotaExceededException"
 
 	// ErrCodeServiceSettingNotFound for service response error code
@@ -976,6 +994,30 @@ const (
 	//
 	// The sub-type count exceeded the limit for the inventory type.
 	ErrCodeSubTypeCountLimitExceededException = "SubTypeCountLimitExceededException"
+
+	// ErrCodeTagrisAccessDeniedException for service response error code
+	// "TagrisAccessDeniedException".
+	ErrCodeTagrisAccessDeniedException = "TagrisAccessDeniedException"
+
+	// ErrCodeTagrisInternalServiceException for service response error code
+	// "TagrisInternalServiceException".
+	ErrCodeTagrisInternalServiceException = "TagrisInternalServiceException"
+
+	// ErrCodeTagrisInvalidArnException for service response error code
+	// "TagrisInvalidArnException".
+	ErrCodeTagrisInvalidArnException = "TagrisInvalidArnException"
+
+	// ErrCodeTagrisInvalidParameterException for service response error code
+	// "TagrisInvalidParameterException".
+	ErrCodeTagrisInvalidParameterException = "TagrisInvalidParameterException"
+
+	// ErrCodeTagrisPartialResourcesExistResultsException for service response error code
+	// "TagrisPartialResourcesExistResultsException".
+	ErrCodeTagrisPartialResourcesExistResultsException = "TagrisPartialResourcesExistResultsException"
+
+	// ErrCodeTagrisThrottledException for service response error code
+	// "TagrisThrottledException".
+	ErrCodeTagrisThrottledException = "TagrisThrottledException"
 
 	// ErrCodeTargetInUseException for service response error code
 	// "TargetInUseException".
@@ -1180,6 +1222,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"MachineFingerprintDoesNotMatch":                 newErrorMachineFingerprintDoesNotMatch,
 	"MalformedResourcePolicyDocumentException":       newErrorMalformedResourcePolicyDocumentException,
 	"MaxDocumentSizeExceeded":                        newErrorMaxDocumentSizeExceeded,
+	"NoLongerSupportedException":                     newErrorNoLongerSupportedException,
 	"OpsCenterInvalidArgumentException":              newErrorOpsCenterInvalidArgumentException,
 	"OpsItemAccessDeniedException":                   newErrorOpsItemAccessDeniedException,
 	"OpsItemAlreadyExistsException":                  newErrorOpsItemAlreadyExistsException,
@@ -1210,6 +1253,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"RAMInvalidSequenceNumberException":              newErrorRAMInvalidSequenceNumberException,
 	"RAMResourceNotFoundException":                   newErrorRAMResourceNotFoundException,
 	"RAMResourceNotSharedException":                  newErrorRAMResourceNotSharedException,
+	"RAMThrottlingException":                         newErrorRAMThrottlingException,
 	"RegistrationLimitExceeded":                      newErrorRegistrationLimitExceeded,
 	"ResourceDataSyncAlreadyExistsException":         newErrorResourceDataSyncAlreadyExistsException,
 	"ResourceDataSyncConflictException":              newErrorResourceDataSyncConflictException,
@@ -1228,6 +1272,12 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"ServiceSettingNotFound":                         newErrorServiceSettingNotFound,
 	"StatusUnchanged":                                newErrorStatusUnchanged,
 	"SubTypeCountLimitExceededException":             newErrorSubTypeCountLimitExceededException,
+	"TagrisAccessDeniedException":                    newErrorTagrisAccessDeniedException,
+	"TagrisInternalServiceException":                 newErrorTagrisInternalServiceException,
+	"TagrisInvalidArnException":                      newErrorTagrisInvalidArnException,
+	"TagrisInvalidParameterException":                newErrorTagrisInvalidParameterException,
+	"TagrisPartialResourcesExistResultsException":    newErrorTagrisPartialResourcesExistResultsException,
+	"TagrisThrottledException":                       newErrorTagrisThrottledException,
 	"TargetInUseException":                           newErrorTargetInUseException,
 	"TargetNotConnected":                             newErrorTargetNotConnected,
 	"TooManyTagsError":                               newErrorTooManyTagsError,
