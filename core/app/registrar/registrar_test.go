@@ -139,6 +139,8 @@ func TestRetryableRegistrar_RegisterWithRetry_Failure_StopWhenRetrying(t *testin
 }
 
 func TestRetryableRegistrar_RegisterWithRetry_Failure_RegistrationAttemptedChannel(t *testing.T) {
+	originalContextWithCancel := contextWithCancel
+	defer func() { contextWithCancel = originalContextWithCancel }()
 	contextWithCancel = func(parent contextPackage.Context) (contextPackage.Context, contextPackage.CancelFunc) {
 		panic("mocked panic for testing")
 	}
@@ -147,9 +149,7 @@ func TestRetryableRegistrar_RegisterWithRetry_Failure_RegistrationAttemptedChann
 	registrarErrorContext := createRetryableRegistrar(identityRegistrarReturnError)
 	registrarErrorContext.setIsRegistrarRunning(true)
 
-	go func() {
-		registrarErrorContext.registrationAttemptedChan <- struct{}{}
-	}()
+	registrarErrorContext.registrationAttemptedChan <- struct{}{}
 
 	registrarErrorContext.RegisterWithRetry()
 	_, ok := <-registrarErrorContext.GetRegistrationAttemptedChan()

@@ -15,6 +15,7 @@
 package ssmconnectionchannel
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -28,21 +29,30 @@ import (
 func TestSetConnectionChannel_MGSSuccess_MDSSwitchOff(t *testing.T) {
 	contextMock := contextmocks.NewMockDefault()
 	resetConnectionChannel()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		SetConnectionChannel(contextMock, MGSSuccess)
 	}()
+
 	mdsSwitchCh := <-GetMDSSwitchChannel()
 	assert.Equal(t, mdsSwitchCh, false)
+
+	wg.Wait()
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), string(contracts.MGS))
 }
 
 func TestSetConnectionChannel_MGSSuccess_MDSAlreadyStopped(t *testing.T) {
 	contextMock := contextmocks.NewMockDefault()
-	connectionChannel.SSMConnectionChannel = contracts.MGS
-	go func() {
-		SetConnectionChannel(contextMock, MGSSuccess)
-	}()
+	resetConnectionChannel()
+
+	setConnectionChannelForTest(contracts.MGS)
+
+	SetConnectionChannel(contextMock, MGSSuccess)
+
 	assert.Equal(t, len(mdsSwitchChannel), 0)
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), string(contracts.MGS))
@@ -51,7 +61,9 @@ func TestSetConnectionChannel_MGSSuccess_MDSAlreadyStopped(t *testing.T) {
 func TestSetConnectionChannel_MGSFailed_MDSAlreadyStarted(t *testing.T) {
 	contextMock := contextmocks.NewMockDefault()
 	resetConnectionChannel()
+
 	SetConnectionChannel(contextMock, MGSFailed)
+
 	assert.Equal(t, len(mdsSwitchChannel), 0)
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), string(contracts.MDS))
@@ -59,8 +71,12 @@ func TestSetConnectionChannel_MGSFailed_MDSAlreadyStarted(t *testing.T) {
 
 func TestSetConnectionChannel_MGSFailed_MDSNotRunning(t *testing.T) {
 	contextMock := contextmocks.NewMockDefault()
-	connectionChannel.SSMConnectionChannel = contracts.MGS
+	resetConnectionChannel()
+
+	setConnectionChannelForTest(contracts.MGS)
+
 	SetConnectionChannel(contextMock, MGSFailed)
+
 	assert.Equal(t, len(mdsSwitchChannel), 0)
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), string(contracts.MGS))
@@ -69,7 +85,9 @@ func TestSetConnectionChannel_MGSFailed_MDSNotRunning(t *testing.T) {
 func TestSetConnectionChannel_MGSAccessDenied_MDSAlreadySwitchON(t *testing.T) {
 	contextMock := contextmocks.NewMockDefault()
 	resetConnectionChannel()
+
 	SetConnectionChannel(contextMock, MGSFailedDueToAccessDenied)
+
 	assert.Equal(t, len(mdsSwitchChannel), 0)
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), string(contracts.MDS))
@@ -77,12 +95,24 @@ func TestSetConnectionChannel_MGSAccessDenied_MDSAlreadySwitchON(t *testing.T) {
 
 func TestSetConnectionChannel_MGSAccessDenied_MDSNotSwitchON(t *testing.T) {
 	contextMock := contextmocks.NewMockDefault()
-	connectionChannel.SSMConnectionChannel = contracts.MGS
+	resetConnectionChannel()
+
+	// Pre-set to MGS so the AccessDenied path sends a switch-ON signal.
+	setConnectionChannelForTest(contracts.MGS)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		SetConnectionChannel(contextMock, MGSFailedDueToAccessDenied)
 	}()
+
+	// The channel receive synchronizes with the send inside SetConnectionChannel.
 	mdsSwitchCh := <-GetMDSSwitchChannel()
 	assert.Equal(t, mdsSwitchCh, true)
+
+	// Wait for the goroutine to fully finish before asserting shared state.
+	wg.Wait()
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), string(contracts.MDS))
 }
@@ -95,22 +125,34 @@ func TestSetConnectionChannel_ContainerMode(t *testing.T) {
 	contextMock.On("Log").Return(logmocks.NewMockLog())
 	contextMock.On("AppConfig").Return(appConfig)
 
-	connectionChannel.SSMConnectionChannel = contracts.MGS
+	resetConnectionChannel()
+
+	// Pre-set to MGS; container mode always keeps MGS regardless of state.
+	setConnectionChannelForTest(contracts.MGS)
+
 	SetConnectionChannel(contextMock, MGSFailedDueToAccessDenied)
+
 	assert.Equal(t, len(mdsSwitchChannel), 0)
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), string(contracts.MGS))
 }
 
 func TestGetConnectionChannelReturnsEmptyStringIfConnectionHasNotBeenSet(t *testing.T) {
-	connectionChannel.SSMConnectionChannel = ""
+	resetConnectionChannel()
 	messagingService := GetConnectionChannel()
 	assert.Equal(t, string(messagingService), "")
 }
 
+func setConnectionChannelForTest(channel contracts.SSMConnectionChannel) {
+	connectionChannelMutex.Lock()
+	connectionChannel.SSMConnectionChannel = channel
+	connectionChannelMutex.Unlock()
+}
+
 func resetConnectionChannel() {
-	connectionChannel.SSMConnectionChannel = ""
-	// Drain any pending signal from the channel
+	setConnectionChannelForTest("")
+
+	// Drain any pending signal from the channel.
 	select {
 	case <-mdsSwitchChannel:
 	default:
