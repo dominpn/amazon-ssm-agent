@@ -1,21 +1,20 @@
 BUMP_VERSION := $(GOPATH)/bin/bump_version
+STATICCHECK := $(GOPATH)/bin/staticcheck
 WRITE_MAILMAP := $(GOPATH)/bin/write_mailmap
 
-lint:
-	go vet ./...
-	go run honnef.co/go/tools/cmd/staticcheck@latest ./...
-	go run github.com/kevinburke/differ@latest gofmt -s -w .
+$(STATICCHECK):
+	go get honnef.co/go/tools/cmd/staticcheck
 
-test:
+lint: $(STATICCHECK)
+	go vet ./...
+	$(STATICCHECK)
+
+test: lint
 	@# the timeout helps guard against infinite recursion
 	go test -timeout=250ms ./...
 
-race-test:
+race-test: lint
 	go test -timeout=500ms -race ./...
-
-coverage:
-	go test -trimpath -timeout=250ms -coverprofile=coverage.out -covermode=atomic ./...
-	go tool cover -func=coverage.out
 
 $(BUMP_VERSION):
 	go get -u github.com/kevinburke/bump_version

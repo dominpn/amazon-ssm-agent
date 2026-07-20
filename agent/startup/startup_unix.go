@@ -17,14 +17,14 @@
 package startup
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/amazon-ssm-agent/agent/platform"
 	"github.com/aws/amazon-ssm-agent/agent/startup/serialport"
 	"github.com/aws/amazon-ssm-agent/agent/version"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
 // IsAllowed returns true if the current environment allows startup processor.
@@ -32,8 +32,13 @@ func (p *Processor) IsAllowed() bool {
 	// TODO: Check if is EC2 identity type instead of calling imds, first confirm if onprem on ec2 should be allowed
 	// check if metadata is reachable which indicates the instance is in EC2.
 	// maximum retry is 10 to ensure the failure/error is not caused by arbitrary reason.
-	ec2MetadataService := ec2metadata.New(session.New(aws.NewConfig().WithMaxRetries(10)))
-	if metadata, err := ec2MetadataService.GetMetadata(""); err != nil || metadata == "" {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRetryMaxAttempts(10))
+	if err != nil {
+		return false
+	}
+
+	client := imds.NewFromConfig(cfg)
+	if _, err := client.GetMetadata(context.TODO(), &imds.GetMetadataInput{Path: ""}); err != nil {
 		return false
 	}
 
@@ -47,14 +52,14 @@ func (p *Processor) ExecuteTasks() (err error) {
 
 	platformName := ""
 	if n, err := platform.PlatformName(log); err == nil {
-		platformName = *aws.String(n)
+		platformName = n
 	} else {
 		log.Warn(err)
 	}
 
 	platformVersion := ""
 	if v, err := platform.PlatformVersion(log); err == nil {
-		platformVersion = *aws.String(v)
+		platformVersion = v
 	} else {
 		log.Warn(err)
 	}

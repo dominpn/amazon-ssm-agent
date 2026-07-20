@@ -16,27 +16,30 @@
 package facade
 
 import (
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	cont "context"
+
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
 // BirdwatcherFacade is the interface type for ssmiface.SSMAPI
 type BirdwatcherFacade interface {
-	GetManifestRequest(*ssm.GetManifestInput) (*request.Request, *ssm.GetManifestOutput)
+	//GetManifestRequest(*ssm.GetManifestInput) (*request.Request, *ssm.GetManifestOutput)
 
-	GetManifest(*ssm.GetManifestInput) (*ssm.GetManifestOutput, error)
+	GetManifest(ctx cont.Context, params *ssm.GetManifestInput, optFns ...func(*ssm.Options)) (*ssm.GetManifestOutput, error)
 
-	PutConfigurePackageResultRequest(*ssm.PutConfigurePackageResultInput) (*request.Request, *ssm.PutConfigurePackageResultOutput)
+	//PutConfigurePackageResultRequest(*ssm.PutConfigurePackageResultInput) (*request.Request, *ssm.PutConfigurePackageResultOutput)
 
-	PutConfigurePackageResult(*ssm.PutConfigurePackageResultInput) (*ssm.PutConfigurePackageResultOutput, error)
+	PutConfigurePackageResult(ctx cont.Context, params *ssm.PutConfigurePackageResultInput, optFns ...func(*ssm.Options)) (*ssm.PutConfigurePackageResultOutput, error)
 
-	GetDocumentRequest(*ssm.GetDocumentInput) (*request.Request, *ssm.GetDocumentOutput)
+	//GetDocumentRequest(*ssm.GetDocumentInput) (*request.Request, *ssm.GetDocumentOutput)
 
-	GetDocument(*ssm.GetDocumentInput) (*ssm.GetDocumentOutput, error)
+	GetDocument(ctx cont.Context, params *ssm.GetDocumentInput, optFns ...func(*ssm.Options)) (*ssm.GetDocumentOutput, error)
 
-	DescribeDocumentRequest(*ssm.DescribeDocumentInput) (*request.Request, *ssm.DescribeDocumentOutput)
+	//DescribeDocumentRequest(*ssm.DescribeDocumentInput) (*request.Request, *ssm.DescribeDocumentOutput)
 
-	DescribeDocument(*ssm.DescribeDocumentInput) (*ssm.DescribeDocumentOutput, error)
+	DescribeDocument(ctx cont.Context, params *ssm.DescribeDocumentInput, optFns ...func(*ssm.Options)) (*ssm.DescribeDocumentOutput, error)
 }
 
-var _ BirdwatcherFacade = (*ssm.SSM)(nil)
+//var _ BirdwatcherFacade = (*ssm.SSM)(nil)
+
+var _ BirdwatcherFacade = (*ssm.Client)(nil)

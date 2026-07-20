@@ -9,7 +9,7 @@ import (
 
 func TestGetMgsEndpointForUnknownRegion(t *testing.T) {
 	region := "unknown-region-1"
-	expected := ServiceName + "." + region + ".amazonaws.com"
+	expected := "https://" + ServiceName + "." + region + ".amazonaws.com"
 
 	contextMock := context.NewMockDefault()
 
@@ -20,7 +20,7 @@ func TestGetMgsEndpointForUnknownRegion(t *testing.T) {
 
 func TestGetMgsEndpointForUnknownCnRegion(t *testing.T) {
 	region := "cn-unknown-1"
-	expected := ServiceName + "." + region + ".amazonaws.com.cn"
+	expected := "https://" + ServiceName + "." + region + ".amazonaws.com.cn"
 
 	contextMock := context.NewMockDefault()
 
@@ -31,7 +31,7 @@ func TestGetMgsEndpointForUnknownCnRegion(t *testing.T) {
 
 func TestGetMgsEndpointForKnownAwsRegion(t *testing.T) {
 	region := "us-east-1"
-	expected := ServiceName + "." + region + ".amazonaws.com"
+	expected := "https://" + ServiceName + "." + region + ".amazonaws.com"
 
 	contextMock := context.NewMockDefault()
 
@@ -42,7 +42,7 @@ func TestGetMgsEndpointForKnownAwsRegion(t *testing.T) {
 
 func TestGetMgsEndpointForKnownAwsCnRegion(t *testing.T) {
 	region := "cn-northwest-1"
-	expected := ServiceName + ".cn-northwest-1.amazonaws.com.cn"
+	expected := "https://" + ServiceName + ".cn-northwest-1.amazonaws.com.cn"
 
 	contextMock := context.NewMockDefault()
 

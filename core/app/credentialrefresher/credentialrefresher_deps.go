@@ -8,13 +8,13 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/onprem"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	//ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 )
 
 const (
 	ErrCodeAccessDeniedException          = "AccessDeniedException"
-	ErrCodeInvalidInstanceId              = ssm.ErrCodeInvalidInstanceId
-	ErrCodeMachineFingerprintDoesNotMatch = ssm.ErrCodeMachineFingerprintDoesNotMatch
+	ErrCodeInvalidInstanceId              = "InvalidInstanceId"
+	ErrCodeMachineFingerprintDoesNotMatch = "MachineFingerprintDoesNotMatch"
 	ErrAllOtherAWSErrors                  = "ErrAllOtherAWSErrors"
 	ErrAllOtherNonAWSErrors               = "ErrAllOtherNonAWSErrors"
 	maxSleepDurationJitterSeconds         = 300 // 5 minutes jitter on max default sleep (30 Minutes)

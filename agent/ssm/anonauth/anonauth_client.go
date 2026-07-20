@@ -15,19 +15,27 @@
 package anonauth
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"log"
+	"net/http"
+	"time"
+
+	"github.com/aws/smithy-go/middleware"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
-	"github.com/aws/amazon-ssm-agent/agent/backoffconfig"
 	logger "github.com/aws/amazon-ssm-agent/agent/log"
-	"github.com/aws/amazon-ssm-agent/agent/ssm/util"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/amazon-ssm-agent/agent/backoffconfig"
+	"github.com/aws/amazon-ssm-agent/agent/network"
+	"github.com/aws/amazon-ssm-agent/common/identity/endpoint"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/smithy-go"
+
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 
 	"github.com/cenkalti/backoff/v4"
 )
@@ -36,12 +44,12 @@ var backoffRetry = backoff.Retry
 
 // IClient is an interface to the Anonymous methods of the SSM service.
 type IClient interface {
-	RegisterManagedInstance(activationCode, activationID, publicKey, publicKeyType, fingerprint, provider string) (string, error)
+	RegisterManagedInstance(activationCode string, activationID string, publicKey string, publicKeyType string, fingerprint string, provider string) (string, error)
 }
 
 // ISsmSdk defines the functions needed from the AWS SSM SDK
 type ISsmSdk interface {
-	RegisterManagedInstance(input *ssm.RegisterManagedInstanceInput) (*ssm.RegisterManagedInstanceOutput, error)
+	RegisterManagedInstance(ctx context.Context, input *ssm.RegisterManagedInstanceInput, optFns ...func(*ssm.Options)) (*ssm.RegisterManagedInstanceOutput, error)
 }
 
 // Client is a service wrapper that delegates to the ssm sdk
@@ -56,8 +64,10 @@ func shouldRetryAwsRequest(err error) bool {
 		return false
 	}
 
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == ssm.ErrCodeTooManyUpdates {
+	// In v2, check for specific error types
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		if apiErr.ErrorCode() == "TooManyUpdates" {
 			return true
 		}
 		return false
@@ -72,22 +82,46 @@ func NewClient(logger logger.T, region string) IClient {
 
 	log.SetFlags(0)
 
+	var endpointString string
 	appConfig, appErr := appconfig.Config(true)
 	if appErr != nil {
 		log.Printf("encountered error while loading appconfig - %v", appErr)
 	}
-	awsConfig := util.AwsConfig(logger, appConfig, "ssm", region).WithLogLevel(aws.LogOff)
-	awsConfig.Credentials = credentials.AnonymousCredentials
-
+	endpointHelper := endpoint.NewEndpointHelper(logger, appConfig)
 	if appErr == nil && appConfig.Ssm.Endpoint != "" {
-		awsConfig.Endpoint = &appConfig.Ssm.Endpoint
+		endpointString = appConfig.Ssm.Endpoint
+	} else {
+		endpointString = endpointHelper.GetServiceEndpoint("ssm", region)
+	}
+	//awsConfig := util.AwsConfig(logger, appConfig, "ssm", region).WithLogLevel(aws.LogOff)
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(region),
+		config.WithCredentialsProvider(aws.AnonymousCredentials{}),
+		config.WithBaseEndpoint(endpointString),
+		config.WithHTTPClient(&http.Client{
+			Transport:     network.GetDefaultTransport(logger, appConfig),
+			CheckRedirect: network.DisableHTTPDowngrade,
+			Timeout:       60 * time.Second,
+		}),
+	)
+	if err != nil {
+		log.Printf("failed to load AWS config: %v", err)
+		return nil
 	}
 
-	// Create a session to share service client config and handlers with
-	ssmSess := session.New(awsConfig)
-	ssmSess.Handlers.Build.PushBack(request.MakeAddToUserAgentHandler(appConfig.Agent.Name, appConfig.Agent.Version))
+	cfg.APIOptions = append(cfg.APIOptions, func(stack *middleware.Stack) error {
+		return stack.Build.Add(
+			middleware.BuildMiddlewareFunc("AddUserAgent", func(ctx context.Context, in middleware.BuildInput, next middleware.BuildHandler) (middleware.BuildOutput, middleware.Metadata, error) {
+				req := in.Request.(*smithyhttp.Request)
+				userAgent := fmt.Sprintf("%s/%s", appConfig.Agent.Name, appConfig.Agent.Version)
+				req.Header.Add("User-Agent", userAgent)
+				return next.HandleBuild(ctx, in)
+			}),
+			middleware.After,
+		)
+	})
 
-	ssmService := ssm.New(ssmSess)
+	ssmService := ssm.NewFromConfig(cfg)
 	return &Client{sdk: ssmService}
 }
 
@@ -112,7 +146,7 @@ func (svc *Client) RegisterManagedInstance(activationCode, activationID, publicK
 
 	var result *ssm.RegisterManagedInstanceOutput
 	_ = backoffRetry(func() error {
-		result, err = svc.sdk.RegisterManagedInstance(&params)
+		result, err = svc.sdk.RegisterManagedInstance(context.TODO(), &params)
 		if shouldRetryAwsRequest(err) {
 			return err
 		}

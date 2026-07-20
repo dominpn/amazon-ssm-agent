@@ -18,10 +18,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
+
 	"github.com/aws/amazon-ssm-agent/agent/mocks/log"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/mocks"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -108,14 +109,13 @@ func TestAgentIdentityCacher_InstanceType(t *testing.T) {
 }
 
 func TestAgentIdentityCacher_Credentials(t *testing.T) {
-	val := &credentials.Credentials{}
+	val := ec2rolecreds.New()
 	agentIdentityInner := &mocks.IEC2Identity{}
-	agentIdentityInner.On("Credentials").Return(val).Once()
+	agentIdentityInner.On("CredentialsProvider").Return(val).Once()
 
 	cacher := agentIdentityCacher{log: log.NewMockLog(), client: agentIdentityInner}
 
-	assert.Equal(t, val, cacher.Credentials())
-	assert.Equal(t, val, cacher.Credentials())
+	assert.Equal(t, val, cacher.CredentialsProvider())
 }
 
 func TestAgentIdentityCacher_IdentityType(t *testing.T) {

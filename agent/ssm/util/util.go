@@ -15,39 +15,61 @@
 package util
 
 import (
+	cont "context"
 	"net/http"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/config"
+
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
+
+	"github.com/aws/amazon-ssm-agent/agent/sdkutil/retryer"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/network"
-	"github.com/aws/amazon-ssm-agent/agent/sdkutil/retryer"
 	"github.com/aws/amazon-ssm-agent/common/identity/endpoint"
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	//"github.com/aws/smithy-go/logging"
 )
 
-func AwsConfig(logger log.T, appConfig appconfig.SsmagentConfig, service, region string) *aws.Config {
+func AwsConfig(logger log.T, appConfig appconfig.SsmagentConfig, service, region string) aws.Config {
 	endpointHelper := endpoint.NewEndpointHelper(logger, appConfig)
 
-	return &aws.Config{
-		Retryer:    newRetryer(),
-		SleepDelay: sleepDelay,
-		HTTPClient: &http.Client{
+	//cfg, err := config.LoadDefaultConfig(context.TODO())
+	svcEndpoint := endpointHelper.GetServiceEndpoint(service, region)
+
+	// Apply service-specific endpoint override from appConfig so that it is
+	// baked into LoadOptions before the SDK caches ConfigSources. Otherwise a
+	// post-hoc mutation of cfg.BaseEndpoint gets silently overwritten by
+	// ssm.NewFromConfig's resolveBaseEndpoint, which re-reads LoadOptions.
+	if service == "ssm" && appConfig.Ssm.Endpoint != "" {
+		svcEndpoint = appConfig.Ssm.Endpoint
+	}
+
+	return AwsConfigWithEndpoint(logger, appConfig, service, region, &svcEndpoint)
+}
+
+func AwsConfigWithEndpoint(logger log.T, appConfig appconfig.SsmagentConfig, service, region string, endpoint *string) aws.Config {
+	conf, _ := config.LoadDefaultConfig(cont.TODO(),
+		config.WithRegion(region),
+		config.WithBaseEndpoint(*endpoint),
+		config.WithRetryer(newRetryer),
+		config.WithHTTPClient(&http.Client{
 			Transport:     network.GetDefaultTransport(logger, appConfig),
 			CheckRedirect: network.DisableHTTPDowngrade,
 			Timeout:       60 * time.Second,
-		},
-		Region:   aws.String(region),
-		Endpoint: aws.String(endpointHelper.GetServiceEndpoint(service, region)),
-		Logger:   logger,
-	}
-
+		}),
+	)
+	return conf
 }
 
-var newRetryer = func() aws.RequestRetryer {
-	r := retryer.SsmRetryer{}
-	r.NumMaxRetries = 3
-	return r
+var newRetryer = func() aws.Retryer {
+	return &retryer.SsmRetryer{
+		Standard: retry.NewStandard(func(so *retry.StandardOptions) {
+			so.MaxAttempts = 4
+		}),
+	}
 }
 
 var sleepDelay = func(d time.Duration) {

@@ -16,6 +16,9 @@ package ec2
 import (
 	"context"
 	"sync"
+	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -23,8 +26,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ec2roleprovider"
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
 const (
@@ -43,12 +45,9 @@ const (
 
 // iEC2MdsSdkClient defines the functions that ec2_identity depends on from the aws sdk
 type iEC2MdsSdkClient interface {
-	GetMetadata(string) (string, error)
-	GetInstanceIdentityDocument() (ec2metadata.EC2InstanceIdentityDocument, error)
-	Region() (string, error)
-	RegionWithContext(ctx context.Context) (string, error)
-	GetMetadataWithContext(ctx context.Context, resource string) (string, error)
-	GetInstanceIdentityDocumentWithContext(ctx context.Context) (ec2metadata.EC2InstanceIdentityDocument, error)
+	GetMetadata(ctx context.Context, params *imds.GetMetadataInput, optFns ...func(*imds.Options)) (*imds.GetMetadataOutput, error)
+	GetInstanceIdentityDocument(ctx context.Context, params *imds.GetInstanceIdentityDocumentInput, optFns ...func(*imds.Options)) (*imds.GetInstanceIdentityDocumentOutput, error)
+	GetRegion(ctx context.Context, params *imds.GetRegionInput, optFns ...func(*imds.Options)) (*imds.GetRegionOutput, error)
 }
 
 // IEC2Identity defines the functions for the EC2 identity
@@ -59,7 +58,7 @@ type IEC2Identity interface {
 	AvailabilityZoneId() (string, error)
 	InstanceType() (string, error)
 	IsIdentityEnvironment() bool
-	Credentials() *credentials.Credentials
+	CredentialsProvider() aws.CredentialsProvider
 	IdentityType() string
 	Register()
 }
@@ -69,10 +68,42 @@ type Identity struct {
 	Log                 log.T
 	Client              iEC2MdsSdkClient
 	Config              *appconfig.SsmagentConfig
-	credentials         *credentials.Credentials
+	credentials         aws.Credentials
 	credentialsProvider ec2roleprovider.IEC2RoleProvider
 	AuthRegisterService authregister.IClient
 	shareLock           *sync.RWMutex
 	runtimeConfigClient runtimeconfig.IIdentityRuntimeConfigClient
 	ec2Detector         ec2detector.Ec2Detector
+}
+
+type IEC2RoleProviderWrapper struct {
+	provider      *aws.CredentialsCache
+	innerProvider aws.CredentialsProvider
+	expiry        time.Time
+}
+
+func (w *IEC2RoleProviderWrapper) Retrieve(ctx context.Context) (aws.Credentials, error) {
+	return w.provider.Retrieve(ctx)
+}
+
+// RetrieveWithoutCache bypasses the credentials cache and calls the underlying
+// IMDS provider directly. This ensures that when the instance profile is removed,
+// the error is surfaced rather than being masked by the cache's fail-to-refresh
+// extension strategy.
+func (w *IEC2RoleProviderWrapper) RetrieveWithoutCache(ctx context.Context) (aws.Credentials, error) {
+	return w.innerProvider.Retrieve(ctx)
+}
+
+func (w *IEC2RoleProviderWrapper) ExpiresAt() time.Time {
+	return w.expiry
+}
+
+// SetExpiry updates the credential expiry time. Called after successful
+// credential retrieval in the RemoteRetrieve path.
+func (w *IEC2RoleProviderWrapper) SetExpiry(t time.Time) {
+	w.expiry = t
+}
+
+func (w *IEC2RoleProviderWrapper) IsExpired() bool {
+	return time.Now().After(w.expiry)
 }

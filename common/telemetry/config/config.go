@@ -14,10 +14,13 @@
 package config
 
 import (
+	"context"
+	"strings"
+
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/common/identity"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go-v2/config"
 )
 
 func IsTelemetryEnabled(log log.T, identity identity.IAgentIdentity, appConfig appconfig.SsmagentConfig) bool {
@@ -26,17 +29,40 @@ func IsTelemetryEnabled(log log.T, identity identity.IAgentIdentity, appConfig a
 		log.Warnf("Could not determine region")
 		return false
 	}
-	partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), region)
-	if !ok {
-		log.Warnf("Could not determine partition for region %s", region)
+
+	isAwsPartition, err := isRegionInAwsPartition(region)
+	if err != nil {
+		log.Warnf("Could not determine partition for region %s: %v", region, err)
 		return false
 	}
-	log.Debugf("Determined partition for region %s: %s", region, partition.ID())
+
+	if !isAwsPartition {
+		log.Debugf("Region %s is not in AWS standard partition", region)
+		return false
+	}
 
 	if !appConfig.Agent.GlobalEnhancedTelemetryEnabled {
 		log.Info("Agent GlobalEnhancedTelemetry is disabled")
 		return false
 	}
 
-	return partition.ID() == endpoints.AwsPartitionID
+	return true
+}
+
+func isRegionInAwsPartition(region string) (bool, error) {
+	// Try to load config with the region - this validates the region exists
+	_, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
+	if err != nil {
+		return false, err
+	}
+
+	// Check if it's NOT in other partitions (China, GovCloud, ISO)
+	if strings.HasPrefix(region, "cn-") ||
+		strings.HasPrefix(region, "us-gov-") ||
+		strings.HasPrefix(region, "us-iso-") ||
+		strings.HasPrefix(region, "us-isob-") {
+		return false, nil
+	}
+
+	return true, nil
 }

@@ -15,14 +15,16 @@ package diagnostics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/smithy-go"
+
 	"github.com/aws/amazon-ssm-agent/agent/cli/cliutil"
 	"github.com/aws/amazon-ssm-agent/agent/cli/diagnosticsutil"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
 const (
@@ -67,7 +69,7 @@ func (q credentialsCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
 		}
 	}
 
-	awsSession, err := diagnosticsutil.GetAwsSession(agentIdentity, "sts")
+	awsConfig, err := diagnosticsutil.GetAwsConfig(agentIdentity, "sts")
 	if err != nil {
 		return diagnosticsutil.DiagnosticOutput{
 			Check:  q.GetName(),
@@ -76,25 +78,28 @@ func (q credentialsCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
 		}
 	}
 
-	client := sts.New(awsSession)
-	client.Endpoint = "https://" + agentIdentity.GetServiceEndpoint("sts")
-
+	client := sts.NewFromConfig(*awsConfig)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	callerResp, err := client.GetCallerIdentityWithContext(ctx, &sts.GetCallerIdentityInput{})
+	callerResp, err := client.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
-		awsErr, isAwsError := err.(awserr.Error)
-		if isAwsError && awsErr.Code() == request.CanceledErrorCode {
+		//awsErr, isAwsError := err.(awserr.Error)
+		var reqCanceledErr *aws.RequestCanceledError
+		if errors.As(err, &reqCanceledErr) {
 			return diagnosticsutil.DiagnosticOutput{
 				Check:  q.GetName(),
 				Status: diagnosticsutil.DiagnosticsStatusFailed,
 				Note:   credentialsCheckStrSTSTimeout,
 			}
-		} else if isAwsError && awsErr.Code() == "EC2RoleRequestError" {
-			return diagnosticsutil.DiagnosticOutput{
-				Check:  q.GetName(),
-				Status: diagnosticsutil.DiagnosticsStatusFailed,
-				Note:   fmt.Sprintf(credentialsCheckStrEC2RoleError, awsErr.Message()),
+		}
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			if apiErr.ErrorCode() == "EC2RoleRequestError" {
+				return diagnosticsutil.DiagnosticOutput{
+					Check:  q.GetName(),
+					Status: diagnosticsutil.DiagnosticsStatusFailed,
+					Note:   fmt.Sprintf(credentialsCheckStrEC2RoleError, apiErr.ErrorMessage()),
+				}
 			}
 		}
 
@@ -105,7 +110,8 @@ func (q credentialsCheckQuery) Execute() diagnosticsutil.DiagnosticOutput {
 		}
 	}
 
-	expireDate, err := agentIdentity.Credentials().ExpiresAt()
+	creds, err := agentIdentity.CredentialsProvider().Retrieve(ctx)
+	expireDate := creds.Expires
 	if err != nil {
 		return diagnosticsutil.DiagnosticOutput{
 			Check:  q.GetName(),

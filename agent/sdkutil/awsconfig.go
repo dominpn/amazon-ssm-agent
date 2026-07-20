@@ -16,18 +16,21 @@ package sdkutil
 
 import (
 	"net/http"
+	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/network"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil/retryer"
 	"github.com/aws/amazon-ssm-agent/common/identity/endpoint"
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 // AwsConfig returns the default aws.Config object with the appropriate
 // credentials.
-func AwsConfig(context context.T, service string) (awsConfig *aws.Config) {
+func AwsConfig(context context.T, service string) (awsConfig aws.Config) {
 	region, _ := context.Identity().Region()
 	endpoint := context.Identity().GetServiceEndpoint(service)
 	return AwsConfigForEndpoint(context, endpoint, region)
@@ -35,31 +38,40 @@ func AwsConfig(context context.T, service string) (awsConfig *aws.Config) {
 
 // AwsConfigForRegion returns the default aws.Config object with the appropriate
 // credentials and endpoint.
-func AwsConfigForRegion(context context.T, service, region string) (awsConfig *aws.Config) {
+func AwsConfigForRegion(context context.T, service, region string) (awsConfig aws.Config) {
 	endpointHelper := endpoint.NewEndpointHelper(context.Log(), context.AppConfig())
 	return AwsConfigForEndpoint(context, endpointHelper.GetServiceEndpoint(service, region), region)
 }
 
 // AwsConfigForEndpoint returns the default aws.Config object with the appropriate
 // credentials and endpoint.
-func AwsConfigForEndpoint(context context.T, endpoint, region string) (awsConfig *aws.Config) {
+func AwsConfigForEndpoint(context context.T, endpoint, region string) (awsConfig aws.Config) {
 	// create default config
-	return &aws.Config{
-		Retryer:    newRetryer(),
-		SleepDelay: sleepDelay,
-		Region:     aws.String(region),
-		Endpoint:   aws.String(endpoint),
-		HTTPClient: &http.Client{
-			Transport: network.GetDefaultTransport(context.Log(), context.AppConfig()),
-		},
-		Credentials: context.Identity().Credentials(),
+	if endpoint != "" && !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+		endpoint = "https://" + endpoint
 	}
+
+	conf := aws.Config{
+		Region:       region,
+		BaseEndpoint: &endpoint,
+		Retryer:      newRetryer,
+		HTTPClient: &http.Client{
+			Transport:     network.GetDefaultTransport(context.Log(), context.AppConfig()),
+			CheckRedirect: network.DisableHTTPDowngrade,
+			Timeout:       60 * time.Second,
+		},
+		Credentials: context.Identity().CredentialsProvider(),
+	}
+
+	return conf
 }
 
-var newRetryer = func() aws.RequestRetryer {
-	r := retryer.SsmRetryer{}
-	r.NumMaxRetries = 3
-	return r
+var newRetryer = func() aws.Retryer {
+	return &retryer.SsmRetryer{
+		Standard: retry.NewStandard(func(so *retry.StandardOptions) {
+			so.MaxAttempts = 4
+		}),
+	}
 }
 
 var sleepDelay = func(d time.Duration) {

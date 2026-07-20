@@ -252,7 +252,7 @@ func registerManagedInstance(log logger.T) (managedInstanceID string, err error)
 
 	if role != "" {
 		authRegisterService := authregister.NewClient(log, region, nil)
-		managedInstanceID, err = authRegisterService.RegisterManagedInstanceWithContext(
+		managedInstanceID, err = authRegisterService.RegisterManagedInstance(
 			context.Background(),
 			publicKey,
 			keyType,
