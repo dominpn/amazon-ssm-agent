@@ -138,7 +138,7 @@ func TestInitializeParametersWhenHostIsProvided(t *testing.T) {
 		return mockMetadata, true
 	}
 	mockMetadata.On("VpcPrimaryCIDRBlock").Return(map[string][]string{"ipv4": {"172.31.0.0/16"}, "ipv6": {"2600:1f18:64ad::/56"}}, nil)
-	address := "127.0.0.1"
+	address := "203.0.113.1"
 	lookupHost = func(host string) ([]string, error) {
 		if host == remoteHost {
 			return []string{address}, nil
@@ -416,7 +416,73 @@ func (suite *PortTestSuite) TestValidateParametersWhenValidHostAndPort() {
 	mockContext.On("AppConfig").Return(appconfig.SsmagentConfig{Mgs: appconfig.MgsConfig{DeniedPortForwardingRemoteIPs: []string{"169.254.169.254", "fd00:ec2::254", "169.254.169.253", "fd00:ec2::253"}}})
 	mockContext.On("Log").Return(mockLog)
 
+	err := suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "8.8.8.8"}, configuration)
+	assert.Nil(suite.T(), err)
+
+	mockContext.AssertExpectations(suite.T())
+}
+
+// TestValidateParametersWhenLoopbackNotAllowed verifies that any loopback address is denied,
+// including ones not in the literal denylist (127.0.0.1, ::1), since 127.0.0.0/8 is an entire
+// range that exact-equality matching alone cannot cover.
+func (suite *PortTestSuite) TestValidateParametersWhenLoopbackNotAllowed() {
+	mockContext := &contextmocks.Mock{}
+	suite.plugin.context = mockContext
+
+	mockContext.On("AppConfig").Return(appconfig.SsmagentConfig{Mgs: appconfig.MgsConfig{DeniedPortForwardingRemoteIPs: []string{"127.0.0.1", "::1"}}})
+	mockContext.On("Log").Return(mockLog)
+
 	err := suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "127.0.0.1"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address 127.0.0.1 is forbidden.")
+
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "127.0.0.2"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address 127.0.0.2 is forbidden.")
+
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "127.255.255.255"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address 127.255.255.255 is forbidden.")
+
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "::1"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address ::1 is forbidden.")
+
+	mockContext.AssertExpectations(suite.T())
+}
+
+// TestValidateParametersWhenUnspecifiedAddressNotAllowed verifies that the unspecified address
+// (0.0.0.0, ::) is denied. On Linux, connect() to the unspecified address is routed to the
+// loopback interface, so it must be treated as equivalent to loopback access.
+func (suite *PortTestSuite) TestValidateParametersWhenUnspecifiedAddressNotAllowed() {
+	mockContext := &contextmocks.Mock{}
+	suite.plugin.context = mockContext
+
+	mockContext.On("AppConfig").Return(appconfig.SsmagentConfig{Mgs: appconfig.MgsConfig{DeniedPortForwardingRemoteIPs: []string{}}})
+	mockContext.On("Log").Return(mockLog)
+
+	err := suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "0.0.0.0"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address 0.0.0.0 is forbidden.")
+
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "::"}, configuration)
+	assert.Contains(suite.T(), err.Error(), "Forwarding to IP address :: is forbidden.")
+
+	mockContext.AssertExpectations(suite.T())
+}
+
+// TestValidateParametersWhenUnlistedLinkLocalIsAllowed verifies that link-local addresses
+// (169.254.0.0/16, fe80::/10) are NOT blanket-denied. Unlike loopback/unspecified, link-local
+// addresses can have legitimate remote-host use cases (e.g. APIPA-addressed peers, IPv6
+// link-local-only services on the same L2 segment), so only the specific known-sensitive
+// link-local endpoints enumerated in the denylist (IMDS, ECS/EKS credentials, etc.) are denied;
+// an unlisted link-local address should be allowed through.
+func (suite *PortTestSuite) TestValidateParametersWhenUnlistedLinkLocalIsAllowed() {
+	mockContext := &contextmocks.Mock{}
+	suite.plugin.context = mockContext
+
+	mockContext.On("AppConfig").Return(appconfig.SsmagentConfig{Mgs: appconfig.MgsConfig{DeniedPortForwardingRemoteIPs: []string{"169.254.169.254", "fd00:ec2::254"}}})
+	mockContext.On("Log").Return(mockLog)
+
+	err := suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "169.254.1.1"}, configuration)
+	assert.Nil(suite.T(), err)
+
+	err = suite.plugin.validateParameters(PortParameters{PortNumber: "80", Host: "fe80::1"}, configuration)
 	assert.Nil(suite.T(), err)
 
 	mockContext.AssertExpectations(suite.T())

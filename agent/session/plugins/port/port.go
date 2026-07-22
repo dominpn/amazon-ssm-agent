@@ -319,6 +319,21 @@ func canonicalizeIP(host string) net.IP {
 	return ip
 }
 
+// isDeniedAddressClass reports whether ip is loopback (127.0.0.0/8, ::1) or unspecified
+// (0.0.0.0, ::), covering the whole range rather than relying on literal enumeration.
+// Loopback has no legitimate remote-host-forwarding use case since it always resolves
+// to the agent's own instance; callers wanting the agent's own services should use the
+// localhost forwarding document (AWS-StartPortForwardingSession) instead. Unspecified
+// is included because Linux routes connect() to it via the loopback interface.
+//
+// Link-local (169.254.0.0/16, fe80::/10) is intentionally excluded: unlike loopback,
+// it can have legitimate remote-host targets (e.g. APIPA peers, IPv6 link-local-only
+// services), so known-sensitive endpoints in that range stay in the literal denylist
+// (DefaultDeniedPortForwardingRemoteIPs) instead of being blocked as a whole range.
+func isDeniedAddressClass(ip net.IP) bool {
+	return ip.IsLoopback() || ip.IsUnspecified()
+}
+
 // validateParameters validates port plugin parameters
 func (p *PortPlugin) validateParameters(portParameters PortParameters, config agentContracts.Configuration) (err error) {
 	if portParameters.PortNumber == "" {
@@ -341,6 +356,9 @@ func (p *PortPlugin) validateParameters(portParameters PortParameters, config ag
 	// This catches bypass attempts using zone identifiers or IPv4-mapped IPv6
 	// that may cause lookupHost to fail or return non-canonical addresses.
 	if hostIP := canonicalizeIP(portParameters.Host); hostIP != nil {
+		if isDeniedAddressClass(hostIP) {
+			return errors.New(fmt.Sprintf("Forwarding to IP address %s is forbidden.", portParameters.Host))
+		}
 		for _, address := range denyList {
 			if denyIP := canonicalizeIP(address); denyIP != nil && hostIP.Equal(denyIP) {
 				return errors.New(fmt.Sprintf("Forwarding to IP address %s is forbidden.", portParameters.Host))
@@ -355,6 +373,9 @@ func (p *PortPlugin) validateParameters(portParameters PortParameters, config ag
 			hostIPAddress := canonicalizeIP(host)
 			if hostIPAddress == nil {
 				continue
+			}
+			if isDeniedAddressClass(hostIPAddress) {
+				return errors.New(fmt.Sprintf("Forwarding to IP address %s is forbidden.", portParameters.Host))
 			}
 			for _, address := range denyList {
 				if denyIP := canonicalizeIP(address); denyIP != nil && hostIPAddress.Equal(denyIP) {
