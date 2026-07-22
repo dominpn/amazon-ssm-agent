@@ -37,7 +37,7 @@ import (
 	"time"
 
 	"github.com/aws/amazon-ssm-agent/agent/session/shell/execcmd"
-	"github.com/google/shlex"
+	"golang.org/x/sys/windows"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	agentContracts "github.com/aws/amazon-ssm-agent/agent/contracts"
@@ -162,9 +162,14 @@ func StartCommandExecutor(
 	return err
 }
 
+// parseWindowsCommandLine splits a command line string into arguments
+func parseWindowsCommandLine(finalCmd string) ([]string, error) {
+	return windows.DecomposeCommandLine(finalCmd)
+}
+
 func (p *ShellPlugin) startExecCmd(finalCmd string, log log.T, config agentContracts.Configuration) (err error) {
 	var cmd *exec.Cmd
-	commands, err := shlex.Split(finalCmd)
+	commands, err := parseWindowsCommandLine(finalCmd)
 	if err != nil {
 		return fmt.Errorf("Failed to parse commands input: %s\n", err)
 	}

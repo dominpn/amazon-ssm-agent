@@ -578,3 +578,93 @@ func buildAgentMessage(payloadType uint32, payload []byte) mgsContracts.AgentMes
 	}
 	return agentMessage
 }
+
+// Testing parseWindowsCommandLine with an empty command line results in no arguments.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineEmpty() {
+	commands, err := parseWindowsCommandLine("")
+
+	assert.NoError(suite.T(), err)
+	assert.Empty(suite.T(), commands)
+}
+
+// Testing parseWindowsCommandLine with a single unquoted word is parsed as-is.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineSingleWord() {
+	commands, err := parseWindowsCommandLine("Get-Process")
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"Get-Process"}, commands)
+}
+
+// Testing parseWindowsCommandLine with plain space separated args are split correctly.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineMultipleArgs() {
+	commands, err := parseWindowsCommandLine("Get-Process -Name notepad")
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"Get-Process", "-Name", "notepad"}, commands)
+}
+
+// Testing parseWindowsCommandLine with a double-quoted argument containing a space is treated
+// as a single argument, following Windows CommandLineToArgvW rules.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineDoubleQuotedArgWithSpace() {
+	commands, err := parseWindowsCommandLine(`Get-ChildItem "C:\Program Files"`)
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"Get-ChildItem", `C:\Program Files`}, commands)
+}
+
+// Testing parseWindowsCommandLine with Windows-style paths containing backslashes are preserved
+// literally, unlike shlex which treats backslash as an escape character and would corrupt paths
+// like C:\Users\foo.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineBackslashPath() {
+	commands, err := parseWindowsCommandLine(`Test-Path C:\Users\Public\file.txt`)
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"Test-Path", `C:\Users\Public\file.txt`}, commands)
+}
+
+// Testing parseWindowsCommandLine verifies that single quotes have no special meaning on Windows
+// (unlike POSIX shells/shlex) and are preserved as literal characters.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineSingleQuotesAreLiteral() {
+	commands, err := parseWindowsCommandLine(`echo 'hello world'`)
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"echo", "'hello", "world'"}, commands)
+}
+
+// Testing parseWindowsCommandLine with multiple quoted segments in the same command line are
+// each parsed as distinct arguments.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineMultipleQuotedArgs() {
+	commands, err := parseWindowsCommandLine(`Copy-Item "C:\source file.txt" "C:\dest file.txt"`)
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"Copy-Item", `C:\source file.txt`, `C:\dest file.txt`}, commands)
+}
+
+// Testing parseWindowsCommandLine with an explicit empty-quoted argument ("") is preserved as an
+// empty string argument rather than dropped.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineEmptyQuotedArg() {
+	commands, err := parseWindowsCommandLine(`Write-Output ""`)
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"Write-Output", ""}, commands)
+}
+
+// Testing parseWindowsCommandLine with a quoted segment embedded in the middle of an unquoted
+// word. Per Windows CommandLineToArgvW rules, a quoted string can be embedded in an argument:
+// the quotes are stripped and the space inside them is preserved, but since there is no
+// whitespace outside the quotes, the whole thing remains a single argument.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineEmbeddedQuoteInWord() {
+	commands, err := parseWindowsCommandLine(`echo abc"def ghi"jkl`)
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), []string{"echo", "abcdef ghijkl"}, commands)
+}
+
+// Testing parseWindowsCommandLine returns an error when the input contains a NUL byte, since
+// DecomposeCommandLine cannot convert such a string to UTF-16.
+func (suite *ShellTestSuite) TestParseWindowsCommandLineNulByteReturnsError() {
+	commands, err := parseWindowsCommandLine("echo \x00 hello")
+
+	assert.Error(suite.T(), err)
+	assert.Nil(suite.T(), commands)
+}
