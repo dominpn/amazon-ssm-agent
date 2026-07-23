@@ -1,5 +1,15 @@
 Latest
 ===============
+- Migrate from aws-sdk-go v1 to aws-sdk-go-v2
+- Fix flaky registration/connection channel tests
+- Sync AWS SDK fork in extra/ with multicloud vendor changes
+- Harden function create file with permissions in a single syscall
+- Upgrade Go version to 1.25.12
+- Bump golang.org/x/net@v0.55.0 to golang.org/x/net@v0.56.0
+- Fix loopback bypass in remote-host port forwarding denylist
+
+3.3.4851.0
+===============
 - Add ECS/EKS credential endpoints and loopback to port-forward denylist
 - Canonicalize IP addresses before port-forwarding denylist check
 - Pass the ActiveDirectory domain password via stdin using -y /dev/stdin instead of the -w flag
