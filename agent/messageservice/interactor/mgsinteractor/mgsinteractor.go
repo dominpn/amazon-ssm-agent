@@ -349,7 +349,6 @@ func (mgs *MGSInteractor) listenIncomingAgentMessages() {
 
 func (mgs *MGSInteractor) processSessionRelatedMessages(agentMessage mgsContracts.AgentMessage) {
 	appConfig := mgs.context.AppConfig()
-	blockChan := make(chan struct{})
 	log := mgs.context.Log()
 	shortInstanceId, _ := mgs.context.Identity().ShortInstanceID()
 	sessionOrchestrationRootDir := filepath.Join(appconfig.DefaultDataStorePath, shortInstanceId, appconfig.DefaultSessionRootDirName, appConfig.Agent.OrchestrationRootDir)
@@ -375,15 +374,26 @@ func (mgs *MGSInteractor) processSessionRelatedMessages(agentMessage mgsContract
 		log.Debugf("pushed message %s with document id %s to processor", agentMessage.MessageId.String(), docState.DocumentInformation.DocumentID)
 		return
 	}
-	if errorCode == messagehandler.ProcessorBufferFull {
-		log.Errorf("blocking control channel because of error code in session processor: %v", errorCode)
-		blockChan <- struct{}{}
-	}
-	// should not happen
+	// Drop the message when submission to the processor keeps failing.
+	// Previously, on ProcessorBufferFull the code sent to a local channel with no
+	// receiver, permanently deadlocking the incoming-message listener goroutine and,
+	// transitively, the control channel websocket reader. The agent could then never
+	// process another control channel message (including session terminations), never
+	// detected the connection dying and never reconnected until restart.
+	// Dropping abandons this one session: it is not acknowledged upstream, so it stays
+	// in Connecting until the caller gives up. That is the same outcome the caller
+	// already got on this path before, because blocking here never submitted the
+	// session either - the difference is that the agent now stays usable for every
+	// later session and command instead of wedging permanently.
+	// Session terminations are unaffected: TerminateSession is routed to the separate
+	// cancelCommandPool, which has its own buffer limit, so a full session submit
+	// buffer cannot block them.
 	if _, ok := mgs.ackSkipCodes[errorCode]; ok {
 		log.Warnf("dropping session message %v due to error code: %v", docState.DocumentInformation.DocumentID, errorCode)
 		return
 	}
+	// should not happen
+	log.Errorf("dropping session message %v due to unexpected error code: %v", docState.DocumentInformation.DocumentID, errorCode)
 }
 
 func (mgs *MGSInteractor) processJobReplyAck(log log.T, agentMessage mgsContracts.AgentMessage) {

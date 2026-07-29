@@ -356,6 +356,97 @@ func (suite *MGSInteractorTestSuite) TestAgentJobSendAcknowledgeWhenMessageParsi
 	mockControlChannel.AssertNumberOfCalls(suite.T(), "SendMessage", 2)
 }
 
+// buildStartSessionAgentMessage builds a valid InteractiveShellMessage (start-session) AgentMessage
+func buildStartSessionAgentMessage() mgsContracts.AgentMessage {
+	agentJson := "{\"DataChannelId\":\"44da928d-1200-4501-a38a-f10d72e38cc4\",\"documentContent\":{\"schemaVersion\":\"1.0\"," +
+		"\"inputs\":{\"cloudWatchLogGroup\":\"\",\"s3BucketName\":\"\",\"s3KeyPrefix\":\"\"},\"description\":\"Document to hold " +
+		"regional settings for Session Manager\",\"sessionType\":\"Standard_Stream\",\"parameters\":{}},\"sessionId\":\"44da928d-1200-4501-a38a-f10d72e38cc4\"," +
+		"\"DataChannelToken\":\"token\"}"
+	mgsPayload := mgsContracts.MGSPayload{
+		Payload:       agentJson,
+		TaskId:        taskId,
+		Topic:         topic,
+		SchemaVersion: 1,
+	}
+	payload, _ := json.Marshal(mgsPayload)
+	return mgsContracts.AgentMessage{
+		HeaderLength:   20,
+		MessageType:    mgsContracts.InteractiveShellMessage,
+		SchemaVersion:  schemaVersion,
+		CreatedDate:    createdDate,
+		SequenceNumber: 1,
+		Flags:          2,
+		MessageId:      uuid.New(),
+		Payload:        payload,
+	}
+}
+
+// TestProcessSessionRelatedMessagesDropsMessageOnPersistentProcessorBufferFull verifies the fix for the
+// deadlock where a ProcessorBufferFull error blocked the incoming-message listener goroutine forever
+// (send on a channel with no receiver), leaving the agent unable to process any further control channel
+// messages or reconnect until restart.
+func (suite *MGSInteractorTestSuite) TestProcessSessionRelatedMessagesDropsMessageOnPersistentProcessorBufferFull() {
+	mockContext := contextmocks.NewMockDefault()
+	messageHandlerMock := &mocks.IMessageHandler{}
+	messageHandlerMock.On("RegisterReply", mock.Anything, mock.Anything)
+	messageHandlerMock.On("Submit", mock.Anything).Return(messageHandler.ProcessorBufferFull)
+	mgsInteractorRef, err := New(mockContext, messageHandlerMock)
+	assert.Nil(suite.T(), err, "initialize passed")
+	mgsInteractor := mgsInteractorRef.(*MGSInteractor)
+	mgsInteractor.ackSkipCodes = map[messageHandler.ErrorCode]string{
+		messageHandler.ProcessorBufferFull: "51402",
+	}
+
+	agentMessage := buildStartSessionAgentMessage()
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		mgsInteractor.processSessionRelatedMessages(agentMessage)
+	}()
+
+	select {
+	case <-done:
+		// function returned instead of blocking forever - message was dropped
+	case <-time.After(30 * time.Second):
+		assert.Fail(suite.T(), "processSessionRelatedMessages blocked on persistent ProcessorBufferFull")
+	}
+	// submit is retried up to the retry limit of 5
+	messageHandlerMock.AssertNumberOfCalls(suite.T(), "Submit", 5)
+}
+
+// TestProcessSessionRelatedMessagesRetriesUntilBufferFrees verifies submission succeeds
+// when the processor buffer frees up during the retry loop.
+func (suite *MGSInteractorTestSuite) TestProcessSessionRelatedMessagesRetriesUntilBufferFrees() {
+	mockContext := contextmocks.NewMockDefault()
+	messageHandlerMock := &mocks.IMessageHandler{}
+	messageHandlerMock.On("RegisterReply", mock.Anything, mock.Anything)
+	messageHandlerMock.On("Submit", mock.Anything).Return(messageHandler.ProcessorBufferFull).Twice()
+	messageHandlerMock.On("Submit", mock.Anything).Return(messageHandler.ErrorCode(""))
+	mgsInteractorRef, err := New(mockContext, messageHandlerMock)
+	assert.Nil(suite.T(), err, "initialize passed")
+	mgsInteractor := mgsInteractorRef.(*MGSInteractor)
+	mgsInteractor.ackSkipCodes = map[messageHandler.ErrorCode]string{
+		messageHandler.ProcessorBufferFull: "51402",
+	}
+
+	agentMessage := buildStartSessionAgentMessage()
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		mgsInteractor.processSessionRelatedMessages(agentMessage)
+	}()
+
+	select {
+	case <-done:
+		// function returned after successful submission
+	case <-time.After(30 * time.Second):
+		assert.Fail(suite.T(), "processSessionRelatedMessages did not return after buffer freed up")
+	}
+	messageHandlerMock.AssertNumberOfCalls(suite.T(), "Submit", 3)
+}
+
 func (suite *MGSInteractorTestSuite) TestGetMgsEndpoint() {
 	// create mock context and log
 	contextMock := contextmocks.NewMockDefault()
