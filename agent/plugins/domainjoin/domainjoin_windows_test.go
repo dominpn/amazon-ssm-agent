@@ -160,7 +160,7 @@ func TestMakeArgumentsAndCommandParts(t *testing.T) {
 
 	domainJoinInput := generateDomainJoinPluginInput(testDirectoryId, testDirectoryName, testDirectoryOU, []string{"172.31.4.141", "172.31.21.240"})
 	commandLine, _ := makeArguments(context, domainJoinInput)
-	expectedCommandLine := "./" + DomainJoinPluginExecutableName + " --directory-id d-0123456789 --directory-name corp.test.com --instance-region us-east-1 --directory-ou '\"OU=test,OU=corp,DC=test,DC=com\"' --dns-addresses 172.31.4.141 172.31.21.240"
+	expectedCommandLine := "./" + DomainJoinPluginExecutableName + " --directory-id 'd-0123456789' --directory-name 'corp.test.com' --instance-region us-east-1 --directory-ou '\"OU=test,OU=corp,DC=test,DC=com\"' --dns-addresses '172.31.4.141' '172.31.21.240'"
 	assert.Equal(t, expectedCommandLine, commandLine)
 	commandParts, _ := makeCommandParts(commandLine)
 	expectedCommandParts := []string{
@@ -181,7 +181,7 @@ func TestMakeArgumentsAndCommandParts(t *testing.T) {
 
 	domainJoinInput = generateDomainJoinPluginInputOptionalParamSetHostName(testDirectoryId, testDirectoryName, testDirectoryOUWithSpace, []string{"172.31.4.141", "172.31.21.240"}, testSetHostName)
 	commandLine, _ = makeArguments(context, domainJoinInput)
-	expectedCommandLine = "./" + DomainJoinPluginExecutableName + " --directory-id d-0123456789 --directory-name corp.test.com --instance-region us-east-1 --directory-ou '\"OU=test with space,OU=corp,DC=test,DC=com\"' --set-hostname my_hostname --dns-addresses 172.31.4.141 172.31.21.240"
+	expectedCommandLine = "./" + DomainJoinPluginExecutableName + " --directory-id 'd-0123456789' --directory-name 'corp.test.com' --instance-region us-east-1 --directory-ou '\"OU=test with space,OU=corp,DC=test,DC=com\"' --set-hostname my_hostname --dns-addresses '172.31.4.141' '172.31.21.240'"
 	assert.Equal(t, expectedCommandLine, commandLine)
 	commandParts, _ = makeCommandParts(commandLine)
 	expectedCommandParts = []string{
@@ -203,7 +203,7 @@ func TestMakeArgumentsAndCommandParts(t *testing.T) {
 
 	domainJoinInput = generateDomainJoinPluginInputOptionalParamSetHostName(testDirectoryId, testDirectoryName, testDirectoryOUWithSpaceQuoted, []string{"172.31.4.141", "172.31.21.240"}, testSetHostName)
 	commandLine, _ = makeArguments(context, domainJoinInput)
-	expectedCommandLine = "./" + DomainJoinPluginExecutableName + " --directory-id d-0123456789 --directory-name corp.test.com --instance-region us-east-1 --directory-ou '\"OU=test with space,OU=corp,DC=test,DC=com\"' --set-hostname my_hostname --dns-addresses 172.31.4.141 172.31.21.240"
+	expectedCommandLine = "./" + DomainJoinPluginExecutableName + " --directory-id 'd-0123456789' --directory-name 'corp.test.com' --instance-region us-east-1 --directory-ou '\"OU=test with space,OU=corp,DC=test,DC=com\"' --set-hostname my_hostname --dns-addresses '172.31.4.141' '172.31.21.240'"
 	assert.Equal(t, expectedCommandLine, commandLine)
 	commandParts, _ = makeCommandParts(commandLine)
 	expectedCommandParts = []string{
@@ -231,4 +231,159 @@ func TestMakeArgumentsAndCommandParts(t *testing.T) {
 	assert.Equal(t, shellInjectionCheck, true, "test failed for echo abc || del /Q *")
 	shellInjectionCheck = isShellInjection("echo abc ; del /Q *")
 	assert.Equal(t, shellInjectionCheck, true, "test failed for echo abc ; del /Q *")
+}
+
+func TestMakeArguments_RejectsInjectionInDirectoryId(t *testing.T) {
+	ctx := contextmocks.NewMockDefault()
+
+	injections := []string{
+		"$(Invoke-Expression whoami)",
+		"`nwhoami`",
+		"d-012; Start-Process cmd",
+		"d-012|Out-File C:\\pwned",
+		"d-012 && calc",
+	}
+	for _, injection := range injections {
+		domainJoinInput := generateDomainJoinPluginInput(injection, testDirectoryName, "", []string{"10.0.0.1"})
+		commandLine, err := makeArguments(ctx, domainJoinInput)
+		assert.Empty(t, commandLine, "expected empty command for input: %s", injection)
+		assert.Error(t, err, "expected error for input: %s", injection)
+		assert.Contains(t, err.Error(), "invalid characters in DirectoryId")
+	}
+}
+
+func TestMakeArguments_RejectsInjectionInDirectoryName(t *testing.T) {
+	ctx := contextmocks.NewMockDefault()
+
+	injections := []string{
+		"$(whoami).evil.com",
+		"`nwhoami`.evil.com",
+		"corp.com; Start-Process cmd",
+		"corp.com|calc",
+		"corp.com && calc",
+	}
+	for _, injection := range injections {
+		domainJoinInput := generateDomainJoinPluginInput(testDirectoryId, injection, "", []string{"10.0.0.1"})
+		commandLine, err := makeArguments(ctx, domainJoinInput)
+		assert.Empty(t, commandLine, "expected empty command for input: %s", injection)
+		assert.Error(t, err, "expected error for input: %s", injection)
+		assert.Contains(t, err.Error(), "invalid characters in DirectoryName")
+	}
+}
+
+func TestMakeArguments_RejectsInjectionInDirectoryOU(t *testing.T) {
+	ctx := contextmocks.NewMockDefault()
+
+	injections := []string{
+		"OU=test$(whoami),DC=corp",
+		"OU=test`calc`,DC=corp",
+		"OU=test;Start-Process cmd",
+		"OU=test|Out-File C:\\pwned",
+		"OU=test&&calc",
+	}
+	for _, injection := range injections {
+		domainJoinInput := generateDomainJoinPluginInput(testDirectoryId, testDirectoryName, injection, []string{"10.0.0.1"})
+		commandLine, err := makeArguments(ctx, domainJoinInput)
+		assert.Empty(t, commandLine, "expected empty command for input: %s", injection)
+		assert.Error(t, err, "expected error for input: %s", injection)
+		assert.Contains(t, err.Error(), "invalid characters in DirectoryOU")
+	}
+}
+
+func TestMakeArguments_RejectsInjectionInDnsIpAddresses(t *testing.T) {
+	ctx := contextmocks.NewMockDefault()
+
+	injections := []string{
+		"$(whoami)",
+		"`id`",
+		"10.0.0.1;calc",
+		"10.0.0.1|Out-File",
+		"10.0.0.1&&calc",
+	}
+	for _, injection := range injections {
+		domainJoinInput := generateDomainJoinPluginInput(testDirectoryId, testDirectoryName, "", []string{injection})
+		commandLine, err := makeArguments(ctx, domainJoinInput)
+		assert.Empty(t, commandLine, "expected empty command for input: %s", injection)
+		assert.Error(t, err, "expected error for input: %s", injection)
+		assert.Contains(t, err.Error(), "invalid characters in DnsIpAddresses")
+	}
+
+	// Injection in second element
+	domainJoinInput := generateDomainJoinPluginInput(testDirectoryId, testDirectoryName, "", []string{"10.0.0.1", "`calc`"})
+	commandLine, err := makeArguments(ctx, domainJoinInput)
+	assert.Empty(t, commandLine)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid characters in DnsIpAddresses")
+}
+
+// TestMakeArguments_RejectsSingleQuoteInDirectoryOU tests that a single quote
+// in DirectoryOU is rejected. DirectoryOU is wrapped in single quotes for shlex
+// token parsing (e.g. '"value"'). A single quote in the value would break out
+// of the quoting context and allow injection of additional arguments to the
+// domain join executable.
+func TestMakeArguments_RejectsSingleQuoteInDirectoryOU(t *testing.T) {
+	ctx := contextmocks.NewMockDefault()
+
+	domainJoinInput := generateDomainJoinPluginInput(testDirectoryId, testDirectoryName, "OU=test'--other-arg 'value", []string{"10.0.0.1"})
+	commandLine, err := makeArguments(ctx, domainJoinInput)
+	assert.Empty(t, commandLine)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid characters in DirectoryOU")
+}
+
+// TestMakeArguments_SpaceInValueDoesNotSplitToken tests that values containing
+// spaces are treated as a single token after shlex parsing. Without quoting,
+// "d-012 --malicious-flag" would be split into separate arguments, injecting
+// extra flags into the domain join executable. The single-quote wrapping ensures
+// shlex keeps the entire value as one token.
+func TestMakeArguments_SpaceInValueDoesNotSplitToken(t *testing.T) {
+	ctx := contextmocks.NewMockDefault()
+
+	// Single quotes in the value are rejected to prevent quote-breakout
+	domainJoinInput := generateDomainJoinPluginInput("d-012'--inject", testDirectoryName, "", []string{"10.0.0.1"})
+	commandLine, err := makeArguments(ctx, domainJoinInput)
+	assert.Empty(t, commandLine)
+	assert.Error(t, err)
+
+	domainJoinInput = generateDomainJoinPluginInput(testDirectoryId, "corp.com'--inject", "", []string{"10.0.0.1"})
+	commandLine, err = makeArguments(ctx, domainJoinInput)
+	assert.Empty(t, commandLine)
+	assert.Error(t, err)
+
+	domainJoinInput = generateDomainJoinPluginInput(testDirectoryId, testDirectoryName, "", []string{"10.0.0.1'--inject"})
+	commandLine, err = makeArguments(ctx, domainJoinInput)
+	assert.Empty(t, commandLine)
+	assert.Error(t, err)
+}
+
+func TestMakeArguments_AcceptsLegitimateValues(t *testing.T) {
+	ctx := contextmocks.NewMockDefault()
+
+	// Normal directory ID, domain name, OU, and DNS IPs should all pass
+	domainJoinInput := generateDomainJoinPluginInput(
+		"d-0123456789",
+		"corp.example.com",
+		"OU=Servers,DC=corp,DC=example,DC=com",
+		[]string{"172.31.4.141", "172.31.21.240"},
+	)
+	commandLine, err := makeArguments(ctx, domainJoinInput)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, commandLine)
+	assert.Contains(t, commandLine, "d-0123456789")
+	assert.Contains(t, commandLine, "corp.example.com")
+	assert.Contains(t, commandLine, "OU=Servers,DC=corp,DC=example,DC=com")
+	assert.Contains(t, commandLine, "172.31.4.141")
+	assert.Contains(t, commandLine, "172.31.21.240")
+
+	// No DNS IPs
+	domainJoinInput = generateDomainJoinPluginInput("d-9876543210", "internal.corp.net", "", []string{})
+	commandLine, err = makeArguments(ctx, domainJoinInput)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, commandLine)
+
+	// OU with spaces (legitimate)
+	domainJoinInput = generateDomainJoinPluginInput(testDirectoryId, testDirectoryName, "OU=My Servers,DC=corp,DC=com", []string{"10.0.0.1"})
+	commandLine, err = makeArguments(ctx, domainJoinInput)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, commandLine)
 }

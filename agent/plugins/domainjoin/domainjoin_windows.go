@@ -210,14 +210,27 @@ func makeArguments(context context.T, pluginInput DomainJoinPluginInput) (comman
 	if len(pluginInput.DirectoryId) == 0 {
 		return "", fmt.Errorf("directoryId is required")
 	}
+	if isShellInjection(pluginInput.DirectoryId) || strings.Contains(pluginInput.DirectoryId, "'") {
+		return "", fmt.Errorf("invalid characters in DirectoryId parameter: %s", pluginInput.DirectoryId)
+	}
+	// Single-quote wrapping ensures shlex treats the value as one token,
+	// preventing values with spaces from being split into extra arguments.
 	buffer.WriteString(DirectoryIdArg)
+	buffer.WriteString("'")
 	buffer.WriteString(pluginInput.DirectoryId)
+	buffer.WriteString("'")
 
 	if len(pluginInput.DirectoryName) == 0 {
 		return "", fmt.Errorf("directoryName is required")
 	}
+	if isShellInjection(pluginInput.DirectoryName) || strings.Contains(pluginInput.DirectoryName, "'") {
+		return "", fmt.Errorf("invalid characters in DirectoryName parameter: %s", pluginInput.DirectoryName)
+	}
+	// Single-quote wrapping ensures shlex treats the value as one token.
 	buffer.WriteString(DirectoryNameArg)
+	buffer.WriteString("'")
 	buffer.WriteString(pluginInput.DirectoryName)
+	buffer.WriteString("'")
 
 	buffer.WriteString(InstanceRegionArg)
 	region, err := context.Identity().Region()
@@ -228,6 +241,9 @@ func makeArguments(context context.T, pluginInput DomainJoinPluginInput) (comman
 
 	// check if user provides the directory OU parameter
 	if len(pluginInput.DirectoryOU) != 0 {
+		if isShellInjection(pluginInput.DirectoryOU) || strings.Contains(pluginInput.DirectoryOU, "'") {
+			return "", fmt.Errorf("invalid characters in DirectoryOU parameter: %s", pluginInput.DirectoryOU)
+		}
 		log.Debugf("Customized directory OU parameter provided: %v", pluginInput.DirectoryOU)
 		buffer.WriteString(DirectoryOUArg)
 		// Windows powershell splits an unquoted parameter with space(s) to separate parameters by space
@@ -272,8 +288,13 @@ func makeArguments(context context.T, pluginInput DomainJoinPluginInput) (comman
 
 	buffer.WriteString(DnsAddressesArgs)
 	for index := 0; index < len(pluginInput.DnsIpAddresses); index++ {
-		buffer.WriteString(" ")
+		if isShellInjection(pluginInput.DnsIpAddresses[index]) || strings.Contains(pluginInput.DnsIpAddresses[index], "'") {
+			return "", fmt.Errorf("invalid characters in DnsIpAddresses parameter: %s", pluginInput.DnsIpAddresses[index])
+		}
+		// Single-quote wrapping ensures shlex treats the value as one token.
+		buffer.WriteString(" '")
 		buffer.WriteString(pluginInput.DnsIpAddresses[index])
+		buffer.WriteString("'")
 	}
 
 	return buffer.String(), nil
