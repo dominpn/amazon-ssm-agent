@@ -144,6 +144,8 @@ func (i *updateInfoImpl) GeneratePlatformBasedFolderName() string {
 
 var getPlatformName = platform.PlatformName
 var getPlatformVersion = platform.PlatformVersion
+var getPlatformType = platform.PlatformType
+var isPlatformNanoServer = platform.IsPlatformNanoServer
 
 // New create instance related information such as region, platform and arch
 func New(context context.T) (T, error) {
@@ -175,6 +177,9 @@ func newInner(context context.T) (updateInfo *updateInfoImpl, err error) {
 		platformName = updateconstants.PlatformLinux
 	} else if strings.Contains(platformName, updateconstants.PlatformBottlerocket) {
 		log.Info("Detected platform Bottlerocket")
+		platformName = updateconstants.PlatformLinux
+	} else if strings.Contains(platformName, updateconstants.PlatformAzureLinux) {
+		log.Info("Detected platform Azure Linux")
 		platformName = updateconstants.PlatformLinux
 	} else if strings.Contains(platformName, updateconstants.PlatformRedHat) {
 		log.Info("Detected platform RedHat")
@@ -229,9 +234,12 @@ func newInner(context context.T) (updateInfo *updateInfoImpl, err error) {
 		log.Info("Detected platform MacOS")
 		platformName = updateconstants.PlatformMacOsX
 		downloadPlatformOverride = updateconstants.PlatformDarwin
-	} else if isNano, _ := platform.IsPlatformNanoServer(log); isNano {
+	} else if isNano, _ := isPlatformNanoServer(log); isNano {
 		log.Info("Detected platform Windows Nano")
 		platformName = updateconstants.PlatformWindowsNano
+	} else if getPlatformType(log) == updateconstants.PlatformLinux {
+		log.Info("Detected platform Linux")
+		platformName = updateconstants.PlatformLinux
 	} else {
 		log.Info("Detected platform Windows")
 		platformName = updateconstants.PlatformWindows

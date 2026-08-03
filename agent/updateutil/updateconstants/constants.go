@@ -69,6 +69,9 @@ const (
 	// PlatformLinux represents linux
 	PlatformLinux = "linux"
 
+	// PlatformAzureLinux represents Azure Linux
+	PlatformAzureLinux = "azure linux"
+
 	// PlatformAmazonLinux represents amazon linux
 	PlatformAmazonLinux = "amazon"
 

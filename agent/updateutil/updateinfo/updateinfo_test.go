@@ -61,6 +61,8 @@ func TestCreateInstanceContext(t *testing.T) {
 
 	getPlatformName = PlatformNameStub
 	getPlatformVersion = PlatformVersionStub
+	getPlatformType = PlatformTypeStub
+	isPlatformNanoServer = func(log log.T) (bool, error) { return false, nil }
 
 	for _, test := range testCases {
 		fmt.Printf("Test platform name: %s\n", test.platformName)
@@ -78,6 +80,78 @@ func TestCreateInstanceContext(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, info.GetPlatform(), test.expectedPlatformName)
 		}
+	}
+}
+
+func TestUnregisteredPlatformClassification(t *testing.T) {
+	testCases := []struct {
+		name             string
+		platformName     string
+		platformType     string
+		isNano           bool
+		expectedPlatform string
+	}{
+		{
+			name:             "Microsoft Azure Linux 4.0",
+			platformName:     "Microsoft Azure Linux",
+			platformType:     updateconstants.PlatformWindows,
+			expectedPlatform: updateconstants.PlatformLinux,
+		},
+		{
+			name:             "arbitrary unknown Linux",
+			platformName:     "Example Linux",
+			platformType:     updateconstants.PlatformLinux,
+			expectedPlatform: updateconstants.PlatformLinux,
+		},
+		{
+			name:             "Windows",
+			platformName:     "Microsoft Windows Server 2022 Datacenter",
+			platformType:     updateconstants.PlatformWindows,
+			expectedPlatform: updateconstants.PlatformWindows,
+		},
+		{
+			name:             "Windows Nano",
+			platformName:     "Microsoft Windows Server 2022 Datacenter",
+			platformType:     updateconstants.PlatformWindows,
+			isNano:           true,
+			expectedPlatform: updateconstants.PlatformWindowsNano,
+		},
+	}
+
+	originalGetPlatformName := getPlatformName
+	originalGetPlatformVersion := getPlatformVersion
+	originalGetPlatformType := getPlatformType
+	originalIsPlatformNanoServer := isPlatformNanoServer
+	t.Cleanup(func() {
+		getPlatformName = originalGetPlatformName
+		getPlatformVersion = originalGetPlatformVersion
+		getPlatformType = originalGetPlatformType
+		isPlatformNanoServer = originalIsPlatformNanoServer
+	})
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			getPlatformName = func(log log.T) (string, error) {
+				return test.platformName, nil
+			}
+			getPlatformVersion = func(log log.T) (string, error) {
+				return "1", nil
+			}
+			getPlatformType = func(log log.T) string {
+				return test.platformType
+			}
+			isPlatformNanoServer = func(log log.T) (bool, error) {
+				return test.isNano, nil
+			}
+
+			contextMock := &context.Mock{}
+			contextMock.On("Log").Return(logmocks.NewMockLog())
+
+			info, err := newInner(contextMock)
+
+			assert.NoError(t, err)
+			assert.Equal(t, test.expectedPlatform, info.GetPlatform())
+		})
 	}
 }
 
@@ -105,6 +179,12 @@ func PlatformVersionStub(log log.T) (version string, err error) {
 }
 func PlatformNameStub(log log.T) (name string, err error) {
 	return testInstanceInfo.platformName, testInstanceInfo.platformNameErr
+}
+func PlatformTypeStub(log log.T) string {
+	if testInstanceInfo.platformName == updateconstants.PlatformWindows {
+		return updateconstants.PlatformWindows
+	}
+	return updateconstants.PlatformLinux
 }
 
 func TestFileNameConstruction(t *testing.T) {
