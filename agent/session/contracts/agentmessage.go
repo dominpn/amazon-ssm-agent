@@ -162,15 +162,23 @@ func (agentMessage *AgentMessage) Deserialize(log logger.T, input []byte) (err e
 	}
 
 	agentMessage.PayloadLength, err = getUInteger(log, input, AgentMessage_PayloadLengthOffset)
+	if err != nil {
+		log.Errorf("Could not deserialize field PayloadLength with error: %v", err)
+		return err
+	}
 
-	headerLength, herr := getUInteger(log, input, AgentMessage_HLOffset)
-	if herr != nil {
+	agentMessage.HeaderLength, err = getUInteger(log, input, AgentMessage_HLOffset)
+	if err != nil {
 		log.Errorf("Could not deserialize field HeaderLength with error: %v", err)
 		return err
 	}
 
-	agentMessage.HeaderLength = headerLength
-	agentMessage.Payload = input[headerLength+AgentMessage_PayloadLengthLength:]
+	if uint64(agentMessage.HeaderLength)+uint64(AgentMessage_PayloadLengthLength) > uint64(len(input)) {
+		log.Error("Deserialize failed: HeaderLength is invalid.")
+		return errors.New("HeaderLength is bigger than the byte array.")
+	}
+
+	agentMessage.Payload = input[agentMessage.HeaderLength+AgentMessage_PayloadLengthLength:]
 
 	return nil
 }

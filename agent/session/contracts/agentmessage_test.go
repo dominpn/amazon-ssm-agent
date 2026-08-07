@@ -383,3 +383,21 @@ func TestValidateReturnsErrorWithEmptyAgentMessage(t *testing.T) {
 	err := agentMessage.Validate()
 	assert.NotNil(t, err)
 }
+
+func TestDeserializeReturnsErrorWithInvalidHeaderLength(t *testing.T) {
+	// Create a minimal valid-looking frame but with an oversized HeaderLength
+	// The frame needs to be large enough to read all fixed fields, but HeaderLength
+	// will point beyond the input bounds
+	input := make([]byte, AgentMessage_PayloadOffset+10) // enough for fixed header + small payload
+
+	// Set HeaderLength to a very large value (0xFFFFFF00) at offset 0
+	input[0] = 0xFF
+	input[1] = 0xFF
+	input[2] = 0xFF
+	input[3] = 0x00
+
+	agentMessage := &AgentMessage{}
+	err := agentMessage.Deserialize(log.NewMockLog(), input)
+	assert.NotNil(t, err)
+	assert.Equal(t, "HeaderLength is bigger than the byte array.", err.Error())
+}
