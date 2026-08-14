@@ -15,10 +15,7 @@
 package iirprovider
 
 import (
-	"context"
 	"time"
-
-	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
 const (
@@ -45,6 +42,6 @@ type Ec2RoleCreds struct {
 
 // IEC2MdsSdkClient defines the functions that the role provider depends on from the aws sdk
 type IEC2MdsSdkClient interface {
-	GetMetadata(ctx context.Context, params *imds.GetMetadataInput, optFns ...func(*imds.Options)) (*imds.GetMetadataOutput, error)
-	GetRegion(ctx context.Context, params *imds.GetRegionInput, optFns ...func(*imds.Options)) (*imds.GetRegionOutput, error)
+	GetMetadata(string) (string, error)
+	Region() (string, error)
 }

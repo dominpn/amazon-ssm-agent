@@ -18,7 +18,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/association/model"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -60,7 +60,9 @@ func (m *AssociationServiceMock) UpdateInstanceAssociationStatus(
 	executionDate string,
 	executionSummary string,
 	outputUrl string) {
-	m.Called(log, associationID, associationName, instanceID, status, errorCode, executionDate, executionSummary, outputUrl)
+	executionResult := ssm.InstanceAssociationExecutionResult{}
+
+	m.Called(log, associationID, associationName, instanceID, &executionResult)
 	return
 }
 

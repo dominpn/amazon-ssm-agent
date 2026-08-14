@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/aws/amazon-ssm-agent/common/identity"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -32,15 +32,15 @@ func (_m *MockIdentity) AvailabilityZone() (string, error) {
 }
 
 // Credentials provides a mock function with given fields:
-func (_m *MockIdentity) Credentials() aws.CredentialsProvider {
+func (_m *MockIdentity) Credentials() *credentials.Credentials {
 	ret := _m.Called()
 
-	var r0 aws.CredentialsProvider
-	if rf, ok := ret.Get(0).(func() aws.CredentialsProvider); ok {
+	var r0 *credentials.Credentials
+	if rf, ok := ret.Get(0).(func() *credentials.Credentials); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(aws.CredentialsProvider)
+			r0 = ret.Get(0).(*credentials.Credentials)
 		}
 	}
 
@@ -201,15 +201,15 @@ func (_m *MockInnerIdentityRegistrar) AvailabilityZone() (string, error) {
 }
 
 // Credentials provides a mock function with given fields:
-func (_m *MockInnerIdentityRegistrar) Credentials() aws.CredentialsProvider {
+func (_m *MockInnerIdentityRegistrar) Credentials() *credentials.Credentials {
 	ret := _m.Called()
 
-	var r0 aws.CredentialsProvider
-	if rf, ok := ret.Get(0).(func() aws.CredentialsProvider); ok {
+	var r0 *credentials.Credentials
+	if rf, ok := ret.Get(0).(func() *credentials.Credentials); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(aws.CredentialsProvider)
+			r0 = ret.Get(0).(*credentials.Credentials)
 		}
 	}
 

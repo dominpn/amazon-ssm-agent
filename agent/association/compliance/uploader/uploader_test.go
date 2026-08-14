@@ -24,9 +24,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/mocks/datauploader"
 	ssmSvc "github.com/aws/amazon-ssm-agent/agent/ssm/mocks/ssm"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -51,8 +50,8 @@ func AssociationComplianceItem() *model.AssociationComplianceItem {
 		DocumentName:       "testDoc",
 		DocumentVersion:    "1",
 		Title:              "testTitle",
-		ComplianceSeverity: types.ComplianceSeverityUnspecified,
-		ComplianceStatus:   types.ComplianceStatusCompliant,
+		ComplianceSeverity: "UNSPECIFIED",
+		ComplianceStatus:   "Compliant",
 	}
 	return item
 }
@@ -61,11 +60,11 @@ func FakeComplianceItems(count int) (items []*model.AssociationComplianceItem) {
 	i := 0
 
 	for i < count {
-		var compliantStatus types.ComplianceStatus
+		var compliantStatus string
 		if i%2 == 0 {
-			compliantStatus = types.ComplianceStatusCompliant
+			compliantStatus = "Compliant"
 		} else {
-			compliantStatus = types.ComplianceStatusNonCompliant
+			compliantStatus = "NonCompliant"
 		}
 
 		items = append(items, &model.AssociationComplianceItem{
@@ -86,7 +85,7 @@ func FakeComplianceItems(count int) (items []*model.AssociationComplianceItem) {
 func TestConvertToSsmComplianceItemAreEqual(t *testing.T) {
 
 	var items []*model.AssociationComplianceItem
-	var complianceItems []*types.ComplianceItemEntry
+	var complianceItems []*ssm.ComplianceItemEntry
 	var err error
 
 	c := context.NewMockDefault()
@@ -101,16 +100,16 @@ func TestConvertToSsmComplianceItemAreEqual(t *testing.T) {
 	ssmComplianceItem := complianceItems[0]
 	assert.Equal(t, "associationId", *ssmComplianceItem.Id)
 	assert.Equal(t, "testTitle", *ssmComplianceItem.Title)
-	assert.Equal(t, types.ComplianceSeverityUnspecified, ssmComplianceItem.Severity)
-	assert.Equal(t, types.ComplianceStatusCompliant, ssmComplianceItem.Status)
-	assert.Equal(t, "testDoc", ssmComplianceItem.Details["DocumentName"])
-	assert.Equal(t, "1", ssmComplianceItem.Details["DocumentVersion"])
+	assert.Equal(t, "UNSPECIFIED", *ssmComplianceItem.Severity)
+	assert.Equal(t, "Compliant", *ssmComplianceItem.Status)
+	assert.Equal(t, "testDoc", *ssmComplianceItem.Details["DocumentName"])
+	assert.Equal(t, "1", *ssmComplianceItem.Details["DocumentVersion"])
 }
 
 func TestConvertToSsmComplianceItems(t *testing.T) {
 
 	var items []*model.AssociationComplianceItem
-	var complianceItems []*types.ComplianceItemEntry
+	var complianceItems []*ssm.ComplianceItemEntry
 	var err error
 
 	c := context.NewMockDefault()
@@ -129,7 +128,7 @@ func TestUpdateAssociationCompliance(t *testing.T) {
 	u := MockComplianceUploader()
 
 	association1 := &associationModel.InstanceAssociation{
-		Association: &types.InstanceAssociationSummary{
+		Association: &ssm.InstanceAssociationSummary{
 			Name:            aws.String("testDoc"),
 			AssociationId:   aws.String("association_1"),
 			DocumentVersion: aws.String("1"),
@@ -157,7 +156,7 @@ func TestUpdateAssociationCompliance(t *testing.T) {
 		mock.AnythingOfType("string"),
 		mock.AnythingOfType("string"),
 		mock.AnythingOfType("string"),
-		mock.AnythingOfType("[]types.ComplianceItemEntry")).Return(mockPutComplianceItemOutput, nil)
+		mock.AnythingOfType("[]*ssm.ComplianceItemEntry")).Return(mockPutComplianceItemOutput, nil)
 
 	executionTime := time.Now()
 	u.UpdateAssociationCompliance(
@@ -178,7 +177,7 @@ func TestUpdateAssociationCompliance(t *testing.T) {
 	assert.Equal(t, "Association", arguments.String(5))
 	assert.NotNil(t, arguments.String(6))
 
-	assert.Equal(t, 1, len(arguments.Get(7).([]types.ComplianceItemEntry)))
+	assert.Equal(t, 1, len(arguments.Get(7).([]*ssm.ComplianceItemEntry)))
 
 	optimizer.AssertCalled(t, "GetContentHash", mock.AnythingOfType("string"))
 	optimizer.AssertCalled(t, "UpdateContentHash", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
@@ -188,7 +187,7 @@ func TestUpdateAssociationCompliance(t *testing.T) {
 func TestConvertReturnEmptyForHashMatch(t *testing.T) {
 
 	var items []*model.AssociationComplianceItem
-	var complianceItems []*types.ComplianceItemEntry
+	var complianceItems []*ssm.ComplianceItemEntry
 
 	c := context.NewMockDefault()
 	u := MockComplianceUploader()

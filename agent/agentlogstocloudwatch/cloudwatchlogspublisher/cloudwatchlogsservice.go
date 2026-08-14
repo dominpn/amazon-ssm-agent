@@ -17,28 +17,25 @@ package cloudwatchlogspublisher
 
 import (
 	"bufio"
-	cont "context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
-	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
-
 	"github.com/aws/amazon-ssm-agent/agent/agentlogstocloudwatch/cloudwatchlogspublisher/cloudwatchlogsinterface"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
 	"github.com/aws/amazon-ssm-agent/common/ansiprocessing"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 )
 
 const (
@@ -107,10 +104,10 @@ func createCloudWatchClient(context context.T) cloudwatchlogsinterface.CloudWatc
 	// Get CloudWatch Logs specific configuration
 	appConfig := context.AppConfig()
 	if appConfig.CloudWatchLogs.Endpoint != "" {
-		config.BaseEndpoint = aws.String(appConfig.CloudWatchLogs.Endpoint)
+		config.Endpoint = aws.String(appConfig.CloudWatchLogs.Endpoint)
 	}
 	if appConfig.CloudWatchLogs.Region != "" {
-		config.Region = appConfig.CloudWatchLogs.Region
+		config.Region = aws.String(appConfig.CloudWatchLogs.Region)
 	}
 
 	return createCloudWatchClientWithConfig(context, config)
@@ -118,33 +115,22 @@ func createCloudWatchClient(context context.T) cloudwatchlogsinterface.CloudWatc
 
 // createCloudWatchClientWithCredentials creates a client to call CloudWatchLogs APIs using credentials from the id and secret passed
 func createCloudWatchClientWithCredentials(context context.T, id, secret string) cloudwatchlogsinterface.CloudWatchLogsClient {
-	config := sdkutil.AwsConfig(context, "logs")
-	config.Credentials = credentials.NewStaticCredentialsProvider(id, secret, "")
+	config := sdkutil.AwsConfig(context, "logs").WithCredentials(credentials.NewStaticCredentials(id, secret, ""))
 	return createCloudWatchClientWithConfig(context, config)
 }
 
 // createCloudWatchClientWithConfig creates a client to call CloudWatchLogs APIs using the passed aws config
-func createCloudWatchClientWithConfig(context context.T, config aws.Config) cloudwatchlogsinterface.CloudWatchLogsClient {
+func createCloudWatchClientWithConfig(context context.T, config *aws.Config) cloudwatchlogsinterface.CloudWatchLogsClient {
 	// Adding the AWS SDK Retrier with Exponential Backoff
-	// In v2, RetryMaxAttempts is total attempts (initial + retries).
-	// v1 used NumMaxRetries=5 (5 retries + 1 initial = 6 total).
-	config.RetryMaxAttempts = maxRetries + 1
+	config = request.WithRetryer(config, client.DefaultRetryer{
+		NumMaxRetries: maxRetries,
+	})
 
 	appConfig := context.AppConfig()
 
-	config.APIOptions = append(config.APIOptions, func(stack *middleware.Stack) error {
-		return stack.Build.Add(
-			middleware.BuildMiddlewareFunc("AddUserAgent", func(ctx cont.Context, in middleware.BuildInput, next middleware.BuildHandler) (middleware.BuildOutput, middleware.Metadata, error) {
-				req := in.Request.(*smithyhttp.Request)
-				userAgent := fmt.Sprintf("%s/%s", appConfig.Agent.Name, appConfig.Agent.Version)
-				req.Header.Add("User-Agent", userAgent)
-				return next.HandleBuild(ctx, in)
-			}),
-			middleware.After,
-		)
-	})
-	return cloudwatchlogs.NewFromConfig(config)
-
+	sess := session.New(config)
+	sess.Handlers.Build.PushBack(request.MakeAddToUserAgentHandler(appConfig.Agent.Name, appConfig.Agent.Version))
+	return cloudwatchlogs.New(sess)
 }
 
 // NewCloudWatchLogsService Creates a new instance of the CloudWatchLogsService
@@ -215,7 +201,7 @@ func (service *CloudWatchLogsService) CreateLogGroup(logGroup string) (err error
 	}
 
 	// Calling the API
-	if _, err = service.cloudWatchLogsClient.CreateLogGroup(cont.TODO(), params); err != nil {
+	if _, err = service.cloudWatchLogsClient.CreateLogGroup(params); err != nil {
 		// Cast err to awserr.Error to get the Code
 		errorCode := sdkutil.GetAwsErrorCode(err)
 
@@ -253,7 +239,7 @@ func (service *CloudWatchLogsService) CreateLogStream(logGroup, logStream string
 	}
 
 	// Calling the API
-	if _, err = service.cloudWatchLogsClient.CreateLogStream(cont.TODO(), params); err != nil {
+	if _, err = service.cloudWatchLogsClient.CreateLogStream(params); err != nil {
 		// Cast err to awserr.Error to get the Code
 		errorCode := sdkutil.GetAwsErrorCode(err)
 
@@ -296,7 +282,7 @@ func (service *CloudWatchLogsService) DescribeLogGroups(logGroupPrefix, nextToke
 	}
 
 	// Calling the API
-	if response, err = service.cloudWatchLogsClient.DescribeLogGroups(cont.TODO(), params); err != nil {
+	if response, err = service.cloudWatchLogsClient.DescribeLogGroups(params); err != nil {
 		// Handle the common AWS errors and update the stop policy accordingly
 		sdkutil.HandleAwsError(log, err, service.stopPolicy)
 
@@ -330,7 +316,7 @@ func (service *CloudWatchLogsService) DescribeLogStreams(logGroup, logStreamPref
 	}
 
 	// Calling the API
-	if response, err = service.cloudWatchLogsClient.DescribeLogStreams(cont.TODO(), params); err != nil {
+	if response, err = service.cloudWatchLogsClient.DescribeLogStreams(params); err != nil {
 		// Handle the common AWS errors and update the stop policy accordingly
 		sdkutil.HandleAwsError(log, err, service.stopPolicy)
 
@@ -347,7 +333,7 @@ func (service *CloudWatchLogsService) DescribeLogStreams(logGroup, logStreamPref
 }
 
 // getLogGroupDetails Calls the DescribeLogGroups API to get the details of the loggroup specified. Returns nil if not found
-func (service *CloudWatchLogsService) getLogGroupDetails(logGroup string) (logGroupDetails *types.LogGroup, err error) {
+func (service *CloudWatchLogsService) getLogGroupDetails(logGroup string) (logGroupDetails *cloudwatchlogs.LogGroup, err error) {
 	log := service.context.Log()
 	// Keeping the nextToken as empty in the beginning. Might get filled from response for subsequent calls
 	nextToken := ""
@@ -366,7 +352,7 @@ func (service *CloudWatchLogsService) getLogGroupDetails(logGroup string) (logGr
 		for _, stream := range describeLogGroupsOutput.LogGroups {
 			if logGroup == *stream.LogGroupName {
 				// Log Group Matched
-				logGroupDetails = &stream
+				logGroupDetails = stream
 				break
 			}
 		}
@@ -385,7 +371,7 @@ func (service *CloudWatchLogsService) getLogGroupDetails(logGroup string) (logGr
 }
 
 // IsLogGroupPresent checks and returns true when the log group is present
-func (service *CloudWatchLogsService) IsLogGroupPresent(logGroup string) (bool, *types.LogGroup) {
+func (service *CloudWatchLogsService) IsLogGroupPresent(logGroup string) (bool, *cloudwatchlogs.LogGroup) {
 	logGroupDetails, _ := service.getLogGroupDetails(logGroup)
 	return logGroupDetails != nil, logGroupDetails
 }
@@ -405,7 +391,7 @@ func (service *CloudWatchLogsService) GetSequenceTokenForStream(logGroupName, lo
 }
 
 // getLogStreamDetails Calls the DescribeLogStreams API to get the details of the Log Stream specified. Returns nil if the stream is not found
-func (service *CloudWatchLogsService) getLogStreamDetails(logGroupName, logStreamName string) (logStream *types.LogStream) {
+func (service *CloudWatchLogsService) getLogStreamDetails(logGroupName, logStreamName string) (logStream *cloudwatchlogs.LogStream) {
 	log := service.context.Log()
 	// Keeping the nextToken as empty in the beginning. Might get filled from response for subsequent calls
 	nextToken := ""
@@ -424,7 +410,7 @@ func (service *CloudWatchLogsService) getLogStreamDetails(logGroupName, logStrea
 		for _, stream := range describeLogStreamsOutput.LogStreams {
 			if logStreamName == *stream.LogStreamName {
 				// Log Stream Matched
-				logStream = &stream
+				logStream = stream
 				return
 			}
 		}
@@ -443,7 +429,7 @@ func (service *CloudWatchLogsService) getLogStreamDetails(logGroupName, logStrea
 }
 
 // PutLogEvents calls the PutLogEvents API to push messages to CloudWatchLogs
-func (service *CloudWatchLogsService) PutLogEvents(messages []types.InputLogEvent, logGroup, logStream string, sequenceToken *string) (nextSequenceToken *string, err error) {
+func (service *CloudWatchLogsService) PutLogEvents(messages []*cloudwatchlogs.InputLogEvent, logGroup, logStream string, sequenceToken *string) (nextSequenceToken *string, err error) {
 	log := service.context.Log()
 	service.CreateNewServiceIfUnHealthy()
 
@@ -456,7 +442,7 @@ func (service *CloudWatchLogsService) PutLogEvents(messages []types.InputLogEven
 	}
 
 	// Calling the API
-	response, err := service.cloudWatchLogsClient.PutLogEvents(cont.TODO(), params)
+	response, err := service.cloudWatchLogsClient.PutLogEvents(params)
 	if err != nil {
 
 		// Handle the common AWS errors and update the stop policy accordingly
@@ -487,7 +473,7 @@ func (service *CloudWatchLogsService) PutLogEvents(messages []types.InputLogEven
 }
 
 // retryPutWithNewSequenceToken gets a new sequence token and retries pushing messages to cloudwatchlogs
-func (service *CloudWatchLogsService) retryPutWithNewSequenceToken(messages []types.InputLogEvent, logGroupName, logStreamName string) (*string, error) {
+func (service *CloudWatchLogsService) retryPutWithNewSequenceToken(messages []*cloudwatchlogs.InputLogEvent, logGroupName, logStreamName string) (*string, error) {
 	// Get the sequence token by calling the DescribeLogStreams API
 	logStream := service.getLogStreamDetails(logGroupName, logStreamName)
 
@@ -504,7 +490,7 @@ func (service *CloudWatchLogsService) retryPutWithNewSequenceToken(messages []ty
 }
 
 // IsLogGroupEncryptedWithKMS return true if the log group is encrypted with KMS key.
-func (service *CloudWatchLogsService) IsLogGroupEncryptedWithKMS(logGroup *types.LogGroup) (bool, error) {
+func (service *CloudWatchLogsService) IsLogGroupEncryptedWithKMS(logGroup *cloudwatchlogs.LogGroup) (bool, error) {
 	if logGroup == nil {
 		return false, nil
 	}
@@ -608,7 +594,7 @@ func (service *CloudWatchLogsService) StreamData(
 			log.Info("Received Sequence token")
 		}
 
-		sequenceToken, err = service.PutLogEvents(ConvertMessages(events), logGroupName, logStreamName, sequenceToken)
+		sequenceToken, err = service.PutLogEvents(events, logGroupName, logStreamName, sequenceToken)
 		if err == nil {
 			// Set the last known line to current since the upload was successful.
 			lastKnownLineUploadedToCWL = currentLineNumber
@@ -638,7 +624,7 @@ func (service *CloudWatchLogsService) getNextMessage(
 	currentLineNumber *int64,
 	cleanupControlCharacters bool,
 	structuredLogs bool,
-) (allEvents []*types.InputLogEvent, eof bool) {
+) (allEvents []*cloudwatchlogs.InputLogEvent, eof bool) {
 	log := service.context.Log()
 	// Open file to read.
 	file, err := os.Open(absoluteFilePath)
@@ -754,7 +740,7 @@ func processMessage(log log.T, line []byte, cleanupANSICharacters bool) (process
 }
 
 // buildEventInfo constructs event to be uploaded to CW
-func (service *CloudWatchLogsService) buildEventInfo(message []byte, structuredLogs bool) *types.InputLogEvent {
+func (service *CloudWatchLogsService) buildEventInfo(message []byte, structuredLogs bool) *cloudwatchlogs.InputLogEvent {
 	var formattedMessage string
 	// Construct CloudWatch event in JSON format if structured logs required
 	if structuredLogs {
@@ -778,7 +764,7 @@ func (service *CloudWatchLogsService) buildEventInfo(message []byte, structuredL
 		}
 	}
 
-	event := &types.InputLogEvent{
+	event := &cloudwatchlogs.InputLogEvent{
 		Message:   aws.String(formattedMessage),
 		Timestamp: aws.Int64(time.Now().UnixNano() / int64(time.Millisecond)),
 	}

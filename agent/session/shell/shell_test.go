@@ -38,7 +38,7 @@ import (
 	dataChannelMock "github.com/aws/amazon-ssm-agent/agent/session/datachannel/mocks"
 	execcmdMock "github.com/aws/amazon-ssm-agent/agent/session/shell/execcmd/mocks"
 	"github.com/aws/amazon-ssm-agent/agent/task"
-	cwtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -53,7 +53,7 @@ var (
 	sessionId          = "sessionId"
 	sessionOwner       = "sessionOwner"
 	testCwLogGroupName = "testCW"
-	testCwlLogGroup    = cwtypes.LogGroup{
+	testCwlLogGroup    = cloudwatchlogs.LogGroup{
 		LogGroupName: &testCwLogGroupName,
 	}
 )

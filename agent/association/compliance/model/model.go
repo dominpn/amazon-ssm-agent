@@ -19,12 +19,12 @@ import (
 
 	"github.com/aws/amazon-ssm-agent/agent/association/model"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
-const UNSPECIFIED = types.ComplianceSeverityUnspecified
-const COMPLIANT = types.ComplianceStatusCompliant
-const NON_COMPLIANT = types.ComplianceStatusNonCompliant
+const UNSPECIFIED string = ssm.ComplianceSeverityUnspecified
+const COMPLIANT string = ssm.ComplianceStatusCompliant
+const NON_COMPLIANT string = ssm.ComplianceStatusNonCompliant
 
 var ASSOCIATION_COMPLIANCE_TITLE string
 
@@ -35,8 +35,8 @@ type AssociationComplianceItem struct {
 	DocumentName       string
 	DocumentVersion    string
 	Title              string
-	ComplianceSeverity types.ComplianceSeverity
-	ComplianceStatus   types.ComplianceStatus
+	ComplianceSeverity string
+	ComplianceStatus   string
 }
 
 // Association compliance status is Unspecified by default

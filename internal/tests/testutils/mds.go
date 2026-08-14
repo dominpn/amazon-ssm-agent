@@ -23,24 +23,27 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
 	messageContracts "github.com/aws/amazon-ssm-agent/agent/runcommand/contracts"
-	ssmmds "github.com/aws/amazon-ssm-agent/agent/runcommand/mds"
-	mdssdkmock "github.com/aws/amazon-ssm-agent/agent/runcommand/mds/mocks"
+	mdsService "github.com/aws/amazon-ssm-agent/agent/runcommand/mds"
 	"github.com/aws/amazon-ssm-agent/agent/times"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/ssmmds"
+	"github.com/aws/aws-sdk-go/service/ssmmds/ssmmdsiface"
+	mdssdkmock "github.com/aws/aws-sdk-go/service/ssmmds/ssmmdsiface/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
 func NewMdsSdkMock() *mdssdkmock.SsmmdsAPI {
 	sdkMock := new(mdssdkmock.SsmmdsAPI)
-	sdkMock.On("AcknowledgeMessageRequest", mock.AnythingOfType("*ssmmds.AcknowledgeMessageInput")).Return(&ssmmds.Request{HTTPRequest: &http.Request{}}, &ssmmds.AcknowledgeMessageOutput{})
+	sdkMock.On("AcknowledgeMessageRequest", mock.AnythingOfType("*ssmmds.AcknowledgeMessageInput")).Return(&request.Request{HTTPRequest: &http.Request{}}, &ssmmds.AcknowledgeMessageOutput{})
 	return sdkMock
 }
 
-func NewMdsService(context context.T, msgSvc *mdssdkmock.SsmmdsAPI, sendMdsSdkRequest ssmmds.SendSdkRequest) ssmmds.Service {
-	cancelMdsSDKRequest := func(trans *http.Transport, req *ssmmds.Request) {
+func NewMdsService(context context.T, msgSvc ssmmdsiface.SsmmdsAPI, sendMdsSdkRequest mdsService.SendSdkRequest) mdsService.Service {
+	cancelMdsSDKRequest := func(trans *http.Transport, req *request.Request) {
 		return
 	}
-	return ssmmds.NewMdsSdkService(context, msgSvc, &http.Transport{}, sendMdsSdkRequest, cancelMdsSDKRequest)
+	return mdsService.NewMdsSdkService(context, msgSvc, &http.Transport{}, sendMdsSdkRequest, cancelMdsSDKRequest)
 }
 
 func GenerateEmptyMessage(context context.T) (*ssmmds.GetMessagesOutput, error) {

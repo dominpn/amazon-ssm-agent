@@ -78,7 +78,6 @@ func NewService(context context.T) contracts.ICoreModule {
 			messageService.interactors = append(messageService.interactors, mgsRef)
 		}
 	}
-	// TODO: Remove mgs completely
 	if !messageContext.AppConfig().Agent.ContainerMode {
 		log.Info("Appending MDSInteractor to MessageService interactors")
 		mdsRef, err := mdsinteractor.New(messageContext, messageService.messageHandler, nil)

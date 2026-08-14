@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/fileutil/artifact"
 	appcontext "github.com/aws/amazon-ssm-agent/agent/mocks/context"
@@ -38,7 +36,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/packageservice"
 	cache_mock "github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/packageservice/mock"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/trace"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -525,13 +523,13 @@ func TestReportResult(t *testing.T) {
 				}
 				assert.Equal(t, (int64(now)-testdata.packageResult.Timing)/1000000, *testdata.facadeClient.PutConfigurePackageResultInput.OverallTiming)
 				assert.Equal(t, testdata.packageResult.Exitcode, *testdata.facadeClient.PutConfigurePackageResultInput.Result)
-				assert.Equal(t, "abc", testdata.facadeClient.PutConfigurePackageResultInput.Attributes["platformName"])
-				assert.Equal(t, "567", testdata.facadeClient.PutConfigurePackageResultInput.Attributes["platformVersion"])
-				assert.Equal(t, "xyz", testdata.facadeClient.PutConfigurePackageResultInput.Attributes["architecture"])
-				assert.Equal(t, "instanceIDX", testdata.facadeClient.PutConfigurePackageResultInput.Attributes["instanceID"])
-				assert.Equal(t, "instanceTypeZ", testdata.facadeClient.PutConfigurePackageResultInput.Attributes["instanceType"])
-				assert.Equal(t, "AZ1", testdata.facadeClient.PutConfigurePackageResultInput.Attributes["availabilityZone"])
-				assert.Equal(t, "Reg1", testdata.facadeClient.PutConfigurePackageResultInput.Attributes["region"])
+				assert.Equal(t, "abc", *testdata.facadeClient.PutConfigurePackageResultInput.Attributes["platformName"])
+				assert.Equal(t, "567", *testdata.facadeClient.PutConfigurePackageResultInput.Attributes["platformVersion"])
+				assert.Equal(t, "xyz", *testdata.facadeClient.PutConfigurePackageResultInput.Attributes["architecture"])
+				assert.Equal(t, "instanceIDX", *testdata.facadeClient.PutConfigurePackageResultInput.Attributes["instanceID"])
+				assert.Equal(t, "instanceTypeZ", *testdata.facadeClient.PutConfigurePackageResultInput.Attributes["instanceType"])
+				assert.Equal(t, "AZ1", *testdata.facadeClient.PutConfigurePackageResultInput.Attributes["availabilityZone"])
+				assert.Equal(t, "Reg1", *testdata.facadeClient.PutConfigurePackageResultInput.Attributes["region"])
 			}
 		})
 	}
@@ -652,19 +650,19 @@ func TestDownloadManifest(t *testing.T) {
 func TestDownloadDocument(t *testing.T) {
 	manifestStr := "{\"version\": \"1234\"}"
 	manifest := "{\"version\": \"123\"}"
-	documentActive := types.DocumentStatusActive
+	documentActive := ssm.DocumentStatusActive
 	tracer := trace.NewTracer(log.NewMockLog())
 	packageName := "documentarn"
 	packageVersion := "1234"
 	docVersionForGetDoc := "2"
 	docVersion := "1"
 	hash := "hash"
-	documentDescription := types.DocumentDescription{
+	documentDescription := ssm.DocumentDescription{
 		Name:            &packageName,
 		DocumentVersion: &docVersion,
 		VersionName:     &packageVersion,
 		Hash:            &hash,
-		Status:          documentActive,
+		Status:          &documentActive,
 	}
 
 	data := []struct {
@@ -700,7 +698,7 @@ func TestDownloadDocument(t *testing.T) {
 
 			getDocumentOutput := &ssm.GetDocumentOutput{
 				Content:         &manifestStr,
-				Status:          documentActive,
+				Status:          &documentActive,
 				Name:            &packageName,
 				VersionName:     &packageVersion,
 				DocumentVersion: &docVersionForGetDoc,
@@ -720,9 +718,9 @@ func TestDownloadDocument(t *testing.T) {
 			cache := cache_mock.ManifestCache{}
 			facadeMock := facade_mock.BirdwatcherFacade{}
 
-			facadeMock.On("DescribeDocument", mock.Anything, describeDocumentInput).Return(describeDocumentOutput, nil)
+			facadeMock.On("DescribeDocument", describeDocumentInput).Return(describeDocumentOutput, nil)
 			if testdata.getDocumentExpected {
-				facadeMock.On("GetDocument", mock.Anything, getDocumentInput).Return(getDocumentOutput, nil)
+				facadeMock.On("GetDocument", getDocumentInput).Return(getDocumentOutput, nil)
 			}
 			cache.On("ReadManifestHash", packageName, docVersion).Return([]byte(testdata.hashVal), nil)
 			if !testdata.getDocumentExpected {
@@ -1089,22 +1087,22 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 	version := "version"
 	fileName := "fileName.zip"
 	url := "url"
-	documentActive := types.DocumentStatusActive
+	documentActive := ssm.DocumentStatusActive
 	hash := "hash"
-	hashtype := types.AttachmentHashTypeSha256
+	hashtype := "sha256"
 	docVersion := "2"
-	documentDescription := types.DocumentDescription{
+	documentDescription := ssm.DocumentDescription{
 		Name:            &packagename,
 		DocumentVersion: &docVersion,
 		VersionName:     &version,
 		Hash:            &hash,
-		Status:          documentActive,
+		Status:          &documentActive,
 	}
 	data := []struct {
 		name        string
 		network     networkMock
 		file        *archive.File
-		attachments []types.AttachmentContent
+		attachments []*ssm.AttachmentContent
 		expectedErr bool
 	}{
 		{
@@ -1118,12 +1116,12 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 				fileName,
 				birdwatcher.FileInfo{},
 			},
-			[]types.AttachmentContent{
+			[]*ssm.AttachmentContent{
 				{
 					Name:     &fileName,
 					Url:      &url,
 					Hash:     &hash,
-					HashType: hashtype,
+					HashType: &hashtype,
 				},
 			},
 			false,
@@ -1139,12 +1137,12 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 				fileName,
 				birdwatcher.FileInfo{},
 			},
-			[]types.AttachmentContent{
+			[]*ssm.AttachmentContent{
 				{
 					Name:     &fileName,
 					Url:      &url,
 					Hash:     &hash,
-					HashType: hashtype,
+					HashType: &hashtype,
 				},
 			},
 			true,
@@ -1158,12 +1156,12 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 				fileName,
 				birdwatcher.FileInfo{},
 			},
-			[]types.AttachmentContent{
+			[]*ssm.AttachmentContent{
 				{
 					Name:     &fileName,
 					Url:      &url,
 					Hash:     &hash,
-					HashType: hashtype,
+					HashType: &hashtype,
 				},
 			},
 			true,
@@ -1175,9 +1173,9 @@ func TestDownloadFileFromDocumentArchive(t *testing.T) {
 			cache := packageservice.ManifestCacheMemNew()
 			facadeClient := facade.FacadeStub{
 				GetDocumentOutput: &ssm.GetDocumentOutput{
-					Status: documentActive,
+					Status: &documentActive,
 					Name:   &packagename,
-					AttachmentsContent: []types.AttachmentContent{
+					AttachmentsContent: []*ssm.AttachmentContent{
 						{
 							Name: &fileName,
 							Url:  &url,

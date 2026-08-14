@@ -15,22 +15,13 @@ package ec2
 
 import (
 	"context"
-	"errors"
 	"fmt"
-
-	"io"
 	"strings"
 	"sync"
 	"time"
 
-	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
-	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
-
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/backoffconfig"
-
-	//agentContext "github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/managedInstances/registration"
 	"github.com/aws/amazon-ssm-agent/agent/platform"
@@ -43,15 +34,20 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/identity/endpoint"
 	"github.com/aws/amazon-ssm-agent/common/runtimeconfig"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/cenkalti/backoff/v4"
 )
 
 var (
 	newSharedCredentialsProvider = sharedprovider.NewCredentialsProvider
 	newAuthRegisterService       = authregister.NewClient
-	newImdsClient                = imds.NewFromConfig
+	newImdsClient                = ec2metadata.New
 	updateServerInfo             = registration.UpdateServerInfo
 	getStoredInstanceId          = registration.InstanceID
 	getStoredPrivateKey          = registration.PrivateKey
@@ -69,19 +65,7 @@ func (i *Identity) InstanceID() (string, error) {
 
 // InstanceIDWithContext returns the managed instance id
 func (i *Identity) InstanceIDWithContext(ctx context.Context) (string, error) {
-	metaData, err := i.Client.GetMetadata(ctx, &imds.GetMetadataInput{ec2InstanceIDResource})
-	if err != nil {
-		return "", err
-	}
-
-	rc := metaData.Content
-	defer rc.Close()
-	bytes, err := io.ReadAll(rc)
-	if err != nil {
-		return "", err
-	}
-	content := string(bytes)
-	return content, nil
+	return i.Client.GetMetadataWithContext(ctx, ec2InstanceIDResource)
 }
 
 // Region returns the region of the ec2 instance
@@ -91,57 +75,45 @@ func (i *Identity) Region() (region string, err error) {
 
 // RegionWithContext returns the region of the ec2 instance
 func (i *Identity) RegionWithContext(ctx context.Context) (region string, err error) {
-	regionOutput, err := i.Client.GetRegion(ctx, &imds.GetRegionInput{})
-	if err == nil {
-		region = regionOutput.Region
+	if region, err = i.Client.RegionWithContext(ctx); err == nil {
 		return
 	}
-	var document *imds.GetInstanceIdentityDocumentOutput
-	if document, err = i.Client.GetInstanceIdentityDocument(ctx, &imds.GetInstanceIdentityDocumentInput{}); err == nil {
-		region = document.InstanceIdentityDocument.Region
+	var document ec2metadata.EC2InstanceIdentityDocument
+	if document, err = i.Client.GetInstanceIdentityDocumentWithContext(ctx); err == nil {
+		region = document.Region
 	}
 
 	return
 }
 
-func GetMetaDataContent(path string, i *Identity) (string, error) {
-	mdInput := imds.GetMetadataInput{Path: path}
-	metaData, err := i.Client.GetMetadata(context.TODO(), &mdInput)
-	if err != nil {
-		return "", err
-	}
-	rc := metaData.Content
-	defer rc.Close()
-	bytes, err := io.ReadAll(rc)
-	if err != nil {
-		return "", err
-	}
-	content := string(bytes)
-	return content, nil
-}
-
 // AvailabilityZone returns the availabilityZone ec2 instance
 func (i *Identity) AvailabilityZone() (string, error) {
-	return GetMetaDataContent(ec2AvailabilityZoneResource, i)
+	return i.Client.GetMetadata(ec2AvailabilityZoneResource)
 }
 
 // AvailabilityZoneId returns the availabilityZoneId ec2 instance
 func (i *Identity) AvailabilityZoneId() (string, error) {
-	return GetMetaDataContent(ec2AvailabilityZoneResourceId, i)
+	return i.Client.GetMetadata(ec2AvailabilityZoneResourceId)
 }
 
 // InstanceType returns the instance type of the ec2 instance
 func (i *Identity) InstanceType() (string, error) {
-	return GetMetaDataContent(ec2InstanceTypeResource, i)
+	return i.Client.GetMetadata(ec2InstanceTypeResource)
 }
 
-// CredentialsProvider returns CredentialsProvider for EC2 identity
-func (i *Identity) CredentialsProvider() aws.CredentialsProvider {
+// Credentials initializes credentials for EC2 identity if none exists and returns credentials
+// Since credentials expire in about 6 hours, setting the ExpiryWindow to 5 hours
+// will trigger a refresh 5 hours before they actually expire. So the TTL of credentials
+// is reduced to about 1 hour to match EC2 assume role frequency.
+func (i *Identity) Credentials() *credentials.Credentials {
 	i.shareLock.Lock()
 	defer i.shareLock.Unlock()
 
-	return i.credentialsProvider
+	if i.credentials == nil {
+		i.credentials = credentials.NewCredentials(i.credentialsProvider)
+	}
 
+	return i.credentials
 }
 
 // IsIdentityEnvironment returns if instance is a ec2 instance
@@ -155,7 +127,7 @@ func (i *Identity) IdentityType() string { return IdentityType }
 
 // VpcPrimaryCIDRBlock returns ipv4, ipv6 VPC CIDR block addresses if exists
 func (i *Identity) VpcPrimaryCIDRBlock() (ip map[string][]string, err error) {
-	macs, err := GetMetaDataContent(ec2MacsResource, i)
+	macs, err := i.Client.GetMetadata(ec2MacsResource)
 	if err != nil {
 		return map[string][]string{}, err
 	}
@@ -165,8 +137,8 @@ func (i *Identity) VpcPrimaryCIDRBlock() (ip map[string][]string, err error) {
 	ipv6 := make([]string, len(addresses))
 
 	for index, address := range addresses {
-		ipv4[index], _ = GetMetaDataContent(ec2MacsResource+"/"+address+"/"+ec2VpcCidrBlockV4Resource, i)
-		ipv6[index], _ = GetMetaDataContent(ec2MacsResource+"/"+address+"/"+ec2VpcCidrBlockV6Resource, i)
+		ipv4[index], _ = i.Client.GetMetadata(ec2MacsResource + "/" + address + "/" + ec2VpcCidrBlockV4Resource)
+		ipv6[index], _ = i.Client.GetMetadata(ec2MacsResource + "/" + address + "/" + ec2VpcCidrBlockV6Resource)
 	}
 
 	return map[string][]string{"ipv4": ipv4, "ipv6": ipv6}, nil
@@ -225,20 +197,14 @@ func (i *Identity) Register(ctx context.Context) error {
 	}
 
 	i.Log.Info("Registering EC2 instance with Systems Manager")
-	_, err = i.AuthRegisterService.RegisterManagedInstance(ctx, publicKey, keyType, instanceId, "", "", "")
+	_, err = i.AuthRegisterService.RegisterManagedInstanceWithContext(ctx, publicKey, keyType, instanceId, "", "", "")
 	if err != nil {
-		var IARException *ssmtypes.InstanceAlreadyRegisteredException
-		// TODO: use different error code
-		if errors.As(err, &IARException) {
-			i.Log.Errorf("Instance appears to already be registered. Err: %v", err)
-			return nil
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == ssm.ErrCodeInstanceAlreadyRegistered {
+				i.Log.Errorf("Instance appears to already be registered. Err: %v", aerr)
+				return nil
+			}
 		}
-		//if aerr, ok := err.(awserr.Error); ok {
-		//	if aerr.Code() == ssmtypes.InstanceAlreadyRegisteredException {
-		//		i.Log.Errorf("Instance appears to already be registered. Err: %v", aerr)
-		//		return nil
-		//	}
-		//}
 
 		return fmt.Errorf("error calling RegisterManagedInstance API: %w", err)
 	}
@@ -278,12 +244,12 @@ func (i *Identity) loadRegistrationInfo(instanceId string) *authregister.Registr
 	return registrationInfo
 }
 
-func NewEC2IdentityWithConfig(log log.T, imdsAwsConfig aws.Config) *Identity {
-	//sess, err := session.NewSession(imdsAwsConfig)
-	//if err != nil {
-	//	log.Errorf("Failed to create session with aws config. Err: %v", err)
-	//	return nil
-	//}
+func NewEC2IdentityWithConfig(log log.T, imdsAwsConfig *aws.Config) *Identity {
+	sess, err := session.NewSession(imdsAwsConfig)
+	if err != nil {
+		log.Errorf("Failed to create session with aws config. Err: %v", err)
+		return nil
+	}
 
 	config, err := loadAppConfig(true)
 	if err != nil {
@@ -301,7 +267,7 @@ func NewEC2IdentityWithConfig(log log.T, imdsAwsConfig aws.Config) *Identity {
 	}
 
 	// Ensure IMDS client is initialized before attempting to get instance info
-	identity.initIMDSClient(imdsAwsConfig)
+	identity.initIMDSClient(sess)
 	instanceInfo, err := getInstanceInfo(context.Background(), identity)
 	if err != nil {
 		log.Errorf("Failed to get instance info from IMDS. Err: %v", err)
@@ -324,8 +290,8 @@ func (i *Identity) ComputerName() (string, error) { return platform.Hostname(i.L
 
 // NewEC2Identity initializes the ec2 identity
 func NewEC2Identity(log log.T) *Identity {
-	awsConfig := aws.Config{}
-	awsConfig.RetryMaxAttempts = 8
+	awsConfig := &aws.Config{}
+	awsConfig = awsConfig.WithMaxRetries(8).WithEC2MetadataEnableFallback(false)
 	return NewEC2IdentityWithConfig(log, awsConfig)
 }
 
@@ -343,26 +309,14 @@ func (i *Identity) initEc2RoleProvider(endpointHelper endpoint.IEndpointHelper, 
 		InstanceInfo: instanceInfo,
 	}
 
-	//iprRoleProvider := &ec2rolecreds.EC2RoleProvider{
-	//	Client: ec2metadata.New(session.New()),
-	//}
-	//ec2Provider := ec2rolecreds.New(func(o *ec2rolecreds.Options) {
-	//	// Configure options here
-	//	o.Client = i.Client
-	//})
-	//cachedProvider := aws.NewCredentialsCache(ec2Provider)
-	//
-	//iprRoleProvider := &IEC2RoleProviderWrapper{
-	//	provider: cachedProvider,
-	//	expiry:   time.Now().Add(time.Hour), // Default expiry
-	//}
-	//iprRoleProvider := aws.NewCredentialsCache(ec2rolecreds.New())
-	//iprRoleProvider := aws.CredentialsProvider(ec2rolecreds.New())
+	iprRoleProvider := &ec2rolecreds.EC2RoleProvider{
+		Client: ec2metadata.New(session.New()),
+	}
 
 	sharedCredentialsProvider := sharedprovider.NewCredentialsProvider(i.Log)
 
 	innerProviders := &ec2roleprovider.EC2InnerProviders{
-		IPRProvider:               i.createIPRProvider(),
+		IPRProvider:               iprRoleProvider,
 		SsmEc2Provider:            ssmEC2RoleProvider,
 		SharedCredentialsProvider: sharedCredentialsProvider,
 	}
@@ -372,24 +326,6 @@ func (i *Identity) initEc2RoleProvider(endpointHelper endpoint.IEndpointHelper, 
 	ec2RoleProvider := ec2roleprovider.NewEC2RoleProvider(i.Log, innerProviders, instanceInfo, ssmEndpoint, runtimeConfigClient)
 
 	i.credentialsProvider = ec2RoleProvider
-}
-
-func (i *Identity) createIPRProvider() *IEC2RoleProviderWrapper {
-	i.Log.Infof("Creating IPR provider with IMDS client")
-	ec2Provider := ec2rolecreds.New(func(o *ec2rolecreds.Options) {
-		o.Client = i.Client
-	})
-
-	// Cache IMDS credentials for worker requests. The credential refresher
-	// bypasses this cache via RetrieveWithoutCache to get fresh IMDS creds
-	// and detect instance profile role changes.
-	cachedProvider := aws.NewCredentialsCache(ec2Provider)
-
-	return &IEC2RoleProviderWrapper{
-		provider:      cachedProvider,
-		innerProvider: ec2Provider,
-		expiry:        time.Now().Add(time.Hour),
-	}
 }
 
 // getInstanceInfo queries identity for instanceId and region
@@ -414,15 +350,12 @@ func getInstanceInfo(ctx context.Context, identity *Identity) (*ssmec2roleprovid
 }
 
 // initIMDSClient initializes the client used to make instance metadata service requests
-func (i *Identity) initIMDSClient(cfg aws.Config) {
+func (i *Identity) initIMDSClient(sess *session.Session) {
 	if i.Client != nil {
 		return
 	}
 
-	i.Client = newImdsClient(cfg, func(o *imds.Options) {
-		// Disable IMDSv1 fallback to match v1 behavior (WithEC2MetadataEnableFallback(false))
-		o.EnableFallback = aws.FalseTernary
-	})
+	i.Client = newImdsClient(sess)
 }
 
 // initAuthRegisterService initializes the client used to make requests to RegisterManagedInstance

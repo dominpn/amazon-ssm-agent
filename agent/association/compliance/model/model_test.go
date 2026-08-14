@@ -17,17 +17,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
 	"github.com/aws/amazon-ssm-agent/agent/association/model"
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUpdateAssociationComplianceItemReturnCompliant(t *testing.T) {
 	association1 := &model.InstanceAssociation{
-		Association: &types.InstanceAssociationSummary{
+		Association: &ssm.InstanceAssociationSummary{
 			Name:            aws.String("testDoc"),
 			AssociationId:   aws.String("association_1"),
 			DocumentVersion: aws.String("1"),
@@ -35,7 +34,7 @@ func TestUpdateAssociationComplianceItemReturnCompliant(t *testing.T) {
 	}
 
 	association2 := &model.InstanceAssociation{
-		Association: &types.InstanceAssociationSummary{
+		Association: &ssm.InstanceAssociationSummary{
 			Name:            aws.String("testDoc2"),
 			AssociationId:   aws.String("association_2"),
 			DocumentVersion: aws.String("2"),
@@ -43,7 +42,7 @@ func TestUpdateAssociationComplianceItemReturnCompliant(t *testing.T) {
 	}
 
 	association3 := &model.InstanceAssociation{
-		Association: &types.InstanceAssociationSummary{
+		Association: &ssm.InstanceAssociationSummary{
 			Name:            aws.String("testDoc3"),
 			AssociationId:   aws.String("association_3"),
 			DocumentVersion: aws.String("3"),
@@ -95,7 +94,7 @@ func TestUpdateAssociationComplianceItemIgnoreStaleUpdate(t *testing.T) {
 	RefreshAssociationComplianceItems([]*model.InstanceAssociation{})
 
 	association1 := &model.InstanceAssociation{
-		Association: &types.InstanceAssociationSummary{
+		Association: &ssm.InstanceAssociationSummary{
 			Name:            aws.String("testDoc"),
 			AssociationId:   aws.String("associtionId"),
 			DocumentVersion: aws.String("1"),
@@ -124,7 +123,7 @@ func TestUpdateAssociationComplianceItemIgnoreStaleUpdate(t *testing.T) {
 func TestRefreshAssociationComplianceItems(t *testing.T) {
 	RefreshAssociationComplianceItems([]*model.InstanceAssociation{})
 	association1 := &model.InstanceAssociation{
-		Association: &types.InstanceAssociationSummary{
+		Association: &ssm.InstanceAssociationSummary{
 			Name:            aws.String("testDoc"),
 			AssociationId:   aws.String("association_1"),
 			DocumentVersion: aws.String("1"),
@@ -132,7 +131,7 @@ func TestRefreshAssociationComplianceItems(t *testing.T) {
 	}
 
 	association2 := &model.InstanceAssociation{
-		Association: &types.InstanceAssociationSummary{
+		Association: &ssm.InstanceAssociationSummary{
 			Name:            aws.String("testDoc2"),
 			AssociationId:   aws.String("association_2"),
 			DocumentVersion: aws.String("2"),

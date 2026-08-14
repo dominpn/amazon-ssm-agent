@@ -18,9 +18,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/model"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,7 +67,7 @@ func TestConvertToSSMInventoryItem(t *testing.T) {
 
 	var item model.Item
 	var err error
-	var dataAfterConversion *types.InventoryItem
+	var dataAfterConversion *ssm.InventoryItem
 
 	//testing with Item.Content being a struct
 	item = model.Item{

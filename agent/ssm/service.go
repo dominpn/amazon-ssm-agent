@@ -14,16 +14,11 @@
 package ssm
 
 import (
-	cont "context"
 	"fmt"
 	"runtime"
 	"strings"
 	"sync/atomic"
 	"time"
-
-	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -31,9 +26,11 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2"
 	"github.com/aws/amazon-ssm-agent/common/identity/availableidentities/ec2/ec2detector"
-	"github.com/aws/aws-sdk-go-v2/aws"
-
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 )
 
 // Service is an interface to the SSM service.
@@ -44,12 +41,12 @@ type Service interface {
 		log log.T,
 		instanceID string,
 		name string,
-		associationStatus *ssmtypes.AssociationStatus) (response *ssm.UpdateAssociationStatusOutput, err error)
+		associationStatus *ssm.AssociationStatus) (response *ssm.UpdateAssociationStatusOutput, err error)
 	UpdateInstanceAssociationStatus(
 		log log.T,
 		associationID string,
 		instanceID string,
-		executionResult *ssmtypes.InstanceAssociationExecutionResult) (response *ssm.UpdateInstanceAssociationStatusOutput, err error)
+		executionResult *ssm.InstanceAssociationExecutionResult) (response *ssm.UpdateInstanceAssociationStatusOutput, err error)
 	PutComplianceItems(
 		log log.T,
 		executionTime *time.Time,
@@ -58,12 +55,12 @@ type Service interface {
 		instanceId string,
 		complianceType string,
 		itemContentHash string,
-		items []ssmtypes.ComplianceItemEntry) (response *ssm.PutComplianceItemsOutput, err error)
+		items []*ssm.ComplianceItemEntry) (response *ssm.PutComplianceItemsOutput, err error)
 	SendCommand(log log.T,
 		documentName string,
 		instanceIDs []string,
-		parameters map[string][]string,
-		timeoutSeconds *int32,
+		parameters map[string][]*string,
+		timeoutSeconds *int64,
 		outputS3BucketName *string,
 		outputS3KeyPrefix *string) (response *ssm.SendCommandOutput, err error)
 	ListCommands(log log.T, instanceID string) (response *ssm.ListCommandsOutput, err error)
@@ -93,7 +90,7 @@ type Service interface {
 // sdkService is an service wrapper that delegates to the ssm sdk.
 type sdkService struct {
 	context context.T
-	sdk     *ssm.Client
+	sdk     ssmiface.SSMAPI
 }
 
 var (
@@ -112,23 +109,20 @@ func NewService(context context.T) Service {
 	// parse appConfig overrides
 	appConfig := context.AppConfig()
 	if appConfig.Ssm.Endpoint != "" {
-		awsConfig.BaseEndpoint = &appConfig.Ssm.Endpoint
+		awsConfig.Endpoint = &appConfig.Ssm.Endpoint
 	}
 
 	if appConfig.Agent.Region != "" {
-		awsConfig.Region = appConfig.Agent.Region
+		awsConfig.Region = &appConfig.Agent.Region
 	}
 
-	ssmService := ssm.NewFromConfig(awsConfig, func(o *ssm.Options) {
-		o.APIOptions = append(o.APIOptions, func(stack *middleware.Stack) error {
-			return smithyhttp.AddHeaderValue("User-Agent",
-				fmt.Sprintf("%s/%s", appConfig.Agent.Name, appConfig.Agent.Version))(stack)
-		})
-	})
+	sess := session.New(awsConfig)
+	sess.Handlers.Build.PushBack(request.MakeAddToUserAgentHandler(appConfig.Agent.Name, appConfig.Agent.Version))
+	ssmService := ssm.New(sess)
 	return NewSSMService(context, ssmService)
 }
 
-func NewSSMService(context context.T, ssmService *ssm.Client) Service {
+func NewSSMService(context context.T, ssmService ssmiface.SSMAPI) Service {
 	return &sdkService{context: context, sdk: ssmService}
 }
 
@@ -143,15 +137,15 @@ func makeAwsStrings(strings []string) []*string {
 // ListAssociations calls the ListAssociations SSM API.
 func (svc *sdkService) ListAssociations(log log.T, instanceID string) (response *ssm.ListAssociationsOutput, err error) {
 	params := ssm.ListAssociationsInput{
-		AssociationFilterList: []ssmtypes.AssociationFilter{
+		AssociationFilterList: []*ssm.AssociationFilter{
 			{
-				Key:   ssmtypes.AssociationFilterKeyInstanceId,
+				Key:   aws.String("InstanceId"),
 				Value: aws.String(instanceID),
 			},
 		},
-		MaxResults: aws.Int32(1),
+		MaxResults: aws.Int64(1),
 	}
-	response, err = svc.sdk.ListAssociations(cont.TODO(), &params)
+	response, err = svc.sdk.ListAssociations(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -164,11 +158,11 @@ func (svc *sdkService) ListAssociations(log log.T, instanceID string) (response 
 func (svc *sdkService) ListInstanceAssociations(log log.T, instanceID string, nextToken *string) (response *ssm.ListInstanceAssociationsOutput, err error) {
 	params := ssm.ListInstanceAssociationsInput{
 		InstanceId: &instanceID,
-		MaxResults: aws.Int32(20),
+		MaxResults: aws.Int64(20),
 		NextToken:  nextToken,
 	}
 
-	response, err = svc.sdk.ListInstanceAssociations(cont.TODO(), &params)
+	response, err = svc.sdk.ListInstanceAssociations(&params)
 	if err != nil {
 		errCode := sdkutil.GetAwsErrorCode(err)
 		if errCode != "UnknownOperationException" {
@@ -189,9 +183,9 @@ func (svc *sdkService) PutComplianceItems(
 	instanceId string,
 	complianceType string,
 	itemContentHash string,
-	items []ssmtypes.ComplianceItemEntry) (response *ssm.PutComplianceItemsOutput, err error) {
+	items []*ssm.ComplianceItemEntry) (response *ssm.PutComplianceItemsOutput, err error) {
 
-	executionSummary := &ssmtypes.ComplianceExecutionSummary{
+	executionSummary := &ssm.ComplianceExecutionSummary{
 		ExecutionId:   aws.String(executionId),
 		ExecutionType: aws.String(executionType),
 		ExecutionTime: executionTime}
@@ -204,7 +198,7 @@ func (svc *sdkService) PutComplianceItems(
 		Items:            items,
 	}
 
-	response, err = svc.sdk.PutComplianceItems(cont.TODO(), params)
+	response, err = svc.sdk.PutComplianceItems(params)
 	if err != nil {
 		errCode := sdkutil.GetAwsErrorCode(err)
 		if errCode != "UnknownOperationException" && errCode != "AccessDeniedException" {
@@ -217,14 +211,14 @@ func (svc *sdkService) PutComplianceItems(
 }
 
 // UpdateInstanceAssociationStatus calls the ListAssociations SSM API.
-func (svc *sdkService) UpdateInstanceAssociationStatus(log log.T, associationID string, instanceID string, executionResult *ssmtypes.InstanceAssociationExecutionResult) (response *ssm.UpdateInstanceAssociationStatusOutput, err error) {
+func (svc *sdkService) UpdateInstanceAssociationStatus(log log.T, associationID string, instanceID string, executionResult *ssm.InstanceAssociationExecutionResult) (response *ssm.UpdateInstanceAssociationStatusOutput, err error) {
 	params := ssm.UpdateInstanceAssociationStatusInput{
 		InstanceId:      &instanceID,
 		AssociationId:   &associationID,
 		ExecutionResult: executionResult,
 	}
 
-	response, err = svc.sdk.UpdateInstanceAssociationStatus(cont.TODO(), &params)
+	response, err = svc.sdk.UpdateInstanceAssociationStatus(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -238,14 +232,14 @@ func (svc *sdkService) UpdateAssociationStatus(
 	log log.T,
 	instanceID string,
 	name string,
-	associationStatus *ssmtypes.AssociationStatus) (response *ssm.UpdateAssociationStatusOutput, err error) {
+	associationStatus *ssm.AssociationStatus) (response *ssm.UpdateAssociationStatusOutput, err error) {
 
 	input := ssm.UpdateAssociationStatusInput{
 		InstanceId:        aws.String(instanceID),
 		Name:              aws.String(name),
 		AssociationStatus: associationStatus,
 	}
-	response, err = svc.sdk.UpdateAssociationStatus(cont.TODO(), &input)
+	response, err = svc.sdk.UpdateAssociationStatus(&input)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -293,11 +287,11 @@ func (svc *sdkService) UpdateInstanceInformation(
 	goOS := runtime.GOOS
 	switch goOS {
 	case "windows":
-		params.PlatformType = aws.String(string(ssmtypes.PlatformTypeWindows))
+		params.PlatformType = aws.String(ssm.PlatformTypeWindows)
 	case "linux", "freebsd":
-		params.PlatformType = aws.String(string(ssmtypes.PlatformTypeLinux))
+		params.PlatformType = aws.String(ssm.PlatformTypeLinux)
 	case "darwin":
-		params.PlatformType = aws.String(string(ssmtypes.PlatformTypeMacos))
+		params.PlatformType = aws.String(ssm.PlatformTypeMacOs)
 	default:
 		return nil, fmt.Errorf("Cannot report platform type of unrecognized OS. %v", goOS)
 	}
@@ -333,7 +327,7 @@ func (svc *sdkService) UpdateInstanceInformation(
 	}
 
 	log.Debug("Calling UpdateInstanceInformation with params", params)
-	response, err = svc.sdk.UpdateInstanceInformation(cont.TODO(), &params)
+	response, err = svc.sdk.UpdateInstanceInformation(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -357,11 +351,11 @@ func (svc *sdkService) UpdateEmptyInstanceInformation(
 	goOS := runtime.GOOS
 	switch goOS {
 	case "windows":
-		params.PlatformType = aws.String(string(ssmtypes.PlatformTypeWindows))
+		params.PlatformType = aws.String(ssm.PlatformTypeWindows)
 	case "linux", "freebsd":
-		params.PlatformType = aws.String(string(ssmtypes.PlatformTypeLinux))
+		params.PlatformType = aws.String(ssm.PlatformTypeLinux)
 	case "darwin":
-		params.PlatformType = aws.String(string(ssmtypes.PlatformTypeMacos))
+		params.PlatformType = aws.String(ssm.PlatformTypeMacOs)
 	}
 
 	// InstanceId is a required parameter for UpdateInstanceInformation
@@ -396,7 +390,7 @@ func (svc *sdkService) UpdateEmptyInstanceInformation(
 	}
 
 	log.Debug("Calling UpdateInstanceInformation with params", params)
-	response, err = svc.sdk.UpdateInstanceInformation(cont.TODO(), &params)
+	response, err = svc.sdk.UpdateInstanceInformation(&params)
 	if err == nil {
 		log.Debug("UpdateInstanceInformation Response", response)
 	}
@@ -408,7 +402,7 @@ func (svc *sdkService) CreateDocument(log log.T, docName string, docContent stri
 		Content: aws.String(docContent),
 		Name:    aws.String(docName),
 	}
-	response, err = svc.sdk.CreateDocument(cont.TODO(), &params)
+	response, err = svc.sdk.CreateDocument(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -427,7 +421,7 @@ func (svc *sdkService) GetDocument(log log.T, docName string, docVersion string)
 		params.DocumentVersion = aws.String(docVersion)
 	}
 
-	response, err = svc.sdk.GetDocument(cont.TODO(), &params)
+	response, err = svc.sdk.GetDocument(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -442,7 +436,7 @@ func (svc *sdkService) DescribeAssociation(log log.T, instanceID string, docName
 		InstanceId: aws.String(instanceID),
 		Name:       aws.String(docName),
 	}
-	response, err = svc.sdk.DescribeAssociation(cont.TODO(), &params)
+	response, err = svc.sdk.DescribeAssociation(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -455,7 +449,7 @@ func (svc *sdkService) DeleteDocument(log log.T, docName string) (response *ssm.
 	params := ssm.DeleteDocumentInput{
 		Name: aws.String(docName), // Required
 	}
-	response, err = svc.sdk.DeleteDocument(cont.TODO(), &params)
+	response, err = svc.sdk.DeleteDocument(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -467,13 +461,13 @@ func (svc *sdkService) DeleteDocument(log log.T, docName string) (response *ssm.
 func (svc *sdkService) SendCommand(log log.T,
 	documentName string,
 	instanceIDs []string,
-	parameters map[string][]string,
-	timeoutSeconds *int32,
+	parameters map[string][]*string,
+	timeoutSeconds *int64,
 	outputS3BucketName *string,
 	outputS3KeyPrefix *string) (response *ssm.SendCommandOutput, err error) {
 	params := ssm.SendCommandInput{
 		DocumentName:       aws.String(documentName),
-		InstanceIds:        instanceIDs,
+		InstanceIds:        makeAwsStrings(instanceIDs),
 		Comment:            aws.String("Comment"),
 		OutputS3BucketName: outputS3BucketName,
 		OutputS3KeyPrefix:  outputS3KeyPrefix,
@@ -482,7 +476,7 @@ func (svc *sdkService) SendCommand(log log.T,
 	}
 
 	log.Debug("SendCommand params:", params)
-	response, err = svc.sdk.SendCommand(cont.TODO(), &params)
+	response, err = svc.sdk.SendCommand(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -500,9 +494,9 @@ func (svc *sdkService) ListCommands(log log.T, instanceID string) (response *ssm
 		//		        },
 		//		    },
 		InstanceId: aws.String(instanceID),
-		MaxResults: aws.Int32(25),
+		MaxResults: aws.Int64(25),
 	}
-	response, err = svc.sdk.ListCommands(cont.TODO(), &params)
+	response, err = svc.sdk.ListCommands(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -514,7 +508,7 @@ func (svc *sdkService) ListCommands(log log.T, instanceID string) (response *ssm
 func (svc *sdkService) ListCommandInvocations(log log.T, instanceID string, commandID string) (response *ssm.ListCommandInvocationsOutput, err error) {
 	params := ssm.ListCommandInvocationsInput{
 		CommandId: aws.String(commandID),
-		Details:   true,
+		Details:   aws.Bool(true),
 		//    Filters: []*ssm.CommandFilter{
 		//        { // Required
 		//            Key:   aws.String("CommandFilterKey"),   // Required
@@ -523,11 +517,11 @@ func (svc *sdkService) ListCommandInvocations(log log.T, instanceID string, comm
 		//        // More values...
 		//    },
 		InstanceId: aws.String(instanceID),
-		MaxResults: aws.Int32(25),
+		MaxResults: aws.Int64(25),
 		//    NextToken:  aws.String("NextToken"),
 	}
 
-	response, err = svc.sdk.ListCommandInvocations(cont.TODO(), &params)
+	response, err = svc.sdk.ListCommandInvocations(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -541,10 +535,10 @@ func (svc *sdkService) CancelCommand(log log.T, commandID string, instanceIDs []
 		CommandId: aws.String(commandID),
 	}
 	if len(instanceIDs) > 0 {
-		params.InstanceIds = instanceIDs
+		params.InstanceIds = makeAwsStrings(instanceIDs)
 	}
 	log.Debug("CancelCommand params:", params)
-	response, err = svc.sdk.CancelCommand(cont.TODO(), &params)
+	response, err = svc.sdk.CancelCommand(&params)
 	if err != nil {
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
 		return
@@ -555,13 +549,13 @@ func (svc *sdkService) CancelCommand(log log.T, commandID string, instanceIDs []
 
 func (svc *sdkService) GetParameters(log log.T, paramNames []string) (response *ssm.GetParametersOutput, err error) {
 	serviceParams := ssm.GetParametersInput{
-		Names:          paramNames,
+		Names:          aws.StringSlice(paramNames),
 		WithDecryption: aws.Bool(false),
 	}
 
 	log.Debugf("Calling GetParameters API with params - %v", serviceParams)
 
-	if response, err = svc.sdk.GetParameters(cont.TODO(), &serviceParams); err != nil {
+	if response, err = svc.sdk.GetParameters(&serviceParams); err != nil {
 		errorString := fmt.Errorf("Encountered error while calling GetParameters API. Error: %v", err)
 		log.Debug(err)
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)
@@ -572,11 +566,11 @@ func (svc *sdkService) GetParameters(log log.T, paramNames []string) (response *
 
 func (svc *sdkService) GetDecryptedParameters(log log.T, paramNames []string) (response *ssm.GetParametersOutput, err error) {
 	serviceParams := ssm.GetParametersInput{
-		Names:          paramNames,
+		Names:          aws.StringSlice(paramNames),
 		WithDecryption: aws.Bool(true),
 	}
 
-	if response, err = svc.sdk.GetParameters(cont.TODO(), &serviceParams); err != nil {
+	if response, err = svc.sdk.GetParameters(&serviceParams); err != nil {
 		errorString := fmt.Errorf("Encountered error while calling GetParameters API. Error: %v", err)
 		log.Debug(err)
 		sdkutil.HandleAwsError(log, err, ssmStopPolicy)

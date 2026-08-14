@@ -13,6 +13,7 @@ import (
 	mds "github.com/aws/amazon-ssm-agent/agent/runcommand/mds"
 	runcommandmock "github.com/aws/amazon-ssm-agent/agent/runcommand/mock"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
+	"github.com/aws/aws-sdk-go/service/ssmmds"
 	"github.com/carlescere/scheduler"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,7 +25,7 @@ func TestLoop_Multiple_Parallel(t *testing.T) {
 
 	// create mocked service and set expectations
 	mdsMock := new(runcommandmock.MockedMDS)
-	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&mds.GetMessagesOutput{}, nil)
+	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&ssmmds.GetMessagesOutput{}, nil)
 	newMdsService = func(context.T) mds.Service {
 		return mdsMock
 	}
@@ -66,7 +67,7 @@ func TestLoop_Multiple_Parallel_Error(t *testing.T) {
 
 	// create mocked service and set expectations
 	mdsMock := new(runcommandmock.MockedMDS)
-	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&mds.GetMessagesOutput{}, errSample)
+	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&ssmmds.GetMessagesOutput{}, errSample)
 	newMdsService = func(context.T) mds.Service {
 		return mdsMock
 	}

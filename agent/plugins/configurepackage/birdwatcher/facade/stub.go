@@ -16,9 +16,8 @@
 package facade
 
 import (
-	"context"
-
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 // FacadeStub
@@ -40,22 +39,38 @@ type FacadeStub struct {
 	DescribeDocumentError  error
 }
 
-func (m *FacadeStub) GetManifest(ctx context.Context, input *ssm.GetManifestInput, optFns ...func(*ssm.Options)) (*ssm.GetManifestOutput, error) {
+func (m *FacadeStub) GetManifestRequest(*ssm.GetManifestInput) (*request.Request, *ssm.GetManifestOutput) {
+	panic("not implemented")
+}
+
+func (m *FacadeStub) GetManifest(input *ssm.GetManifestInput) (*ssm.GetManifestOutput, error) {
 	m.GetManifestInput = input
 	return m.GetManifestOutput, m.GetManifestError
 }
 
-func (m *FacadeStub) PutConfigurePackageResult(ctx context.Context, input *ssm.PutConfigurePackageResultInput, optFns ...func(*ssm.Options)) (*ssm.PutConfigurePackageResultOutput, error) {
+func (m *FacadeStub) PutConfigurePackageResultRequest(*ssm.PutConfigurePackageResultInput) (*request.Request, *ssm.PutConfigurePackageResultOutput) {
+	panic("not implemented")
+}
+
+func (m *FacadeStub) PutConfigurePackageResult(input *ssm.PutConfigurePackageResultInput) (*ssm.PutConfigurePackageResultOutput, error) {
 	m.PutConfigurePackageResultInput = input
 	return m.PutConfigurePackageResultOutput, m.PutConfigurePackageResultError
 }
 
-func (m *FacadeStub) GetDocument(ctx context.Context, input *ssm.GetDocumentInput, optFns ...func(*ssm.Options)) (*ssm.GetDocumentOutput, error) {
+func (m *FacadeStub) GetDocumentRequest(*ssm.GetDocumentInput) (*request.Request, *ssm.GetDocumentOutput) {
+	panic("not implemented")
+}
+
+func (m *FacadeStub) GetDocument(input *ssm.GetDocumentInput) (*ssm.GetDocumentOutput, error) {
 	m.GetDocumentInput = input
 	return m.GetDocumentOutput, m.GetDocumentError
 }
 
-func (m *FacadeStub) DescribeDocument(ctx context.Context, input *ssm.DescribeDocumentInput, optFns ...func(*ssm.Options)) (*ssm.DescribeDocumentOutput, error) {
+func (m *FacadeStub) DescribeDocumentRequest(*ssm.DescribeDocumentInput) (*request.Request, *ssm.DescribeDocumentOutput) {
+	panic("not implemented")
+}
+
+func (m *FacadeStub) DescribeDocument(input *ssm.DescribeDocumentInput) (*ssm.DescribeDocumentOutput, error) {
 	m.DescribeDocumentInput = input
 	return m.DescribeDocumentOutput, m.DescribeDocumentError
 }

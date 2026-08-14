@@ -16,9 +16,8 @@ package identity
 import (
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-
 	"github.com/aws/amazon-ssm-agent/common/identity"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 const (
@@ -119,15 +118,15 @@ func (c *agentIdentityCacher) InstanceType() (string, error) {
 	return c.instanceType, err
 }
 
-func (c *agentIdentityCacher) CredentialsProvider() aws.CredentialsProvider {
+func (c *agentIdentityCacher) Credentials() *credentials.Credentials {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	if c.creds.HasKeys() {
-		return c.credsProvider
+	if c.creds != nil {
+		return c.creds
 	}
 
-	c.credsProvider = c.client.CredentialsProvider()
-	return c.credsProvider
+	c.creds = c.client.Credentials()
+	return c.creds
 }
 
 func (c *agentIdentityCacher) IdentityType() string {

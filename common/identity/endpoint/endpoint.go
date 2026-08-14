@@ -157,19 +157,13 @@ func (e *endpointImpl) buildDualStackEndpoint(service, region string) string {
 		serviceDomain = GetServiceDualStackDomainByPrefix(service, region)
 	}
 
-	var endpoint string
 	// S3 has a special dual-stack endpoint format s3.dualstack.{region}.{regularServiceDomain}
 	if service == s3Service {
-		endpoint = s3DualStackEndpointPrefix + region + "." + serviceDomain
-	} else {
-		endpoint = service + "." + region + "." + serviceDomain
+		return s3DualStackEndpointPrefix + region + "." + serviceDomain
 	}
 
-	if endpoint != "" && !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
-		endpoint = "https://" + endpoint
-	}
 	// All other services use the standard dual-stack format {service}.{region}.{dualStackServiceDomain}
-	return endpoint
+	return service + "." + region + "." + serviceDomain
 }
 
 func (e *endpointImpl) buildStandardEndpoint(service, region string) string {
@@ -180,13 +174,8 @@ func (e *endpointImpl) buildStandardEndpoint(service, region string) string {
 		serviceDomain = GetServiceDomainByPrefix(region)
 	}
 
-	// Build the full endpoint for the service in the region
-	endpoint := service + "." + region + "." + serviceDomain
-	if endpoint != "" && !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
-		endpoint = "https://" + endpoint
-	}
-	e.setEndpointCache(service, region, endpoint)
-	return endpoint
+	// Build the standard endpoint for the service in the region
+	return service + "." + region + "." + serviceDomain
 }
 
 func NewEndpointHelper(log log.T, config appconfig.SsmagentConfig) *endpointImpl {

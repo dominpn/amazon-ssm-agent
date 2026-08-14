@@ -19,22 +19,19 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
-
 	cloudwatchlogspublisher_mock "github.com/aws/amazon-ssm-agent/agent/agentlogstocloudwatch/cloudwatchlogspublisher/mock"
 	"github.com/aws/amazon-ssm-agent/agent/agentlogstocloudwatch/cloudwatchlogsqueue"
-
-	//"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/cihub/seelog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-var serviceMock = cloudwatchlogspublisher_mock.NewServiceMockDefault()
+var serviceMock = cloudwatchlogspublisher_mock.NewServiceMockDefault(logMock)
 
 func TestCreateLogGroupError(t *testing.T) {
-	serviceMock := cloudwatchlogspublisher_mock.NewServiceMockDefault()
-	serviceMock.On("IsLogGroupPresent", mock.AnythingOfType("string")).Return(false, &types.LogGroup{})
+	serviceMock := cloudwatchlogspublisher_mock.NewServiceMockDefault(logMock)
+	serviceMock.On("IsLogGroupPresent", mock.AnythingOfType("string")).Return(false, &cloudwatchlogs.LogGroup{})
 	serviceMock.On("CreateLogGroup", mock.AnythingOfType("string")).Return(errors.New("Log Group Creation Service Error"))
 
 	cwPublisher := CloudWatchPublisher{
@@ -48,7 +45,7 @@ func TestCreateLogGroupError(t *testing.T) {
 }
 
 func TestCreateLogStreamError(t *testing.T) {
-	serviceMock := cloudwatchlogspublisher_mock.NewServiceMockDefault()
+	serviceMock := cloudwatchlogspublisher_mock.NewServiceMockDefault(logMock)
 	serviceMock.On("CreateLogGroup", mock.AnythingOfType("string")).Return(nil)
 	serviceMock.On("CreateLogStream", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(errors.New("Log Stream Creation Service Error"))
 

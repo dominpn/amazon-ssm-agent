@@ -7,7 +7,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	identityinterface "github.com/aws/amazon-ssm-agent/common/identity"
 	"github.com/aws/amazon-ssm-agent/common/identity/endpoint"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 type agentIdentityCacher struct {
@@ -17,8 +17,7 @@ type agentIdentityCacher struct {
 	availabilityZone   string
 	availabilityZoneId string
 	instanceType       string
-	creds              aws.Credentials
-	credsProvider      aws.CredentialsProvider
+	creds              *credentials.Credentials
 	identityType       string
 	mutex              sync.Mutex
 	log                log.T

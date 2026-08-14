@@ -15,7 +15,6 @@
 package artifact
 
 import (
-	cont "context"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -30,9 +29,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
-
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/backoffconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
@@ -40,8 +36,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/network"
 	"github.com/aws/amazon-ssm-agent/agent/s3util"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/cenkalti/backoff/v4"
 )
 
@@ -161,15 +157,15 @@ func CanGetS3Object(context context.T, amazonS3URL s3util.AmazonS3URL) bool {
 		Key:    aws.String(objectKey),
 	}
 
-	cfg, err := s3util.GetS3CrossRegionCapableSession(context, bucketName)
+	sess, err := s3util.GetS3CrossRegionCapableSession(context, bucketName)
 	if err != nil {
 		log.Errorf("failed to get S3 session: %v", err)
 		return false
 	}
 
-	s3client := s3.NewFromConfig(*cfg)
+	s3client := s3.New(sess)
 	var res *s3.HeadObjectOutput
-	if res, err = s3client.HeadObject(cont.TODO(), params); err != nil {
+	if res, err = s3client.HeadObject(params); err != nil {
 		log.Debugf("CanGetS3Object err: %v", err)
 		return false
 	}
@@ -190,16 +186,17 @@ func ListS3Folders(context context.T, amazonS3URL s3util.AmazonS3URL) (folderNam
 		Prefix:    &prefix,
 		Delimiter: aws.String("/"),
 	}
-	cfg, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
+	sess, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
 	if err != nil {
 		log.Errorf("failed to get S3 session: %v", err)
 		return
 	}
 
-	s3client := s3.NewFromConfig(*cfg)
-	resp, err := s3client.ListObjects(cont.TODO(), params)
+	s3client := s3.New(sess)
+	req, resp := s3client.ListObjectsRequest(params)
+	err = req.Send()
 
-	log.Debugf("ListS3Folders Bucket: %v, Prefix: %v", params.Bucket, params.Prefix)
+	log.Debugf("ListS3Folders Bucket: %v, Prefix: %v, RequestID: %v", params.Bucket, params.Prefix, req.RequestID)
 	if err != nil {
 		log.Debugf("ListS3Folders error %v", err.Error())
 		return
@@ -217,44 +214,38 @@ func ListS3Folders(context context.T, amazonS3URL s3util.AmazonS3URL) (folderNam
 // is the URL key and contain a / after the prefix.
 func ListS3Directory(context context.T, amazonS3URL s3util.AmazonS3URL) (folderNames []string, err error) {
 	log := context.Log()
-	var params *s3.ListObjectsV2Input
+	var params *s3.ListObjectsInput
 	prefix := amazonS3URL.Key
 	if prefix != "" {
 		// appending "/" if it does not already exist
 		if !strings.HasSuffix(prefix, "/") {
 			prefix = prefix + "/"
 		}
-		params = &s3.ListObjectsV2Input{
+		params = &s3.ListObjectsInput{
 			Bucket: aws.String(amazonS3URL.Bucket),
 			Prefix: &prefix,
 		}
 	} else {
-		params = &s3.ListObjectsV2Input{
+		params = &s3.ListObjectsInput{
 			Bucket: aws.String(amazonS3URL.Bucket),
 		}
 	}
 	log.Debugf("ListS3Object Bucket: %v, Prefix: %v", params.Bucket, params.Prefix)
 
-	cfg, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
+	sess, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get S3 session: %v", err)
 	}
 
-	s3client := s3.NewFromConfig(*cfg)
-	paginator := s3.NewListObjectsV2Paginator(s3client, params)
-	for paginator.HasMorePages() {
-		page, err := paginator.NextPage(cont.TODO())
-		if err != nil {
-			log.Warnf("ListS3Directory error %v", err.Error())
-			return folderNames, err
-		}
-
+	s3client := s3.New(sess)
+	err = s3client.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
 		log.Debugf("Contents %v ", page.Contents)
 		for i, contents := range page.Contents {
 			folderNames = append(folderNames, *contents.Key)
 			log.Debug("Name of file/folder - ", folderNames[i])
 		}
-	}
+		return true
+	})
 
 	if err != nil {
 		log.Warnf("ListS3Directory error %v", err.Error())
@@ -289,34 +280,18 @@ func s3Download(context context.T, amazonS3URL s3util.AmazonS3URL, destFile stri
 		}
 		params.IfNoneMatch = aws.String(existingETag)
 	}
-	cfg, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
+	sess, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
 	if err != nil {
 		log.Errorf("failed to get S3 session: %v", err)
 		return output, err
 	}
 
-	var httpResp *http.Response
+	s3client := s3.New(sess)
 
-	s3client := s3.NewFromConfig(*cfg, func(o *s3.Options) {
-		o.BaseEndpoint = cfg.BaseEndpoint
-		o.APIOptions = append(o.APIOptions, func(stack *middleware.Stack) error {
-			return stack.Deserialize.Add(middleware.DeserializeMiddlewareFunc(
-				"CaptureHTTPResponse",
-				func(ctx cont.Context, in middleware.DeserializeInput, next middleware.DeserializeHandler) (
-					out middleware.DeserializeOutput, metadata middleware.Metadata, err error,
-				) {
-					out, metadata, err = next.HandleDeserialize(ctx, in)
-					if response, ok := out.RawResponse.(*smithyhttp.Response); ok {
-						httpResp = response.Response
-					}
-					return out, metadata, err
-				},
-			), middleware.After)
-		})
-	})
-	resp, err := s3client.GetObject(cont.TODO(), params)
+	req, resp := s3client.GetObjectRequest(params)
+	err = req.Send()
 	if err != nil {
-		if httpResp == nil || httpResp.StatusCode != http.StatusNotModified {
+		if req.HTTPResponse == nil || req.HTTPResponse.StatusCode != http.StatusNotModified {
 			log.Debug("failed to download from s3, ", err)
 			return
 		}
@@ -359,14 +334,14 @@ func S3FileRead(context context.T, s3FullPath string) (output []byte, err error)
 		Key:    aws.String(amazonS3URL.Key),
 	}
 
-	cfg, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
+	sess, err := s3util.GetS3CrossRegionCapableSession(context, amazonS3URL.Bucket)
 	if err != nil {
 		log.Errorf("failed to get S3 session: %v", err)
 		return nil, err
 	}
 
-	s3client := s3.NewFromConfig(*cfg)
-	resp, err := s3client.GetObject(cont.TODO(), params)
+	s3client := s3.New(sess)
+	resp, err := s3client.GetObject(params)
 	if err != nil {
 		return nil, err
 	}

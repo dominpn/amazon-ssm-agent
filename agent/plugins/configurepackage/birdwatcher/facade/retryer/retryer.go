@@ -15,46 +15,39 @@
 package retryer
 
 import (
-	"errors"
 	"math"
 	"math/rand"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
-	"github.com/aws/aws-sdk-go-v2/aws/retry"
-	"github.com/aws/smithy-go"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 type BirdwatcherRetryer struct {
-	*retry.Standard
+	client.DefaultRetryer
 }
 
 var timeUnit = 1000
 
-func (s BirdwatcherRetryer) RetryDelay(attempt int, err error) (time.Duration, error) {
+// RetryRules returns the delay duration before retrying this request again
+func (s BirdwatcherRetryer) RetryRules(r *request.Request) time.Duration {
+	// retry after a > 1 sec timeout, increasing exponentially with each retry
+	// attempt 1: 1s - 21s
+	// attempt 2: 4s - 1.4min
+	// attempt 3: 9s - 5.48min
 	rand.Seed(time.Now().UnixNano())
+	throttleDelay := (int(math.Pow(4, float64(r.RetryCount)))*rand.Intn(5) + int(math.Pow(float64(r.RetryCount+1), 2))) * timeUnit //for seconds
 
-	// Check if it's a throttling error and specific operation
-	//var ae smithy.APIError
-	var oe *smithy.OperationError
-	var throttling *types.ThrottlingException
-	if errors.As(err, &oe) {
-		if errors.As(err, &throttling) && isTargetOperation(oe) {
-			// Throttled calls for GetManifest, GetDocument, DescribeDocument
-			throttleDelay := (int(math.Pow(4, float64(attempt)))*rand.Intn(5) + int(math.Pow(float64(attempt+1), 2))) * timeUnit
-			return time.Duration(throttleDelay) * time.Millisecond, nil
-		}
+	// Handle GetManifest, GetDocument and DescribeDocument Throttled calls error
+	if (r.Operation.Name == "GetManifest" || r.Operation.Name == "GetDocument" || r.Operation.Name == "DescribeDocument") && r.IsErrorThrottle() {
+		// throttling attempt. Increase the delay with greater exponential backoff
+		return time.Duration(throttleDelay) * time.Millisecond
 	}
 
-	// Regular retry strategy
-	delay := (int(math.Pow(2, float64(attempt)))*rand.Intn(2) + 1) * timeUnit
-	return time.Duration(delay) * time.Millisecond, nil
-}
-
-func isTargetOperation(oe *smithy.OperationError) bool {
-	if oe.Operation() == "GetManifest" || oe.Operation() == "GetDocument" || oe.Operation() == "DescribeDocument" {
-		return true
-	}
-	return false
+	// if error is not of throttle type, add regular retry strategy
+	// attempt 1: 1 - 5 sec
+	// attempt 2: 1 - 9 sec
+	// attempt 3: 1 - 17 sec
+	delay := (int(math.Pow(2, float64(r.RetryCount)))*rand.Intn(2) + 1) * timeUnit
+	return time.Duration(delay) * time.Millisecond
 }

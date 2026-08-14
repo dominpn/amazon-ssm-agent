@@ -36,8 +36,6 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/session/service"
 	serviceMock "github.com/aws/amazon-ssm-agent/agent/session/service/mocks"
 	"github.com/aws/amazon-ssm-agent/agent/ssmconnectionchannel"
-	credentialmocks "github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/mocks"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -87,10 +85,7 @@ func TestControlChannel_PongWaitTimeoutReconnect(t *testing.T) {
 	mockService.On("CreateControlChannel", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(&createControlChannelOutput, nil)
 	mockService.On("GetRegion").Return(region)
 	mockService.On("GetV4Signer").Return(signer)
-	mockProvider := &credentialmocks.CredentialsProvider{}
-	mockProvider.On("Retrieve", mock.Anything).Return(aws.Credentials{AccessKeyID: "AKID", SecretAccessKey: "SECRET", SessionToken: "SESSION"}, nil)
 	controlChannel.Initialize(mockContext, mockService, instanceId, messageChan)
-	controlChannel.wsChannel.SetCredentialProvider(mockProvider)
 	var err error
 	err = controlChannel.SetWebSocket(mockContext, mockService, &ableToOpenMGSConnection)
 	assert.Nil(t, err, "should not throw error during websocket creation")
@@ -151,10 +146,7 @@ func TestControlChannel_PingPongKeepConnection(t *testing.T) {
 	mockService.On("CreateControlChannel", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(&createControlChannelOutput, nil)
 	mockService.On("GetRegion").Return(region)
 	mockService.On("GetV4Signer").Return(signer)
-	mockProvider := &credentialmocks.CredentialsProvider{}
-	mockProvider.On("Retrieve", mock.Anything).Return(aws.Credentials{AccessKeyID: "AKID", SecretAccessKey: "SECRET", SessionToken: "SESSION"}, nil)
 	controlChannel.Initialize(mockContext, mockService, instanceId, messageChan)
-	controlChannel.wsChannel.SetCredentialProvider(mockProvider)
 	var err error
 	err = controlChannel.SetWebSocket(mockContext, mockService, &ableToOpenMGSConnection)
 	assert.Nil(t, err, "should not throw error during websocket creation")
@@ -214,11 +206,8 @@ func TestOpenControlChannel_MultiThread(t *testing.T) {
 	mockService.On("CreateControlChannel", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(&createControlChannelOutput, nil)
 	mockService.On("GetRegion").Return(region)
 	mockService.On("GetV4Signer").Return(signer)
-	mockProvider := &credentialmocks.CredentialsProvider{}
-	mockProvider.On("Retrieve", mock.Anything).Return(aws.Credentials{AccessKeyID: "AKID", SecretAccessKey: "SECRET", SessionToken: "SESSION"}, nil)
 
 	controlChannel.Initialize(mockContext, mockService, instanceId, messageChan)
-	controlChannel.wsChannel.SetCredentialProvider(mockProvider)
 	var err error
 	err = controlChannel.SetWebSocket(mockContext, mockService, &ableToOpenMGSConnection)
 	assert.Nil(t, err, "should not throw error during websocket creation")
@@ -291,14 +280,11 @@ func TestOpenControlChannel_OpenControlChannelError(t *testing.T) {
 	mockService.On("CreateControlChannel", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(&createControlChannelOutput, nil)
 	mockService.On("GetRegion").Return(region)
 	mockService.On("GetV4Signer").Return(signer)
-	mockProvider := &credentialmocks.CredentialsProvider{}
-	mockProvider.On("Retrieve", mock.Anything).Return(aws.Credentials{AccessKeyID: "AKID", SecretAccessKey: "SECRET", SessionToken: "SESSION"}, nil)
 
 	stop := make(chan bool)
 	startConnectionChannelReader(stop, contracts.MDS)
 
 	controlChannel.Initialize(mockContext, mockService, instanceId, messageChan)
-	controlChannel.wsChannel.SetCredentialProvider(mockProvider)
 	var err error
 	err = controlChannel.SetWebSocket(mockContext, mockService, &ableToOpenMGSConnection)
 	assert.Nil(t, err, "should not throw error during websocket creation")
@@ -334,14 +320,11 @@ func TestOpenControlChannel_CreateControlChannelError(t *testing.T) {
 	mockService.On("CreateControlChannel", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(&createControlChannelOutput, fmt.Errorf("throw error"))
 	mockService.On("GetRegion").Return(region)
 	mockService.On("GetV4Signer").Return(signer)
-	mockProvider := &credentialmocks.CredentialsProvider{}
-	mockProvider.On("Retrieve", mock.Anything).Return(aws.Credentials{AccessKeyID: "AKID", SecretAccessKey: "SECRET", SessionToken: "SESSION"}, nil)
 	stop := make(chan bool)
 	startConnectionChannelReader(stop, contracts.MGS)
 	// Get number of go-routines running
 	initialGRNumber := runtime.NumGoroutine()
 	controlChannel.Initialize(mockContext, mockService, instanceId, messageChan)
-	controlChannel.wsChannel.SetCredentialProvider(mockProvider)
 	var err error
 	err = controlChannel.SetWebSocket(mockContext, mockService, &ableToOpenMGSConnection)
 	defer controlChannel.Close(mockLog)
@@ -387,8 +370,6 @@ func TestOpenControlChannel_CreateControlChannelError_RetryCount(t *testing.T) {
 	mockService.On("CreateControlChannel", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(&createControlChannelOutput, nil)
 	mockService.On("GetRegion").Return(region)
 	mockService.On("GetV4Signer").Return(signer)
-	mockProvider := &credentialmocks.CredentialsProvider{}
-	mockProvider.On("Retrieve", mock.Anything).Return(aws.Credentials{AccessKeyID: "AKID", SecretAccessKey: "SECRET", SessionToken: "SESSION"}, nil)
 
 	counter := 0
 	// Get number of go-routines running
@@ -405,7 +386,6 @@ func TestOpenControlChannel_CreateControlChannelError_RetryCount(t *testing.T) {
 			counter++
 			controlChannel = getControlChannel()
 			controlChannel.Initialize(mockContext, mockService, instanceId, messageChan)
-			controlChannel.wsChannel.SetCredentialProvider(mockProvider)
 			if err = controlChannel.SetWebSocket(mockContext, mockService, &ableToOpenMGSConnection); err != nil {
 				return nil, err
 			}
@@ -462,9 +442,6 @@ func TestOpenControlChannel_OpenControlChannelError_RetryCount(t *testing.T) {
 	mockService.On("GetRegion").Return(region)
 	mockService.On("GetV4Signer").Return(signer)
 
-	mockProvider := &credentialmocks.CredentialsProvider{}
-	mockProvider.On("Retrieve", mock.Anything).Return(aws.Credentials{AccessKeyID: "AKID", SecretAccessKey: "SECRET", SessionToken: "SESSION"}, nil)
-
 	counter := 0
 	// Get number of go-routines running
 	initialGRNumber := runtime.NumGoroutine()
@@ -478,7 +455,6 @@ func TestOpenControlChannel_OpenControlChannelError_RetryCount(t *testing.T) {
 			counter++
 			controlChannel = getControlChannel()
 			controlChannel.Initialize(mockContext, mockService, instanceId, messageChan)
-			controlChannel.wsChannel.SetCredentialProvider(mockProvider)
 			if err = controlChannel.SetWebSocket(mockContext, mockService, &ableToOpenMGSConnection); err != nil {
 				return nil, err
 			}

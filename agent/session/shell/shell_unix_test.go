@@ -220,8 +220,6 @@ func (suite *ShellTestSuite) TestExecuteWithCWLogStreamingEnabled() {
 	suite.mockDataChannel.On("SendAgentSessionStateMessage", mock.Anything, mgsContracts.Terminating).
 		Return(nil).Times(1)
 	suite.mockDataChannel.On("IsActive").Return(true)
-	suite.mockDataChannel.On("SendStreamDataMessage", mock.Anything, mock.Anything, mock.Anything).Return()
-	suite.mockCWL.On("SetCloudWatchMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
 
 	stdout, stdin, _ := os.Pipe()
 	stdin.Write(payload)
@@ -370,7 +368,6 @@ func (suite *ShellTestSuite) TestExecuteNonInteractiveCommandsWithCancelFlag() {
 	suite.mockCmd.On("Wait").Run(func(mock.Arguments) {
 		time.Sleep(100 * time.Millisecond)
 	}).Return(nil)
-	suite.mockDataChannel.On("IsActive").Return(true)
 	suite.mockDataChannel.On("PrepareToCloseChannel", mock.Anything).Return(nil).Times(0)
 	suite.mockDataChannel.On("SendAgentSessionStateMessage", mock.Anything, mgsContracts.Terminating).
 		Return(nil).Times(0)

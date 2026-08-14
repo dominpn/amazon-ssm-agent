@@ -6,7 +6,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/context"
 	mockContext "github.com/aws/amazon-ssm-agent/agent/mocks/context"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ func TestNewBirdwatcherFacade(t *testing.T) {
 	testCases := []struct {
 		name          string
 		setupContext  func() context.T
-		expectedCheck func(*ssm.Client) bool
+		expectedCheck func(*ssm.SSM) bool
 	}{
 		{
 			name: "Default Configuration",
@@ -27,7 +27,7 @@ func TestNewBirdwatcherFacade(t *testing.T) {
 				})
 				return mockContext
 			},
-			expectedCheck: func(ssmClient *ssm.Client) bool {
+			expectedCheck: func(ssmClient *ssm.SSM) bool {
 				return ssmClient != nil
 			},
 		},
@@ -46,7 +46,7 @@ func TestNewBirdwatcherFacade(t *testing.T) {
 				})
 				return mockContext
 			},
-			expectedCheck: func(ssmClient *ssm.Client) bool {
+			expectedCheck: func(ssmClient *ssm.SSM) bool {
 				return ssmClient != nil
 			},
 		},
@@ -57,7 +57,7 @@ func TestNewBirdwatcherFacade(t *testing.T) {
 				mockContext.On("AppConfig").Return(appconfig.SsmagentConfig{})
 				return mockContext
 			},
-			expectedCheck: func(ssmClient *ssm.Client) bool {
+			expectedCheck: func(ssmClient *ssm.SSM) bool {
 				return ssmClient != nil
 			},
 		},
@@ -72,7 +72,7 @@ func TestNewBirdwatcherFacade(t *testing.T) {
 			birdwatcherFacade := NewBirdwatcherFacade(mockContext)
 
 			// Assert
-			ssmClient, ok := birdwatcherFacade.(*ssm.Client)
+			ssmClient, ok := birdwatcherFacade.(*ssm.SSM)
 			assert.True(t, ok, "Expected SSM client type")
 			assert.True(t, tc.expectedCheck(ssmClient), "Client creation failed for test case")
 		})

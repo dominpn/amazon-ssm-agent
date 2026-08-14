@@ -17,8 +17,7 @@ import (
 	time "time"
 
 	log "github.com/aws/amazon-ssm-agent/agent/log"
-	ssm "github.com/aws/aws-sdk-go-v2/service/ssm"
-	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	ssm "github.com/aws/aws-sdk-go/service/ssm"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -281,11 +280,11 @@ func (_m *Service) ListInstanceAssociations(_a0 log.T, instanceID string, nextTo
 }
 
 // PutComplianceItems provides a mock function with given fields: _a0, executionTime, executionType, executionId, instanceId, complianceType, itemContentHash, items
-func (_m *Service) PutComplianceItems(_a0 log.T, executionTime *time.Time, executionType string, executionId string, instanceId string, complianceType string, itemContentHash string, items []ssmtypes.ComplianceItemEntry) (*ssm.PutComplianceItemsOutput, error) {
+func (_m *Service) PutComplianceItems(_a0 log.T, executionTime *time.Time, executionType string, executionId string, instanceId string, complianceType string, itemContentHash string, items []*ssm.ComplianceItemEntry) (*ssm.PutComplianceItemsOutput, error) {
 	ret := _m.Called(_a0, executionTime, executionType, executionId, instanceId, complianceType, itemContentHash, items)
 
 	var r0 *ssm.PutComplianceItemsOutput
-	if rf, ok := ret.Get(0).(func(log.T, *time.Time, string, string, string, string, string, []ssmtypes.ComplianceItemEntry) *ssm.PutComplianceItemsOutput); ok {
+	if rf, ok := ret.Get(0).(func(log.T, *time.Time, string, string, string, string, string, []*ssm.ComplianceItemEntry) *ssm.PutComplianceItemsOutput); ok {
 		r0 = rf(_a0, executionTime, executionType, executionId, instanceId, complianceType, itemContentHash, items)
 	} else {
 		if ret.Get(0) != nil {
@@ -294,7 +293,7 @@ func (_m *Service) PutComplianceItems(_a0 log.T, executionTime *time.Time, execu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(log.T, *time.Time, string, string, string, string, string, []ssmtypes.ComplianceItemEntry) error); ok {
+	if rf, ok := ret.Get(1).(func(log.T, *time.Time, string, string, string, string, string, []*ssm.ComplianceItemEntry) error); ok {
 		r1 = rf(_a0, executionTime, executionType, executionId, instanceId, complianceType, itemContentHash, items)
 	} else {
 		r1 = ret.Error(1)
@@ -304,11 +303,11 @@ func (_m *Service) PutComplianceItems(_a0 log.T, executionTime *time.Time, execu
 }
 
 // SendCommand provides a mock function with given fields: _a0, documentName, instanceIDs, parameters, timeoutSeconds, outputS3BucketName, outputS3KeyPrefix
-func (_m *Service) SendCommand(_a0 log.T, documentName string, instanceIDs []string, parameters map[string][]string, timeoutSeconds *int32, outputS3BucketName *string, outputS3KeyPrefix *string) (*ssm.SendCommandOutput, error) {
+func (_m *Service) SendCommand(_a0 log.T, documentName string, instanceIDs []string, parameters map[string][]*string, timeoutSeconds *int64, outputS3BucketName *string, outputS3KeyPrefix *string) (*ssm.SendCommandOutput, error) {
 	ret := _m.Called(_a0, documentName, instanceIDs, parameters, timeoutSeconds, outputS3BucketName, outputS3KeyPrefix)
 
 	var r0 *ssm.SendCommandOutput
-	if rf, ok := ret.Get(0).(func(log.T, string, []string, map[string][]string, *int32, *string, *string) *ssm.SendCommandOutput); ok {
+	if rf, ok := ret.Get(0).(func(log.T, string, []string, map[string][]*string, *int64, *string, *string) *ssm.SendCommandOutput); ok {
 		r0 = rf(_a0, documentName, instanceIDs, parameters, timeoutSeconds, outputS3BucketName, outputS3KeyPrefix)
 	} else {
 		if ret.Get(0) != nil {
@@ -317,7 +316,7 @@ func (_m *Service) SendCommand(_a0 log.T, documentName string, instanceIDs []str
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(log.T, string, []string, map[string][]string, *int32, *string, *string) error); ok {
+	if rf, ok := ret.Get(1).(func(log.T, string, []string, map[string][]*string, *int64, *string, *string) error); ok {
 		r1 = rf(_a0, documentName, instanceIDs, parameters, timeoutSeconds, outputS3BucketName, outputS3KeyPrefix)
 	} else {
 		r1 = ret.Error(1)
@@ -327,11 +326,11 @@ func (_m *Service) SendCommand(_a0 log.T, documentName string, instanceIDs []str
 }
 
 // UpdateAssociationStatus provides a mock function with given fields: _a0, instanceID, name, associationStatus
-func (_m *Service) UpdateAssociationStatus(_a0 log.T, instanceID string, name string, associationStatus *ssmtypes.AssociationStatus) (*ssm.UpdateAssociationStatusOutput, error) {
+func (_m *Service) UpdateAssociationStatus(_a0 log.T, instanceID string, name string, associationStatus *ssm.AssociationStatus) (*ssm.UpdateAssociationStatusOutput, error) {
 	ret := _m.Called(_a0, instanceID, name, associationStatus)
 
 	var r0 *ssm.UpdateAssociationStatusOutput
-	if rf, ok := ret.Get(0).(func(log.T, string, string, *ssmtypes.AssociationStatus) *ssm.UpdateAssociationStatusOutput); ok {
+	if rf, ok := ret.Get(0).(func(log.T, string, string, *ssm.AssociationStatus) *ssm.UpdateAssociationStatusOutput); ok {
 		r0 = rf(_a0, instanceID, name, associationStatus)
 	} else {
 		if ret.Get(0) != nil {
@@ -340,7 +339,7 @@ func (_m *Service) UpdateAssociationStatus(_a0 log.T, instanceID string, name st
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(log.T, string, string, *ssmtypes.AssociationStatus) error); ok {
+	if rf, ok := ret.Get(1).(func(log.T, string, string, *ssm.AssociationStatus) error); ok {
 		r1 = rf(_a0, instanceID, name, associationStatus)
 	} else {
 		r1 = ret.Error(1)
@@ -373,11 +372,11 @@ func (_m *Service) UpdateEmptyInstanceInformation(_a0 log.T, agentVersion string
 }
 
 // UpdateInstanceAssociationStatus provides a mock function with given fields: _a0, associationID, instanceID, executionResult
-func (_m *Service) UpdateInstanceAssociationStatus(_a0 log.T, associationID string, instanceID string, executionResult *ssmtypes.InstanceAssociationExecutionResult) (*ssm.UpdateInstanceAssociationStatusOutput, error) {
+func (_m *Service) UpdateInstanceAssociationStatus(_a0 log.T, associationID string, instanceID string, executionResult *ssm.InstanceAssociationExecutionResult) (*ssm.UpdateInstanceAssociationStatusOutput, error) {
 	ret := _m.Called(_a0, associationID, instanceID, executionResult)
 
 	var r0 *ssm.UpdateInstanceAssociationStatusOutput
-	if rf, ok := ret.Get(0).(func(log.T, string, string, *ssmtypes.InstanceAssociationExecutionResult) *ssm.UpdateInstanceAssociationStatusOutput); ok {
+	if rf, ok := ret.Get(0).(func(log.T, string, string, *ssm.InstanceAssociationExecutionResult) *ssm.UpdateInstanceAssociationStatusOutput); ok {
 		r0 = rf(_a0, associationID, instanceID, executionResult)
 	} else {
 		if ret.Get(0) != nil {
@@ -386,7 +385,7 @@ func (_m *Service) UpdateInstanceAssociationStatus(_a0 log.T, associationID stri
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(log.T, string, string, *ssmtypes.InstanceAssociationExecutionResult) error); ok {
+	if rf, ok := ret.Get(1).(func(log.T, string, string, *ssm.InstanceAssociationExecutionResult) error); ok {
 		r1 = rf(_a0, associationID, instanceID, executionResult)
 	} else {
 		r1 = ret.Error(1)

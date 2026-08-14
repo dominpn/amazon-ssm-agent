@@ -18,13 +18,13 @@ package onpremprovider
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/managedInstances/registration"
 	"github.com/aws/amazon-ssm-agent/agent/ssm/authtokenrequest"
 	"github.com/aws/amazon-ssm-agent/common/identity/endpoint"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
 
 	"github.com/cenkalti/backoff/v4"
 )
@@ -34,7 +34,7 @@ var backoffRetry = backoff.Retry
 // onpremCredentialsProvider implements the AWS SDK credential provider, and is used to the create AWS client.
 // It retrieves credentials from the SSM Auth service, and keeps track if those credentials are expired.
 type onpremCredentialsProvider struct {
-	aws.Credentials
+	credentials.Expiry
 
 	// ExpiryWindow will allow the credentials to trigger refreshing prior to
 	// the credentials actually expiring. This is beneficial so race conditions

@@ -18,12 +18,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/ssmclient"
 
-	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 )
 
 const (
@@ -35,10 +34,10 @@ const (
 )
 
 var (
-	iprEmptyCredential                                 = aws.Credentials{Source: "EC2RoleProvider"}
+	iprEmptyCredential                                 = credentials.Value{ProviderName: ec2rolecreds.ProviderName}
 	newV4ServiceWithCreds        ssmclient.Initializer = ssmclient.NewV4ServiceWithCreds
 	timeNowFunc                                        = time.Now
-	newCredentials                                     = ec2rolecreds.New
+	newCredentials                                     = credentials.NewCredentials
 	exceptionsForDefaultHostMgmt                       = map[string]struct{}{
 		"AccessDeniedException":        {},
 		"EC2RoleRequestError":          {},
@@ -47,10 +46,11 @@ var (
 )
 
 type IInnerProvider interface {
-	aws.CredentialsProvider
-	Retrieve(ctx context.Context) (aws.Credentials, error)
-	ExpiresAt() time.Time
-	IsExpired() bool
+	credentials.Provider
+	credentials.Expirer
+	Retrieve() (credentials.Value, error)
+	RetrieveWithContext(ctx context.Context) (credentials.Value, error)
+	SetExpiration(expiration time.Time, window time.Duration)
 }
 
 type EC2InnerProviders struct {
@@ -60,12 +60,13 @@ type EC2InnerProviders struct {
 }
 
 type IEC2RoleProvider interface {
-	aws.CredentialsProvider
+	credentials.Expirer
 	credentialproviders.IRemoteProvider
 	GetInnerProvider() IInnerProvider
-	Retrieve(ctx context.Context) (aws.Credentials, error)
+	Retrieve() (credentials.Value, error)
 	ShareFile() string
 	ShareProfile() string
 	SharesCredentials() bool
-	RemoteRetrieve(ctx context.Context) (aws.Credentials, error)
+	RetrieveWithContext(ctx context.Context) (credentials.Value, error)
+	RemoteRetrieve(ctx context.Context) (credentials.Value, error)
 }

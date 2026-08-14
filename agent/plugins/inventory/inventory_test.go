@@ -26,8 +26,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/gatherers"
 	gatherers2 "github.com/aws/amazon-ssm-agent/agent/plugins/inventory/mocks/gatherers"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/model"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -79,7 +79,7 @@ func MockInventoryItems() (items []model.Item) {
 	return
 }
 
-func MockInventoryOptimizedItem() (items []*types.InventoryItem) {
+func MockInventoryOptimizedItem() (items []*ssm.InventoryItem) {
 	check1 := "AWS:File"
 	SchemaVersion1 := "1.0"
 	CaptureTime1 := "2020-05-22T19:32:34Z"
@@ -90,14 +90,14 @@ func MockInventoryOptimizedItem() (items []*types.InventoryItem) {
 	CaptureTime2 := "2020-05-22T19:32:34Z"
 	ContentHashMock2 := LargeString(1024 * 1024)
 
-	items = append(items, &types.InventoryItem{
+	items = append(items, &ssm.InventoryItem{
 		TypeName:      &check1,
 		ContentHash:   &ContentHashMock1,
 		SchemaVersion: &SchemaVersion1,
 		CaptureTime:   &CaptureTime1,
 	})
 
-	items = append(items, &types.InventoryItem{
+	items = append(items, &ssm.InventoryItem{
 		TypeName:      &check2,
 		ContentHash:   &ContentHashMock2,
 		SchemaVersion: &SchemaVersion2,
@@ -107,7 +107,7 @@ func MockInventoryOptimizedItem() (items []*types.InventoryItem) {
 	return
 }
 
-func MockInventorySmallOptimizedItem() (items []*types.InventoryItem) {
+func MockInventorySmallOptimizedItem() (items []*ssm.InventoryItem) {
 	check1 := "AWS:File"
 	SchemaVersion1 := "1.0"
 	CaptureTime1 := "2020-05-22T19:32:34Z"
@@ -118,14 +118,14 @@ func MockInventorySmallOptimizedItem() (items []*types.InventoryItem) {
 	CaptureTime2 := "2020-05-22T19:32:34Z"
 	ContentHashMock2 := LargeString(1024)
 
-	items = append(items, &types.InventoryItem{
+	items = append(items, &ssm.InventoryItem{
 		TypeName:      &check1,
 		ContentHash:   &ContentHashMock1,
 		SchemaVersion: &SchemaVersion1,
 		CaptureTime:   &CaptureTime1,
 	})
 
-	items = append(items, &types.InventoryItem{
+	items = append(items, &ssm.InventoryItem{
 		TypeName:      &check2,
 		ContentHash:   &ContentHashMock2,
 		SchemaVersion: &SchemaVersion2,
@@ -135,13 +135,13 @@ func MockInventorySmallOptimizedItem() (items []*types.InventoryItem) {
 	return
 }
 
-func MockInventoryLargeFileItem() (items []*types.InventoryItem) {
+func MockInventoryLargeFileItem() (items []*ssm.InventoryItem) {
 	check1 := "AWS:File"
 	SchemaVersion1 := "1.0"
 	CaptureTime1 := "2020-05-22T19:32:34Z"
 	ContentHashMock1 := LargeString(1024 * 1030)
 
-	items = append(items, &types.InventoryItem{
+	items = append(items, &ssm.InventoryItem{
 		TypeName:      &check1,
 		ContentHash:   &ContentHashMock1,
 		SchemaVersion: &SchemaVersion1,
@@ -326,7 +326,7 @@ func TestVerifyOneItemNoPutInventoryCall(t *testing.T) {
 }
 
 func TestSplitItemsList(t *testing.T) {
-	var optimizedNewInventoryItemsList, nonOptimizedNewInventoryItemsList []*types.InventoryItem
+	var optimizedNewInventoryItemsList, nonOptimizedNewInventoryItemsList []*ssm.InventoryItem
 	nonOptimizedInventoryItems := MockInventorySmallOptimizedItem()
 	optimizedInventoryItems := MockInventorySmallOptimizedItem()
 
@@ -440,9 +440,9 @@ func TestShouldRetryWithNonOptimizedData(t *testing.T) {
 		shouldRetry bool
 	}
 	var testCases = []testCase{
-		{&types.ItemContentMismatchException{Message: aws.String("content hash does not match")}, true},
-		{&types.InvalidItemContentException{Message: aws.String("invalid content")}, true},
-		{&types.ItemSizeLimitExceededException{Message: aws.String("size limit exceeded")}, false},
+		{awserr.New("ItemContentMismatchException", "content hash does not match", nil), true},
+		{awserr.New("InvalidItemContentException", "invalid content", nil), true},
+		{awserr.New("ItemSizeLimitExceededException", "size limit exceeded", nil), false},
 		{fmt.Errorf("SomeOtherError"), false},
 	}
 

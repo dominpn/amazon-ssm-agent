@@ -17,7 +17,6 @@
 package rsaauth
 
 import (
-	cont "context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -30,11 +29,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/smithy-go/encoding/httpbinding"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/smithy-go/logging"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol/rest"
 )
 
 const (
@@ -46,10 +44,8 @@ const (
 var ignoredHeaders = rules{
 	blacklist{
 		mapRule{
-			"Authorization":         struct{}{},
-			"User-Agent":            struct{}{},
-			"Amz-Sdk-Invocation-Id": struct{}{},
-			"Amz-Sdk-Request":       struct{}{},
+			"Authorization": struct{}{},
+			"User-Agent":    struct{}{},
 		},
 	},
 }
@@ -108,18 +104,17 @@ var allowedQueryHoisting = inclusiveRules{
 }
 
 type signer struct {
-	Request       *http.Request
-	Time          time.Time
-	ExpireTime    time.Duration
-	ServiceName   string
-	Region        string
-	CredValues    aws.Credentials
-	Credentials   aws.CredentialsProvider
-	Query         url.Values
-	Body          io.Reader
-	SmithyRequest *smithyhttp.Request
-	//Debug       aws.LogLevelType
-	Logger logging.Logger
+	Request     *http.Request
+	Time        time.Time
+	ExpireTime  time.Duration
+	ServiceName string
+	Region      string
+	CredValues  credentials.Value
+	Credentials *credentials.Credentials
+	Query       url.Values
+	Body        io.ReadSeeker
+	Debug       aws.LogLevelType
+	Logger      aws.Logger
 
 	isPresign          bool
 	formattedTime      string
@@ -141,48 +136,40 @@ type signer struct {
 // Will sign the requests with the service config's Credentials object
 // Signing is skipped if the credentials is the credentials.AnonymousCredentials
 // object.
-func sign(req *smithyhttp.Request, config aws.Config, service string) error {
+func sign(req *request.Request) {
 	// If the request does not need to be signed ignore the signing of the
 	// request if the AnonymousCredentials object is used.
-	anonCreds := aws.AnonymousCredentials{}
-	if config.Credentials == anonCreds {
-		return nil
+	if req.Config.Credentials == credentials.AnonymousCredentials {
+		return
 	}
 
-	region := config.Region
+	region := req.ClientInfo.SigningRegion
+	if region == "" {
+		region = aws.StringValue(req.Config.Region)
+	}
 
-	name := service
-	var signingTime time.Time
-	if timeString := req.Request.Header.Get("X-Amz-Date"); timeString != "" {
-		// Parse existing X-Amz-Date header
-		parsedTime, err := time.Parse(timeFormat, timeString)
-		if err != nil {
-			// Fallback to current time if parsing fails
-			signingTime = time.Now()
-		} else {
-			signingTime = parsedTime
-		}
-	} else {
-		// Fallback to current time if no time header exists
-		signingTime = time.Now()
+	name := req.ClientInfo.SigningName
+	if name == "" {
+		name = req.ClientInfo.ServiceName
 	}
 
 	s := signer{
-		Request:       req.Request,
-		SmithyRequest: req,
-		Time:          signingTime,
-		Query:         req.Request.URL.Query(),
-		ServiceName:   name,
-		Region:        region,
-		Credentials:   config.Credentials,
-		Logger:        config.Logger,
+		Request:     req.HTTPRequest,
+		Time:        req.Time,
+		ExpireTime:  req.ExpireTime,
+		Query:       req.HTTPRequest.URL.Query(),
+		Body:        req.Body,
+		ServiceName: name,
+		Region:      region,
+		Credentials: req.Config.Credentials,
+		Debug:       req.Config.LogLevel.Value(),
+		Logger:      req.Config.Logger,
+		notHoist:    req.NotHoist,
 	}
 
-	err := s.sign()
-	req.Header.Set("X-Amz-Date", s.Time.UTC().Format(timeFormat))
-	setSignedHeaderValuesInAuth(req, &s)
-
-	return err
+	req.Error = s.sign()
+	req.Time = s.Time
+	req.SignedHeaderVals = s.signedHeaderVals
 }
 
 func (v4 *signer) sign() error {
@@ -190,18 +177,8 @@ func (v4 *signer) sign() error {
 		v4.isPresign = true
 	}
 
-	if v4.ServiceName == "ssm" {
-		v4.isPresign = false
-	}
-
-	var err error
-	v4.CredValues, err = v4.Credentials.Retrieve(cont.TODO())
-	if err != nil {
-		return err
-	}
-
 	if v4.isRequestSigned() {
-		if !v4.CredValues.Expired() && time.Now().Before(v4.Time.Add(10*time.Minute)) {
+		if !v4.Credentials.IsExpired() && time.Now().Before(v4.Time.Add(10*time.Minute)) {
 			// If the request is already signed, and the credentials have not
 			// expired, and the request is not too old ignore the signing request.
 			return nil
@@ -218,6 +195,12 @@ func (v4 *signer) sign() error {
 		}
 	}
 
+	var err error
+	v4.CredValues, err = v4.Credentials.Get()
+	if err != nil {
+		return err
+	}
+
 	if v4.isPresign {
 		v4.Query.Set("X-Amz-Algorithm", authHeaderPrefix)
 		if v4.CredValues.SessionToken != "" {
@@ -230,6 +213,10 @@ func (v4 *signer) sign() error {
 	}
 
 	v4.build()
+
+	if v4.Debug.Matches(aws.LogDebugWithSigning) {
+		v4.logSigningInfo()
+	}
 
 	return nil
 }
@@ -250,7 +237,7 @@ func (v4 *signer) logSigningInfo() {
 		signedURLMsg = fmt.Sprintf(logSignedURLMsg, v4.Request.URL.String())
 	}
 	msg := fmt.Sprintf(logSignInfoMsg, v4.canonicalString, v4.stringToSign, signedURLMsg)
-	v4.Logger.Logf(logging.Debug, msg)
+	v4.Logger.Log(msg)
 }
 
 func (v4 *signer) build() {
@@ -381,7 +368,7 @@ func (v4 *signer) buildCanonicalString() {
 	}
 
 	if v4.ServiceName != "s3" {
-		uri = httpbinding.EscapePath(uri, false)
+		uri = rest.EscapePath(uri, false)
 	}
 
 	v4.canonicalString = strings.Join([]string{
@@ -415,15 +402,13 @@ func (v4 *signer) buildSignature() {
 
 func (v4 *signer) bodyDigest() string {
 	hash := v4.Request.Header.Get("X-Amz-Content-Sha256")
-	if hash == "" || hash == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" {
+	if hash == "" {
 		if v4.isPresign && v4.ServiceName == "s3" {
 			hash = "UNSIGNED-PAYLOAD"
-		} else if stream := v4.SmithyRequest.GetStream(); stream != nil {
-			hash = hex.EncodeToString(makeSha256Reader(v4.SmithyRequest.GetStream()))
-			// Recreate bodies
-			v4.SmithyRequest.RewindStream()
-		} else {
+		} else if v4.Body == nil {
 			hash = hex.EncodeToString(makeSha256([]byte{}))
+		} else {
+			hash = hex.EncodeToString(makeSha256Reader(v4.Body))
 		}
 		v4.Request.Header.Add("X-Amz-Content-Sha256", hash)
 	}
@@ -465,10 +450,12 @@ func makeSha256(data []byte) []byte {
 	return hash.Sum(nil)
 }
 
-func makeSha256Reader(reader io.Reader) []byte {
+func makeSha256Reader(reader io.ReadSeeker) []byte {
 	hash := sha256.New()
-	io.Copy(hash, reader)
+	start, _ := reader.Seek(0, 1)
+	defer reader.Seek(start, 0)
 
+	io.Copy(hash, reader)
 	return hash.Sum(nil)
 }
 

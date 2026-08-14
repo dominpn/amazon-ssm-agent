@@ -36,11 +36,12 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/jsonutil"
 	logger "github.com/aws/amazon-ssm-agent/agent/log/ssmlog"
 	mds "github.com/aws/amazon-ssm-agent/agent/runcommand/mds"
-	ssmmds "github.com/aws/amazon-ssm-agent/agent/runcommand/mds"
-	mdssdkmock "github.com/aws/amazon-ssm-agent/agent/runcommand/mds/mocks"
 	"github.com/aws/amazon-ssm-agent/core/app/runtimeconfiginit"
 	"github.com/aws/amazon-ssm-agent/internal/tests/testdata"
 	"github.com/aws/amazon-ssm-agent/internal/tests/testutils"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/ssmmds"
+	mdssdkmock "github.com/aws/aws-sdk-go/service/ssmmds/ssmmdsiface/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -79,7 +80,7 @@ func (suite *SendFailedReplyTestSuite) SetupTest() {
 	}
 
 	// Mock mds sdk, sendRequest should return error only in case of sending reply to MDS
-	sendMdsSdkRequest := func(req *ssmmds.Request) error {
+	sendMdsSdkRequest := func(req *request.Request) error {
 		switch req.Params.(type) {
 		case *ssmmds.SendReplyInput:
 			return fmt.Errorf("can't send reply")
@@ -136,12 +137,12 @@ func cleanUpTest(suite *SendFailedReplyTestSuite) {
 func (suite *SendFailedReplyTestSuite) TestSaveFailedReply() {
 
 	// Mock MDs service so it returns only one messages, it'll return empty messages after that.
-	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&ssmmds.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
+	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&request.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
 		messageOutput, _ := testutils.GenerateMessages(suite.context, testdata.EchoMDSMessage)
 		return messageOutput
 	}, nil).Times(1)
 
-	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&ssmmds.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
+	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&request.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
 		emptyMessage, _ := testutils.GenerateEmptyMessage(suite.context)
 		return emptyMessage
 	}, nil)
@@ -149,7 +150,7 @@ func (suite *SendFailedReplyTestSuite) TestSaveFailedReply() {
 	// Mock sendReplyRequest to capture the first replyid and verify later that it has been saved to disk
 	// Explicitly set the input of the http request to SendReplyInput so we can detect it later in sendRequest
 	// and fail the request
-	httpSendReplyRequest := &ssmmds.Request{Params: &ssmmds.SendReplyInput{}, HTTPRequest: &http.Request{}}
+	httpSendReplyRequest := &request.Request{Params: &ssmmds.SendReplyInput{}, HTTPRequest: &http.Request{}}
 	var replyId string
 	suite.mdsSdkMock.On("SendReplyRequest", mock.AnythingOfType("*ssmmds.SendReplyInput")).Return(httpSendReplyRequest, func(input *ssmmds.SendReplyInput) *ssmmds.SendReplyOutput {
 		replyId = *input.ReplyId
@@ -213,7 +214,7 @@ func (suite *SendFailedReplyTestSuite) TestSendFailedReply() {
 	}()
 
 	// Mock MDs service to return empty messages.
-	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&ssmmds.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
+	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&request.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
 		emptyMessage, _ := testutils.GenerateEmptyMessage(suite.context)
 		return emptyMessage
 	}, nil)
@@ -222,7 +223,7 @@ func (suite *SendFailedReplyTestSuite) TestSendFailedReply() {
 	sentReply := make(chan bool)
 
 	// Mock sendReplyRequest to capture the replyid and verify later that it is equal to the saved reply on disk
-	suite.mdsSdkMock.On("SendReplyRequest", mock.AnythingOfType("*ssmmds.SendReplyInput")).Return(&ssmmds.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.SendReplyInput) *ssmmds.SendReplyOutput {
+	suite.mdsSdkMock.On("SendReplyRequest", mock.AnythingOfType("*ssmmds.SendReplyInput")).Return(&request.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.SendReplyInput) *ssmmds.SendReplyOutput {
 		replyId := *input.ReplyId
 		suite.T().Logf("Test is sending reply %v", replyId)
 		if replyId == testdata.TestReplyId {
@@ -255,13 +256,13 @@ func (suite *SendFailedReplyTestSuite) TestDeleteOldFailedReply() {
 	}()
 
 	// Mock MDs service to return empty messages.
-	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&ssmmds.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
+	suite.mdsSdkMock.On("GetMessagesRequest", mock.AnythingOfType("*ssmmds.GetMessagesInput")).Return(&request.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.GetMessagesInput) *ssmmds.GetMessagesOutput {
 		emptyMessage, _ := testutils.GenerateEmptyMessage(suite.context)
 		return emptyMessage
 	}, nil)
 
 	// Mock sendReplyRequest to capture the replyid and verify later that it is equal to the saved reply on disk
-	suite.mdsSdkMock.On("SendReplyRequest", mock.AnythingOfType("*ssmmds.SendReplyInput")).Return(&ssmmds.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.SendReplyInput) *ssmmds.SendReplyOutput {
+	suite.mdsSdkMock.On("SendReplyRequest", mock.AnythingOfType("*ssmmds.SendReplyInput")).Return(&request.Request{HTTPRequest: &http.Request{}}, func(input *ssmmds.SendReplyInput) *ssmmds.SendReplyOutput {
 		replyId := *input.ReplyId
 		suite.T().Logf("Test is sending reply %v", replyId)
 		assert.NotEqual(suite.T(), replyId, testdata.TestReplyId, "Agent should not send old sendReplyInput")

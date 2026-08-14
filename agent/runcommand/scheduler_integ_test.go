@@ -31,7 +31,8 @@ import (
 	mds "github.com/aws/amazon-ssm-agent/agent/runcommand/mds"
 	runcommandmock "github.com/aws/amazon-ssm-agent/agent/runcommand/mock"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
-	"github.com/aws/smithy-go"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ssmmds"
 	"github.com/carlescere/scheduler"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -45,7 +46,7 @@ const (
 
 var (
 	errSample         = errors.New("some error")
-	errAwsSample      = smithy.GenericAPIError{Code: "RequestError", Message: "send request failed"}
+	errAwsSample      = awserr.New("RequestError", "send request failed", errSample)
 	stopPolicyTimeout = time.Second * 2
 )
 
@@ -89,7 +90,7 @@ func TestLoop_Once(t *testing.T) {
 
 	// create mocked service and set expectations
 	mdsMock := new(runcommandmock.MockedMDS)
-	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&mds.GetMessagesOutput{}, nil)
+	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&ssmmds.GetMessagesOutput{}, nil)
 	newMdsService = func(context.T) mds.Service {
 		return mdsMock
 	}
@@ -125,7 +126,7 @@ func TestLoop_Multiple_Serial(t *testing.T) {
 
 	// create mocked service and set expectations
 	mdsMock := new(runcommandmock.MockedMDS)
-	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&mds.GetMessagesOutput{}, nil)
+	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&ssmmds.GetMessagesOutput{}, nil)
 	newMdsService = func(context.T) mds.Service {
 		return mdsMock
 	}
@@ -169,7 +170,7 @@ func TestLoop_Once_Error(t *testing.T) {
 
 	// create mocked service and set expectations
 	mdsMock := new(runcommandmock.MockedMDS)
-	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&mds.GetMessagesOutput{}, errSample)
+	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&ssmmds.GetMessagesOutput{}, errSample)
 	newMdsService = func(context.T) mds.Service {
 		return mdsMock
 	}
@@ -205,7 +206,7 @@ func TestLoop_Multiple_Serial_Error(t *testing.T) {
 
 	// create mocked service and set expectations
 	mdsMock := new(runcommandmock.MockedMDS)
-	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&mds.GetMessagesOutput{}, errSample)
+	mdsMock.On("GetMessages", log, sampleInstanceID).Return(&ssmmds.GetMessagesOutput{}, errSample)
 	newMdsService = func(context.T) mds.Service {
 		return mdsMock
 	}
@@ -249,9 +250,9 @@ func TestSendReplyLoop_Multiple_Serial_Error(t *testing.T) {
 
 	// create mocked service and set expectations
 	mdsMock := new(runcommandmock.MockedMDS)
-	mdsMock.On("SendReplyWithInput", mock.AnythingOfType("*log.Mock"), &mds.SendReplyInput{}).Return(errSample)
+	mdsMock.On("SendReplyWithInput", mock.AnythingOfType("*log.Mock"), &ssmmds.SendReplyInput{}).Return(errSample)
 	mdsMock.On("LoadFailedReplies", mock.AnythingOfType("*log.Mock")).Return(replies)
-	mdsMock.On("GetFailedReply", mock.AnythingOfType("*log.Mock"), mock.AnythingOfType("string")).Return(&mds.SendReplyInput{}, nil)
+	mdsMock.On("GetFailedReply", mock.AnythingOfType("*log.Mock"), mock.AnythingOfType("string")).Return(&ssmmds.SendReplyInput{}, nil)
 	newMdsService = func(context.T) mds.Service {
 		return mdsMock
 	}

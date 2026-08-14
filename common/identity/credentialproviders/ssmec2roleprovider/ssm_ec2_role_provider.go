@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	"github.com/aws/amazon-ssm-agent/agent/backoffconfig"
 	"github.com/aws/amazon-ssm-agent/agent/log"
@@ -30,7 +28,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/ssm/rsaauth"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/iirprovider"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 const RegistrationType = "EC2"
@@ -45,7 +44,7 @@ var (
 
 // SSMEC2RoleProvider sends requests for credentials to systems manager signed with AWS SigV4
 type SSMEC2RoleProvider struct {
-	aws.Credentials
+	credentials.Expiry
 	// ExpiryWindow will allow the credentials to trigger refreshing prior to
 	// the credentials actually expiring. This is beneficial so race conditions
 	// with expiring credentials do not cause request to fail unexpectedly
@@ -88,12 +87,12 @@ func (p *SSMEC2RoleProvider) GetInstanceRegion() string {
 	return p.InstanceInfo.Region
 }
 
-func (p *SSMEC2RoleProvider) RetrieveWithContext(ctx context.Context) (aws.Credentials, error) {
+func (p *SSMEC2RoleProvider) RetrieveWithContext(ctx context.Context) (credentials.Value, error) {
 	var err error
 	var roleCreds *ssm.RequestManagedInstanceRoleTokenOutput
 
 	if !p.isEC2InstanceRegistered() {
-		return aws.Credentials{}, fmt.Errorf("ec2 instance not yet registered with Systems Manager")
+		return EmptyCredentials(), fmt.Errorf("ec2 instance not yet registered with Systems Manager")
 	}
 
 	if p.tokenRequestClient == nil {
@@ -107,7 +106,7 @@ func (p *SSMEC2RoleProvider) RetrieveWithContext(ctx context.Context) (aws.Crede
 	exponentialBackoff, err := backoffconfig.GetDefaultExponentialBackoff()
 	if err != nil {
 		p.Log.Errorf("failed to create backoff Config. Error: %v", exponentialBackoff)
-		return aws.Credentials{}, err
+		return EmptyCredentials(), err
 	}
 
 	// Get role token
@@ -117,25 +116,24 @@ func (p *SSMEC2RoleProvider) RetrieveWithContext(ctx context.Context) (aws.Crede
 	}
 
 	// Set the expiration of our credentials
-	p.Credentials.Expires = roleCreds.TokenExpirationDate.Round(0).Add(-p.ExpiryWindow)
-	p.Credentials.CanExpire = true
+	p.SetExpiration(*roleCreds.TokenExpirationDate, p.ExpiryWindow)
 
-	p.Credentials.AccessKeyID = *roleCreds.AccessKeyId
-	p.Credentials.SecretAccessKey = *roleCreds.SecretAccessKey
-	p.Credentials.SessionToken = *roleCreds.SessionToken
-	p.Credentials.Source = ProviderName
-
-	return p.Credentials, nil
+	return credentials.Value{
+		AccessKeyID:     *roleCreds.AccessKeyId,
+		SecretAccessKey: *roleCreds.SecretAccessKey,
+		SessionToken:    *roleCreds.SessionToken,
+		ProviderName:    ProviderName,
+	}, nil
 }
 
 // Retrieve retrieves EC2 credentials from Systems Manager
-func (p *SSMEC2RoleProvider) Retrieve(ctx context.Context) (aws.Credentials, error) {
-	return p.RetrieveWithContext(ctx)
+func (p *SSMEC2RoleProvider) Retrieve() (credentials.Value, error) {
+	return p.RetrieveWithContext(context.Background())
 }
 
 // EmptyCredentials returns empty SSMEC2RoleProvider credentials
-func EmptyCredentials() aws.Credentials {
-	return aws.Credentials{Source: ProviderName}
+func EmptyCredentials() credentials.Value {
+	return credentials.Value{ProviderName: ProviderName}
 }
 
 func (p *SSMEC2RoleProvider) loadRegistrationInfo(instanceId string) *authregister.RegistrationInfo {
@@ -152,17 +150,4 @@ func (p *SSMEC2RoleProvider) loadRegistrationInfo(instanceId string) *authregist
 	}
 
 	return registrationInfo
-}
-
-// IsExpired wraps the IsExpired method of the current provider
-func (p *SSMEC2RoleProvider) IsExpired() bool {
-
-	return p.Credentials.Expired()
-}
-
-// ExpiresAt returns the expiry of shared credentials using shared credentials
-// and returns instance profile role provider expiry otherwise
-func (p *SSMEC2RoleProvider) ExpiresAt() time.Time {
-
-	return p.Credentials.Expires
 }

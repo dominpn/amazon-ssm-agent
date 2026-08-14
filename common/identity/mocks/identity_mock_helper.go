@@ -9,7 +9,6 @@ var (
 	MockAvailabilityZone      = "us-east-1a"
 	MockAvailabilityZoneId    = "use1-az2"
 	MockCredentials           = credentialproviders.GetRemoteCreds()
-	MockCredentialsProvider   = credentialproviders.GetRemoteCredsProvider()
 	MockIdentityType          = "EC2"
 	MockInstanceID            = "i-123123123"
 	MockInstanceType          = "someInstanceType"
@@ -24,7 +23,7 @@ func NewDefaultMockAgentIdentity() *IAgentIdentity {
 
 	agentIdentity.On("AvailabilityZone").Return(MockAvailabilityZone, nil)
 	agentIdentity.On("AvailabilityZoneId").Return(MockAvailabilityZoneId, nil)
-	agentIdentity.On("CredentialsProvider").Return(MockCredentialsProvider)
+	agentIdentity.On("Credentials").Return(MockCredentials, nil)
 	agentIdentity.On("IdentityType").Return(MockIdentityType, nil)
 	agentIdentity.On("InstanceID").Return(MockInstanceID, nil)
 	agentIdentity.On("InstanceType").Return(MockInstanceType, nil)
@@ -43,8 +42,8 @@ func NewMockAgentIdentity(instanceID, region, availabilityZone, instanceType, id
 	agentIdentity := IAgentIdentity{}
 
 	agentIdentity.On("AvailabilityZone").Return(availabilityZone, nil)
+	agentIdentity.On("Credentials").Return(MockCredentials, nil)
 	agentIdentity.On("IdentityType").Return(identityType, nil)
-	agentIdentity.On("CredentialsProvider").Return(MockCredentialsProvider)
 	agentIdentity.On("InstanceID").Return(instanceID, nil)
 	agentIdentity.On("InstanceType").Return(instanceType, nil)
 	agentIdentity.On("IsIdentityEnvironment").Return(true)

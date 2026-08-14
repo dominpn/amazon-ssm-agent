@@ -14,36 +14,21 @@
 package credentialproviders
 
 import (
-	"context"
-	"os"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
-	"github.com/aws/aws-sdk-go-v2/credentials/endpointcreds"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/defaults"
 )
 
-func GetRemoteCreds() aws.Credentials {
-	appCreds := aws.NewCredentialsCache(ec2rolecreds.New())
-	value, err := appCreds.Retrieve(context.TODO())
-	if err != nil {
-		// handle error
-	}
+func GetRemoteCreds() *credentials.Credentials {
+	cfg := defaults.Config()
+	handlers := defaults.Handlers()
+	remoteCreds := defaults.RemoteCredProvider(*cfg, handlers)
 
-	return value
+	return credentials.NewCredentials(remoteCreds)
 }
 
-func GetRemoteCredsProvider() aws.CredentialsProvider {
-	cfg, _ := config.LoadDefaultConfig(context.TODO())
-	provider := cfg.Credentials
-	return provider
-}
+func GetDefaultCreds() *credentials.Credentials {
+	cfg := defaults.Config()
+	handlers := defaults.Handlers()
 
-func GetDefaultCredsProvider() aws.CredentialsProvider {
-	cfg, _ := config.LoadDefaultConfig(context.TODO())
-	return cfg.Credentials
-}
-
-func GetECSCredsProvider() aws.CredentialsProvider {
-	return endpointcreds.New("http://169.254.170.2" + os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"))
+	return defaults.CredChain(cfg, handlers)
 }

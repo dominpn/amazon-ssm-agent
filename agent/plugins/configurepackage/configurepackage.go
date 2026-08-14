@@ -16,7 +16,6 @@
 package configurepackage
 
 import (
-	cont "context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,7 +35,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/packageservice"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/trace"
 	"github.com/aws/amazon-ssm-agent/agent/task"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 const (
@@ -470,7 +469,7 @@ func selectService(context context.T, tracer trace.Tracer, input *ConfigurePacka
 	if packageservice.IsLatest(version) {
 		version = packageservice.Latest
 	}
-	response, err = birdwatcherFacade.GetManifest(cont.TODO(),
+	response, err = birdwatcherFacade.GetManifest(
 		&ssm.GetManifestInput{
 			PackageName:    &input.Name,
 			PackageVersion: &version,

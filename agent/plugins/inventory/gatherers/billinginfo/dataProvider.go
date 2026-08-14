@@ -15,15 +15,15 @@
 package billinginfo
 
 import (
-	"context"
 	"strings"
 
 	"github.com/aws/amazon-ssm-agent/common/identity/identity"
-	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 
-	agentcontext "github.com/aws/amazon-ssm-agent/agent/context"
+	"github.com/aws/amazon-ssm-agent/agent/context"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/model"
-	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 )
 
 var isOnPremInstance = identity.IsOnPremInstance
@@ -32,7 +32,7 @@ var isOnPremInstance = identity.IsOnPremInstance
 var queryIdentityDocument = queryInstanceIdentityDocument
 
 // CollectBillingInfoData collects billing information for linux
-func CollectBillingInfoData(context agentcontext.T) (data []model.BillingInfoData) {
+func CollectBillingInfoData(context context.T) (data []model.BillingInfoData) {
 
 	log := context.Log()
 
@@ -64,23 +64,12 @@ func CollectBillingInfoData(context agentcontext.T) (data []model.BillingInfoDat
 // "instanceType" : "t2.micro",
 // "billingProducts" : [ "bp-878787", "bp-23478" ]
 // }
-func queryInstanceIdentityDocument() (imds.InstanceIdentityDocument, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRetryMaxAttempts(3),
-	)
-	if err != nil {
-		return imds.InstanceIdentityDocument{}, err
-	}
-
-	ec2MetadataService := imds.NewFromConfig(cfg)
-	result, err := ec2MetadataService.GetInstanceIdentityDocument(context.TODO(), &imds.GetInstanceIdentityDocumentInput{})
-	if err != nil {
-		return imds.InstanceIdentityDocument{}, err
-	}
-	return result.InstanceIdentityDocument, nil
+func queryInstanceIdentityDocument() (ec2metadata.EC2InstanceIdentityDocument, error) {
+	ec2MetadataService := ec2metadata.New(session.New(aws.NewConfig().WithMaxRetries(3)))
+	return ec2MetadataService.GetInstanceIdentityDocument()
 }
 
-func parseInstanceIdentityDocumentOutput(context agentcontext.T, identityDocument imds.InstanceIdentityDocument) (data []model.BillingInfoData) {
+func parseInstanceIdentityDocumentOutput(context context.T, identityDocument ec2metadata.EC2InstanceIdentityDocument) (data []model.BillingInfoData) {
 	log := context.Log()
 
 	billingProductIds := identityDocument.BillingProducts

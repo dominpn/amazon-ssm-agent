@@ -17,10 +17,6 @@ package authregister
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-
-	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
 	logger "github.com/aws/amazon-ssm-agent/agent/log"
@@ -28,19 +24,21 @@ import (
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders"
 	"github.com/aws/amazon-ssm-agent/common/identity/credentialproviders/iirprovider"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 // IClient is an interface to the authenticated registration method of the SSM service.
 type IClient interface {
-	RegisterManagedInstance(ctx context.Context, publicKey string, publicKeyType string, fingerprint string, iamRole string, tagsJson string, provider string) (string, error)
+	RegisterManagedInstanceWithContext(ctx context.Context, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider string) (string, error)
 }
 
 // ISsmSdk defines the functions needed from the AWS SSM SDK
 type ISsmSdk interface {
-	RegisterManagedInstance(ctx context.Context, input *ssm.RegisterManagedInstanceInput, optFns ...func(*ssm.Options)) (*ssm.RegisterManagedInstanceOutput, error)
+	RegisterManagedInstanceWithContext(ctx context.Context, input *ssm.RegisterManagedInstanceInput, opts ...request.Option) (*ssm.RegisterManagedInstanceOutput, error)
 }
 
 // Client is a service wrapper that delegates to the ssm sdk.
@@ -58,27 +56,18 @@ type RegistrationInfo struct {
 
 func NewClientWithConfig(log logger.T, appConfig appconfig.SsmagentConfig, imdsClient iirprovider.IEC2MdsSdkClient, awsConfig aws.Config) IClient {
 	if imdsClient != nil {
-		awsConfig.Credentials = &iirprovider.IIRRoleProvider{
+		awsConfig.Credentials = credentials.NewCredentials(&iirprovider.IIRRoleProvider{
 			Config:     &appConfig,
 			Log:        log,
 			IMDSClient: imdsClient,
-		}
+		})
 	} else {
-		awsConfig.Credentials = credentialproviders.GetRemoteCredsProvider()
+		awsConfig.Credentials = credentialproviders.GetRemoteCreds()
 	}
 
-	awsConfig.APIOptions = append(awsConfig.APIOptions, func(stack *middleware.Stack) error {
-		return stack.Build.Add(
-			middleware.BuildMiddlewareFunc("AddUserAgent", func(ctx context.Context, in middleware.BuildInput, next middleware.BuildHandler) (middleware.BuildOutput, middleware.Metadata, error) {
-				req := in.Request.(*smithyhttp.Request)
-				userAgent := fmt.Sprintf("%s/%s", appConfig.Agent.Name, appConfig.Agent.Version)
-				req.Header.Add("User-Agent", userAgent)
-				return next.HandleBuild(ctx, in)
-			}),
-			middleware.After,
-		)
-	})
-	ssmService := ssm.NewFromConfig(awsConfig)
+	sess := session.New(&awsConfig)
+	sess.Handlers.Build.PushBack(request.MakeAddToUserAgentHandler(appConfig.Agent.Name, appConfig.Agent.Version))
+	ssmService := ssm.New(sess)
 
 	return &Client{sdk: ssmService}
 }
@@ -90,23 +79,23 @@ func NewClient(log logger.T, region string, imdsClient iirprovider.IEC2MdsSdkCli
 		log.Warnf("encountered error while loading appconfig - %v", appErr)
 	}
 
-	awsConfig := util.AwsConfig(log, appConfig, "ssm", region)
+	awsConfig := util.AwsConfig(log, appConfig, "ssm", region).WithLogLevel(aws.LogOff)
 
 	if appErr == nil {
 		if appConfig.Ssm.Endpoint != "" {
-			awsConfig.BaseEndpoint = &appConfig.Ssm.Endpoint
+			awsConfig.Endpoint = &appConfig.Ssm.Endpoint
 		}
 
 		if appConfig.Agent.Region != "" {
-			awsConfig.Region = appConfig.Agent.Region
+			awsConfig.Region = &appConfig.Agent.Region
 		}
 	}
 
-	return NewClientWithConfig(log, appConfig, imdsClient, awsConfig)
+	return NewClientWithConfig(log, appConfig, imdsClient, *awsConfig)
 }
 
 // RegisterManagedInstanceWithContext calls the RegisterManagedInstance SSM API
-func (svc *Client) RegisterManagedInstance(ctx context.Context, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider string) (string, error) {
+func (svc *Client) RegisterManagedInstanceWithContext(ctx context.Context, publicKey, publicKeyType, fingerprint, iamRole, tagsJson, provider string) (string, error) {
 	params := ssm.RegisterManagedInstanceInput{
 		PublicKey:     aws.String(publicKey),
 		PublicKeyType: aws.String(publicKeyType),
@@ -131,10 +120,10 @@ func (svc *Client) RegisterManagedInstance(ctx context.Context, publicKey, publi
 			return "", err
 		}
 
-		var ssmTags []ssmtypes.Tag
+		var ssmTags []*ssm.Tag
 		for _, tag := range tags {
 			if tag.Key != "" && tag.Value != "" {
-				ssmTags = append(ssmTags, ssmtypes.Tag{
+				ssmTags = append(ssmTags, &ssm.Tag{
 					Key:   aws.String(tag.Key),
 					Value: aws.String(tag.Value),
 				})
@@ -146,7 +135,7 @@ func (svc *Client) RegisterManagedInstance(ctx context.Context, publicKey, publi
 
 	var result *ssm.RegisterManagedInstanceOutput
 	var err error
-	result, err = svc.sdk.RegisterManagedInstance(ctx, &params)
+	result, err = svc.sdk.RegisterManagedInstanceWithContext(ctx, &params)
 
 	if err != nil {
 		return "", err

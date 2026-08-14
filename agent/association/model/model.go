@@ -22,8 +22,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	"github.com/aws/amazon-ssm-agent/agent/times"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 // InstanceAssociation represents detail information of an association
@@ -31,7 +31,7 @@ type InstanceAssociation struct {
 	DocumentID        string
 	CreateDate        time.Time
 	NextScheduledDate *time.Time
-	Association       *types.InstanceAssociationSummary
+	Association       *ssm.InstanceAssociationSummary
 	ParsedExpression  scheduleexpression.ScheduleExpression
 	Document          *string
 	Errors            []error

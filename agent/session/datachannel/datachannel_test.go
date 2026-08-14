@@ -38,7 +38,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/session/service"
 	serviceMock "github.com/aws/amazon-ssm-agent/agent/session/service/mocks"
 	"github.com/aws/amazon-ssm-agent/agent/task"
-	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -60,7 +61,7 @@ var (
 	datakey                                    = []byte("datakey")
 	token                                      = "token"
 	region                                     = "us-east-1"
-	signer                                     = v4.NewSigner(func(o *v4.SignerOptions) {})
+	signer                                     = &v4.Signer{Credentials: credentials.NewStaticCredentials("AKID", "SECRET", "SESSION")}
 	onMessageHandler                           = func(input []byte) {}
 	payload                                    = []byte("testPayload")
 	versionString                              = "1.1.1.1.1"

@@ -30,6 +30,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 	messageContracts "github.com/aws/amazon-ssm-agent/agent/runcommand/contracts"
 	"github.com/aws/amazon-ssm-agent/agent/times"
+	"github.com/aws/aws-sdk-go/service/ssmmds"
 )
 
 type offlineService struct {
@@ -59,8 +60,8 @@ func NewOfflineService(log log.T, topicPrefix string) (Service, error) {
 }
 
 // GetMessages looks for new local command documents on the filesystem and parses them into messages
-func (ols *offlineService) GetMessages(log log.T, instanceID string) (messages *GetMessagesOutput, err error) {
-	messages = &GetMessagesOutput{}
+func (ols *offlineService) GetMessages(log log.T, instanceID string) (messages *ssmmds.GetMessagesOutput, err error) {
+	messages = &ssmmds.GetMessagesOutput{}
 
 	// Look for unprocessed locally submitted documents
 	var docName, docPath string
@@ -69,7 +70,7 @@ func (ols *offlineService) GetMessages(log log.T, instanceID string) (messages *
 		log.Debugf("offlineservice: error: %v", err.Error())
 		return messages, err
 	}
-	messages.Messages = make([]*Message, 0, len(filenames))
+	messages.Messages = make([]*ssmmds.Message, 0, len(filenames))
 	for _, filename := range filenames {
 		docName = filename
 		docPath = filepath.Join(ols.newCommandDir, docName)
@@ -105,7 +106,7 @@ func (ols *offlineService) GetMessages(log log.T, instanceID string) (messages *
 		}
 		created := times.ToIso8601UTC(time.Now())
 		topic := fmt.Sprintf("%v.%v", ols.TopicPrefix, docName)
-		message := &Message{
+		message := &ssmmds.Message{
 			CreatedDate: &created,
 			Destination: &instanceID,
 			MessageId:   &messageID,
@@ -179,14 +180,14 @@ func (ols *offlineService) LoadFailedReplies(log log.T) []string {
 
 func (ols *offlineService) DeleteFailedReply(log log.T, replyId string) {}
 
-func (ols *offlineService) PersistFailedReply(log log.T, sendReply SendReplyInput) error {
+func (ols *offlineService) PersistFailedReply(log log.T, sendReply ssmmds.SendReplyInput) error {
 	return nil
 }
 
-func (ols *offlineService) GetFailedReply(log log.T, replyId string) (*SendReplyInput, error) {
+func (ols *offlineService) GetFailedReply(log log.T, replyId string) (*ssmmds.SendReplyInput, error) {
 	return nil, nil
 }
 
-func (ols *offlineService) SendReplyWithInput(log log.T, sendReply *SendReplyInput) error {
+func (ols *offlineService) SendReplyWithInput(log log.T, sendReply *ssmmds.SendReplyInput) error {
 	return nil
 }

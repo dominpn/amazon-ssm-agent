@@ -20,8 +20,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
 	"encoding/json"
 
 	"github.com/aws/amazon-ssm-agent/agent/appconfig"
@@ -32,7 +30,8 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/plugins/inventory/datauploader"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
 	ssmSvc "github.com/aws/amazon-ssm-agent/agent/ssm"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 const (
@@ -125,14 +124,6 @@ func (u *ComplianceUploader) UpdateAssociationCompliance(associationID string, i
 	oldHash := u.optimizer.GetContentHash(AssociationComplianceItemName)
 	newComplianceItems, itemContentHash, err := u.ConvertToSsmAssociationComplianceItems(log, associationComplianceEntries, oldHash)
 
-	// Convert []*types.ComplianceItemEntry to []types.ComplianceItemEntry
-	complianceItems := make([]types.ComplianceItemEntry, len(newComplianceItems))
-	for i, item := range newComplianceItems {
-		if item != nil {
-			complianceItems[i] = *item
-		}
-	}
-
 	// 1. When call PutComplianceItem failed, it will fail silently  with an error message the agent should have permission to call
 	// 2. When old date arrive at server side before new date, the server side will discard and use the new date
 	response, err := u.ssmSvc.PutComplianceItems(
@@ -143,7 +134,7 @@ func (u *ComplianceUploader) UpdateAssociationCompliance(associationID string, i
 		instanceID,
 		associationComplianceType,
 		itemContentHash,
-		complianceItems)
+		newComplianceItems)
 
 	if err != nil {
 		err = fmt.Errorf("Unable to update association compliance %v", err)
@@ -163,7 +154,7 @@ func (u *ComplianceUploader) UpdateAssociationCompliance(associationID string, i
 // which contains both contentHash & content. This is done to avoid iterating over the compliance data twice. It throws error when it encounters error during
 // conversion process.
 func (u *ComplianceUploader) ConvertToSsmAssociationComplianceItems(log log.T, associationComplianceEntries []*model.AssociationComplianceItem, oldHash string) (
-	associationComplianceItems []*types.ComplianceItemEntry, contentHash string, err error) {
+	associationComplianceItems []*ssm.ComplianceItemEntry, contentHash string, err error) {
 
 	log.Debugf("Transforming collected compliance data to expected format")
 
@@ -181,20 +172,20 @@ func (u *ComplianceUploader) ConvertToSsmAssociationComplianceItems(log log.T, a
 
 	if newHash == oldHash {
 		log.Debugf("Compliance data for %v is same as before - we can just send content hash", AssociationComplianceItemName)
-		return []*types.ComplianceItemEntry{}, newHash, nil
+		return []*ssm.ComplianceItemEntry{}, newHash, nil
 
 	}
 	log.Debugf("Compliance data for %v is NOT same as before - we send the whole content", AssociationComplianceItemName)
 
 	for _, item := range associationComplianceEntries {
-		var complianceItem = &types.ComplianceItemEntry{
+		var complianceItem = &ssm.ComplianceItemEntry{
 			Id:       aws.String(item.AssociationId),
-			Status:   item.ComplianceStatus,
-			Severity: item.ComplianceSeverity,
+			Status:   aws.String(item.ComplianceStatus),
+			Severity: aws.String(item.ComplianceSeverity),
 			Title:    aws.String(item.Title),
-			Details: map[string]string{
-				"DocumentName":    item.DocumentName,
-				"DocumentVersion": item.DocumentVersion,
+			Details: map[string]*string{
+				"DocumentName":    aws.String(item.DocumentName),
+				"DocumentVersion": aws.String(item.DocumentVersion),
 			},
 		}
 		associationComplianceItems = append(associationComplianceItems, complianceItem)

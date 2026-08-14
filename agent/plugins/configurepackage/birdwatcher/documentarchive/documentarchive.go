@@ -16,7 +16,6 @@
 package documentarchive
 
 import (
-	cont "context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -30,8 +29,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/packageservice"
 	"github.com/aws/amazon-ssm-agent/agent/plugins/configurepackage/trace"
 
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 const (
@@ -43,11 +41,11 @@ type PackageArchive struct {
 	facadeClient  facade.BirdwatcherFacade
 	manifestCache packageservice.ManifestCache
 	archiveType   string
-	documentDesc  *types.DocumentDescription
+	documentDesc  *ssm.DocumentDescription
 	documentArn   string
 	manifest      string
 	docVersion    string
-	attachments   []types.AttachmentContent
+	attachments   []*ssm.AttachmentContent
 	timeUnit      int
 }
 
@@ -62,7 +60,7 @@ func New(facadeClientSession facade.BirdwatcherFacade) archive.IPackageArchive {
 }
 
 // NewDocumentArchive is a constructor for PackageArchive struct (meant for testing)
-func NewDocumentArchive(facadeClientSession facade.BirdwatcherFacade, attachmentsContent []types.AttachmentContent, docDescription *types.DocumentDescription, cache packageservice.ManifestCache, manifestStr string) archive.IPackageArchive {
+func NewDocumentArchive(facadeClientSession facade.BirdwatcherFacade, attachmentsContent []*ssm.AttachmentContent, docDescription *ssm.DocumentDescription, cache packageservice.ManifestCache, manifestStr string) archive.IPackageArchive {
 
 	return &PackageArchive{
 		facadeClient:  facadeClientSession,
@@ -157,7 +155,7 @@ func (da *PackageArchive) DownloadArchiveInfo(tracer trace.Tracer, packageName s
 	MaxDelayBeforeCall := 15 //seconds
 	// random back off before GetDocument call
 	time.Sleep(time.Duration(getRandomBackOffTime(MaxDelayBeforeCall)*(da.timeUnit)) * time.Millisecond)
-	descDocResponse, err := da.facadeClient.DescribeDocument(cont.TODO(),
+	descDocResponse, err := da.facadeClient.DescribeDocument(
 		&ssm.DescribeDocumentInput{
 			Name:        &packageName,
 			VersionName: versionPtr,
@@ -172,8 +170,8 @@ func (da *PackageArchive) DownloadArchiveInfo(tracer trace.Tracer, packageName s
 		return "", fmt.Errorf("Failed to retrieve document description for package installation")
 	}
 
-	if descDocResponse.Document.Status != types.DocumentStatusActive {
-		return "", fmt.Errorf("package document is not currently active, kindly retry when the status is active. Current document status - %v", descDocResponse.Document.Status)
+	if *descDocResponse.Document.Status != ssm.DocumentStatusActive {
+		return "", fmt.Errorf("package document is not currently active, kindly retry when the status is active. Current document status - %v", *descDocResponse.Document.Status)
 	}
 
 	if descDocResponse.Document.Name == nil || *descDocResponse.Document.Name == "" {
@@ -247,7 +245,7 @@ func (da *PackageArchive) getDocument(packageName, version string) (manifest str
 	if version == "" {
 		versionPtr = nil
 	}
-	getDocResponse, err := da.facadeClient.GetDocument(cont.TODO(),
+	getDocResponse, err := da.facadeClient.GetDocument(
 		&ssm.GetDocumentInput{
 			Name:        &packageName,
 			VersionName: versionPtr,
@@ -261,8 +259,8 @@ func (da *PackageArchive) getDocument(packageName, version string) (manifest str
 		return "", fmt.Errorf("Failed to retreive document for package installation")
 	}
 
-	if getDocResponse.Status != types.DocumentStatusActive {
-		return "", fmt.Errorf("package document is not currently active, kindly retry when the status is active. Current document status - %v", getDocResponse.Status)
+	if *getDocResponse.Status != ssm.DocumentStatusActive {
+		return "", fmt.Errorf("package document is not currently active, kindly retry when the status is active. Current document status - %v", *getDocResponse.Status)
 	}
 	// GetDocument returns the Name of the document if it belongs to the account of the instance.
 	// If it is a shared document, GetDocument returns the document ARN as Name

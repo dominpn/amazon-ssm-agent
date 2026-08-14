@@ -24,14 +24,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/smithy-go"
-
 	cloudwatchlogspublisher_mock "github.com/aws/amazon-ssm-agent/agent/agentlogstocloudwatch/cloudwatchlogspublisher/mock"
 	"github.com/aws/amazon-ssm-agent/agent/mocks/context"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -39,7 +37,7 @@ import (
 var (
 	contextMock      = context.NewMockDefault()
 	logMock          = contextMock.Log()
-	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	logGroupName     = "logGroupName"
 	logStreamName    = "logStreamName"
 	sequenceToken    = "sequenceToken"
@@ -91,7 +89,7 @@ func TestCloudWatchLogsService_DescribeLogGroups(t *testing.T) {
 
 	output := cloudwatchlogs.DescribeLogGroupsOutput{}
 
-	cwLogsClientMock.On("DescribeLogGroups", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.DescribeLogGroupsInput")).Return(&output, nil)
+	cwLogsClientMock.On("DescribeLogGroups", mock.AnythingOfType("*cloudwatchlogs.DescribeLogGroupsInput")).Return(&output, nil)
 
 	_, err := service.DescribeLogGroups("LogGroup", "")
 
@@ -108,7 +106,7 @@ func TestCloudWatchLogsService_CreateLogGroup(t *testing.T) {
 
 	output := cloudwatchlogs.CreateLogGroupOutput{}
 
-	cwLogsClientMock.On("CreateLogGroup", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.CreateLogGroupInput")).Return(&output, nil)
+	cwLogsClientMock.On("CreateLogGroup", mock.AnythingOfType("*cloudwatchlogs.CreateLogGroupInput")).Return(&output, nil)
 
 	err := service.CreateLogGroup("LogGroup")
 
@@ -117,14 +115,14 @@ func TestCloudWatchLogsService_CreateLogGroup(t *testing.T) {
 }
 
 func TestCloudWatchLogsService_CreateLogGroup_AccessDenied_LogGroupExists(t *testing.T) {
-	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cloudWatchMock,
 		stopPolicy:           sdkutil.NewStopPolicy("Test", 0),
 	}
-	var logGroups []types.LogGroup
-	logGroup := types.LogGroup{LogGroupName: &logGroupName}
+	var logGroups []*cloudwatchlogs.LogGroup
+	logGroup := &cloudwatchlogs.LogGroup{LogGroupName: &logGroupName}
 	logGroups = append(logGroups, logGroup)
 	logGroupOutput := &cloudwatchlogs.DescribeLogGroupsOutput{
 		LogGroups: logGroups,
@@ -132,8 +130,8 @@ func TestCloudWatchLogsService_CreateLogGroup_AccessDenied_LogGroupExists(t *tes
 	createLogGrpOutput := cloudwatchlogs.CreateLogGroupOutput{}
 	accessDeniedError := fmt.Errorf("access denied")
 
-	cloudWatchMock.On("CreateLogGroup", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.CreateLogGroupInput")).Return(&createLogGrpOutput, accessDeniedError)
-	cloudWatchMock.On("DescribeLogGroups", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.DescribeLogGroupsInput")).Return(logGroupOutput, nil)
+	cloudWatchMock.On("CreateLogGroup", mock.AnythingOfType("*cloudwatchlogs.CreateLogGroupInput")).Return(&createLogGrpOutput, accessDeniedError)
+	cloudWatchMock.On("DescribeLogGroups", mock.AnythingOfType("*cloudwatchlogs.DescribeLogGroupsInput")).Return(logGroupOutput, nil)
 
 	err := service.CreateLogGroup(logGroupName)
 
@@ -142,7 +140,7 @@ func TestCloudWatchLogsService_CreateLogGroup_AccessDenied_LogGroupExists(t *tes
 
 func TestCloudWatchLogsService_CreateLogGroup_AccessDenied_LogGroupNotExists(t *testing.T) {
 
-	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cloudWatchMock,
@@ -153,8 +151,8 @@ func TestCloudWatchLogsService_CreateLogGroup_AccessDenied_LogGroupNotExists(t *
 	noLogGroupError := fmt.Errorf("no log group error")
 	describeLogGroupOutput := &cloudwatchlogs.DescribeLogGroupsOutput{}
 
-	cloudWatchMock.On("CreateLogGroup", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.CreateLogGroupInput")).Return(&createLogGrpOutput, accessDeniedError)
-	cloudWatchMock.On("DescribeLogGroups", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.DescribeLogGroupsInput")).Return(describeLogGroupOutput, noLogGroupError)
+	cloudWatchMock.On("CreateLogGroup", mock.AnythingOfType("*cloudwatchlogs.CreateLogGroupInput")).Return(&createLogGrpOutput, accessDeniedError)
+	cloudWatchMock.On("DescribeLogGroups", mock.AnythingOfType("*cloudwatchlogs.DescribeLogGroupsInput")).Return(describeLogGroupOutput, noLogGroupError)
 
 	err := service.CreateLogGroup(logGroupName)
 
@@ -170,7 +168,7 @@ func TestCloudWatchLogsService_DescribeLogStreams(t *testing.T) {
 
 	output := cloudwatchlogs.DescribeLogStreamsOutput{}
 
-	cwLogsClientMock.On("DescribeLogStreams", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.DescribeLogStreamsInput")).Return(&output, nil)
+	cwLogsClientMock.On("DescribeLogStreams", mock.AnythingOfType("*cloudwatchlogs.DescribeLogStreamsInput")).Return(&output, nil)
 	_, err := service.DescribeLogStreams("LogGroup", "LogStream", "")
 
 	assert.NoError(t, err, "DescribeLogStreams should be called successfully")
@@ -186,7 +184,7 @@ func TestCloudWatchLogsService_CreateLogStream(t *testing.T) {
 
 	output := cloudwatchlogs.CreateLogStreamOutput{}
 
-	cwLogsClientMock.On("CreateLogStream", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.CreateLogStreamInput")).Return(&output, nil)
+	cwLogsClientMock.On("CreateLogStream", mock.AnythingOfType("*cloudwatchlogs.CreateLogStreamInput")).Return(&output, nil)
 	err := service.CreateLogStream("LogGroup", "LogStream")
 
 	assert.NoError(t, err, "CreateLogStream should be called successfully")
@@ -195,22 +193,22 @@ func TestCloudWatchLogsService_CreateLogStream(t *testing.T) {
 
 func TestCloudWatchLogsService_CreateLogStream_AccessDenied_Exists(t *testing.T) {
 
-	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cloudWatchMock,
 		stopPolicy:           sdkutil.NewStopPolicy("Test", 0),
 	}
-	var logStreams []types.LogStream
-	logStream := types.LogStream{LogStreamName: &logStreamName}
+	var logStreams []*cloudwatchlogs.LogStream
+	logStream := &cloudwatchlogs.LogStream{LogStreamName: &logStreamName}
 	logStreams = append(logStreams, logStream)
 	describeLogStreamOutput := &cloudwatchlogs.DescribeLogStreamsOutput{
 		LogStreams: logStreams,
 	}
 	createLogStreamOutput := cloudwatchlogs.CreateLogStreamOutput{}
 
-	cloudWatchMock.On("CreateLogStream", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.CreateLogStreamInput")).Return(&createLogStreamOutput, nil)
-	cloudWatchMock.On("DescribeLogStreams", mock.Anything, mock.Anything).Return(describeLogStreamOutput, nil)
+	cloudWatchMock.On("CreateLogStream", mock.AnythingOfType("*cloudwatchlogs.CreateLogStreamInput")).Return(&createLogStreamOutput, nil)
+	cloudWatchMock.On("DescribeLogStreams", mock.Anything).Return(describeLogStreamOutput, nil)
 
 	err := service.CreateLogStream("LogGroup", "LogStream")
 
@@ -219,7 +217,7 @@ func TestCloudWatchLogsService_CreateLogStream_AccessDenied_Exists(t *testing.T)
 
 func TestCloudWatchLogsService_CreateLogStream_AccessDenied_NotExists(t *testing.T) {
 
-	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cloudWatchMock := cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cloudWatchMock,
@@ -230,8 +228,8 @@ func TestCloudWatchLogsService_CreateLogStream_AccessDenied_NotExists(t *testing
 	createLogStreamOutput := cloudwatchlogs.CreateLogStreamOutput{}
 	describeLogStreamOutput := &cloudwatchlogs.DescribeLogStreamsOutput{}
 
-	cloudWatchMock.On("CreateLogStream", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.CreateLogStreamInput")).Return(&createLogStreamOutput, accessDeniedError)
-	cloudWatchMock.On("DescribeLogStreams", mock.Anything, mock.Anything).Return(describeLogStreamOutput, noLogStreamError)
+	cloudWatchMock.On("CreateLogStream", mock.AnythingOfType("*cloudwatchlogs.CreateLogStreamInput")).Return(&createLogStreamOutput, accessDeniedError)
+	cloudWatchMock.On("DescribeLogStreams", mock.Anything).Return(describeLogStreamOutput, noLogStreamError)
 
 	err := service.CreateLogStream("LogGroup", logStreamName)
 
@@ -247,11 +245,11 @@ func TestCloudWatchLogsService_PutLogEvents(t *testing.T) {
 
 	output := cloudwatchlogs.PutLogEventsOutput{}
 
-	messages := []types.InputLogEvent{}
+	messages := []*cloudwatchlogs.InputLogEvent{}
 
 	sequenceToken := "1234"
 
-	cwLogsClientMock.On("PutLogEvents", mock.Anything, mock.AnythingOfType("*cloudwatchlogs.PutLogEventsInput")).Return(&output, nil)
+	cwLogsClientMock.On("PutLogEvents", mock.AnythingOfType("*cloudwatchlogs.PutLogEventsInput")).Return(&output, nil)
 	_, err := service.PutLogEvents(messages, "LogGroup", "LogStream", &sequenceToken)
 
 	assert.NoError(t, err, "PutLogEvents should be called successfully")
@@ -601,7 +599,7 @@ func TestCloudWatchLogsService_getNextMessage_cleanupControlCharacters(t *testin
 }
 
 func TestCloudWatchLogsService_StreamData(t *testing.T) {
-	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cwLogsClientMock,
@@ -643,21 +641,21 @@ func TestCloudWatchLogsService_StreamData(t *testing.T) {
 	formattedMessageBytes, _ := json.Marshal(service.CloudWatchMessage)
 	formattedMessage := string(formattedMessageBytes)
 
-	var events []*types.InputLogEvent
-	event := &types.InputLogEvent{
+	var events []*cloudwatchlogs.InputLogEvent
+	event := &cloudwatchlogs.InputLogEvent{
 		Message:   aws.String(formattedMessage),
 		Timestamp: aws.Int64(time.Now().UnixNano() / int64(time.Millisecond)),
 	}
 	events = append(events, event)
 
-	var logGroups []*types.LogGroup
-	logGroup := &types.LogGroup{LogGroupName: &logGroupName}
+	var logGroups []*cloudwatchlogs.LogGroup
+	logGroup := &cloudwatchlogs.LogGroup{LogGroupName: &logGroupName}
 	logGroups = append(logGroups, logGroup)
 
-	cwLogsClientMock.On("CreateLogStream", mock.Anything, mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, nil)
-	cwLogsClientMock.On("DescribeLogStreams", mock.Anything, mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
+	cwLogsClientMock.On("CreateLogStream", mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, nil)
+	cwLogsClientMock.On("DescribeLogStreams", mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
 	// PutLogEvents called once indicates logs was uploaded all at once
-	cwLogsClientMock.On("PutLogEvents", mock.Anything, mock.Anything).Return(&cloudwatchlogs.PutLogEventsOutput{}, nil).Once()
+	cwLogsClientMock.On("PutLogEvents", mock.Anything).Return(&cloudwatchlogs.PutLogEventsOutput{}, nil).Once()
 
 	// isFileComplete set to true to disable streaming of logs
 	success := service.StreamData(
@@ -675,7 +673,7 @@ func TestCloudWatchLogsService_StreamData(t *testing.T) {
 }
 
 func TestCloudWatchLogsService_StreamData_StreamingEnabled(t *testing.T) {
-	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cwLogsClientMock,
@@ -717,21 +715,21 @@ func TestCloudWatchLogsService_StreamData_StreamingEnabled(t *testing.T) {
 	formattedMessageBytes, _ := json.Marshal(service.CloudWatchMessage)
 	formattedMessage := string(formattedMessageBytes)
 
-	var events []*types.InputLogEvent
-	event := &types.InputLogEvent{
+	var events []*cloudwatchlogs.InputLogEvent
+	event := &cloudwatchlogs.InputLogEvent{
 		Message:   aws.String(formattedMessage),
 		Timestamp: aws.Int64(time.Now().UnixNano() / int64(time.Millisecond)),
 	}
 	events = append(events, event)
 
-	var logGroups []*types.LogGroup
-	logGroup := &types.LogGroup{LogGroupName: &logGroupName}
+	var logGroups []*cloudwatchlogs.LogGroup
+	logGroup := &cloudwatchlogs.LogGroup{LogGroupName: &logGroupName}
 	logGroups = append(logGroups, logGroup)
 
-	cwLogsClientMock.On("CreateLogStream", mock.Anything, mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, nil)
-	cwLogsClientMock.On("DescribeLogStreams", mock.Anything, mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
+	cwLogsClientMock.On("CreateLogStream", mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, nil)
+	cwLogsClientMock.On("DescribeLogStreams", mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
 	// PutLogEvents calls twice indicates streaming of logs was done
-	cwLogsClientMock.On("PutLogEvents", mock.Anything, mock.Anything).Return(&cloudwatchlogs.PutLogEventsOutput{}, nil).Twice()
+	cwLogsClientMock.On("PutLogEvents", mock.Anything).Return(&cloudwatchlogs.PutLogEventsOutput{}, nil).Twice()
 
 	go func() {
 		time.Sleep(1800 * time.Millisecond)
@@ -755,7 +753,7 @@ func TestCloudWatchLogsService_StreamData_StreamingEnabled(t *testing.T) {
 }
 
 func TestCloudWatchLogsService_StreamData_MissingStreamPermissions(t *testing.T) {
-	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cwLogsClientMock,
@@ -797,19 +795,19 @@ func TestCloudWatchLogsService_StreamData_MissingStreamPermissions(t *testing.T)
 	formattedMessageBytes, _ := json.Marshal(service.CloudWatchMessage)
 	formattedMessage := string(formattedMessageBytes)
 
-	var events []*types.InputLogEvent
-	event := &types.InputLogEvent{
+	var events []*cloudwatchlogs.InputLogEvent
+	event := &cloudwatchlogs.InputLogEvent{
 		Message:   aws.String(formattedMessage),
 		Timestamp: aws.Int64(time.Now().UnixNano() / int64(time.Millisecond)),
 	}
 	events = append(events, event)
 
-	var logGroups []*types.LogGroup
-	logGroup := &types.LogGroup{LogGroupName: &logGroupName}
+	var logGroups []*cloudwatchlogs.LogGroup
+	logGroup := &cloudwatchlogs.LogGroup{LogGroupName: &logGroupName}
 	logGroups = append(logGroups, logGroup)
 
-	cwLogsClientMock.On("CreateLogStream", mock.Anything, mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, errors.New("error"))
-	cwLogsClientMock.On("DescribeLogStreams", mock.Anything, mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
+	cwLogsClientMock.On("CreateLogStream", mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, errors.New("error"))
+	cwLogsClientMock.On("DescribeLogStreams", mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
 
 	go func() {
 		time.Sleep(1800 * time.Millisecond)
@@ -833,7 +831,7 @@ func TestCloudWatchLogsService_StreamData_MissingStreamPermissions(t *testing.T)
 }
 
 func TestCloudWatchLogsService_StreamData_InvalidLogStream(t *testing.T) {
-	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault()
+	cwLogsClientMock = cloudwatchlogspublisher_mock.NewClientMockDefault(logMock)
 	service := CloudWatchLogsService{
 		context:              contextMock,
 		cloudWatchLogsClient: cwLogsClientMock,
@@ -865,26 +863,25 @@ func TestCloudWatchLogsService_StreamData_InvalidLogStream(t *testing.T) {
 	formattedMessageBytes, _ := json.Marshal(service.CloudWatchMessage)
 	formattedMessage := string(formattedMessageBytes)
 
-	var events []*types.InputLogEvent
-	event := &types.InputLogEvent{
+	var events []*cloudwatchlogs.InputLogEvent
+	event := &cloudwatchlogs.InputLogEvent{
 		Message:   aws.String(formattedMessage),
 		Timestamp: aws.Int64(time.Now().UnixNano() / int64(time.Millisecond)),
 	}
 	events = append(events, event)
 
-	var logGroups []*types.LogGroup
-	logGroup := &types.LogGroup{LogGroupName: &logGroupName}
+	var logGroups []*cloudwatchlogs.LogGroup
+	logGroup := &cloudwatchlogs.LogGroup{LogGroupName: &logGroupName}
 	logGroups = append(logGroups, logGroup)
 
-	cwLogsClientMock.On("CreateLogStream", mock.Anything, mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, nil)
-	cwLogsClientMock.On("DescribeLogStreams", mock.Anything, mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
+	cwLogsClientMock.On("CreateLogStream", mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, nil)
+	cwLogsClientMock.On("DescribeLogStreams", mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
 	// Returns a ResourceNotFoundException error when PutLogEvents is called
-	cwLogsClientMock.On("PutLogEvents", mock.Anything, mock.Anything).Return(
+	cwLogsClientMock.On("PutLogEvents", mock.Anything).Return(
 		&cloudwatchlogs.PutLogEventsOutput{},
-		smithy.GenericAPIError{
-			Code:    "ResourceNotFoundException",
-			Message: "Mocked ResourceNotFound Response from AWS API",
-		},
+		awserr.New("ResourceNotFoundException",
+			"Mocked ResourceNotFound Response from AWS API",
+			nil),
 	)
 
 	go func() {
@@ -916,7 +913,7 @@ func TestCloudWatchLogsService_IsLogGroupEncryptedWithKMSWithEncryptionDisabled(
 	}
 
 	logGroupName := "logGroup"
-	testCwlLogGroup := types.LogGroup{
+	testCwlLogGroup := cloudwatchlogs.LogGroup{
 		LogGroupName: &logGroupName,
 	}
 
@@ -933,7 +930,7 @@ func TestCloudWatchLogsService_IsLogGroupEncryptedWithKMSWithEncryptionEnabled(t
 
 	logGroupName := "logGroup"
 	kmsKeyId := "kmsKeyId"
-	testCwlLogGroup := types.LogGroup{
+	testCwlLogGroup := cloudwatchlogs.LogGroup{
 		LogGroupName: &logGroupName,
 		KmsKeyId:     &kmsKeyId,
 	}

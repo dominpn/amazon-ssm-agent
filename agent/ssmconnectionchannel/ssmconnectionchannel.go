@@ -61,21 +61,15 @@ func SetConnectionChannel(context context.T, state MGSState) {
 
 	// case for MGS is successfully established
 	if state == MGSSuccess {
+		// If SSMConnectionChannel status is MGS, it means that the MDS shutdown was retried before.
+		// Hence, when we received MGS Success again, return from this function without trying to shut down MDS
 		if connectionChannel.SSMConnectionChannel == contracts.MGS {
 			return
 		}
 
+		// Shutdown MDS when MGS connection is successful
 		connectionChannel.SSMConnectionChannel = contracts.MGS
 		mdsSwitchChannel <- false
-
-		// Check if channel is still open before sending
-		//select {
-		//case mdsSwitchChannel <- false:
-		//	// Successfully sent
-		//default:
-		//	// Channel is closed or blocked, skip sending
-		//	context.Log().Debug("mdsSwitchChannel is closed, skipping MDS shutdown signal")
-		//}
 		return
 	}
 

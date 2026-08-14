@@ -4,27 +4,27 @@ import (
 	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 type InnerProvider struct {
-	Credentials  aws.Credentials
 	RetrieveErr  error
 	ProviderName string
 	Expiry       time.Time
 }
 
-func (p *InnerProvider) Retrieve(ctx context.Context) (aws.Credentials, error) {
+func (p *InnerProvider) RetrieveWithContext(ctx context.Context) (credentials.Value, error) {
 	if p.RetrieveErr != nil {
-		return aws.Credentials{Source: p.ProviderName}, p.RetrieveErr
+		return credentials.Value{}, p.RetrieveErr
 	}
 
-	creds := aws.Credentials{Source: p.ProviderName, Expires: p.Expiry}
+	return credentials.Value{
+		ProviderName: p.ProviderName,
+	}, nil
+}
 
-	p.Credentials.Expires = creds.Expires
-	p.Credentials.CanExpire = true
-
-	return creds, nil
+func (p *InnerProvider) Retrieve() (credentials.Value, error) {
+	return p.RetrieveWithContext(context.Background())
 }
 
 func (p *InnerProvider) IsExpired() bool {
@@ -33,10 +33,8 @@ func (p *InnerProvider) IsExpired() bool {
 
 func (p *InnerProvider) ExpiresAt() time.Time {
 	return p.Expiry
-	//return p.Credentials.Expires
 }
 
 func (p *InnerProvider) SetExpiration(expiration time.Time, window time.Duration) {
-	p.Credentials.Expires = expiration.Add(-window)
-	p.Expiry = p.Credentials.Expires
+	p.Expiry = expiration.Add(-window)
 }

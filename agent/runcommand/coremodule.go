@@ -25,6 +25,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/framework/docmanager"
 	mdsService "github.com/aws/amazon-ssm-agent/agent/runcommand/mds"
 	"github.com/aws/amazon-ssm-agent/agent/sdkutil"
+	"github.com/aws/aws-sdk-go/service/ssmmds"
 	"github.com/carlescere/scheduler"
 )
 
@@ -122,7 +123,7 @@ func (s *RunCommandService) listenReply(resultChan chan contracts.DocumentResult
 	}
 }
 
-func (s *RunCommandService) processMessage(msg *mdsService.Message) {
+func (s *RunCommandService) processMessage(msg *ssmmds.Message) {
 	var (
 		docState *contracts.DocumentState
 		err      error

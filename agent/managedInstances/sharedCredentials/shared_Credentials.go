@@ -22,6 +22,7 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/log"
 
 	"github.com/aws/amazon-ssm-agent/agent/fileutil"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"gopkg.in/ini.v1"
 )
 
@@ -41,7 +42,7 @@ func GetSharedCredsFilePath(filename string) (string, error) {
 
 	homeDir := getPlatformSpecificHomeLocation()
 	if homeDir == "" {
-		return "", fmt.Errorf("userHomeNotFound, user home directory not found")
+		return "", awserr.New("UserHomeNotFound", "user home directory not found.", nil)
 	}
 
 	if filename == "" {
@@ -76,7 +77,7 @@ func Store(log log.T, accessKeyID, secretAccessKey, sessionToken, shareFilePath,
 	if !fileutil.Exists(shareFilePath) {
 		err := createFile(shareFilePath)
 		if err != nil {
-			return fmt.Errorf("SharedCredentialsStore, failed to create shared credentials file. Err: %v", err)
+			return awserr.New("SharedCredentialsStore", "failed to create shared credentials file", err)
 		}
 	}
 
@@ -86,7 +87,7 @@ func Store(log log.T, accessKeyID, secretAccessKey, sessionToken, shareFilePath,
 			log.Warn("Failed to load shared credentials file. Force update is enabled, creating a new empty config.", err)
 			config = ini.Empty()
 		} else {
-			return fmt.Errorf("SharedCredentialsStore, failed to load shared credentials file. Err: %v", err)
+			return awserr.New("SharedCredentialsStore", "failed to load shared credentials file", err)
 		}
 	}
 
@@ -101,7 +102,7 @@ func Store(log log.T, accessKeyID, secretAccessKey, sessionToken, shareFilePath,
 
 	err = config.SaveTo(shareFilePath)
 	if err != nil {
-		return fmt.Errorf("SharedCredentialsStore, failed to save profile. Err: %v", err)
+		return awserr.New("SharedCredentialsStore", "failed to save profile", err)
 	}
 
 	return nil

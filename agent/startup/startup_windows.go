@@ -19,7 +19,6 @@ package startup
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -33,8 +32,9 @@ import (
 	"github.com/aws/amazon-ssm-agent/agent/startup/model"
 	"github.com/aws/amazon-ssm-agent/agent/startup/serialport"
 	"github.com/aws/amazon-ssm-agent/agent/version"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 const (
@@ -142,13 +142,8 @@ func (p *Processor) IsAllowed() bool {
 
 	// check if metadata is rechable which indicates the instance is in EC2.
 	// maximum retry is 10 to ensure the failure/error is not caused by arbitrary reason.
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRetryMaxAttempts(10))
-	if err != nil {
-		return false
-	}
-
-	client := imds.NewFromConfig(cfg)
-	if _, err := client.GetMetadata(context.TODO(), &imds.GetMetadataInput{Path: ""}); err != nil {
+	ec2MetadataService := ec2metadata.New(session.New(aws.NewConfig().WithMaxRetries(10)))
+	if metadata, err := ec2MetadataService.GetMetadata(""); err != nil || metadata == "" {
 		// This is as designed to check if instance is in EC2, so it is not an error
 		return false
 	}
