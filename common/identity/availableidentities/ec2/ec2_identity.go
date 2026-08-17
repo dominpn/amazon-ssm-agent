@@ -50,6 +50,7 @@ var (
 	newImdsClient                = ec2metadata.New
 	updateServerInfo             = registration.UpdateServerInfo
 	getStoredInstanceId          = registration.InstanceID
+	getStoredRegion              = registration.Region
 	getStoredPrivateKey          = registration.PrivateKey
 	getStoredPublicKey           = registration.PublicKey
 	getStoredPrivateKeyType      = registration.PrivateKeyType
@@ -172,7 +173,7 @@ func (i *Identity) Register(ctx context.Context) error {
 
 	var publicKey, privateKey, keyType string
 	if registrationInfo.PrivateKey != "" && registrationInfo.PublicKey != "" && registrationInfo.KeyType != "" {
-		i.Log.Info("Found registration keys")
+		i.Log.Info("Found existing registration keypair")
 		publicKey = registrationInfo.PublicKey
 		privateKey = registrationInfo.PrivateKey
 		keyType = registrationInfo.KeyType
@@ -186,7 +187,7 @@ func (i *Identity) Register(ctx context.Context) error {
 
 	i.Log.Info("Checking write access before registering")
 	// TODO @khotia: do we need to register as ec2 for non-managed?
-	err = updateServerInfo("", "", publicKey, privateKey, keyType, IdentityType, registration.EC2RegistrationVaultKey, "")
+	err = updateServerInfo(instanceId, "", publicKey, privateKey, keyType, IdentityType, registration.EC2RegistrationVaultKey, "")
 	if err != nil {
 		return fmt.Errorf("unable to save registration information. %w\nTry running as sudo/administrator.", err)
 	}
@@ -235,10 +236,22 @@ func (i *Identity) loadRegistrationInfo(instanceId string) *authregister.Registr
 		KeyType:    getStoredPrivateKeyType(i.Log, IdentityType, registration.EC2RegistrationVaultKey),
 		PublicKey:  getStoredPublicKey(i.Log, IdentityType, registration.EC2RegistrationVaultKey),
 	}
+	storedRegion := getStoredRegion(i.Log, IdentityType, registration.EC2RegistrationVaultKey)
 
-	if registrationInfo.InstanceId == "" || registrationInfo.PrivateKey == "" ||
-		registrationInfo.KeyType == "" || registrationInfo.InstanceId != instanceId {
-		registrationInfo.InstanceId = "" // setting it as blank to try registration
+	instanceIdMatch := registrationInfo.InstanceId == instanceId
+	registrationConfirmed := storedRegion != ""
+	hasKeypair := registrationInfo.PrivateKey != "" && registrationInfo.KeyType != ""
+
+	if !instanceIdMatch {
+		if registrationInfo.InstanceId != "" {
+			i.Log.Infof("Stored instance id %s does not match current instance %s, re-initializing registration",
+				registrationInfo.InstanceId, instanceId)
+		}
+		return &authregister.RegistrationInfo{}
+	}
+
+	if !registrationConfirmed || !hasKeypair {
+		registrationInfo.InstanceId = ""
 	}
 
 	return registrationInfo

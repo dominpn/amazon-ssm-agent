@@ -69,6 +69,10 @@ func setupRegistrationInfo(registrationInfo *authregister.RegistrationInfo) {
 	getStoredPrivateKeyType = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		return registrationInfo.KeyType
 	}
+
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return "SomeRegion"
+	}
 }
 
 func TestSSMEC2RoleProvider_IsEC2InstanceRegistered_ReturnsTrue_WhenRegistrationInfoExists(t *testing.T) {
@@ -88,6 +92,24 @@ func TestSSMEC2RoleProvider_IsEC2InstanceRegistered_ReturnsTrue_WhenRegistration
 
 	assert.True(t, roleProvider.isEC2InstanceRegistered())
 	assert.True(t, roleProvider.isEC2InstanceRegistered())
+}
+
+func TestSSMEC2RoleProvider_IsEC2InstanceRegistered_ReturnsFalse_WhenStoredIdMismatch(t *testing.T) {
+	storedInfo := &authregister.RegistrationInfo{
+		InstanceId: "i-0123456780",
+		PrivateKey: "SomePrivateKey",
+		KeyType:    "SomeKeyType",
+		PublicKey:  "SomePublicKey",
+	}
+	setupRegistrationInfo(storedInfo)
+
+	roleProvider := &SSMEC2RoleProvider{
+		Log:          logmocks.NewMockLog(),
+		InstanceInfo: &InstanceInfo{InstanceId: "i-currentInstance"},
+	}
+
+	assert.False(t, roleProvider.isEC2InstanceRegistered())
+	assert.Nil(t, roleProvider.registrationInfo)
 }
 
 func TestSSMEC2RoleProvider_Retrieve_ReturnsCredentials(t *testing.T) {

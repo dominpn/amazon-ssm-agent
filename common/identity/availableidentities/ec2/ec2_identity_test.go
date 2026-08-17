@@ -335,6 +335,14 @@ func TestEC2Identity_Register_RegistersEC2InstanceWithSSM_WhenNotRegistered(t *t
 		return ""
 	}
 
+	getStoredInstanceId = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return ""
+	}
+
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return ""
+	}
+
 	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return nil
@@ -353,92 +361,90 @@ func TestEC2Identity_Register_RegistersEC2InstanceWithSSM_WhenNotRegistered(t *t
 	assert.NoError(t, err)
 }
 
-func TestEC2Identity_Register_New_WhenAlreadyRegisteredWithOldInstanceId(t *testing.T) {
+func TestEC2Identity_Register_EarlyReturns_WhenAlreadyRegistered(t *testing.T) {
+	region := "SomeRegion"
+	liveInstanceId := "i-liveInstanceId"
+	client := &mocks.IEC2MdsSdkClient{}
+	client.On("RegionWithContext", mock.Anything).Return(region, nil).Once()
+	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
+
+	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return "SomePrivateKey"
+	}
+	getStoredPrivateKeyType = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return "SomePrivateKeyType"
+	}
+	getStoredPublicKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return "SomePublicKey"
+	}
+	getStoredInstanceId = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return liveInstanceId
+	}
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return region
+	}
+
+	updateServerInfoCalled := false
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
+		updateServerInfoCalled = true
+		return nil
+	}
+
+	identity := &Identity{
+		Log:    logmocks.NewMockLog(),
+		Client: client,
+	}
+
+	// Act
+	err := identity.Register(context.Background())
+
+	// Assert
+	assert.NoError(t, err)
+	assert.False(t, updateServerInfoCalled)
+}
+
+func TestEC2Identity_Register_ReusesStoredKey_WhenInterrupted(t *testing.T) {
 	// Arrange
 	region := "SomeRegion"
-	testPrivateKey := "SomePrivateKey"
-	testPrivateKeyType := "SomePrivateKeyType"
 	liveInstanceId := "i-liveInstanceId"
 	client := &mocks.IEC2MdsSdkClient{}
 	client.On("RegionWithContext", mock.Anything).Return(region, nil).Once()
 	authRegisterService := &authregistermocks.IClient{}
-	// One in Register() function and the other call in loadRegistrationInfo function
+
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
 	authRegisterService.On("RegisterManagedInstanceWithContext",
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
 	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
-		return testPrivateKey
+		return "SomePrivateKey"
 	}
 
 	getStoredPrivateKeyType = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
-		return testPrivateKeyType
+		return "SomePrivateKeyType"
 	}
 
+	getStoredPublicKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		assert.Equal(t, IdentityType, manifestFileNamePrefix)
+		return "SomePublicKey"
+	}
+
+	// Interrupted registration on THIS instance: the instance id was stamped with the interim
+	// key material, but no region was recorded because registration never completed.
 	getStoredInstanceId = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return liveInstanceId
 	}
 
-	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
-		assert.Equal(t, privateKeyType, testPrivateKeyType)
-		assert.Equal(t, privateKey, testPrivateKey)
-		assert.Equal(t, IdentityType, manifestFileNamePrefix)
-		return nil
-	}
-
-	identity := &Identity{
-		Log:                 logmocks.NewMockLog(),
-		Client:              client,
-		AuthRegisterService: authRegisterService,
-	}
-
-	// Act
-	err := identity.Register(context.Background())
-
-	// Assert
-	assert.NoError(t, err)
-}
-
-func TestEC2Identity_ReRegister_InfoPublicKey_NotBlank(t *testing.T) {
-	// Arrange
-	region := "SomeRegion"
-	testPrivateKey := "SomePrivateKey"
-	testPrivateKeyType := "SomePrivateKeyType"
-	testPublicKey := "SomePublicKey"
-	liveInstanceId := "i-liveInstanceId"
-	client := &mocks.IEC2MdsSdkClient{}
-	client.On("RegionWithContext", mock.Anything).Return(region, nil).Once()
-	authRegisterService := &authregistermocks.IClient{}
-	// One in Register() function and the other call in loadRegistrationInfo function
-	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
-	authRegisterService.On("RegisterManagedInstanceWithContext",
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
-	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
-		assert.Equal(t, IdentityType, manifestFileNamePrefix)
-		return testPrivateKey
-	}
-
-	getStoredPrivateKeyType = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
-		assert.Equal(t, IdentityType, manifestFileNamePrefix)
-		return testPrivateKeyType
-	}
-
-	getStoredPublicKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
-		assert.Equal(t, IdentityType, manifestFileNamePrefix)
-		return testPublicKey
-	}
-
-	getStoredInstanceId = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
-		assert.Equal(t, IdentityType, manifestFileNamePrefix)
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		return ""
 	}
 
+	updateServerInfoCalled := false
 	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
-		assert.Equal(t, privateKeyType, testPrivateKeyType)
-		assert.Equal(t, privateKey, testPrivateKey)
-		assert.Equal(t, publicKey, testPublicKey)
+		updateServerInfoCalled = true
+		assert.Equal(t, "SomePublicKey", publicKey)
+		assert.Equal(t, "SomePrivateKey", privateKey)
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return nil
 	}
@@ -454,10 +460,10 @@ func TestEC2Identity_ReRegister_InfoPublicKey_NotBlank(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
+	assert.True(t, updateServerInfoCalled)
 }
 
-func TestEC2Identity_ReRegister_InfoPublicKey_Blank(t *testing.T) {
-	// Arrange
+func TestEC2Identity_Register_GeneratesFreshKey_WhenNoStoredPublicKey(t *testing.T) {
 	region := "SomeRegion"
 	testPrivateKey := "SomePrivateKey"
 	testPrivateKeyType := "SomePrivateKeyType"
@@ -465,7 +471,7 @@ func TestEC2Identity_ReRegister_InfoPublicKey_Blank(t *testing.T) {
 	client := &mocks.IEC2MdsSdkClient{}
 	client.On("RegionWithContext", mock.Anything).Return(region, nil).Once()
 	authRegisterService := &authregistermocks.IClient{}
-	// One in Register() function and the other call in loadRegistrationInfo function
+
 	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
 	authRegisterService.On("RegisterManagedInstanceWithContext",
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
@@ -489,6 +495,10 @@ func TestEC2Identity_ReRegister_InfoPublicKey_Blank(t *testing.T) {
 		return ""
 	}
 
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return ""
+	}
+
 	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return nil
@@ -505,6 +515,56 @@ func TestEC2Identity_ReRegister_InfoPublicKey_Blank(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
+}
+
+func TestEC2Identity_Register_DiscardsVault_WhenStoredIdMismatch(t *testing.T) {
+	region := "SomeRegion"
+	liveInstanceId := "i-liveInstanceId"
+	storedInstanceId := "i-0123456780"
+	client := &mocks.IEC2MdsSdkClient{}
+	client.On("RegionWithContext", mock.Anything).Return(region, nil).Once()
+	authRegisterService := &authregistermocks.IClient{}
+	client.On("GetMetadataWithContext", mock.Anything, ec2InstanceIDResource).Return(liveInstanceId, nil).Twice()
+	authRegisterService.On("RegisterManagedInstanceWithContext",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(liveInstanceId, nil)
+
+	getStoredPrivateKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return "SomeOldPrivateKey"
+	}
+	getStoredPrivateKeyType = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return "Rsa"
+	}
+	getStoredPublicKey = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return "SomeOldPublicKey"
+	}
+	getStoredInstanceId = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return storedInstanceId
+	}
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return region
+	}
+
+	updateServerInfoCalled := false
+	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {
+		updateServerInfoCalled = true
+		assert.NotEqual(t, "SomeOldPublicKey", publicKey)
+		assert.NotEqual(t, "SomeOldPrivateKey", privateKey)
+		assert.Equal(t, IdentityType, manifestFileNamePrefix)
+		return nil
+	}
+
+	identity := &Identity{
+		Log:                 logmocks.NewMockLog(),
+		Client:              client,
+		AuthRegisterService: authRegisterService,
+	}
+
+	// Act
+	err := identity.Register(context.Background())
+
+	// Assert
+	assert.NoError(t, err)
+	assert.True(t, updateServerInfoCalled)
 }
 
 func TestEC2Identity_Register_ReturnsRegistrationInfo_WhenAlreadyRegistered(t *testing.T) {
@@ -529,6 +589,11 @@ func TestEC2Identity_Register_ReturnsRegistrationInfo_WhenAlreadyRegistered(t *t
 	getStoredInstanceId = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return testInstanceId
+	}
+
+	// Complete registration for this instance (id + region recorded) → early return.
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return testRegion
 	}
 
 	identity := &Identity{
@@ -579,6 +644,10 @@ func TestEC2Identity_Register_ReturnsNil_WhenInstanceAlreadyRegistered(t *testin
 	getStoredInstanceId = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
 		assert.Equal(t, IdentityType, manifestFileNamePrefix)
 		return testInstanceId
+	}
+
+	getStoredRegion = func(log log.T, manifestFileNamePrefix, vaultKey string) string {
+		return ""
 	}
 
 	updateServerInfo = func(instanceID, region, publicKey, privateKey, privateKeyType, manifestFileNamePrefix, vaultKey, provider string) (err error) {

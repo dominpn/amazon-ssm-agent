@@ -37,6 +37,7 @@ const RegistrationType = "EC2"
 var (
 	newIirRsaAuth           = rsaauth.NewIirRsaClient
 	getStoredInstanceId     = registration.InstanceID
+	getStoredRegion         = registration.Region
 	getStoredPrivateKey     = registration.PrivateKey
 	getStoredPublicKey      = registration.PublicKey
 	getStoredPrivateKeyType = registration.PrivateKeyType
@@ -143,10 +144,22 @@ func (p *SSMEC2RoleProvider) loadRegistrationInfo(instanceId string) *authregist
 		KeyType:    getStoredPrivateKeyType(p.Log, RegistrationType, registration.EC2RegistrationVaultKey),
 		PublicKey:  getStoredPublicKey(p.Log, RegistrationType, registration.EC2RegistrationVaultKey),
 	}
+	storedRegion := getStoredRegion(p.Log, RegistrationType, registration.EC2RegistrationVaultKey)
 
-	if registrationInfo.InstanceId == "" || registrationInfo.PrivateKey == "" ||
-		registrationInfo.KeyType == "" || registrationInfo.InstanceId != instanceId {
-		registrationInfo.InstanceId = "" // setting it as blank to try registration
+	instanceIdMatch := registrationInfo.InstanceId == instanceId
+	registrationConfirmed := storedRegion != ""
+	hasKeypair := registrationInfo.PrivateKey != "" && registrationInfo.KeyType != ""
+
+	if !instanceIdMatch {
+		if registrationInfo.InstanceId != "" {
+			p.Log.Infof("Stored instance id %s does not match current instance %s, registration not usable",
+				registrationInfo.InstanceId, instanceId)
+		}
+		return &authregister.RegistrationInfo{}
+	}
+
+	if !registrationConfirmed || !hasKeypair {
+		registrationInfo.InstanceId = ""
 	}
 
 	return registrationInfo
