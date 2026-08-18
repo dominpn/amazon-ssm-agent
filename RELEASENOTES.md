@@ -1,5 +1,18 @@
 Latest
 ===============
+- Add bounds check for HeaderLength in AgentMessage Deserialize
+- Bump github.com/go-git/go-git/v5 to v5.19.2
+- Bump golang.org/x/sync to v0.21.0
+- Detect Azure Linux and potential future unregistered Linux platforms
+- Fix Windows session command parsing by removing shlex
+- Fix shell injection in Windows domainjoin plugin parameters
+- Prevent control channel deadlock on ProcessorBufferFull
+- Revert migration from aws-sdk-go v1 to aws-sdk-go-v2 change
+- Update the logic for loading RegistrationInfo
+- Upgrade Go version to 1.25.13
+
+3.3.5068.0
+===============
 - Migrate from aws-sdk-go v1 to aws-sdk-go-v2
 - Fix flaky registration/connection channel tests
 - Sync AWS SDK fork in extra/ with multicloud vendor changes
