@@ -40,10 +40,10 @@ const (
 
 // Patch document for dedicated reboot processing
 var patchDocumentNames = []string{
-	"AWS-RunPatchBaseline",
-	"AWS-InstallWindowsUpdates",
-	"AWS-RunPatchBaselineAssociation",
-	"AWS-RunPatchBaselineWithHooks",
+	"-RunPatchBaseline",
+	"-InstallWindowsUpdates",
+	"-RunPatchBaselineAssociation",
+	"-RunPatchBaselineWithHooks",
 }
 
 type OutOfProcExecuter struct {
@@ -226,7 +226,7 @@ func (e *OutOfProcExecuter) initialize(stopTimer chan bool) (ipc filewatcherbase
 	// patch documents are state safe with dedicated state tracking and this allow for correct patch visibility
 	isPatchDocument := false
 	for _, name := range patchDocumentNames {
-		if e.docState.DocumentInformation.DocumentName == name {
+		if strings.Contains(e.docState.DocumentInformation.DocumentName, name) {
 			isPatchDocument = true
 			break
 		}
